@@ -14,4 +14,12 @@ void main() {
     l.sort(naturalCompare);
     expect(l.first, 'a.mkv');
   });
+
+  test('handles non-BMP characters (emoji) without garbling order', () {
+    // 🎬 is a non-BMP code point (surrogate pair in UTF-16). Numeric runs must
+    // still sort correctly even when an emoji precedes them.
+    final names = ['🎬ep10.mkv', '🎬ep2.mkv', '🎬ep1.mkv'];
+    names.sort(naturalCompare);
+    expect(names, ['🎬ep1.mkv', '🎬ep2.mkv', '🎬ep10.mkv']);
+  });
 }

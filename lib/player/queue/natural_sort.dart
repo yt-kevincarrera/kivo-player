@@ -23,7 +23,9 @@ List<String> _tokenize(String s) {
   final out = <String>[];
   final buf = StringBuffer();
   bool? digit;
-  for (final ch in s.codeUnits) {
+  // Iterate runes (full Unicode code points) so non-BMP characters such as
+  // emoji in filenames aren't split into surrogate halves and garbled.
+  for (final ch in s.runes) {
     final isDigit = ch >= 0x30 && ch <= 0x39;
     if (digit != null && isDigit != digit && buf.isNotEmpty) {
       out.add(buf.toString());
