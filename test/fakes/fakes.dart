@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:kivo_player/core/settings/settings_store.dart';
 import 'package:kivo_player/player/engine/playback_engine.dart';
+import 'package:kivo_player/player/resume/resume_store.dart';
 
 class InMemorySettingsStore implements SettingsStore {
   Map<String, dynamic>? _data;
@@ -55,4 +56,14 @@ class FakePlaybackEngine implements PlaybackEngine {
   Future<void> dispose() async {
     _pos.close(); _dur.close(); _playing.close(); _buffering.close();
   }
+}
+
+class InMemoryResumeStore implements ResumeStore {
+  final Map<String, int> data = {};
+  @override
+  int? secondsFor(String key) => data[key];
+  @override
+  Future<void> put(String key, int seconds) async => data[key] = seconds;
+  @override
+  Future<void> remove(String key) async => data.remove(key);
 }
