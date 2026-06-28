@@ -6,6 +6,7 @@ import '../../fakes/fakes.dart';
 void main() {
   test('positionProvider reflects engine stream', () async {
     final engine = FakePlaybackEngine();
+    addTearDown(engine.dispose);
     final container = ProviderContainer(overrides: [
       playbackEngineProvider.overrideWithValue(engine),
     ]);
