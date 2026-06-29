@@ -46,7 +46,7 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
               onPressed: () => ctrl.setRate(round2(rate - st.speedFineStep)),
             ),
             Text('${rate.toStringAsFixed(2)}x',
-                style: const TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.bold)),
+                style: const TextStyle(color: KivoColors.gold, fontSize: 40, fontWeight: FontWeight.bold)),
             IconButton(
               icon: KivoIcon(KivoIcons.plus, size: 24, color: Colors.white),
               onPressed: () => ctrl.setRate(round2(rate + st.speedFineStep)),
@@ -65,7 +65,27 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
           runSpacing: 8,
           children: [
             for (final p in st.speedPresets)
-              ActionChip(label: Text('${p}x'), onPressed: () => ctrl.setRate(p)),
+              GestureDetector(
+                onTap: () => ctrl.setRate(p),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: (p - rate).abs() < 0.001
+                        ? KivoColors.gold.withValues(alpha: 0.22)
+                        : Colors.white.withValues(alpha: 0.06),
+                    border: Border.all(
+                      color: (p - rate).abs() < 0.001 ? KivoColors.gold : Colors.white24,
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text('${p}x',
+                      style: TextStyle(
+                        color: (p - rate).abs() < 0.001 ? KivoColors.gold : Colors.white70,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      )),
+                ),
+              ),
           ],
         ),
         const SizedBox(height: 12),
