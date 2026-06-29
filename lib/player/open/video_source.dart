@@ -3,6 +3,19 @@ import '../resume/resume_service.dart';
 import '../queue/folder_queue_scanner.dart';
 import '../queue/file_system_lister.dart';
 
+/// An immutable snapshot of the currently-opened video and its folder queue.
+///
+/// **Resume-key and folder-queue stability assumption (Plan 1):**
+/// Both the resume service (keyed by [path]) and the folder-queue scanner
+/// (which lists siblings of [path]) assume [path] is a stable filesystem path
+/// as supplied by the file picker (e.g. `/storage/emulated/0/Movies/ep1.mkv`).
+///
+/// When the app receives a share intent on Android, the system may deliver a
+/// `content://` URI or a transient cache copy whose path changes between
+/// launches. In those cases resume lookup will silently miss and the folder
+/// scanner will return an empty sibling list (falling back to a single-item
+/// queue containing only [path] — no crash). Normalizing `content://` URIs to
+/// stable paths is deferred to a later plan.
 class VideoSession {
   final String path;
   final List<String> queue;
