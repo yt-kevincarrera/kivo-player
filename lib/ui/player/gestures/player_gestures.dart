@@ -22,6 +22,7 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   double _width = 1, _height = 1;
   bool _leftSide = true;
   bool _holdLeft = false;
+  bool _holding = false; // true while a hold-to-speed long-press is active
   double _brightness = 0.5;
   double _volume01 = 0.5;
   Duration _seekStart = Duration.zero;
@@ -60,12 +61,14 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   }
 
   void _onVerticalStart(DragStartDetails d) {
+    if (_holding) return; // a hold-to-speed gesture owns this touch
     _leftSide = d.localPosition.dx < _width / 2;
     _volume01 = (ref.read(volumePercentProvider) / 100).clamp(0.0, 1.0);
     ref.read(deviceControlsProvider).currentBrightness().then((b) => _brightness = b);
   }
 
   void _onVerticalUpdate(DragUpdateDetails d) {
+    if (_holding) return; // don't change brightness/volume while holding to speed
     final st = ref.read(settingsProvider);
     final ctrl = ref.read(playerControllerProvider);
     if (_leftSide) {
@@ -89,6 +92,7 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   }
 
   void _onHorizontalUpdate(DragUpdateDetails d) {
+    if (_holding) return; // don't scrub while holding to speed
     final st = ref.read(settingsProvider);
     if (!st.horizontalSeek) return;
     final total = ref.read(durationProvider).value ?? Duration.zero;
@@ -101,6 +105,7 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   void _onLongPressStart(LongPressStartDetails d) {
     final st = ref.read(settingsProvider);
     final ctrl = ref.read(playerControllerProvider);
+    _holding = true;
     _holdLeft = d.localPosition.dx < _width / 2;
     if (_holdLeft) {
       ctrl.setRate(st.holdLeftSpeed);
@@ -127,6 +132,7 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
       ref.read(playerControllerProvider).setRate(1.0);
     }
     ref.read(holdSpeedProvider.notifier).state = null;
+    _holding = false;
   }
 
   @override
