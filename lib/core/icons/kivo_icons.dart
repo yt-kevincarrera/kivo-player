@@ -126,11 +126,28 @@ class KivoIcons {
     '<circle cx="12" cy="12" r="3.6" fill="$_g"/>',
   );
 
+  static final String brightnessLow = _wrap(
+    '<g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4 V5.8"/>'
+    '<path d="M12 18.2 V20"/><path d="M4 12 H5.8"/><path d="M18.2 12 H20"/></g>'
+    '<circle cx="12" cy="12" r="2.4" fill="$_g"/>',
+  );
+
   static final String volume = _wrap(
     '<path d="M4 9 H7 L11.5 5 V19 L7 15 H4 Z" fill="currentColor" stroke="currentColor" '
     'stroke-width="1.4" stroke-linejoin="round"/>'
     '<g fill="none" stroke="$_g" stroke-width="2" stroke-linecap="round">'
     '<path d="M14.5 9 A4 4 0 0 1 14.5 15"/><path d="M17 6.5 A8 8 0 0 1 17 17.5"/></g>',
+  );
+
+  static final String volumeMute = _wrap(
+    '<path d="M4 9 H7 L11.5 5 V19 L7 15 H4 Z" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>'
+    '<g stroke="$_g" stroke-width="2" stroke-linecap="round"><path d="M15.5 9.5 L20.5 14.5"/>'
+    '<path d="M20.5 9.5 L15.5 14.5"/></g>',
+  );
+
+  static final String volumeLow = _wrap(
+    '<path d="M4 9 H7 L11.5 5 V19 L7 15 H4 Z" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>'
+    '<path d="M14.5 9 A4 4 0 0 1 14.5 15" fill="none" stroke="$_g" stroke-width="2" stroke-linecap="round"/>',
   );
 
   static final String speed = _wrap(

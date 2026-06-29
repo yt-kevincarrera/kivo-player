@@ -27,4 +27,24 @@ void main() {
     // drain the 800 ms auto-clear timer so no pending timers remain
     await tester.pump(const Duration(milliseconds: 801));
   });
+
+  testWidgets('HudOverlay renders brightness HUD with label', (tester) async {
+    final s = await SettingsService.load(InMemorySettingsStore());
+    final c = ProviderContainer(overrides: [
+      settingsServiceProvider.overrideWithValue(s),
+    ]);
+    addTearDown(c.dispose);
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: c,
+      child: const MaterialApp(home: Scaffold(body: HudOverlay())),
+    ));
+    expect(find.text('30%'), findsNothing);
+
+    c.read(hudProvider.notifier).show(HudKind.brightness, 0.3, '30%');
+    await tester.pump();
+    expect(find.text('30%'), findsOneWidget);
+
+    // drain the 800 ms auto-clear timer so no pending timers remain
+    await tester.pump(const Duration(milliseconds: 801));
+  });
 }
