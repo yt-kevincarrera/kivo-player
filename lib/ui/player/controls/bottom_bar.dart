@@ -4,6 +4,8 @@ import '../../../core/icons/kivo_icons.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../player/control/player_controller.dart';
 import '../speed/speed_panel.dart';
+import '../state/controls_visibility.dart';
+import '../state/lock_state.dart';
 import 'seek_bar.dart';
 
 class BottomBar extends ConsumerWidget {
@@ -24,7 +26,14 @@ class BottomBar extends ConsumerWidget {
               child: Text('${rate.toStringAsFixed(2)}x',
                   style: TextStyle(color: accent, fontWeight: FontWeight.w600)),
             ),
-            IconButton(color: Colors.white38, icon: KivoIcon(KivoIcons.lock, size: 24, opacity: 0.38), onPressed: null),
+            IconButton(
+              color: Colors.white,
+              icon: KivoIcon(KivoIcons.lock, size: 24, color: Colors.white),
+              onPressed: () {
+                ref.read(lockProvider.notifier).lock();
+                ref.read(controlsVisibleProvider.notifier).hide();
+              },
+            ),
             IconButton(color: Colors.white38, icon: KivoIcon(KivoIcons.aspect, size: 24, opacity: 0.38), onPressed: null),
             IconButton(color: Colors.white38, icon: KivoIcon(KivoIcons.rotate, size: 24, opacity: 0.38), onPressed: null),
           ],

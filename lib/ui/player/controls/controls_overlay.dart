@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/icons/kivo_icons.dart';
+import '../../../core/settings/settings_provider.dart';
 import '../state/controls_visibility.dart';
+import '../state/lock_state.dart';
 import 'bottom_bar.dart';
 import 'center_controls.dart';
 import 'top_bar.dart';
@@ -10,42 +13,63 @@ class ControlsOverlay extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final visible = ref.watch(controlsVisibleProvider);
+    final locked = ref.watch(lockProvider);
+    final accent = Color(ref.watch(settingsProvider).accentColor);
     return AnimatedOpacity(
       opacity: visible ? 1 : 0,
       duration: const Duration(milliseconds: 200),
       child: IgnorePointer(
         ignoring: !visible,
-        child: Stack(
-          children: [
-            Positioned(
-              top: 0, left: 0, right: 0,
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(8, 8, 8, 24),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter, end: Alignment.bottomCenter,
-                    colors: [Colors.black54, Colors.transparent],
+        child: locked
+            ? Center(
+                child: GestureDetector(
+                  onLongPress: () => ref.read(lockProvider.notifier).unlock(),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.55),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Column(mainAxisSize: MainAxisSize.min, children: [
+                      KivoIcon(KivoIcons.lock, size: 30, color: accent),
+                      const SizedBox(height: 6),
+                      const Text('mantén para desbloquear',
+                          style: TextStyle(color: Colors.white70, fontSize: 11)),
+                    ]),
                   ),
                 ),
-                child: const SafeArea(bottom: false, child: TopBar()),
-              ),
-            ),
-            const Center(child: CenterControls()),
-            Positioned(
-              bottom: 0, left: 0, right: 0,
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(12, 24, 12, 8),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter, end: Alignment.topCenter,
-                    colors: [Colors.black87, Colors.transparent],
+              )
+            : Stack(
+                children: [
+                  Positioned(
+                    top: 0, left: 0, right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(8, 8, 8, 24),
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter, end: Alignment.bottomCenter,
+                          colors: [Colors.black54, Colors.transparent],
+                        ),
+                      ),
+                      child: const SafeArea(bottom: false, child: TopBar()),
+                    ),
                   ),
-                ),
-                child: const SafeArea(top: false, child: BottomBar()),
+                  const Center(child: CenterControls()),
+                  Positioned(
+                    bottom: 0, left: 0, right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(12, 24, 12, 8),
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.bottomCenter, end: Alignment.topCenter,
+                          colors: [Colors.black87, Colors.transparent],
+                        ),
+                      ),
+                      child: const SafeArea(top: false, child: BottomBar()),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }

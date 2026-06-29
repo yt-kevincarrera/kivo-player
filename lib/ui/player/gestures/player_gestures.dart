@@ -8,6 +8,7 @@ import '../../../player/control/player_controller.dart';
 import '../../../player/engine/playback_provider.dart';
 import '../state/controls_visibility.dart';
 import '../state/hud_state.dart';
+import '../state/lock_state.dart';
 import '../speed/speed_ladder_overlay.dart';
 
 class PlayerGestures extends ConsumerStatefulWidget {
@@ -154,10 +155,18 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
 
   @override
   Widget build(BuildContext context) {
+    final locked = ref.watch(lockProvider);
     return LayoutBuilder(
       builder: (context, constraints) {
         _width = constraints.maxWidth;
         _height = constraints.maxHeight;
+        if (locked) {
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => ref.read(controlsVisibleProvider.notifier).toggle(),
+            child: widget.child,
+          );
+        }
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () => ref.read(controlsVisibleProvider.notifier).toggle(),
