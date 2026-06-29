@@ -21,4 +21,17 @@ void main() {
       '/movies/ep10.mkv',
     ]);
   });
+
+  test('handles backslash paths and uppercase extensions', () {
+    final lister = FakeFileSystemLister({
+      r'C:\Videos': [
+        r'C:\Videos\b.MKV',
+        r'C:\Videos\a.Mp4',
+        r'C:\Videos\readme.TXT',
+      ],
+    });
+    final scanner = FolderQueueScanner(lister);
+    final result = scanner.siblingsOf(r'C:\Videos\b.MKV');
+    expect(result, [r'C:\Videos\a.Mp4', r'C:\Videos\b.MKV']);
+  });
 }
