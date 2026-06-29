@@ -84,9 +84,7 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
     } else {
       _volPct = dragVolumePercent(_volPct, d.delta.dy, _height, st.volumeSensitivity, _volCap);
       ctrl.setVolumePercent(_volPct);
-      final boosting = _volPct > 100;
-      final label = boosting ? '${_volPct.round()}%  boost' : '${_volPct.round()}%';
-      ref.read(hudProvider.notifier).show(HudKind.volume, _volPct / st.volumeBoostMax, label);
+      ref.read(hudProvider.notifier).show(HudKind.volume, _volPct / 100, '${_volPct.round()}%');
     }
   }
 
