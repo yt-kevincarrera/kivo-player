@@ -12,6 +12,7 @@ import 'gestures/player_gestures.dart';
 import 'hud/hud_overlay.dart';
 import 'speed/speed_ladder_overlay.dart';
 import 'state/aspect_state.dart';
+import 'state/orientation_state.dart';
 
 class PlayerScreen extends ConsumerStatefulWidget {
   const PlayerScreen({super.key});
@@ -32,8 +33,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     super.initState();
     _deviceControls = ref.read(deviceControlsProvider);
     WidgetsBinding.instance.addObserver(this);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _start());
-    _deviceControls.setOrientation([DeviceOrientationLock.landscape]);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(orientationProvider.notifier).apply();
+      _start();
+    });
     _deviceControls.keepAwake(true);
     _deviceControls.setImmersive(true);
   }
