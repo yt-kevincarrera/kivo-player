@@ -8,6 +8,7 @@ import '../../../player/control/player_controller.dart';
 import '../../../player/engine/playback_provider.dart';
 import '../state/controls_visibility.dart';
 import '../state/hud_state.dart';
+import '../speed/speed_ladder_overlay.dart';
 
 class PlayerGestures extends ConsumerStatefulWidget {
   final Widget child;
@@ -20,6 +21,7 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   double _lastTapDx = 0;
   double _width = 1, _height = 1;
   bool _leftSide = true;
+  bool _holdLeft = false;
   double _brightness = 0.5;
   double _volume01 = 0.5;
   Duration _seekStart = Duration.zero;
@@ -96,6 +98,37 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
     ref.read(hudProvider.notifier).show(HudKind.seek, 0, _fmt(target));
   }
 
+  void _onLongPressStart(LongPressStartDetails d) {
+    final st = ref.read(settingsProvider);
+    final ctrl = ref.read(playerControllerProvider);
+    _holdLeft = d.localPosition.dx < _width / 2;
+    if (_holdLeft) {
+      ctrl.setRate(st.holdLeftSpeed);
+      ref.read(holdSpeedProvider.notifier).state = st.holdLeftSpeed;
+    } else {
+      final v = holdRightSpeedFor(d.localPosition.dy, _height, st.holdRightMin, st.holdRightMax);
+      ctrl.setRate(v);
+      ref.read(holdSpeedProvider.notifier).state = v;
+    }
+    _haptic();
+  }
+
+  void _onLongPressMove(LongPressMoveUpdateDetails d) {
+    if (_holdLeft) return;
+    final st = ref.read(settingsProvider);
+    final v = holdRightSpeedFor(d.localPosition.dy, _height, st.holdRightMin, st.holdRightMax);
+    ref.read(playerControllerProvider).setRate(v);
+    ref.read(holdSpeedProvider.notifier).state = v;
+  }
+
+  void _onLongPressEnd(LongPressEndDetails d) {
+    final st = ref.read(settingsProvider);
+    if (_holdLeft || st.holdRightReleaseToNormal) {
+      ref.read(playerControllerProvider).setRate(1.0);
+    }
+    ref.read(holdSpeedProvider.notifier).state = null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -111,6 +144,9 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
           onVerticalDragUpdate: _onVerticalUpdate,
           onHorizontalDragStart: _onHorizontalStart,
           onHorizontalDragUpdate: _onHorizontalUpdate,
+          onLongPressStart: _onLongPressStart,
+          onLongPressMoveUpdate: _onLongPressMove,
+          onLongPressEnd: _onLongPressEnd,
           child: widget.child,
         );
       },
