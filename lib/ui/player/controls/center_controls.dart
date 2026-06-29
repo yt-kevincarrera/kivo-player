@@ -19,6 +19,9 @@ class CenterControls extends ConsumerWidget {
         IconButton(
           iconSize: 34,
           color: Colors.white,
+          padding: const EdgeInsets.all(18),
+          constraints: const BoxConstraints(minWidth: 68, minHeight: 68),
+          splashRadius: 34,
           icon: KivoIcon(KivoIcons.replay10, size: 34, color: Colors.white),
           onPressed: () {
             ref.read(hudProvider.notifier).show(HudKind.seek, -1.0, '-${skip}s');
@@ -37,6 +40,9 @@ class CenterControls extends ConsumerWidget {
         IconButton(
           iconSize: 34,
           color: Colors.white,
+          padding: const EdgeInsets.all(18),
+          constraints: const BoxConstraints(minWidth: 68, minHeight: 68),
+          splashRadius: 34,
           icon: KivoIcon(KivoIcons.forward10, size: 34, color: Colors.white),
           onPressed: () {
             ref.read(hudProvider.notifier).show(HudKind.seek, 1.0, '+${skip}s');
