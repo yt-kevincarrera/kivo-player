@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/icons/kivo_icons.dart';
+import '../../../core/settings/settings_provider.dart';
 import '../../../player/open/video_source.dart';
 
 class TopBar extends ConsumerWidget {
@@ -28,6 +29,14 @@ class TopBar extends ConsumerWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+        ),
+        IconButton(
+          color: Colors.white,
+          icon: KivoIcon(KivoIcons.info, size: 24, color: Colors.white),
+          onPressed: () {
+            final s = ref.read(settingsProvider);
+            ref.read(settingsProvider.notifier).set(s.copyWith(showInfoOverlay: !s.showInfoOverlay));
+          },
         ),
         // Disabled until later plans (Plan 3 / Hito 3)
         IconButton(color: Colors.white38, icon: KivoIcon(KivoIcons.subtitles, size: 24, opacity: 0.38), onPressed: null),
