@@ -23,6 +23,7 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   bool _leftSide = true;
   bool _holdLeft = false;
   bool _holding = false; // true while a hold-to-speed long-press is active
+  double? _lastHoldSpeed;
   double _brightness = 0.5;
   double _volume01 = 0.5;
   Duration _seekStart = Duration.zero;
@@ -110,10 +111,12 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
     if (_holdLeft) {
       ctrl.setRate(st.holdLeftSpeed);
       ref.read(holdSpeedProvider.notifier).state = st.holdLeftSpeed;
+      _lastHoldSpeed = st.holdLeftSpeed;
     } else {
       final v = holdRightSpeedFor(d.localPosition.dy, _height, st.holdRightMin, st.holdRightMax);
       ctrl.setRate(v);
       ref.read(holdSpeedProvider.notifier).state = v;
+      _lastHoldSpeed = v;
     }
     _haptic();
   }
@@ -124,6 +127,10 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
     final v = holdRightSpeedFor(d.localPosition.dy, _height, st.holdRightMin, st.holdRightMax);
     ref.read(playerControllerProvider).setRate(v);
     ref.read(holdSpeedProvider.notifier).state = v;
+    if (v != _lastHoldSpeed) {
+      _haptic();
+      _lastHoldSpeed = v;
+    }
   }
 
   void _onLongPressEnd(LongPressEndDetails d) {
@@ -132,6 +139,7 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
       ref.read(playerControllerProvider).setRate(1.0);
     }
     ref.read(holdSpeedProvider.notifier).state = null;
+    _lastHoldSpeed = null;
     _holding = false;
   }
 

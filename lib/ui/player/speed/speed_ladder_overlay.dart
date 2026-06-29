@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
 import '../../../player/control/gesture_math.dart';
 
@@ -15,7 +16,8 @@ class SpeedLadderOverlay extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final speed = ref.watch(holdSpeedProvider);
     if (speed == null) return const SizedBox.shrink();
-    final steps = [4.0, 3.4, 2.8, 2.2, 1.6, 1.0];
+    final st = ref.watch(settingsProvider);
+    final steps = [for (var i = 5; i >= 0; i--) ladderSpeed(i / 5, st.holdRightMin, st.holdRightMax, 6)];
     return IgnorePointer(
       child: Stack(
         children: [
