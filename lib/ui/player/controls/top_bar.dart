@@ -30,10 +30,10 @@ class TopBar extends ConsumerWidget {
               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
         ),
         // Disabled until later plans (Plan 3 / Hito 3)
-        IconButton(color: Colors.white38, icon: KivoIcon(KivoIcons.subtitles, size: 24, color: Colors.white38), onPressed: null),
-        IconButton(color: Colors.white38, icon: KivoIcon(KivoIcons.pip, size: 24, color: Colors.white38), onPressed: null),
-        IconButton(color: Colors.white38, icon: KivoIcon(KivoIcons.audio, size: 24, color: Colors.white38), onPressed: null),
-        IconButton(color: Colors.white38, icon: KivoIcon(KivoIcons.more, size: 24, color: Colors.white38), onPressed: null),
+        IconButton(color: Colors.white38, icon: KivoIcon(KivoIcons.subtitles, size: 24, opacity: 0.38), onPressed: null),
+        IconButton(color: Colors.white38, icon: KivoIcon(KivoIcons.pip, size: 24, opacity: 0.38), onPressed: null),
+        IconButton(color: Colors.white38, icon: KivoIcon(KivoIcons.audio, size: 24, opacity: 0.38), onPressed: null),
+        IconButton(color: Colors.white38, icon: KivoIcon(KivoIcons.more, size: 24, opacity: 0.38), onPressed: null),
       ],
     );
   }
