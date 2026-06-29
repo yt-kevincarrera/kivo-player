@@ -1,4 +1,5 @@
 import 'package:media_kit/media_kit.dart';
+import 'package:media_kit_video/media_kit_video.dart';
 import 'playback_engine.dart';
 
 class MediaKitEngine implements PlaybackEngine {
@@ -6,6 +7,10 @@ class MediaKitEngine implements PlaybackEngine {
 
   @override
   dynamic get nativePlayer => _player;
+
+  @override
+  Object? createVideoController() => VideoController(_player);
+
   @override
   Stream<Duration> get positionStream => _player.stream.position;
   @override

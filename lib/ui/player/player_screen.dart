@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit_video/media_kit_video.dart';
-import 'package:media_kit/media_kit.dart';
 import '../../player/engine/playback_provider.dart';
 import '../../player/open/video_source.dart';
 
@@ -11,7 +10,8 @@ class PlayerScreen extends ConsumerStatefulWidget {
   ConsumerState<PlayerScreen> createState() => _PlayerScreenState();
 }
 
-class _PlayerScreenState extends ConsumerState<PlayerScreen> {
+class _PlayerScreenState extends ConsumerState<PlayerScreen>
+    with WidgetsBindingObserver {
   VideoController? _controller;
   Duration _lastPosition = Duration.zero;
   Duration _lastDuration = Duration.zero;
@@ -20,7 +20,16 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) => _start());
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      _saveProgress();
+    }
   }
 
   Future<void> _start() async {
@@ -31,9 +40,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     final resume = ref.read(resumeServiceProvider);
     final startAt = resume.positionFor(session.path) ?? Duration.zero;
 
-    final native = engine.nativePlayer;
-    if (native is Player) {
-      _controller = VideoController(native);
+    final c = engine.createVideoController();
+    if (c is VideoController) {
+      _controller = c;
       setState(() {});
     }
     await engine.open(session.path, startAt: startAt);
@@ -47,7 +56,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
 
   @override
   void dispose() {
-    _saveProgress();
+    WidgetsBinding.instance.removeObserver(this);
+    _saveProgress(); // best-effort for in-app pop
     super.dispose();
   }
 
