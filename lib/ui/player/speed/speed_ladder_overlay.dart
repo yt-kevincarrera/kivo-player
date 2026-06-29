@@ -5,9 +5,15 @@ import '../../../core/settings/settings_provider.dart';
 import '../../../player/control/gesture_math.dart';
 
 final holdSpeedProvider = StateProvider<double?>((ref) => null);
+// true while a hold-RIGHT (variable speed) is active → show the detent meter;
+// false for hold-LEFT (fixed speed) → show only a compact badge.
+final holdSpeedIsLadderProvider = StateProvider<bool>((ref) => false);
 
-double holdRightSpeedFor(double localY, double height, double min, double max) =>
-    ladderSpeed(height <= 0 ? 0 : (1 - (localY / height)).clamp(0.0, 1.0), min, max, 6);
+double holdRightSpeedFor(double localY, double height, List<double> detents) =>
+    detentSpeed(height <= 0 ? 0 : (1 - (localY / height)).clamp(0.0, 1.0), detents);
+
+String _fmtSpeed(double v) =>
+    v.toStringAsFixed(2).replaceFirst(RegExp(r'\.?0+$'), '');
 
 class SpeedLadderOverlay extends ConsumerWidget {
   const SpeedLadderOverlay({super.key});
@@ -16,12 +22,35 @@ class SpeedLadderOverlay extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final speed = ref.watch(holdSpeedProvider);
     if (speed == null) return const SizedBox.shrink();
+    final isLadder = ref.watch(holdSpeedIsLadderProvider);
     final st = ref.watch(settingsProvider);
     final accent = Color(st.accentColor);
-    final min = st.holdRightMin, max = st.holdRightMax;
-    final fill = max <= min ? 0.0 : ((speed - min) / (max - min)).clamp(0.0, 1.0);
-    const segCount = 16;
-    final lit = (fill * segCount).round();
+
+    // Hold-LEFT (fixed speed): a compact centered badge, no selector.
+    if (!isLadder) {
+      return IgnorePointer(
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(26),
+            ),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              KivoIcon(KivoIcons.speed, size: 22, color: Colors.white),
+              const SizedBox(width: 8),
+              Text('${_fmtSpeed(speed)}x',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 16)),
+            ]),
+          ),
+        ),
+      );
+    }
+
+    // Hold-RIGHT (variable): detent meter on the LEFT edge + big centered readout.
+    final detents = st.holdRightDetents;
+    final idx = detents.indexWhere((d) => (d - speed).abs() < 1e-6);
+    final lit = idx < 0 ? 0 : idx + 1;
 
     Widget seg(bool on) => Container(
           width: 22,
@@ -40,39 +69,25 @@ class SpeedLadderOverlay extends ConsumerWidget {
         color: Colors.black.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(22),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          KivoIcon(KivoIcons.speed, size: 26, color: Colors.white),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 220,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [for (var i = segCount - 1; i >= 0; i--) seg(i < lit)],
-            ),
-          ),
-        ],
-      ),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        KivoIcon(KivoIcons.speed, size: 26, color: Colors.white),
+        const SizedBox(height: 12),
+        for (var i = detents.length - 1; i >= 0; i--) seg(i < lit),
+      ]),
     );
 
     return IgnorePointer(
-      child: Stack(
-        children: [
-          Align(
-            alignment: Alignment.center,
-            child: Text('${speed.toStringAsFixed(1)}x',
-                style: TextStyle(color: accent, fontSize: 48, fontWeight: FontWeight.bold)),
-          ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: Padding(
-              padding: const EdgeInsets.only(right: 20),
-              child: capsule,
-            ),
-          ),
-        ],
-      ),
+      child: Stack(children: [
+        Align(
+          alignment: Alignment.center,
+          child: Text('${_fmtSpeed(speed)}x',
+              style: TextStyle(color: accent, fontSize: 48, fontWeight: FontWeight.bold)),
+        ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Padding(padding: const EdgeInsets.only(left: 20), child: capsule),
+        ),
+      ]),
     );
   }
 }

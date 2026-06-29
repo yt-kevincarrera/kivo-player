@@ -11,6 +11,7 @@ class KivoSettings {
   final double holdLeftSpeed;
   final double holdRightMin;
   final double holdRightMax;
+  final List<double> holdRightDetents;
   final bool holdRightReleaseToNormal;
   final double speedFineStep;
   final List<double> speedPresets;
@@ -39,6 +40,7 @@ class KivoSettings {
     required this.holdLeftSpeed,
     required this.holdRightMin,
     required this.holdRightMax,
+    required this.holdRightDetents,
     required this.holdRightReleaseToNormal,
     required this.speedFineStep,
     required this.speedPresets,
@@ -68,6 +70,7 @@ class KivoSettings {
         holdLeftSpeed: 2.0,
         holdRightMin: 1.0,
         holdRightMax: 4.0,
+        holdRightDetents: [1.0, 1.25, 1.5, 2.0, 3.0, 4.0],
         holdRightReleaseToNormal: true,
         speedFineStep: 0.01,
         speedPresets: [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0],
@@ -97,6 +100,7 @@ class KivoSettings {
     double? holdLeftSpeed,
     double? holdRightMin,
     double? holdRightMax,
+    List<double>? holdRightDetents,
     bool? holdRightReleaseToNormal,
     double? speedFineStep,
     List<double>? speedPresets,
@@ -125,6 +129,7 @@ class KivoSettings {
       holdLeftSpeed: holdLeftSpeed ?? this.holdLeftSpeed,
       holdRightMin: holdRightMin ?? this.holdRightMin,
       holdRightMax: holdRightMax ?? this.holdRightMax,
+      holdRightDetents: holdRightDetents ?? this.holdRightDetents,
       holdRightReleaseToNormal: holdRightReleaseToNormal ?? this.holdRightReleaseToNormal,
       speedFineStep: speedFineStep ?? this.speedFineStep,
       speedPresets: speedPresets ?? this.speedPresets,
@@ -155,6 +160,7 @@ class KivoSettings {
         'holdLeftSpeed': holdLeftSpeed,
         'holdRightMin': holdRightMin,
         'holdRightMax': holdRightMax,
+        'holdRightDetents': holdRightDetents,
         'holdRightReleaseToNormal': holdRightReleaseToNormal,
         'speedFineStep': speedFineStep,
         'speedPresets': speedPresets,
@@ -186,6 +192,7 @@ class KivoSettings {
       holdLeftSpeed: (m['holdLeftSpeed'] ?? d.holdLeftSpeed).toDouble(),
       holdRightMin: (m['holdRightMin'] ?? d.holdRightMin).toDouble(),
       holdRightMax: (m['holdRightMax'] ?? d.holdRightMax).toDouble(),
+      holdRightDetents: (m['holdRightDetents'] as List?)?.map((e) => (e as num).toDouble()).toList() ?? d.holdRightDetents,
       holdRightReleaseToNormal: m['holdRightReleaseToNormal'] ?? d.holdRightReleaseToNormal,
       speedFineStep: (m['speedFineStep'] ?? d.speedFineStep).toDouble(),
       speedPresets: (m['speedPresets'] as List?)?.map((e) => (e as num).toDouble()).toList() ?? d.speedPresets,

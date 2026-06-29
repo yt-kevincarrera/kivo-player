@@ -19,6 +19,14 @@ double dragValue(double current01, double dyPixels, double regionPixels, double 
   return next.clamp(0.0, 1.0);
 }
 
+/// Maps a 0..1 fraction to the nearest detent in [detents] (index = round(f*(n-1))).
+double detentSpeed(double fraction, List<double> detents) {
+  if (detents.isEmpty) return 1.0;
+  final f = fraction.clamp(0.0, 1.0);
+  final index = (f * (detents.length - 1)).round();
+  return detents[index];
+}
+
 double ladderSpeed(double fraction, double min, double max, int steps) {
   final f = fraction.clamp(0.0, 1.0);
   if (steps <= 1) return min;
