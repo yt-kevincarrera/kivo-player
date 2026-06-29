@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -10,7 +11,7 @@ class HoldToUnlock extends StatefulWidget {
 
 class _HoldToUnlockState extends State<HoldToUnlock> with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 800))
+      vsync: this, duration: const Duration(milliseconds: 450))
     ..addStatusListener((s) {
       if (s == AnimationStatus.completed) {
         HapticFeedback.mediumImpact();
@@ -37,11 +38,9 @@ class _HoldToUnlockState extends State<HoldToUnlock> with SingleTickerProviderSt
             child: Stack(alignment: Alignment.center, children: [
               AnimatedBuilder(
                 animation: _c,
-                builder: (_, __) => SizedBox(
-                  width: 44, height: 44,
-                  child: CircularProgressIndicator(
-                    value: _c.value, strokeWidth: 3,
-                    color: widget.accent, backgroundColor: Colors.white24),
+                builder: (_, __) => CustomPaint(
+                  size: const Size(44, 44),
+                  painter: _SegmentRingPainter(_c.value, widget.accent),
                 ),
               ),
               Icon(Icons.lock, color: widget.accent, size: 22),
@@ -54,4 +53,40 @@ class _HoldToUnlockState extends State<HoldToUnlock> with SingleTickerProviderSt
       ),
     );
   }
+}
+
+class _SegmentRingPainter extends CustomPainter {
+  final double progress; // 0..1
+  final Color accent;
+  static const int segments = 24;
+  _SegmentRingPainter(this.progress, this.accent);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final rOuter = size.width / 2 - 1;
+    final rInner = rOuter - 5.5;
+    final lit = (progress * segments).round();
+    final unlitPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.18)
+      ..strokeWidth = 2.6
+      ..strokeCap = StrokeCap.round;
+    final litPaint = Paint()
+      ..color = accent
+      ..strokeWidth = 2.6
+      ..strokeCap = StrokeCap.round;
+    for (var i = 0; i < segments; i++) {
+      final a = -math.pi / 2 + (i / segments) * 2 * math.pi; // start at top, clockwise
+      final dir = Offset(math.cos(a), math.sin(a));
+      canvas.drawLine(
+        center + dir * rInner,
+        center + dir * rOuter,
+        i < lit ? litPaint : unlitPaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_SegmentRingPainter old) =>
+      old.progress != progress || old.accent != accent;
 }
