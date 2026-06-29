@@ -119,11 +119,13 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
     if (_holdLeft) {
       ctrl.setRate(st.holdLeftSpeed);
       ref.read(holdSpeedProvider.notifier).state = st.holdLeftSpeed;
+      ref.read(holdSpeedIsLadderProvider.notifier).state = false;
       _lastHoldSpeed = st.holdLeftSpeed;
     } else {
-      final v = holdRightSpeedFor(d.localPosition.dy, _height, st.holdRightMin, st.holdRightMax);
+      final v = holdRightSpeedFor(d.localPosition.dy, _height, st.holdRightDetents);
       ctrl.setRate(v);
       ref.read(holdSpeedProvider.notifier).state = v;
+      ref.read(holdSpeedIsLadderProvider.notifier).state = true;
       _lastHoldSpeed = v;
     }
     _haptic();
@@ -132,7 +134,7 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   void _onLongPressMove(LongPressMoveUpdateDetails d) {
     if (_holdLeft) return;
     final st = ref.read(settingsProvider);
-    final v = holdRightSpeedFor(d.localPosition.dy, _height, st.holdRightMin, st.holdRightMax);
+    final v = holdRightSpeedFor(d.localPosition.dy, _height, st.holdRightDetents);
     ref.read(playerControllerProvider).setRate(v);
     ref.read(holdSpeedProvider.notifier).state = v;
     if (v != _lastHoldSpeed) {
@@ -147,6 +149,7 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
       ref.read(playerControllerProvider).setRate(1.0);
     }
     ref.read(holdSpeedProvider.notifier).state = null;
+    ref.read(holdSpeedIsLadderProvider.notifier).state = false;
     _lastHoldSpeed = null;
     _holding = false;
   }

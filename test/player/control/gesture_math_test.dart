@@ -24,6 +24,14 @@ void main() {
     expect(dragValue(0.1, 200, 400, 1.0), 0.0);
   });
 
+  test('detentSpeed snaps fraction to explicit detents', () {
+    const d = [1.0, 1.25, 1.5, 2.0, 3.0, 4.0];
+    expect(detentSpeed(0.0, d), 1.0);   // bottom -> first
+    expect(detentSpeed(1.0, d), 4.0);   // top -> last
+    expect(detentSpeed(0.5, d), 2.0);   // round(0.5*5)=3 -> index 3 = 2.0
+    expect(detentSpeed(0.5, const []), 1.0);
+  });
+
   test('ladderSpeed maps fraction to discrete steps', () {
     // 6 steps between 1.0 and 4.0 => [1.0,1.6,2.2,2.8,3.4,4.0]
     expect(ladderSpeed(0.0, 1.0, 4.0, 6), closeTo(1.0, 1e-9));
