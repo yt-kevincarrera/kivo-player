@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/icons/kivo_icons.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../player/control/gesture_math.dart';
 
@@ -17,36 +18,57 @@ class SpeedLadderOverlay extends ConsumerWidget {
     if (speed == null) return const SizedBox.shrink();
     final st = ref.watch(settingsProvider);
     final accent = Color(st.accentColor);
-    final steps = [for (var i = 5; i >= 0; i--) ladderSpeed(i / 5, st.holdRightMin, st.holdRightMax, 6)];
+    final min = st.holdRightMin, max = st.holdRightMax;
+    final fill = max <= min ? 0.0 : ((speed - min) / (max - min)).clamp(0.0, 1.0);
+    const segCount = 16;
+    final lit = (fill * segCount).round();
+
+    Widget seg(bool on) => Container(
+          width: 22,
+          height: 8,
+          margin: const EdgeInsets.symmetric(vertical: 2),
+          decoration: BoxDecoration(
+            color: on ? accent : Colors.white.withValues(alpha: 0.18),
+            borderRadius: BorderRadius.circular(2.5),
+          ),
+        );
+
+    final capsule = Container(
+      width: 58,
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          KivoIcon(KivoIcons.speed, size: 26, color: Colors.white),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 220,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [for (var i = segCount - 1; i >= 0; i--) seg(i < lit)],
+            ),
+          ),
+        ],
+      ),
+    );
+
     return IgnorePointer(
       child: Stack(
         children: [
           Align(
             alignment: Alignment.center,
             child: Text('${speed.toStringAsFixed(1)}x',
-                style: const TextStyle(color: Colors.white, fontSize: 44, fontWeight: FontWeight.bold)),
+                style: TextStyle(color: accent, fontSize: 48, fontWeight: FontWeight.bold)),
           ),
           Align(
             alignment: Alignment.centerRight,
             child: Padding(
-              padding: const EdgeInsets.only(right: 24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: steps.map((v) {
-                  final active = (v - speed).abs() < 0.3;
-                  return Container(
-                    margin: const EdgeInsets.symmetric(vertical: 3),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: active ? accent.withValues(alpha: 0.3) : Colors.black54,
-                      border: Border.all(color: active ? accent : Colors.white24),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text('${v.toStringAsFixed(1)}x',
-                        style: TextStyle(color: active ? Colors.white : Colors.white70, fontSize: 12)),
-                  );
-                }).toList(),
-              ),
+              padding: const EdgeInsets.only(right: 20),
+              child: capsule,
             ),
           ),
         ],
