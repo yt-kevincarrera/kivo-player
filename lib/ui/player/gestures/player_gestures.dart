@@ -102,8 +102,9 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
     final target = clampSeek(_seekStart, Duration(seconds: _seekAccum.round()), total);
     ref.read(playerControllerProvider).seekTo(target);
     final delta = target - _seekStart;
-    final sign = delta.isNegative ? '-' : '+';
-    final label = '${_fmt(target)}  ($sign${_fmt(delta.abs())})';
+    final label = delta == Duration.zero
+        ? _fmt(target)
+        : '${_fmt(target)}  (${delta.isNegative ? '-' : '+'}${_fmt(delta.abs())})';
     ref.read(hudProvider.notifier).show(HudKind.seek, delta.isNegative ? -1.0 : 1.0, label);
   }
 
