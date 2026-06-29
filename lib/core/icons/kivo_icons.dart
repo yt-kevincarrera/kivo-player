@@ -45,16 +45,12 @@ class KivoIcons {
   // ---- skip N seconds: base ring/arrow in currentColor, accent "10" ----
   static final String replay10 = _wrap(
     '<g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'
-    '<path d="M8.6 4.8 A8 8 0 1 0 12 4"/>'
-    '<path d="M13.7 2.6 L12 4 L13.7 5.4"/></g>'
-    '<text x="12" y="15" text-anchor="middle" font-family="sans-serif" font-size="9" font-weight="700" fill="$_g">10</text>',
+    '<path d="M8.6 4.8 A8 8 0 1 0 12 4"/><path d="M13.7 2.6 L12 4 L13.7 5.4"/></g>',
   );
 
   static final String forward10 = _wrap(
     '<g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'
-    '<path d="M15.4 4.8 A8 8 0 1 1 12 4"/>'
-    '<path d="M10.3 2.6 L12 4 L10.3 5.4"/></g>'
-    '<text x="12" y="15" text-anchor="middle" font-family="sans-serif" font-size="9" font-weight="700" fill="$_g">10</text>',
+    '<path d="M15.4 4.8 A8 8 0 1 1 12 4"/><path d="M10.3 2.6 L12 4 L10.3 5.4"/></g>',
   );
 
   // ---- top bar ----
@@ -110,6 +106,24 @@ class KivoIcons {
     '<rect x="4" y="6" width="16" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>'
     '<g fill="none" stroke="$_g" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
     '<path d="M7.5 9.5 V8 H9"/><path d="M16.5 14.5 V16 H15"/></g>',
+  );
+
+  // ---- per-mode aspect icons ----
+  static final String aspectFit = _wrap(
+    '<rect x="3" y="6" width="18" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>'
+    '<rect x="6" y="8.5" width="12" height="2" rx="1" fill="$_g"/><rect x="6" y="13.5" width="12" height="2" rx="1" fill="$_g"/>',
+  );
+
+  static final String aspectFill = _wrap(
+    '<rect x="3" y="6" width="18" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>'
+    '<g fill="none" stroke="$_g" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+    '<path d="M9 11 L7 9 M7 9 H9.5 M7 9 V11.5"/><path d="M15 13 L17 15 M17 15 H14.5 M17 15 V12.5"/></g>',
+  );
+
+  static final String aspectStretch = _wrap(
+    '<rect x="3" y="6" width="18" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>'
+    '<g fill="none" stroke="$_g" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+    '<path d="M7 12 H17"/><path d="M9 10 L7 12 L9 14"/><path d="M15 10 L17 12 L15 14"/></g>',
   );
 
   static final String rotate = _wrap(

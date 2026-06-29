@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/icons/kivo_icons.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../state/controls_visibility.dart';
 import '../state/lock_state.dart';
 import 'bottom_bar.dart';
 import 'center_controls.dart';
+import 'hold_to_unlock.dart';
 import 'top_bar.dart';
 
 class ControlsOverlay extends ConsumerWidget {
@@ -22,21 +22,9 @@ class ControlsOverlay extends ConsumerWidget {
         ignoring: !visible,
         child: locked
             ? Center(
-                child: GestureDetector(
-                  onLongPress: () => ref.read(lockProvider.notifier).unlock(),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.55),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Column(mainAxisSize: MainAxisSize.min, children: [
-                      KivoIcon(KivoIcons.lock, size: 30, color: accent),
-                      const SizedBox(height: 6),
-                      const Text('mantén para desbloquear',
-                          style: TextStyle(color: Colors.white70, fontSize: 11)),
-                    ]),
-                  ),
+                child: HoldToUnlock(
+                  accent: accent,
+                  onUnlock: () => ref.read(lockProvider.notifier).unlock(),
                 ),
               )
             : Stack(

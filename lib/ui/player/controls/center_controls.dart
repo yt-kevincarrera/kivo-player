@@ -22,7 +22,16 @@ class CenterControls extends ConsumerWidget {
           padding: const EdgeInsets.all(18),
           constraints: const BoxConstraints(minWidth: 68, minHeight: 68),
           splashRadius: 34,
-          icon: KivoIcon(KivoIcons.replay10, size: 34, color: Colors.white),
+          icon: SizedBox(
+            width: 34, height: 34,
+            child: Stack(alignment: Alignment.center, children: [
+              KivoIcon(KivoIcons.replay10, size: 34, color: Colors.white),
+              Padding(
+                padding: const EdgeInsets.only(top: 3),
+                child: Text('$skip', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+              ),
+            ]),
+          ),
           onPressed: () {
             ref.read(hudProvider.notifier).show(HudKind.seek, -1.0, '-${skip}s');
             ctrl.skipBy(-skip);
@@ -43,7 +52,16 @@ class CenterControls extends ConsumerWidget {
           padding: const EdgeInsets.all(18),
           constraints: const BoxConstraints(minWidth: 68, minHeight: 68),
           splashRadius: 34,
-          icon: KivoIcon(KivoIcons.forward10, size: 34, color: Colors.white),
+          icon: SizedBox(
+            width: 34, height: 34,
+            child: Stack(alignment: Alignment.center, children: [
+              KivoIcon(KivoIcons.forward10, size: 34, color: Colors.white),
+              Padding(
+                padding: const EdgeInsets.only(top: 3),
+                child: Text('$skip', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+              ),
+            ]),
+          ),
           onPressed: () {
             ref.read(hudProvider.notifier).show(HudKind.seek, 1.0, '+${skip}s');
             ctrl.skipBy(skip);

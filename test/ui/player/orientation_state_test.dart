@@ -16,10 +16,10 @@ class RecCtrls implements DeviceControls {
 }
 
 void main() {
-  test('nextOrientation cycles landscape->portrait->auto->landscape', () {
+  test('nextOrientation toggles portrait<->landscape (both auto and landscape go to portrait)', () {
     expect(nextOrientation(DeviceOrientationLock.landscape), DeviceOrientationLock.portrait);
-    expect(nextOrientation(DeviceOrientationLock.portrait), DeviceOrientationLock.auto);
-    expect(nextOrientation(DeviceOrientationLock.auto), DeviceOrientationLock.landscape);
+    expect(nextOrientation(DeviceOrientationLock.portrait), DeviceOrientationLock.landscape);
+    expect(nextOrientation(DeviceOrientationLock.auto), DeviceOrientationLock.portrait);
   });
   test('cycle() updates state and applies to device controls', () {
     final ctrls = RecCtrls();

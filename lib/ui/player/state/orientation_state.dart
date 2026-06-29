@@ -2,11 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../platform/device_controls_provider.dart';
 import '../../../platform/interfaces/device_controls.dart';
 
-DeviceOrientationLock nextOrientation(DeviceOrientationLock c) => switch (c) {
-      DeviceOrientationLock.landscape => DeviceOrientationLock.portrait,
-      DeviceOrientationLock.portrait => DeviceOrientationLock.auto,
-      DeviceOrientationLock.auto => DeviceOrientationLock.landscape,
-    };
+DeviceOrientationLock nextOrientation(DeviceOrientationLock c) =>
+    c == DeviceOrientationLock.portrait
+        ? DeviceOrientationLock.landscape
+        : DeviceOrientationLock.portrait;
 
 class OrientationNotifier extends Notifier<DeviceOrientationLock> {
   @override
