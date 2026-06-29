@@ -30,6 +30,8 @@ class AndroidDeviceControls implements DeviceControls {
   /// Drives the native activity orientation. Uses SENSOR_LANDSCAPE/PORTRAIT so it
   /// overrides the system rotation lock (auto-rotate may be off) and still flips
   /// 180° between both sides; [DeviceOrientationLock.auto] returns to system default.
+  /// Only [orientations].first is used (single coarse lock); pass a one-element
+  /// list, or an empty list for auto.
   @override
   Future<void> setOrientation(List<DeviceOrientationLock> orientations) async {
     final o =
