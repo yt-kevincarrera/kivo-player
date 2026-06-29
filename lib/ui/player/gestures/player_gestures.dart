@@ -79,6 +79,9 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   }
 
   void _onHorizontalStart(DragStartDetails d) {
+    // The horizontalSeek setting is gated in _onHorizontalUpdate, not here:
+    // GestureDetector handlers can't be conditionally unregistered without a
+    // rebuild, and seeding start state is a harmless no-op when seek is off.
     _seekStart = ref.read(positionProvider).value ?? Duration.zero;
     _seekAccum = 0;
   }
