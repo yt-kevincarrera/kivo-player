@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+import '../../platform/device_controls_provider.dart';
+import '../../platform/interfaces/device_controls.dart';
 import '../../player/engine/playback_provider.dart';
 import '../../player/open/video_source.dart';
+import 'controls/controls_overlay.dart';
+import 'gestures/player_gestures.dart';
+import 'hud/hud_overlay.dart';
+import 'speed/speed_ladder_overlay.dart';
 
 class PlayerScreen extends ConsumerStatefulWidget {
   const PlayerScreen({super.key});
@@ -16,12 +22,16 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   Duration _lastPosition = Duration.zero;
   Duration _lastDuration = Duration.zero;
   String? _path;
+  late final DeviceControls _deviceControls;
 
   @override
   void initState() {
     super.initState();
+    _deviceControls = ref.read(deviceControlsProvider);
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) => _start());
+    _deviceControls.setOrientation([DeviceOrientationLock.landscape]);
+    _deviceControls.keepAwake(true);
   }
 
   @override
@@ -58,6 +68,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _saveProgress(); // best-effort for in-app pop
+    _deviceControls.setOrientation([DeviceOrientationLock.auto]);
+    _deviceControls.keepAwake(false);
     super.dispose();
   }
 
@@ -72,10 +84,20 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Center(
-        child: _controller == null
-            ? const CircularProgressIndicator()
-            : Video(controller: _controller!),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Center(
+              child: _controller == null
+                  ? const CircularProgressIndicator()
+                  : Video(controller: _controller!),
+            ),
+          ),
+          const Positioned.fill(child: PlayerGestures(child: SizedBox.expand())),
+          const Positioned.fill(child: ControlsOverlay()),
+          const Positioned.fill(child: HudOverlay()),
+          const Positioned.fill(child: SpeedLadderOverlay()),
+        ],
       ),
     );
   }
