@@ -24,33 +24,22 @@ class AndroidDeviceControls implements DeviceControls {
   @override
   Future<double> currentVolume() => VolumeController.instance.getVolume();
 
-  /// Sets the preferred device orientations.
-  ///
-  /// - An empty [orientations] list resets to Flutter's default (all
-  ///   orientations allowed).
-  /// - If [DeviceOrientationLock.auto] appears **anywhere** in the list, the
-  ///   method returns immediately after calling
-  ///   `setPreferredOrientations(DeviceOrientation.values)`, enabling all
-  ///   orientations; any other entries in [orientations] are ignored.
-  /// - Otherwise only the explicitly listed orientations are locked.
+  static const MethodChannel _orientationChannel =
+      MethodChannel('kivo/orientation');
+
+  /// Drives the native activity orientation. Uses SENSOR_LANDSCAPE/PORTRAIT so it
+  /// overrides the system rotation lock (auto-rotate may be off) and still flips
+  /// 180° between both sides; [DeviceOrientationLock.auto] returns to system default.
   @override
-  Future<void> setOrientation(List<DeviceOrientationLock> orientations) {
-    final mapped = <DeviceOrientation>[];
-    for (final o in orientations) {
-      switch (o) {
-        case DeviceOrientationLock.auto:
-          return SystemChrome.setPreferredOrientations(DeviceOrientation.values);
-        case DeviceOrientationLock.portrait:
-          mapped.addAll(
-              [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
-        case DeviceOrientationLock.landscape:
-          mapped.addAll([
-            DeviceOrientation.landscapeLeft,
-            DeviceOrientation.landscapeRight,
-          ]);
-      }
-    }
-    return SystemChrome.setPreferredOrientations(mapped);
+  Future<void> setOrientation(List<DeviceOrientationLock> orientations) async {
+    final o =
+        orientations.isEmpty ? DeviceOrientationLock.auto : orientations.first;
+    final mode = switch (o) {
+      DeviceOrientationLock.landscape => 'sensorLandscape',
+      DeviceOrientationLock.portrait => 'sensorPortrait',
+      DeviceOrientationLock.auto => 'auto',
+    };
+    await _orientationChannel.invokeMethod('set', {'mode': mode});
   }
 
   @override

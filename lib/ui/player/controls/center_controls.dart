@@ -23,10 +23,6 @@ class CenterControls extends ConsumerWidget {
           padding: const EdgeInsets.all(18),
           constraints: const BoxConstraints(minWidth: 68, minHeight: 68),
           splashRadius: 34,
-          style: IconButton.styleFrom(
-            backgroundColor: Colors.black.withValues(alpha: 0.5),
-            shape: const CircleBorder(),
-          ),
           icon: SizedBox(
             width: 34, height: 34,
             child: Stack(alignment: Alignment.center, children: [
@@ -49,7 +45,6 @@ class CenterControls extends ConsumerWidget {
           color: Colors.white,
           padding: const EdgeInsets.all(16),
           style: IconButton.styleFrom(
-            backgroundColor: Colors.black.withValues(alpha: 0.5),
             shape: CircleBorder(side: BorderSide(color: accent, width: 2)),
           ),
           icon: KivoIcon(playing ? KivoIcons.pause : KivoIcons.play, size: 56, color: Colors.white),
@@ -62,10 +57,6 @@ class CenterControls extends ConsumerWidget {
           padding: const EdgeInsets.all(18),
           constraints: const BoxConstraints(minWidth: 68, minHeight: 68),
           splashRadius: 34,
-          style: IconButton.styleFrom(
-            backgroundColor: Colors.black.withValues(alpha: 0.5),
-            shape: const CircleBorder(),
-          ),
           icon: SizedBox(
             width: 34, height: 34,
             child: Stack(alignment: Alignment.center, children: [
