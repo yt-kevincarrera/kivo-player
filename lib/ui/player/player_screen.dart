@@ -104,7 +104,11 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
             child: Center(
               child: _controller == null
                   ? const CircularProgressIndicator()
-                  : Video(controller: _controller!, fit: boxFitFor(ref.watch(aspectModeProvider))),
+                  : Video(
+                      controller: _controller!,
+                      controls: NoVideoControls, // Kivo draws its own controls; this also kills media_kit's buffering spinner
+                      fit: boxFitFor(ref.watch(aspectModeProvider)),
+                    ),
             ),
           ),
           const Positioned.fill(child: PlayerGestures(child: SizedBox.expand())),
