@@ -23,15 +23,14 @@ class CenterControls extends ConsumerWidget {
           padding: const EdgeInsets.all(18),
           constraints: const BoxConstraints(minWidth: 68, minHeight: 68),
           splashRadius: 34,
-          icon: SizedBox(
-            width: 34, height: 34,
-            child: Stack(alignment: Alignment.center, children: [
-              KivoIcon(KivoIcons.replay10, size: 34, color: Colors.white),
-              Padding(
-                padding: const EdgeInsets.only(top: 3),
-                child: Text('$skip', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
-              ),
-            ]),
+          icon: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              KivoIcon(KivoIcons.skipBack, size: 30, color: Colors.white),
+              const SizedBox(height: 1),
+              Text('${skip}s',
+                  style: TextStyle(color: accent, fontSize: 11, fontWeight: FontWeight.w700, height: 1.0)),
+            ],
           ),
           onPressed: () {
             ref.read(hudProvider.notifier).show(HudKind.seek, -1.0, '-${skip}s');
@@ -57,15 +56,14 @@ class CenterControls extends ConsumerWidget {
           padding: const EdgeInsets.all(18),
           constraints: const BoxConstraints(minWidth: 68, minHeight: 68),
           splashRadius: 34,
-          icon: SizedBox(
-            width: 34, height: 34,
-            child: Stack(alignment: Alignment.center, children: [
-              KivoIcon(KivoIcons.forward10, size: 34, color: Colors.white),
-              Padding(
-                padding: const EdgeInsets.only(top: 3),
-                child: Text('$skip', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
-              ),
-            ]),
+          icon: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              KivoIcon(KivoIcons.skipForward, size: 30, color: Colors.white),
+              const SizedBox(height: 1),
+              Text('${skip}s',
+                  style: TextStyle(color: accent, fontSize: 11, fontWeight: FontWeight.w700, height: 1.0)),
+            ],
           ),
           onPressed: () {
             ref.read(hudProvider.notifier).show(HudKind.seek, 1.0, '+${skip}s');

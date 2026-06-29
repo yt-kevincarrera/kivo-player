@@ -184,21 +184,22 @@ class HudOverlay extends ConsumerWidget {
   }) {
     return Center(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.7),
-          borderRadius: BorderRadius.circular(14),
+          color: Colors.black.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(26),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            KivoIcon(icon, size: 24, color: accent),
+            KivoIcon(icon, size: 24, color: Colors.white),
             const SizedBox(width: 8),
             Text(
               hud.label,
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
+                fontFeatures: [FontFeature.tabularFigures()],
               ),
             ),
           ],

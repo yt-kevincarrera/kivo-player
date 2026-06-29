@@ -53,6 +53,17 @@ class KivoIcons {
     '<path d="M15.4 4.8 A8 8 0 1 1 12 4"/><path d="M10.3 2.6 L12 4 L10.3 5.4"/></g>',
   );
 
+  // ---- skip N seconds: double chevron (currentColor); seconds shown in gold by the caller ----
+  static final String skipBack = _wrap(
+    '<g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+    '<path d="M11.5 6 L5.5 12 L11.5 18"/><path d="M18.5 6 L12.5 12 L18.5 18"/></g>',
+  );
+
+  static final String skipForward = _wrap(
+    '<g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+    '<path d="M5.5 6 L11.5 12 L5.5 18"/><path d="M12.5 6 L18.5 12 L12.5 18"/></g>',
+  );
+
   // ---- top bar ----
   static final String back = _wrap(
     '<path d="M13.5 5.5 L7 12 L13.5 18.5 M7 12 H19" fill="none" stroke="currentColor" '
