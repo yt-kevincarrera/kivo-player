@@ -13,6 +13,7 @@ class CenterControls extends ConsumerWidget {
     final playing = ref.watch(playingProvider).value ?? false;
     final ctrl = ref.read(playerControllerProvider);
     final skip = ref.watch(settingsProvider).centerSkipSeconds;
+    final accent = Color(ref.watch(settingsProvider).accentColor);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -23,7 +24,7 @@ class CenterControls extends ConsumerWidget {
           constraints: const BoxConstraints(minWidth: 68, minHeight: 68),
           splashRadius: 34,
           style: IconButton.styleFrom(
-            backgroundColor: Colors.black.withValues(alpha: 0.4),
+            backgroundColor: Colors.black.withValues(alpha: 0.5),
             shape: const CircleBorder(),
           ),
           icon: SizedBox(
@@ -49,7 +50,7 @@ class CenterControls extends ConsumerWidget {
           padding: const EdgeInsets.all(16),
           style: IconButton.styleFrom(
             backgroundColor: Colors.black.withValues(alpha: 0.5),
-            shape: const CircleBorder(),
+            shape: CircleBorder(side: BorderSide(color: accent, width: 2)),
           ),
           icon: KivoIcon(playing ? KivoIcons.pause : KivoIcons.play, size: 56, color: Colors.white),
           onPressed: ctrl.togglePlayPause,
@@ -62,7 +63,7 @@ class CenterControls extends ConsumerWidget {
           constraints: const BoxConstraints(minWidth: 68, minHeight: 68),
           splashRadius: 34,
           style: IconButton.styleFrom(
-            backgroundColor: Colors.black.withValues(alpha: 0.4),
+            backgroundColor: Colors.black.withValues(alpha: 0.5),
             shape: const CircleBorder(),
           ),
           icon: SizedBox(

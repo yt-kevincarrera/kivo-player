@@ -86,26 +86,40 @@ class HudOverlay extends ConsumerWidget {
       );
     }
 
-    // Segmented meter: 12 segments, fills bottom→up by fill.
-    // Boost brightens the top 3 lit segments.
-    final lit = (fill * 12).round();
+    // Segmented meter: 12 normal segments (0-100%) + optional boost zone above.
+    // For volume only: 3 boost segments above a 100%-tick line, lit only when > 1.0.
+    final normalLit = (fill * 12).round();
+    final isVolume = hud.kind == HudKind.volume;
+    final boostLit = (isVolume && value > 1.0)
+        ? (((value - 1.0) / 0.5).clamp(0.0, 1.0) * 3).round()
+        : 0;
+
+    Widget seg(bool lit) => Container(
+          width: 22,
+          height: 8,
+          margin: const EdgeInsets.symmetric(vertical: 2),
+          decoration: BoxDecoration(
+            color: lit ? accent : Colors.white.withValues(alpha: 0.18),
+            borderRadius: BorderRadius.circular(2.5),
+          ),
+        );
+
     final meter = Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        for (var i = 11; i >= 0; i--)
+        if (isVolume) ...[
+          for (var b = 2; b >= 0; b--) seg(b < boostLit),
           Container(
-            width: 22,
-            height: 8,
-            margin: const EdgeInsets.symmetric(vertical: 2),
+            width: 14,
+            height: 2,
+            margin: const EdgeInsets.symmetric(vertical: 5),
             decoration: BoxDecoration(
-              color: i < lit
-                  ? (boosting && i >= lit - 3
-                      ? Color.lerp(accent, Colors.white, 0.55)!
-                      : accent)
-                  : Colors.white.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(2.5),
+              color: Colors.white.withValues(alpha: 0.35),
+              borderRadius: BorderRadius.circular(1),
             ),
           ),
+        ],
+        for (var i = 11; i >= 0; i--) seg(i < normalLit),
       ],
     );
 
@@ -136,7 +150,7 @@ class HudOverlay extends ConsumerWidget {
         children: [
           reactiveIcon,
           const SizedBox(height: 12),
-          SizedBox(height: 150, child: meter),
+          SizedBox(height: isVolume ? 200 : 150, child: meter),
           const SizedBox(height: 12),
           numeric,
         ],
