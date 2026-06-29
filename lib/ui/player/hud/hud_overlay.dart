@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/icons/kivo_icons.dart';
 import '../../../core/theme/kivo_theme.dart';
 import '../state/hud_state.dart';
 
 class HudOverlay extends ConsumerWidget {
   const HudOverlay({super.key});
 
-  IconData _icon(HudKind k, HudState hud) {
+  String _icon(HudKind k, HudState hud) {
     switch (k) {
       case HudKind.brightness:
-        return Icons.brightness_6;
+        return KivoIcons.brightness;
       case HudKind.volume:
-        return Icons.volume_up;
+        return KivoIcons.volume;
       case HudKind.seek:
-        return hud.value < 0 ? Icons.fast_rewind : Icons.fast_forward;
+        return hud.value < 0 ? KivoIcons.fastRewind : KivoIcons.fastForward;
       case HudKind.speed:
-        return Icons.speed;
+        return KivoIcons.speed;
     }
   }
 
@@ -35,7 +36,7 @@ class HudOverlay extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(_icon(hud.kind, hud), color: KivoColors.gold, size: 30),
+              KivoIcon(_icon(hud.kind, hud), color: KivoColors.gold, size: 30),
               const SizedBox(height: 8),
               Text(hud.label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
               if (showBar) ...[

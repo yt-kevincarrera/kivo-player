@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import '../../core/icons/kivo_icons.dart';
 import '../../player/open/video_source.dart';
 import '../player/player_screen.dart';
 
@@ -53,7 +54,7 @@ class _OpenScreenState extends ConsumerState<OpenScreen> {
       body: Center(
         child: FilledButton.icon(
           onPressed: _pick,
-          icon: const Icon(Icons.folder_open),
+          icon: KivoIcon(KivoIcons.folderOpen, size: 20),
           label: const Text('Abrir video'),
         ),
       ),

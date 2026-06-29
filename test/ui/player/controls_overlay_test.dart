@@ -27,7 +27,7 @@ void main() {
     engine.emitPlaying(true);
     await tester.pump(); // process the stream event + rebuild
 
-    await tester.tap(find.byIcon(Icons.pause));
+    await tester.tap(find.byKey(const Key('kivo_play_pause')));
     await tester.pump();
     expect(engine.lastPlayingCommand, false); // pause() was called
   }, timeout: const Timeout(Duration(seconds: 30)));
