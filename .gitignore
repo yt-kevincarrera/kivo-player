@@ -14,3 +14,4 @@ build/
 .idea/
 *.iws
 
+test_output.txt
