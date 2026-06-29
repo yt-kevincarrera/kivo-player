@@ -6,14 +6,14 @@ import '../state/hud_state.dart';
 class HudOverlay extends ConsumerWidget {
   const HudOverlay({super.key});
 
-  IconData _icon(HudKind k) {
+  IconData _icon(HudKind k, HudState hud) {
     switch (k) {
       case HudKind.brightness:
         return Icons.brightness_6;
       case HudKind.volume:
         return Icons.volume_up;
       case HudKind.seek:
-        return Icons.fast_forward;
+        return hud.value < 0 ? Icons.fast_rewind : Icons.fast_forward;
       case HudKind.speed:
         return Icons.speed;
     }
@@ -35,7 +35,7 @@ class HudOverlay extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(_icon(hud.kind), color: KivoColors.gold, size: 30),
+              Icon(_icon(hud.kind, hud), color: KivoColors.gold, size: 30),
               const SizedBox(height: 8),
               Text(hud.label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
               if (showBar) ...[

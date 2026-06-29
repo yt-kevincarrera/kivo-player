@@ -40,5 +40,5 @@ double round2(double value) => (value * 100).round() / 100;
 ({double system01, double playerPercent}) volumeMapping(double percent, double boostMax) {
   final p = percent.clamp(0.0, boostMax);
   final system = (p < 100 ? p : 100) / 100;
-  return (system01: system, playerPercent: p);
+  return (system01: system, playerPercent: p < 100 ? 100 : p);
 }

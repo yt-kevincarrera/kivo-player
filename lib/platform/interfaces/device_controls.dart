@@ -7,4 +7,5 @@ abstract class DeviceControls {
   Future<double> currentVolume();
   Future<void> setOrientation(List<DeviceOrientationLock> orientations);
   Future<void> keepAwake(bool on);
+  Future<void> setImmersive(bool on);
 }

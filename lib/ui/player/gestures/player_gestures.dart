@@ -48,11 +48,11 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
       case TapZone.left:
         ctrl.skipBy(-st.doubleTapSkipLeft);
         _haptic();
-        ref.read(hudProvider.notifier).show(HudKind.seek, 0, '-${st.doubleTapSkipLeft}s');
+        ref.read(hudProvider.notifier).show(HudKind.seek, -1.0, '-${st.doubleTapSkipLeft}s');
       case TapZone.right:
         ctrl.skipBy(st.doubleTapSkipRight);
         _haptic();
-        ref.read(hudProvider.notifier).show(HudKind.seek, 0, '+${st.doubleTapSkipRight}s');
+        ref.read(hudProvider.notifier).show(HudKind.seek, 1.0, '+${st.doubleTapSkipRight}s');
       case TapZone.center:
         if (st.doubleTapCenterPause) {
           ctrl.togglePlayPause();
@@ -64,7 +64,8 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   void _onVerticalStart(DragStartDetails d) {
     if (_holding) return; // a hold-to-speed gesture owns this touch
     _leftSide = d.localPosition.dx < _width / 2;
-    _volume01 = (ref.read(volumePercentProvider) / 100).clamp(0.0, 1.0);
+    final boost = ref.read(settingsProvider).volumeBoostMax;
+    _volume01 = (ref.read(volumePercentProvider) / boost).clamp(0.0, 1.0);
     ref.read(deviceControlsProvider).currentBrightness().then((b) => _brightness = b);
   }
 
@@ -100,7 +101,10 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
     _seekAccum += (d.delta.dx / _width) * 90 * st.seekSensitivity;
     final target = clampSeek(_seekStart, Duration(seconds: _seekAccum.round()), total);
     ref.read(playerControllerProvider).seekTo(target);
-    ref.read(hudProvider.notifier).show(HudKind.seek, 0, _fmt(target));
+    final delta = target - _seekStart;
+    final sign = delta.isNegative ? '-' : '+';
+    final label = '${_fmt(target)}  ($sign${_fmt(delta.abs())})';
+    ref.read(hudProvider.notifier).show(HudKind.seek, delta.isNegative ? -1.0 : 1.0, label);
   }
 
   void _onLongPressStart(LongPressStartDetails d) {

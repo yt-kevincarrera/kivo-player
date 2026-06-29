@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../player/control/player_controller.dart';
 import '../../../player/engine/playback_provider.dart';
+import '../state/hud_state.dart';
 
 class CenterControls extends ConsumerWidget {
   const CenterControls({super.key});
@@ -18,7 +19,10 @@ class CenterControls extends ConsumerWidget {
           iconSize: 34,
           color: Colors.white,
           icon: const Icon(Icons.replay_10),
-          onPressed: () => ctrl.skipBy(-skip),
+          onPressed: () {
+            ref.read(hudProvider.notifier).show(HudKind.seek, -1.0, '-${skip}s');
+            ctrl.skipBy(-skip);
+          },
         ),
         const SizedBox(width: 36),
         IconButton(
@@ -32,7 +36,10 @@ class CenterControls extends ConsumerWidget {
           iconSize: 34,
           color: Colors.white,
           icon: const Icon(Icons.forward_10),
-          onPressed: () => ctrl.skipBy(skip),
+          onPressed: () {
+            ref.read(hudProvider.notifier).show(HudKind.seek, 1.0, '+${skip}s');
+            ctrl.skipBy(skip);
+          },
         ),
       ],
     );

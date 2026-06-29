@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/kivo_theme.dart';
 import '../../../player/control/player_controller.dart';
 import '../../../player/engine/playback_provider.dart';
+import '../state/controls_visibility.dart';
 
 String fmtDuration(Duration d) {
   final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
@@ -27,8 +28,10 @@ class SeekBar extends ConsumerWidget {
             value: pos.inMilliseconds.clamp(0, maxMs.toInt()).toDouble(),
             activeColor: KivoColors.gold,
             inactiveColor: Colors.white24,
-            onChanged: (v) =>
-                ref.read(playerControllerProvider).seekTo(Duration(milliseconds: v.round())),
+            onChanged: (v) {
+              ref.read(playerControllerProvider).seekTo(Duration(milliseconds: v.round()));
+              ref.read(controlsVisibleProvider.notifier).show();
+            },
           ),
         ),
         Text(fmtDuration(total), style: const TextStyle(color: Colors.white, fontSize: 12)),
