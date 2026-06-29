@@ -23,6 +23,7 @@ class CenterControls extends ConsumerWidget {
           padding: const EdgeInsets.all(18),
           constraints: const BoxConstraints(minWidth: 68, minHeight: 68),
           splashRadius: 34,
+          tooltip: 'Retroceder ${skip}s',
           icon: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -46,6 +47,7 @@ class CenterControls extends ConsumerWidget {
           style: IconButton.styleFrom(
             shape: CircleBorder(side: BorderSide(color: accent, width: 2)),
           ),
+          tooltip: playing ? 'Pausar' : 'Reproducir',
           icon: KivoIcon(playing ? KivoIcons.pause : KivoIcons.play, size: 56, color: Colors.white),
           onPressed: ctrl.togglePlayPause,
         ),
@@ -56,6 +58,7 @@ class CenterControls extends ConsumerWidget {
           padding: const EdgeInsets.all(18),
           constraints: const BoxConstraints(minWidth: 68, minHeight: 68),
           splashRadius: 34,
+          tooltip: 'Avanzar ${skip}s',
           icon: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
