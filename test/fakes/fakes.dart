@@ -26,6 +26,8 @@ class FakePlaybackEngine implements PlaybackEngine {
   @override
   dynamic get nativePlayer => null;
   @override
+  Object? createVideoController() => null;
+  @override
   Stream<Duration> get positionStream => _pos.stream;
   @override
   Stream<Duration> get durationStream => _dur.stream;

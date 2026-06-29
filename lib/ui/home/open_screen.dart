@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
@@ -12,18 +13,28 @@ class OpenScreen extends ConsumerStatefulWidget {
 }
 
 class _OpenScreenState extends ConsumerState<OpenScreen> {
+  StreamSubscription<dynamic>? _shareSub;
+
   @override
   void initState() {
     super.initState();
     ReceiveSharingIntent.instance.getInitialMedia().then((files) {
+      if (!mounted) return;
       if (files.isNotEmpty) _openPath(files.first.path);
     });
-    ReceiveSharingIntent.instance.getMediaStream().listen((files) {
+    _shareSub = ReceiveSharingIntent.instance.getMediaStream().listen((files) {
       if (files.isNotEmpty) _openPath(files.first.path);
     });
   }
 
+  @override
+  void dispose() {
+    _shareSub?.cancel();
+    super.dispose();
+  }
+
   void _openPath(String path) {
+    if (!mounted) return;
     ref.read(currentVideoProvider.notifier).openPath(path);
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const PlayerScreen()),
