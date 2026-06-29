@@ -19,6 +19,15 @@ class AndroidDeviceControls implements DeviceControls {
   @override
   Future<double> currentVolume() => VolumeController.instance.getVolume();
 
+  /// Sets the preferred device orientations.
+  ///
+  /// - An empty [orientations] list resets to Flutter's default (all
+  ///   orientations allowed).
+  /// - If [DeviceOrientationLock.auto] appears **anywhere** in the list, the
+  ///   method returns immediately after calling
+  ///   `setPreferredOrientations(DeviceOrientation.values)`, enabling all
+  ///   orientations; any other entries in [orientations] are ignored.
+  /// - Otherwise only the explicitly listed orientations are locked.
   @override
   Future<void> setOrientation(List<DeviceOrientationLock> orientations) {
     final mapped = <DeviceOrientation>[];
