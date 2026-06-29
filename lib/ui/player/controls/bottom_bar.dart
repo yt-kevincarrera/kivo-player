@@ -5,6 +5,7 @@ import '../../../core/settings/settings_provider.dart';
 import '../../../player/control/player_controller.dart';
 import '../speed/speed_panel.dart';
 import '../state/controls_visibility.dart';
+import '../state/aspect_state.dart';
 import '../state/lock_state.dart';
 import 'seek_bar.dart';
 
@@ -34,7 +35,11 @@ class BottomBar extends ConsumerWidget {
                 ref.read(controlsVisibleProvider.notifier).hide();
               },
             ),
-            IconButton(color: Colors.white38, icon: KivoIcon(KivoIcons.aspect, size: 24, opacity: 0.38), onPressed: null),
+            IconButton(
+              color: Colors.white,
+              icon: KivoIcon(KivoIcons.aspect, size: 24, color: Colors.white),
+              onPressed: () => ref.read(aspectModeProvider.notifier).cycle(),
+            ),
             IconButton(color: Colors.white38, icon: KivoIcon(KivoIcons.rotate, size: 24, opacity: 0.38), onPressed: null),
           ],
         ),
