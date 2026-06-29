@@ -11,6 +11,7 @@ import 'controls/controls_overlay.dart';
 import 'gestures/player_gestures.dart';
 import 'hud/hud_overlay.dart';
 import 'speed/speed_ladder_overlay.dart';
+import 'state/aspect_state.dart';
 
 class PlayerScreen extends ConsumerStatefulWidget {
   const PlayerScreen({super.key});
@@ -98,7 +99,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
             child: Center(
               child: _controller == null
                   ? const CircularProgressIndicator()
-                  : Video(controller: _controller!),
+                  : Video(controller: _controller!, fit: boxFitFor(ref.watch(aspectModeProvider))),
             ),
           ),
           const Positioned.fill(child: PlayerGestures(child: SizedBox.expand())),
