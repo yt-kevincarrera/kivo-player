@@ -8,6 +8,7 @@ import '../../player/control/player_controller.dart';
 import '../../player/engine/playback_provider.dart';
 import '../../player/open/video_source.dart';
 import 'controls/controls_overlay.dart';
+import 'controls/flash_overlay.dart';
 import 'controls/info_overlay.dart';
 import 'gestures/player_gestures.dart';
 import 'hud/hud_overlay.dart';
@@ -109,6 +110,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
           const Positioned.fill(child: PlayerGestures(child: SizedBox.expand())),
           const Positioned.fill(child: ControlsOverlay()),
           const Positioned.fill(child: InfoOverlay()),
+          const Positioned.fill(child: FlashOverlay()),
           const Positioned.fill(child: HudOverlay()),
           const Positioned.fill(child: SpeedLadderOverlay()),
         ],

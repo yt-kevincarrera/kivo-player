@@ -6,6 +6,7 @@ import '../../../player/control/player_controller.dart';
 import '../speed/speed_panel.dart';
 import '../state/controls_visibility.dart';
 import '../state/aspect_state.dart';
+import '../state/flash_state.dart';
 import '../state/lock_state.dart';
 import '../state/orientation_state.dart';
 import 'seek_bar.dart';
@@ -16,6 +17,7 @@ class BottomBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final accent = Color(ref.watch(settingsProvider).accentColor);
     final rate = ref.watch(rateProvider);
+    final mode = ref.watch(aspectModeProvider);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -38,8 +40,11 @@ class BottomBar extends ConsumerWidget {
             ),
             IconButton(
               color: Colors.white,
-              icon: KivoIcon(KivoIcons.aspect, size: 24, color: Colors.white),
-              onPressed: () => ref.read(aspectModeProvider.notifier).cycle(),
+              icon: KivoIcon(aspectIconFor(mode), size: 24, color: Colors.white),
+              onPressed: () {
+                ref.read(aspectModeProvider.notifier).cycle();
+                ref.read(flashProvider.notifier).show(aspectLabelFor(ref.read(aspectModeProvider)));
+              },
             ),
             IconButton(
               color: Colors.white,
