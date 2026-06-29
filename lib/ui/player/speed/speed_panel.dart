@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/icons/kivo_icons.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
 import '../../../player/control/gesture_math.dart';
@@ -41,13 +42,13 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             IconButton(
-              icon: const Icon(Icons.remove),
+              icon: KivoIcon(KivoIcons.minus, size: 24, color: Colors.white),
               onPressed: () => ctrl.setRate(round2(rate - st.speedFineStep)),
             ),
             Text('${rate.toStringAsFixed(2)}x',
                 style: const TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.bold)),
             IconButton(
-              icon: const Icon(Icons.add),
+              icon: KivoIcon(KivoIcons.plus, size: 24, color: Colors.white),
               onPressed: () => ctrl.setRate(round2(rate + st.speedFineStep)),
             ),
           ],

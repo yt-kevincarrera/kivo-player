@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/icons/kivo_icons.dart';
 import '../../../core/theme/kivo_theme.dart';
 import '../../../player/control/player_controller.dart';
 import '../speed/speed_panel.dart';
@@ -22,9 +23,9 @@ class BottomBar extends ConsumerWidget {
               child: Text('${rate.toStringAsFixed(2)}x',
                   style: const TextStyle(color: KivoColors.gold, fontWeight: FontWeight.w600)),
             ),
-            const IconButton(color: Colors.white38, icon: Icon(Icons.lock_outline), onPressed: null),
-            const IconButton(color: Colors.white38, icon: Icon(Icons.aspect_ratio), onPressed: null),
-            const IconButton(color: Colors.white38, icon: Icon(Icons.screen_rotation), onPressed: null),
+            IconButton(color: Colors.white38, icon: KivoIcon(KivoIcons.lock, size: 24, color: Colors.white38), onPressed: null),
+            IconButton(color: Colors.white38, icon: KivoIcon(KivoIcons.aspect, size: 24, color: Colors.white38), onPressed: null),
+            IconButton(color: Colors.white38, icon: KivoIcon(KivoIcons.rotate, size: 24, color: Colors.white38), onPressed: null),
           ],
         ),
       ],

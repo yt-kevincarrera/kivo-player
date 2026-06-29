@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/icons/kivo_icons.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../player/control/player_controller.dart';
 import '../../../player/engine/playback_provider.dart';
@@ -18,7 +19,7 @@ class CenterControls extends ConsumerWidget {
         IconButton(
           iconSize: 34,
           color: Colors.white,
-          icon: const Icon(Icons.replay_10),
+          icon: KivoIcon(KivoIcons.replay10, size: 34, color: Colors.white),
           onPressed: () {
             ref.read(hudProvider.notifier).show(HudKind.seek, -1.0, '-${skip}s');
             ctrl.skipBy(-skip);
@@ -26,16 +27,17 @@ class CenterControls extends ConsumerWidget {
         ),
         const SizedBox(width: 36),
         IconButton(
+          key: const Key('kivo_play_pause'),
           iconSize: 56,
           color: Colors.white,
-          icon: Icon(playing ? Icons.pause : Icons.play_arrow),
+          icon: KivoIcon(playing ? KivoIcons.pause : KivoIcons.play, size: 56, color: Colors.white),
           onPressed: ctrl.togglePlayPause,
         ),
         const SizedBox(width: 36),
         IconButton(
           iconSize: 34,
           color: Colors.white,
-          icon: const Icon(Icons.forward_10),
+          icon: KivoIcon(KivoIcons.forward10, size: 34, color: Colors.white),
           onPressed: () {
             ref.read(hudProvider.notifier).show(HudKind.seek, 1.0, '+${skip}s');
             ctrl.skipBy(skip);
