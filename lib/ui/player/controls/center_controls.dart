@@ -4,7 +4,7 @@ import '../../../core/icons/kivo_icons.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../player/control/player_controller.dart';
 import '../../../player/engine/playback_provider.dart';
-import '../state/hud_state.dart';
+import '../state/skip_feedback.dart';
 
 class CenterControls extends ConsumerWidget {
   const CenterControls({super.key});
@@ -33,8 +33,8 @@ class CenterControls extends ConsumerWidget {
             ],
           ),
           onPressed: () {
-            ref.read(hudProvider.notifier).show(HudKind.seek, -1.0, '-${skip}s');
             ctrl.skipBy(-skip);
+            ref.read(skipFeedbackProvider).bump(-skip);
           },
         ),
         const SizedBox(width: 36),
@@ -66,8 +66,8 @@ class CenterControls extends ConsumerWidget {
             ],
           ),
           onPressed: () {
-            ref.read(hudProvider.notifier).show(HudKind.seek, 1.0, '+${skip}s');
             ctrl.skipBy(skip);
+            ref.read(skipFeedbackProvider).bump(skip);
           },
         ),
       ],
