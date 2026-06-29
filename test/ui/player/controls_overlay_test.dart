@@ -18,20 +18,17 @@ void main() {
     ]);
     addTearDown(c.dispose);
 
-    await tester.runAsync(() async {
-      c.listen(playingProvider, (_, __) {});
-      engine.emitPlaying(true);
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-    });
-
     await tester.pumpWidget(UncontrolledProviderScope(
       container: c,
       child: const MaterialApp(home: Scaffold(body: Center(child: CenterControls()))),
     ));
-    await tester.pump();
+
+    // Emit playing=true, then let the stream propagate to the widget
+    engine.emitPlaying(true);
+    await tester.pump(); // process the stream event + rebuild
 
     await tester.tap(find.byIcon(Icons.pause));
     await tester.pump();
     expect(engine.lastPlayingCommand, false); // pause() was called
-  });
+  }, timeout: const Timeout(Duration(seconds: 30)));
 }
