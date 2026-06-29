@@ -5,6 +5,11 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../interfaces/device_controls.dart';
 
 class AndroidDeviceControls implements DeviceControls {
+  AndroidDeviceControls() {
+    // Suppress Android's native volume slider — Kivo shows its own HUD.
+    VolumeController.instance.showSystemUI = false;
+  }
+
   @override
   Future<void> setBrightness(double v01) =>
       ScreenBrightness().setApplicationScreenBrightness(v01.clamp(0.0, 1.0));
