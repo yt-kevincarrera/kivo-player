@@ -31,6 +31,7 @@ class ControlsOverlay extends ConsumerWidget {
           : Stack(children: [
               Positioned.fill(
                 child: IgnorePointer(
+                  ignoring: true, // never absorb taps — tap-to-hide must reach PlayerGestures
                   child: Container(
                       color: Colors.black.withValues(alpha: 0.22)),
                 ),
