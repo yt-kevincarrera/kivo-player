@@ -38,6 +38,16 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        Center(
+          child: Container(
+            width: 40, height: 4,
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.25),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -63,6 +73,7 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
         Wrap(
           spacing: 8,
           runSpacing: 8,
+          alignment: WrapAlignment.center,
           children: [
             for (final p in st.speedPresets)
               GestureDetector(
@@ -89,7 +100,13 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
           ],
         ),
         const SizedBox(height: 12),
-        TextButton(onPressed: () => ctrl.setRate(1.0), child: const Text('↺ Normal (1.0x)')),
+        Center(
+          child: TextButton(
+            style: TextButton.styleFrom(foregroundColor: KivoColors.gold),
+            onPressed: () => ctrl.setRate(1.0),
+            child: const Text('Restablecer (1x)'),
+          ),
+        ),
       ],
     );
   }
