@@ -50,4 +50,19 @@ void main() {
     expect(b.system01, 1.0);
     expect(b.playerPercent, 140);
   });
+
+  test('dragVolumePercent: drag up from 80 caps at 100 (per-drag cap)', () {
+    // drag up 400px in a 400px region at 1.0 sensitivity: +100 -> would be 180, capped at 100
+    expect(dragVolumePercent(80, -400, 400, 1.0, 100), closeTo(100, 1e-9));
+  });
+
+  test('dragVolumePercent: drag up from 100 can reach boostMax 150', () {
+    // drag up 200px in 400px region: +50 -> 150, capped at 150
+    expect(dragVolumePercent(100, -200, 400, 1.0, 150), closeTo(150, 1e-9));
+  });
+
+  test('dragVolumePercent: drag down lowers volume', () {
+    // drag down 200px in 400px region: -50 -> 10
+    expect(dragVolumePercent(60, 200, 400, 1.0, 100), closeTo(10, 1e-9));
+  });
 }

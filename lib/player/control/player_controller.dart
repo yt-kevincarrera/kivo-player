@@ -40,10 +40,11 @@ class PlayerController {
 
   void setVolumePercent(double percent) {
     final boost = _ref.read(settingsProvider).volumeBoostMax.toDouble();
-    final m = volumeMapping(percent, boost);
+    final v = percent.clamp(0.0, boost);
+    final m = volumeMapping(v, boost);
     _ref.read(deviceControlsProvider).setSystemVolume(m.system01);
     _ref.read(playbackEngineProvider).setVolume(m.playerPercent);
-    _ref.read(volumePercentProvider.notifier).state = m.playerPercent;
+    _ref.read(volumePercentProvider.notifier).state = v;
   }
 
   void setBrightness(double v01) =>

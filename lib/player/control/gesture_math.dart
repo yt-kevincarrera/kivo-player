@@ -42,3 +42,12 @@ double round2(double value) => (value * 100).round() / 100;
   final system = (p < 100 ? p : 100) / 100;
   return (system01: system, playerPercent: p < 100 ? 100 : p);
 }
+
+/// Volume drag in PERCENT space (0..capMax). Drag UP (negative dy) raises.
+/// A full-region drag ≈ 100 percentage points × sensitivity.
+double dragVolumePercent(double currentPct, double dyPixels, double regionPixels,
+    double sensitivity, double capMax) {
+  if (regionPixels <= 0) return currentPct;
+  final next = currentPct - (dyPixels / regionPixels) * 100 * sensitivity;
+  return next.clamp(0.0, capMax);
+}

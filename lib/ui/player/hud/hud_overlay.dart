@@ -36,9 +36,23 @@ class HudOverlay extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              KivoIcon(_icon(hud.kind, hud), color: KivoColors.gold, size: 30),
+              KivoIcon(
+                _icon(hud.kind, hud),
+                color: (hud.kind == HudKind.volume && hud.label.contains('boost'))
+                    ? KivoColors.gold
+                    : Colors.white,
+                size: 30,
+              ),
               const SizedBox(height: 8),
-              Text(hud.label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+              Text(
+                hud.label,
+                style: TextStyle(
+                  color: (hud.kind == HudKind.volume && hud.label.contains('boost'))
+                      ? KivoColors.gold
+                      : Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               if (showBar) ...[
                 const SizedBox(height: 10),
                 SizedBox(
