@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+import '../../core/settings/settings_provider.dart';
 import '../../platform/device_controls_provider.dart';
 import '../../platform/interfaces/device_controls.dart';
+import '../../player/control/player_controller.dart';
 import '../../player/engine/playback_provider.dart';
 import '../../player/open/video_source.dart';
 import 'controls/controls_overlay.dart';
@@ -56,6 +58,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       setState(() {});
     }
     await engine.open(session.path, startAt: startAt);
+    final remembered = ref.read(rateProvider);
+    ref.read(playerControllerProvider).setRate(
+      ref.read(settingsProvider).rememberSpeed ? remembered : 1.0,
+    );
   }
 
   Future<void> _saveProgress() async {
