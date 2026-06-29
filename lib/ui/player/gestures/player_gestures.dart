@@ -25,7 +25,8 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   bool _holding = false; // true while a hold-to-speed long-press is active
   double? _lastHoldSpeed;
   double _brightness = 0.5;
-  double _volume01 = 0.5;
+  double _volPct = 100;
+  double _volCap = 100;
   Duration _seekStart = Duration.zero;
   double _seekAccum = 0;
 
@@ -64,8 +65,10 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   void _onVerticalStart(DragStartDetails d) {
     if (_holding) return; // a hold-to-speed gesture owns this touch
     _leftSide = d.localPosition.dx < _width / 2;
-    final boost = ref.read(settingsProvider).volumeBoostMax;
-    _volume01 = (ref.read(volumePercentProvider) / boost).clamp(0.0, 1.0);
+    _volPct = ref.read(volumePercentProvider);
+    _volCap = _volPct < 100
+        ? 100.0
+        : ref.read(settingsProvider).volumeBoostMax.toDouble();
     ref.read(deviceControlsProvider).currentBrightness().then((b) => _brightness = b);
   }
 
@@ -78,10 +81,11 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
       ctrl.setBrightness(_brightness);
       ref.read(hudProvider.notifier).show(HudKind.brightness, _brightness, '${(_brightness * 100).round()}%');
     } else {
-      _volume01 = dragValue(_volume01, d.delta.dy, _height, st.volumeSensitivity);
-      final percent = _volume01 * st.volumeBoostMax;
-      ctrl.setVolumePercent(percent);
-      ref.read(hudProvider.notifier).show(HudKind.volume, _volume01, '${percent.round()}%');
+      _volPct = dragVolumePercent(_volPct, d.delta.dy, _height, st.volumeSensitivity, _volCap);
+      ctrl.setVolumePercent(_volPct);
+      final boosting = _volPct > 100;
+      final label = boosting ? '${_volPct.round()}%  boost' : '${_volPct.round()}%';
+      ref.read(hudProvider.notifier).show(HudKind.volume, _volPct / st.volumeBoostMax, label);
     }
   }
 

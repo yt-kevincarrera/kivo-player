@@ -58,6 +58,15 @@ void main() {
     expect(c.read(volumePercentProvider), 140);
   });
 
+  test('setVolumePercent stores user-facing value (not player gain) for sub-100 volume', () async {
+    await setup();
+    c.read(playerControllerProvider).setVolumePercent(50);
+    await Future<void>.delayed(Duration.zero);
+    expect(controls.volume, 0.5);          // system at 50% of max
+    expect(engine.volume, 100);            // player gain unity (no attenuation)
+    expect(c.read(volumePercentProvider), 50); // provider holds user-facing 50, NOT 100
+  });
+
   test('setRate clamps to max and updates provider', () async {
     await setup();
     c.read(playerControllerProvider).setRate(9.0);
