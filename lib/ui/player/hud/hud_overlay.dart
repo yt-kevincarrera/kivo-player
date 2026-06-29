@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/icons/kivo_icons.dart';
+import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
 import '../state/hud_state.dart';
 
@@ -22,9 +23,11 @@ class HudOverlay extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final accent = Color(ref.watch(settingsProvider).accentColor);
     final hud = ref.watch(hudProvider);
     if (hud == null) return const SizedBox.shrink();
     final showBar = hud.kind == HudKind.brightness || hud.kind == HudKind.volume;
+    final isBoost = hud.kind == HudKind.volume && hud.label.contains('boost');
     return IgnorePointer(
       child: Center(
         child: Container(
@@ -38,18 +41,14 @@ class HudOverlay extends ConsumerWidget {
             children: [
               KivoIcon(
                 _icon(hud.kind, hud),
-                color: (hud.kind == HudKind.volume && hud.label.contains('boost'))
-                    ? KivoColors.gold
-                    : Colors.white,
+                color: isBoost ? accent : Colors.white,
                 size: 30,
               ),
               const SizedBox(height: 8),
               Text(
                 hud.label,
                 style: TextStyle(
-                  color: (hud.kind == HudKind.volume && hud.label.contains('boost'))
-                      ? KivoColors.gold
-                      : Colors.white,
+                  color: isBoost ? accent : Colors.white,
                   fontWeight: FontWeight.w600,
                 ),
               ),

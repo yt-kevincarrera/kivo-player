@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kivo_player/core/settings/settings_provider.dart';
+import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/ui/player/state/hud_state.dart';
 import 'package:kivo_player/ui/player/hud/hud_overlay.dart';
+import '../../fakes/fakes.dart';
 
 void main() {
   testWidgets('HudOverlay shows label when HUD active, nothing when null', (tester) async {
-    final c = ProviderContainer();
+    final s = await SettingsService.load(InMemorySettingsStore());
+    final c = ProviderContainer(overrides: [
+      settingsServiceProvider.overrideWithValue(s),
+    ]);
     addTearDown(c.dispose);
     await tester.pumpWidget(UncontrolledProviderScope(
       container: c,

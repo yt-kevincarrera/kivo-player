@@ -24,6 +24,7 @@ class KivoSettings {
   final String resumeBehavior;     // 'auto' | 'ask' | 'off'
   final int resumeMinSeconds;
   final bool rememberOrientationLock;
+  final int accentColor;
 
   const KivoSettings({
     required this.doubleTapSkipLeft,
@@ -51,6 +52,7 @@ class KivoSettings {
     required this.resumeBehavior,
     required this.resumeMinSeconds,
     required this.rememberOrientationLock,
+    required this.accentColor,
   });
 
   factory KivoSettings.defaults() => const KivoSettings(
@@ -79,6 +81,7 @@ class KivoSettings {
         resumeBehavior: 'auto',
         resumeMinSeconds: 5,
         rememberOrientationLock: true,
+        accentColor: 0xFFE8B84B,
       );
 
   KivoSettings copyWith({
@@ -107,6 +110,7 @@ class KivoSettings {
     String? resumeBehavior,
     int? resumeMinSeconds,
     bool? rememberOrientationLock,
+    int? accentColor,
   }) {
     return KivoSettings(
       doubleTapSkipLeft: doubleTapSkipLeft ?? this.doubleTapSkipLeft,
@@ -134,6 +138,7 @@ class KivoSettings {
       resumeBehavior: resumeBehavior ?? this.resumeBehavior,
       resumeMinSeconds: resumeMinSeconds ?? this.resumeMinSeconds,
       rememberOrientationLock: rememberOrientationLock ?? this.rememberOrientationLock,
+      accentColor: accentColor ?? this.accentColor,
     );
   }
 
@@ -163,6 +168,7 @@ class KivoSettings {
         'resumeBehavior': resumeBehavior,
         'resumeMinSeconds': resumeMinSeconds,
         'rememberOrientationLock': rememberOrientationLock,
+        'accentColor': accentColor,
       };
 
   factory KivoSettings.fromMap(Map<String, dynamic> m) {
@@ -193,6 +199,7 @@ class KivoSettings {
       resumeBehavior: m['resumeBehavior'] ?? d.resumeBehavior,
       resumeMinSeconds: m['resumeMinSeconds'] ?? d.resumeMinSeconds,
       rememberOrientationLock: m['rememberOrientationLock'] ?? d.rememberOrientationLock,
+      accentColor: m['accentColor'] ?? d.accentColor,
     );
   }
 }

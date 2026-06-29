@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
-import '../../../core/theme/kivo_theme.dart';
 import '../../../player/control/gesture_math.dart';
 
 final holdSpeedProvider = StateProvider<double?>((ref) => null);
@@ -17,6 +16,7 @@ class SpeedLadderOverlay extends ConsumerWidget {
     final speed = ref.watch(holdSpeedProvider);
     if (speed == null) return const SizedBox.shrink();
     final st = ref.watch(settingsProvider);
+    final accent = Color(st.accentColor);
     final steps = [for (var i = 5; i >= 0; i--) ladderSpeed(i / 5, st.holdRightMin, st.holdRightMax, 6)];
     return IgnorePointer(
       child: Stack(
@@ -38,8 +38,8 @@ class SpeedLadderOverlay extends ConsumerWidget {
                     margin: const EdgeInsets.symmetric(vertical: 3),
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: active ? KivoColors.gold.withValues(alpha: 0.3) : Colors.black54,
-                      border: Border.all(color: active ? KivoColors.gold : Colors.white24),
+                      color: active ? accent.withValues(alpha: 0.3) : Colors.black54,
+                      border: Border.all(color: active ? accent : Colors.white24),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text('${v.toStringAsFixed(1)}x',
