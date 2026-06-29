@@ -1,23 +1,26 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../settings/settings_provider.dart';
 
 /// Bespoke Kivo icon set — modern/techie **duotone**: a crisp geometric base
 /// drawn in `currentColor` (tintable per state: white when active, dimmed when
-/// disabled) plus a single sharp gold accent (`#E8B84B`) marking each glyph's
-/// "essence". High contrast on dark, tight corners — deliberately not the soft,
-/// pastel duotone that reads as dated.
+/// disabled) plus a single sharp accent marking each glyph's "essence".
+/// The accent colour is read at runtime from [settingsProvider] so the user
+/// can swap it without restarting. High contrast on dark, tight corners —
+/// deliberately not the soft, pastel duotone that reads as dated.
 ///
 /// [KivoIcon] feeds `currentColor` via `SvgTheme`, so the base recolors while
-/// the baked gold accent stays gold. Disabled icons dim the whole glyph via
-/// [KivoIcon.opacity] (so the gold dims too) instead of recoloring.
+/// the accent stays configured. Disabled icons dim the whole glyph via
+/// [KivoIcon.opacity] (so the accent dims too) instead of recoloring.
 class KivoIcons {
   KivoIcons._();
 
-  static const String _g = '#E8B84B'; // gold accent
+  static const String _g = '__ACCENT__'; // runtime-substituted accent token
   static const String _open = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">';
   static String _wrap(String b) => '$_open$b</svg>';
 
-  // ---- transport (play = hero, baked gold; pause = base) ----
+  // ---- transport (play = hero, baked accent; pause = base) ----
   static final String play = _wrap(
     '<path d="M8 6 L18 12 L8 18 Z" fill="$_g" stroke="$_g" stroke-width="2" stroke-linejoin="round"/>',
   );
@@ -28,28 +31,30 @@ class KivoIcons {
   );
 
   static final String fastForward = _wrap(
-    '<g fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round">'
-    '<path d="M4 6.5 L11 12 L4 17.5 Z"/><path d="M12.5 6.5 L19.5 12 L12.5 17.5 Z"/></g>',
+    '<g stroke-width="1.4" stroke-linejoin="round">'
+    '<path d="M4 6.5 L11 12 L4 17.5 Z" fill="currentColor" stroke="currentColor"/>'
+    '<path d="M12.5 6.5 L19.5 12 L12.5 17.5 Z" fill="$_g" stroke="$_g"/></g>',
   );
 
   static final String fastRewind = _wrap(
-    '<g fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round">'
-    '<path d="M20 6.5 L13 12 L20 17.5 Z"/><path d="M11.5 6.5 L4.5 12 L11.5 17.5 Z"/></g>',
+    '<g stroke-width="1.4" stroke-linejoin="round">'
+    '<path d="M20 6.5 L13 12 L20 17.5 Z" fill="currentColor" stroke="currentColor"/>'
+    '<path d="M11.5 6.5 L4.5 12 L11.5 17.5 Z" fill="$_g" stroke="$_g"/></g>',
   );
 
-  // ---- skip N seconds: base ring/arrow in currentColor, gold "10" ----
+  // ---- skip N seconds: base ring/arrow in currentColor, accent "10" ----
   static final String replay10 = _wrap(
     '<g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'
-    '<path d="M5 8.6 A 7 7 0 1 0 7.7 4.9"/><path d="M8 2 L7.4 5.1 L10.4 5.7"/></g>'
-    '<text x="12.2" y="15.3" text-anchor="middle" font-family="sans-serif" font-size="7.5" '
-    'font-weight="700" fill="$_g">10</text>',
+    '<path d="M13.5 3.7 A8.5 8.5 0 1 0 10.5 3.7"/>'
+    '<path d="M12.2 2.4 L10.3 3.6 L11.3 5.5"/></g>'
+    '<text x="12" y="15" text-anchor="middle" font-family="sans-serif" font-size="9" font-weight="700" fill="$_g">10</text>',
   );
 
   static final String forward10 = _wrap(
     '<g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'
-    '<path d="M19 8.6 A 7 7 0 1 1 16.3 4.9"/><path d="M16 2 L16.6 5.1 L13.6 5.7"/></g>'
-    '<text x="11.8" y="15.3" text-anchor="middle" font-family="sans-serif" font-size="7.5" '
-    'font-weight="700" fill="$_g">10</text>',
+    '<path d="M10.5 3.7 A8.5 8.5 0 1 1 13.5 3.7"/>'
+    '<path d="M11.8 2.4 L13.7 3.6 L12.7 5.5"/></g>'
+    '<text x="12" y="15" text-anchor="middle" font-family="sans-serif" font-size="9" font-weight="700" fill="$_g">10</text>',
   );
 
   // ---- top bar ----
@@ -150,13 +155,21 @@ class KivoIcons {
   );
 }
 
-/// Renders a [KivoIcons] duotone SVG. [color] sets the `currentColor` base (the
-/// gold accent stays gold); [opacity] dims the whole glyph (used for the
-/// disabled/"coming soon" buttons so the gold dims too).
-class KivoIcon extends StatelessWidget {
+String _toHex(Color c) {
+  final rgb = c.toARGB32() & 0xFFFFFF;
+  return '#${rgb.toRadixString(16).padLeft(6, '0')}';
+}
+
+/// Renders a [KivoIcons] duotone SVG. [color] sets the `currentColor` base
+/// (the accent is substituted from [settingsProvider] at build time).
+/// [accent] overrides the configured accent for one-off use.
+/// [opacity] dims the whole glyph (used for disabled/"coming soon" buttons so
+/// the accent dims too).
+class KivoIcon extends ConsumerWidget {
   final String icon;
   final double size;
   final Color color;
+  final Color? accent;
   final double opacity;
 
   const KivoIcon(
@@ -164,13 +177,17 @@ class KivoIcon extends StatelessWidget {
     super.key,
     this.size = 24,
     this.color = const Color(0xFFFFFFFF),
+    this.accent,
     this.opacity = 1.0,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final a = accent ?? Color(ref.watch(settingsProvider).accentColor);
+    final hex = _toHex(a);
+    final svg = icon.replaceAll('__ACCENT__', hex);
     final pic = SvgPicture.string(
-      icon,
+      svg,
       width: size,
       height: size,
       theme: SvgTheme(currentColor: color),

@@ -24,4 +24,10 @@ void main() {
     final s = KivoSettings.defaults().copyWith(volumeBoostMax: 200);
     expect(KivoSettings.fromMap(s.toMap()).volumeBoostMax, 200);
   });
+
+  test('accentColor defaults to gold and round-trips', () {
+    expect(KivoSettings.defaults().accentColor, 0xFFE8B84B);
+    final s = KivoSettings.defaults().copyWith(accentColor: 0xFF2D6CFF);
+    expect(KivoSettings.fromMap(s.toMap()).accentColor, 0xFF2D6CFF);
+  });
 }

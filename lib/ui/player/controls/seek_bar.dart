@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/theme/kivo_theme.dart';
+import '../../../core/settings/settings_provider.dart';
 import '../../../player/control/player_controller.dart';
 import '../../../player/engine/playback_provider.dart';
 import '../state/controls_visibility.dart';
@@ -15,6 +15,7 @@ class SeekBar extends ConsumerWidget {
   const SeekBar({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final accent = Color(ref.watch(settingsProvider).accentColor);
     final pos = ref.watch(positionProvider).value ?? Duration.zero;
     final total = ref.watch(durationProvider).value ?? Duration.zero;
     final maxMs = total.inMilliseconds == 0 ? 1.0 : total.inMilliseconds.toDouble();
@@ -26,7 +27,7 @@ class SeekBar extends ConsumerWidget {
             min: 0,
             max: maxMs,
             value: pos.inMilliseconds.clamp(0, maxMs.toInt()).toDouble(),
-            activeColor: KivoColors.gold,
+            activeColor: accent,
             inactiveColor: Colors.white24,
             onChanged: (v) {
               ref.read(playerControllerProvider).seekTo(Duration(milliseconds: v.round()));
