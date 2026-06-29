@@ -56,7 +56,8 @@ void main() {
       playbackEngineProvider.overrideWithValue(engine),
       deviceControlsProvider.overrideWithValue(NoopControls()),
     ]);
-    addTearDown(c.dispose);
+    // No addTearDown(c.dispose) here: this test disposes c explicitly before the
+    // final pump (to cancel timers), so a teardown dispose would double-dispose.
 
     // Seed position and duration via runAsync so stream events resolve in real async
     // context before pumpWidget hooks into fake_async.
