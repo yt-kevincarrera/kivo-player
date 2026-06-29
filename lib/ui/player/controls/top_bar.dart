@@ -21,6 +21,7 @@ class TopBar extends ConsumerWidget {
       children: [
         IconButton(
           color: Colors.white,
+          tooltip: 'Atrás',
           icon: KivoIcon(KivoIcons.back, size: 24, color: Colors.white),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
@@ -32,6 +33,7 @@ class TopBar extends ConsumerWidget {
         ),
         IconButton(
           color: Colors.white,
+          tooltip: 'Información en pantalla',
           icon: KivoIcon(KivoIcons.info, size: 24, color: Colors.white),
           onPressed: () {
             final s = ref.read(settingsProvider);
@@ -39,10 +41,10 @@ class TopBar extends ConsumerWidget {
           },
         ),
         // Disabled until later plans (Plan 3 / Hito 3)
-        IconButton(color: Colors.white38, icon: KivoIcon(KivoIcons.subtitles, size: 24, opacity: 0.38), onPressed: null),
-        IconButton(color: Colors.white38, icon: KivoIcon(KivoIcons.pip, size: 24, opacity: 0.38), onPressed: null),
-        IconButton(color: Colors.white38, icon: KivoIcon(KivoIcons.audio, size: 24, opacity: 0.38), onPressed: null),
-        IconButton(color: Colors.white38, icon: KivoIcon(KivoIcons.more, size: 24, opacity: 0.38), onPressed: null),
+        IconButton(color: Colors.white38, tooltip: 'Subtítulos', icon: KivoIcon(KivoIcons.subtitles, size: 24, opacity: 0.38), onPressed: null),
+        IconButton(color: Colors.white38, tooltip: 'Imagen en imagen', icon: KivoIcon(KivoIcons.pip, size: 24, opacity: 0.38), onPressed: null),
+        IconButton(color: Colors.white38, tooltip: 'Audio', icon: KivoIcon(KivoIcons.audio, size: 24, opacity: 0.38), onPressed: null),
+        IconButton(color: Colors.white38, tooltip: 'Más opciones', icon: KivoIcon(KivoIcons.more, size: 24, opacity: 0.38), onPressed: null),
       ],
     );
   }

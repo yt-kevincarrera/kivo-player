@@ -25,13 +25,17 @@ class BottomBar extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            TextButton(
-              onPressed: () => showSpeedPanel(context),
-              child: Text('${rate.toStringAsFixed(2)}x',
-                  style: TextStyle(color: accent, fontWeight: FontWeight.w600)),
+            Tooltip(
+              message: 'Velocidad',
+              child: TextButton(
+                onPressed: () => showSpeedPanel(context),
+                child: Text('${rate.toStringAsFixed(2)}x',
+                    style: TextStyle(color: accent, fontWeight: FontWeight.w600)),
+              ),
             ),
             IconButton(
               color: Colors.white,
+              tooltip: 'Bloquear pantalla',
               icon: KivoIcon(KivoIcons.lock, size: 24, color: Colors.white),
               onPressed: () {
                 ref.read(lockProvider.notifier).lock();
@@ -40,6 +44,7 @@ class BottomBar extends ConsumerWidget {
             ),
             IconButton(
               color: Colors.white,
+              tooltip: 'Relación de aspecto',
               icon: KivoIcon(aspectIconFor(mode), size: 24, color: Colors.white),
               onPressed: () {
                 ref.read(aspectModeProvider.notifier).cycle();
@@ -48,6 +53,7 @@ class BottomBar extends ConsumerWidget {
             ),
             IconButton(
               color: Colors.white,
+              tooltip: 'Rotar',
               icon: KivoIcon(KivoIcons.rotate, size: 24, color: Colors.white),
               onPressed: () => ref.read(orientationProvider.notifier).cycle(),
             ),
