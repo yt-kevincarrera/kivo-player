@@ -20,6 +20,7 @@ class FakePlaybackEngine implements PlaybackEngine {
 
   String? openedPath;
   Duration? openedAt;
+  Duration? lastSeek;
   double rate = 1.0;
   double volume = 100;
 
@@ -50,7 +51,10 @@ class FakePlaybackEngine implements PlaybackEngine {
   @override
   Future<void> pause() async => _playing.add(false);
   @override
-  Future<void> seek(Duration p) async => _pos.add(p);
+  Future<void> seek(Duration p) async {
+    lastSeek = p;
+    _pos.add(p);
+  }
   @override
   Future<void> setRate(double r) async => rate = r;
   @override
