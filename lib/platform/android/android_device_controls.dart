@@ -50,6 +50,13 @@ class AndroidDeviceControls implements DeviceControls {
 
   @override
   Future<void> keepAwake(bool on) => WakelockPlus.toggle(enable: on);
+
+  @override
+  Future<void> setImmersive(bool on) async {
+    await SystemChrome.setEnabledSystemUIMode(
+      on ? SystemUiMode.immersiveSticky : SystemUiMode.edgeToEdge,
+    );
+  }
 }
 
 final deviceControls = AndroidDeviceControls();

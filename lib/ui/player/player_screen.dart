@@ -34,6 +34,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) => _start());
     _deviceControls.setOrientation([DeviceOrientationLock.landscape]);
     _deviceControls.keepAwake(true);
+    _deviceControls.setImmersive(true);
   }
 
   @override
@@ -76,6 +77,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _saveProgress(); // best-effort for in-app pop
     _deviceControls.setOrientation([DeviceOrientationLock.auto]);
     _deviceControls.keepAwake(false);
+    _deviceControls.setImmersive(false);
     super.dispose();
   }
 

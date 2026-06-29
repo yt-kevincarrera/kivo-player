@@ -17,6 +17,7 @@ class NoopControls implements DeviceControls {
   @override Future<void> setSystemVolume(double v) async {}
   @override Future<void> setOrientation(List<DeviceOrientationLock> o) async {}
   @override Future<void> keepAwake(bool on) async {}
+  @override Future<void> setImmersive(bool on) async {}
 }
 
 void main() {

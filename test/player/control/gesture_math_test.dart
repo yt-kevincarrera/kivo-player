@@ -45,7 +45,7 @@ void main() {
   test('volumeMapping splits system vs player gain at 100%', () {
     final a = volumeMapping(80, 150);
     expect(a.system01, closeTo(0.8, 1e-9));
-    expect(a.playerPercent, 80);
+    expect(a.playerPercent, 100); // no double attenuation below 100%
     final b = volumeMapping(140, 150);
     expect(b.system01, 1.0);
     expect(b.playerPercent, 140);

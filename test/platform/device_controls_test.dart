@@ -15,6 +15,8 @@ class RecordingControls implements DeviceControls {
   Future<void> setOrientation(List<DeviceOrientationLock> o) async {}
   @override
   Future<void> keepAwake(bool on) async {}
+  @override
+  Future<void> setImmersive(bool on) async {}
 }
 
 void main() {
