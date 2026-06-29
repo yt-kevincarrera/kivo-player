@@ -126,11 +126,17 @@ class KivoIcons {
     '<circle cx="12" cy="12" r="3.6" fill="$_g"/>',
   );
 
-  static final String brightnessLow = _wrap(
-    '<g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4 V5.8"/>'
-    '<path d="M12 18.2 V20"/><path d="M4 12 H5.8"/><path d="M18.2 12 H20"/></g>'
-    '<circle cx="12" cy="12" r="2.4" fill="$_g"/>',
-  );
+  /// Sun with a core that grows with [v] (0..1) — continuous, so brightness
+  /// drags animate smoothly without swapping glyphs.
+  static String brightnessFor(double v) {
+    final core = (1.6 + v.clamp(0.0, 1.0) * 2.6).toStringAsFixed(2); // 1.6 .. 4.2
+    return _wrap(
+      '<g stroke="currentColor" stroke-width="2" stroke-linecap="round">'
+      '<path d="M12 2.5 V5"/><path d="M12 19 V21.5"/><path d="M2.5 12 H5"/><path d="M19 12 H21.5"/>'
+      '<path d="M5.3 5.3 L7 7"/><path d="M17 17 L18.7 18.7"/><path d="M18.7 5.3 L17 7"/><path d="M7 17 L5.3 18.7"/></g>'
+      '<circle cx="12" cy="12" r="$core" fill="$_g"/>',
+    );
+  }
 
   static final String volume = _wrap(
     '<path d="M4 9 H7 L11.5 5 V19 L7 15 H4 Z" fill="currentColor" stroke="currentColor" '
