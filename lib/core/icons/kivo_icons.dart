@@ -45,15 +45,15 @@ class KivoIcons {
   // ---- skip N seconds: base ring/arrow in currentColor, accent "10" ----
   static final String replay10 = _wrap(
     '<g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'
-    '<path d="M13.5 3.7 A8.5 8.5 0 1 0 10.5 3.7"/>'
-    '<path d="M12.2 2.4 L10.3 3.6 L11.3 5.5"/></g>'
+    '<path d="M8.6 4.8 A8 8 0 1 0 12 4"/>'
+    '<path d="M13.7 2.6 L12 4 L13.7 5.4"/></g>'
     '<text x="12" y="15" text-anchor="middle" font-family="sans-serif" font-size="9" font-weight="700" fill="$_g">10</text>',
   );
 
   static final String forward10 = _wrap(
     '<g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'
-    '<path d="M10.5 3.7 A8.5 8.5 0 1 1 13.5 3.7"/>'
-    '<path d="M11.8 2.4 L13.7 3.6 L12.7 5.5"/></g>'
+    '<path d="M15.4 4.8 A8 8 0 1 1 12 4"/>'
+    '<path d="M10.3 2.6 L12 4 L10.3 5.4"/></g>'
     '<text x="12" y="15" text-anchor="middle" font-family="sans-serif" font-size="9" font-weight="700" fill="$_g">10</text>',
   );
 
