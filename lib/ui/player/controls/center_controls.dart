@@ -5,36 +5,7 @@ import '../../../core/settings/settings_provider.dart';
 import '../../../player/control/player_controller.dart';
 import '../../../player/engine/playback_provider.dart';
 import '../state/skip_feedback.dart';
-
-// ---------------------------------------------------------------------------
-// _PressBounce — translucent Listener that scales child to 0.92 on press.
-// ---------------------------------------------------------------------------
-
-class _PressBounce extends StatefulWidget {
-  final Widget child;
-  const _PressBounce({required this.child});
-  @override
-  State<_PressBounce> createState() => _PressBounceState();
-}
-
-class _PressBounceState extends State<_PressBounce> {
-  bool _pressed = false;
-  @override
-  Widget build(BuildContext context) => Listener(
-        // Translucent so the IconButton beneath still gets the tap; we only
-        // observe the press to drive the scale (no event consumed).
-        behavior: HitTestBehavior.translucent,
-        onPointerDown: (_) => setState(() => _pressed = true),
-        onPointerUp: (_) => setState(() => _pressed = false),
-        onPointerCancel: (_) => setState(() => _pressed = false),
-        child: AnimatedScale(
-          scale: _pressed ? 0.92 : 1.0,
-          duration: const Duration(milliseconds: 90),
-          curve: Curves.easeOut,
-          child: widget.child,
-        ),
-      );
-}
+import '../../widgets/press_bounce.dart';
 
 // ---------------------------------------------------------------------------
 // _SkipButton — ±10s skip with chevron nudge animation.
@@ -75,7 +46,7 @@ class _SkipButtonState extends ConsumerState<_SkipButton>
     final skip = ref.watch(settingsProvider).centerSkipSeconds;
     final accent = Color(ref.watch(settingsProvider).accentColor);
     final dir = widget.forward ? 1.0 : -1.0;
-    return _PressBounce(
+    return PressBounce(
       child: IconButton(
         iconSize: 34,
         color: Colors.white,
@@ -127,7 +98,7 @@ class CenterControls extends ConsumerWidget {
       children: [
         const _SkipButton(forward: false),
         const SizedBox(width: 36),
-        _PressBounce(
+        PressBounce(
           child: IconButton(
             key: const Key('kivo_play_pause'),
             iconSize: 56,
