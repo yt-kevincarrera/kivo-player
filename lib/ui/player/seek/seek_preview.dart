@@ -56,12 +56,18 @@ class SeekPreviewController {
         continue;
       }
       _inFlight = true;
-      final bytes = await _extractor.frameAt(Duration(seconds: bucket));
-      _inFlight = false;
-      if (bytes != null) {
-        _put(bucket, bytes);
-        // Only surface if no newer request superseded this one mid-flight.
-        if (_pendingBucket == null) onFrame(bytes);
+      try {
+        final bytes = await _extractor.frameAt(Duration(seconds: bucket));
+        if (bytes != null) {
+          _put(bucket, bytes);
+          // Only surface if no newer request superseded this one mid-flight.
+          if (_pendingBucket == null) onFrame(bytes);
+        }
+      } catch (_) {
+        // A native extraction failure must not strand _inFlight=true (which
+        // would permanently deadlock the controller); the finally resets it.
+      } finally {
+        _inFlight = false;
       }
     }
   }

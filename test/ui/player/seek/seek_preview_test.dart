@@ -1,7 +1,24 @@
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kivo_player/platform/interfaces/frame_extractor.dart';
 import 'package:kivo_player/ui/player/seek/seek_preview.dart';
 import '../../../fakes/fakes.dart';
+
+/// Throws on the first frameAt call, succeeds after — to prove a failed
+/// extraction doesn't permanently strand the controller's in-flight flag.
+class _FlakyExtractor implements FrameExtractor {
+  int calls = 0;
+  @override
+  Future<void> prepare(String path) async {}
+  @override
+  Future<void> release() async {}
+  @override
+  Future<Uint8List?> frameAt(Duration position) async {
+    calls++;
+    if (calls == 1) throw Exception('boom');
+    return Uint8List.fromList([position.inSeconds & 0xff]);
+  }
+}
 
 void main() {
   late FakeFrameExtractor fake;
@@ -12,6 +29,18 @@ void main() {
     return SeekPreviewController(
         extractor: fake, onFrame: shown.add, capacity: capacity);
   }
+
+  test('an extraction failure does not deadlock the controller', () async {
+    final flaky = _FlakyExtractor();
+    final shown = <Uint8List?>[];
+    final c = SeekPreviewController(extractor: flaky, onFrame: shown.add);
+    c.request(const Duration(seconds: 5)); // throws internally
+    await Future<void>.delayed(Duration.zero);
+    c.request(const Duration(seconds: 6)); // must still drain (not deadlocked)
+    await Future<void>.delayed(Duration.zero);
+    expect(flaky.calls, 2);
+    expect(shown.last, Uint8List.fromList([6]));
+  });
 
   test('buckets sub-second positions to the same 1s bucket (one extraction)', () async {
     final c = make();
