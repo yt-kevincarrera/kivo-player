@@ -10,6 +10,7 @@ import '../../platform/interfaces/media_permission.dart';
 import '../../player/library/media_index.dart';
 import '../../player/library/media_permission.dart';
 import '../../player/open/video_source.dart';
+import '../player/controls/resume_prompt.dart';
 import '../player/player_screen.dart';
 
 class OpenScreen extends ConsumerStatefulWidget {
@@ -43,8 +44,13 @@ class _OpenScreenState extends ConsumerState<OpenScreen> {
     super.dispose();
   }
 
-  void _push() => Navigator.of(context)
-      .push(MaterialPageRoute(builder: (_) => const PlayerScreen()));
+  void _push() {
+    // Clear any leftover resume toast before the next player mounts, so a stale
+    // toast from a previous video never flashes onto the new one.
+    ref.read(resumePromptProvider.notifier).state = null;
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => const PlayerScreen()));
+  }
 
   void _openPath(String path) {
     if (!mounted) return;
