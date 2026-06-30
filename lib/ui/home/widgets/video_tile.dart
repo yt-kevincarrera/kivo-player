@@ -24,7 +24,9 @@ class VideoTile extends ConsumerWidget {
           child: AspectRatio(
             aspectRatio: 16 / 9,
             child: Stack(fit: StackFit.expand, children: [
-              Hero(tag: 'video-${video.id}', child: ThumbnailImage(video.id)),
+              // Tag by uri so it pairs with PlayerScreen's Hero (keyed by the
+              // session playbackPath = this video's uri on library opens).
+              Hero(tag: 'libhero-${video.uri}', child: ThumbnailImage(video.id)),
               // duration badge
               Positioned(top: 6, right: 6, child: _badge(fmtDuration(Duration(milliseconds: video.durationMs)))),
               // title gradient + text

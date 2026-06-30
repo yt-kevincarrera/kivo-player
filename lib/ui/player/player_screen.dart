@@ -134,6 +134,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       body: Consumer(
         builder: (context, ref, _) {
           final dismissProgress = ref.watch(dismissProvider);
+          final heroTag = 'libhero-${ref.watch(currentVideoProvider)?.playbackPath ?? ''}';
           final scale = 1.0 - dismissProgress * 0.06;
           final opacity = 1.0 - dismissProgress * 0.4;
           // Slide the whole player down by progress × screen height.
@@ -148,14 +149,22 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                 child: Stack(
                   children: [
                     Positioned.fill(
-                      child: Center(
-                        child: _controller == null
-                            ? const CircularProgressIndicator()
-                            : Video(
-                                controller: _controller!,
-                                controls: NoVideoControls, // Kivo draws its own controls; this also kills media_kit's buffering spinner
-                                fit: boxFitFor(ref.watch(aspectModeProvider)),
-                              ),
+                      child: Hero(
+                        // Pairs with the library tile's Hero (tagged by uri);
+                        // a full-bleed black box so the thumbnail expands to the
+                        // whole screen cleanly even before the video is ready.
+                        tag: heroTag,
+                        child: Container(
+                          color: Colors.black,
+                          alignment: Alignment.center,
+                          child: _controller == null
+                              ? const CircularProgressIndicator()
+                              : Video(
+                                  controller: _controller!,
+                                  controls: NoVideoControls, // Kivo draws its own controls; this also kills media_kit's buffering spinner
+                                  fit: boxFitFor(ref.watch(aspectModeProvider)),
+                                ),
+                        ),
                       ),
                     ),
                     const Positioned.fill(child: PlayerGestures(child: SizedBox.expand())),
