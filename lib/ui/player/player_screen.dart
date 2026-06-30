@@ -70,6 +70,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   Future<void> _start() async {
     final session = ref.read(currentVideoProvider);
     if (session == null) return;
+    // Fresh entry must never inherit a stranded dismiss progress (the provider
+    // is app-scoped and survives the previous player route).
+    ref.read(dismissProvider.notifier).state = 0;
     final engine = ref.read(playbackEngineProvider);
     _resumeKey = session.resumeKey;
     final plan = planResume(
@@ -127,11 +130,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       body: Consumer(
         builder: (context, ref, _) {
           final dismissProgress = ref.watch(dismissProvider);
-          final scale = 1.0 - dismissProgress * 0.1;
-          final opacity = 1.0 - dismissProgress * 0.5;
-          // offsetY is derived from progress: progress = offsetY / (height * 0.5)
-          // We read the raw offset from the gesture via progress; reconstruct approximate
-          // pixel offset for the translate by reading MediaQuery height.
+          final scale = 1.0 - dismissProgress * 0.06;
+          final opacity = 1.0 - dismissProgress * 0.4;
+          // Slide the whole player down by progress × screen height.
           final screenHeight = MediaQuery.sizeOf(context).height;
           final offsetY = dismissProgress * screenHeight;
           return Transform.translate(
