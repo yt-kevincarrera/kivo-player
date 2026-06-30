@@ -15,26 +15,26 @@ class ContinueRow extends ConsumerWidget {
     final cs = Theme.of(context).colorScheme;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Padding(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
         child: Text(
           'Continuar viendo',
           style: TextStyle(
             color: cs.onSurface,
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ),
       SizedBox(
-        height: 120,
+        height: 128,
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           physics: const PageScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           itemCount: items.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 10),
+          separatorBuilder: (_, __) => const SizedBox(width: 12),
           itemBuilder: (_, i) => SizedBox(
-            width: 190,
+            width: 200,
             child: VideoTile(
               video: items[i].video,
               progress: items[i].fraction,
@@ -44,6 +44,7 @@ class ContinueRow extends ConsumerWidget {
           ),
         ),
       ),
+      const SizedBox(height: 6),
     ]);
   }
 }

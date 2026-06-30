@@ -78,11 +78,17 @@ void main() {
     expect(find.text('Kivo'), findsOneWidget);
   });
 
-  testWidgets('Todas tab shows known video name under a date section header',
+  testWidgets('Todo chip is shown', (tester) async {
+    await _buildApp(tester);
+
+    expect(find.text('Todo'), findsOneWidget);
+  });
+
+  testWidgets('Todo tab shows known video name under a date section header',
       (tester) async {
     await _buildApp(tester);
 
-    // The default tab is Todas (index 0). At least one video name must appear.
+    // The default tab is Todo (index 0). At least one video name must appear.
     expect(find.text('Inception.mp4'), findsOneWidget);
     expect(find.text('Avatar.mp4'), findsOneWidget);
   });
@@ -99,15 +105,15 @@ void main() {
     expect(find.text('Downloads'), findsOneWidget);
   });
 
-  testWidgets('Todas tab is shown by default (video names visible)',
+  testWidgets('Todo tab is shown by default (video names visible)',
       (tester) async {
     await _buildApp(tester);
 
-    // In Todas tab the video names should be visible.
+    // In Todo tab the video names should be visible.
     expect(find.text('Inception.mp4'), findsOneWidget);
   });
 
-  testWidgets('Switching back from Carpetas to Todas restores video list',
+  testWidgets('Switching back from Carpetas to Todo restores video list',
       (tester) async {
     await _buildApp(tester);
 
@@ -115,7 +121,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Movies'), findsOneWidget);
 
-    await tester.tap(find.text('Todas'));
+    await tester.tap(find.text('Todo'));
     await tester.pumpAndSettle();
     expect(find.text('Inception.mp4'), findsOneWidget);
   });
