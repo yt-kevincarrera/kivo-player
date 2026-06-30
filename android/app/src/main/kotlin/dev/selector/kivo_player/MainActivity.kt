@@ -49,6 +49,11 @@ class MainActivity : FlutterActivity() {
                                     retriever?.release()
                                     val r = MediaMetadataRetriever()
                                     r.setDataSource(path)
+                                    // Warm the decoder so the first scrub frame isn't a
+                                    // ~half-second cold-start (discard the result).
+                                    try {
+                                        r.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)?.recycle()
+                                    } catch (_: Exception) {}
                                     retriever = r
                                     retrieverPath = path
                                 }
