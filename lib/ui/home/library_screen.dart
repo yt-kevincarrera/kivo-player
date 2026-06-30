@@ -31,6 +31,7 @@ class LibraryScreen extends ConsumerStatefulWidget {
 
 class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   int _tab = 0; // 0 = Todas, 1 = Carpetas
+  double _scaleBaseline = 1.0;
   StreamSubscription<dynamic>? _shareSub;
 
   @override
@@ -82,14 +83,16 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   }
 
   void _onScaleUpdate(ScaleUpdateDetails d) {
+    final rel = d.scale / _scaleBaseline;
     final cols = ref.read(settingsProvider).libraryColumns;
     int next = cols;
-    if (d.scale > 1.25) {
-      next = (cols - 1).clamp(1, 3); // pinch out → fewer cols
-    } else if (d.scale < 0.8) {
-      next = (cols + 1).clamp(1, 3); // pinch in → more cols
+    if (rel > 1.18) {
+      next = (cols - 1).clamp(1, 3); // pinch out → fewer cols (bigger tiles)
+    } else if (rel < 0.85) {
+      next = (cols + 1).clamp(1, 3); // pinch in → more cols (smaller tiles)
     }
     if (next != cols) {
+      _scaleBaseline = d.scale; // reset so next notch needs a fresh movement
       HapticFeedback.selectionClick();
       final s = ref.read(settingsProvider);
       ref.read(settingsProvider.notifier).set(s.copyWith(libraryColumns: next));
@@ -179,110 +182,125 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
     return GestureDetector(
       key: key,
-      onScaleStart: (_) {},
+      onScaleStart: (_) {
+        _scaleBaseline = 1.0;
+      },
       onScaleUpdate: _onScaleUpdate,
-      child: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: ContinueRow(onOpen: (v) => _open(v, videos)),
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 280),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeOutCubic,
+        transitionBuilder: (child, animation) => FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.97, end: 1.0).animate(animation),
+            child: child,
           ),
-          for (final s in sections) ...[
+        ),
+        child: CustomScrollView(
+          key: ValueKey(cols),
+          slivers: [
             SliverToBoxAdapter(
-              child: TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0.0, end: 1.0),
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeOut,
-                builder: (context, value, child) => Opacity(
-                  opacity: value,
-                  child: Transform.translate(
-                    offset: Offset(0, (1.0 - value) * 8),
-                    child: child,
+              child: ContinueRow(onOpen: (v) => _open(v, videos)),
+            ),
+            for (final s in sections) ...[
+              SliverToBoxAdapter(
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0.0, end: 1.0),
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOut,
+                  builder: (context, value, child) => Opacity(
+                    opacity: value,
+                    child: Transform.translate(
+                      offset: Offset(0, (1.0 - value) * 8),
+                      child: child,
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(14, 14, 14, 6),
+                    child: Row(children: [
+                      Container(width: 3, height: 13, color: accentColor),
+                      const SizedBox(width: 7),
+                      Text(
+                        s.label,
+                        style: TextStyle(
+                          color: cs.onSurfaceVariant,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ]),
                   ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 14, 14, 6),
-                  child: Row(children: [
-                    Container(width: 3, height: 13, color: accentColor),
-                    const SizedBox(width: 7),
-                    Text(
-                      s.label,
-                      style: TextStyle(
-                        color: cs.onSurfaceVariant,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ]),
-                ),
               ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              sliver: cols == 1
-                  ? SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (_, i) {
-                          final v = s.items[i];
-                          return TweenAnimationBuilder<double>(
-                            tween: Tween(begin: 0.0, end: 1.0),
-                            duration: const Duration(milliseconds: 200),
-                            curve: Curves.easeOut,
-                            builder: (context, value, child) => Opacity(
-                              opacity: value,
-                              child: Transform.translate(
-                                offset: Offset(0, (1.0 - value) * 8),
-                                child: child,
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                sliver: cols == 1
+                    ? SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (_, i) {
+                            final v = s.items[i];
+                            return TweenAnimationBuilder<double>(
+                              tween: Tween(begin: 0.0, end: 1.0),
+                              duration: const Duration(milliseconds: 200),
+                              curve: Curves.easeOut,
+                              builder: (context, value, child) => Opacity(
+                                opacity: value,
+                                child: Transform.translate(
+                                  offset: Offset(0, (1.0 - value) * 8),
+                                  child: child,
+                                ),
                               ),
-                            ),
-                            child: VideoTile(
-                              video: v,
-                              listRow: true,
-                              sizeLabel: fmtSize(v.sizeBytes),
-                              progress: continueItems[v.name]?.fraction,
-                              onTap: () => _open(v, videos),
-                            ),
-                          );
-                        },
-                        childCount: s.items.length,
-                      ),
-                    )
-                  : SliverGrid(
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: cols,
-                        childAspectRatio: 16 / 9,
-                        crossAxisSpacing: 8,
-                        mainAxisSpacing: 8,
-                      ),
-                      delegate: SliverChildBuilderDelegate(
-                        (_, i) {
-                          final v = s.items[i];
-                          return TweenAnimationBuilder<double>(
-                            tween: Tween(begin: 0.0, end: 1.0),
-                            duration: const Duration(milliseconds: 200),
-                            curve: Curves.easeOut,
-                            builder: (context, value, child) => Opacity(
-                              opacity: value,
-                              child: Transform.translate(
-                                offset: Offset(0, (1.0 - value) * 8),
-                                child: child,
+                              child: VideoTile(
+                                video: v,
+                                listRow: true,
+                                sizeLabel: fmtSize(v.sizeBytes),
+                                progress: continueItems[v.name]?.fraction,
+                                onTap: () => _open(v, videos),
                               ),
-                            ),
-                            child: VideoTile(
-                              video: v,
-                              listRow: false,
-                              sizeLabel: null,
-                              progress: continueItems[v.name]?.fraction,
-                              onTap: () => _open(v, videos),
-                            ),
-                          );
-                        },
-                        childCount: s.items.length,
+                            );
+                          },
+                          childCount: s.items.length,
+                        ),
+                      )
+                    : SliverGrid(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: cols,
+                          childAspectRatio: 16 / 9,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                        ),
+                        delegate: SliverChildBuilderDelegate(
+                          (_, i) {
+                            final v = s.items[i];
+                            return TweenAnimationBuilder<double>(
+                              tween: Tween(begin: 0.0, end: 1.0),
+                              duration: const Duration(milliseconds: 200),
+                              curve: Curves.easeOut,
+                              builder: (context, value, child) => Opacity(
+                                opacity: value,
+                                child: Transform.translate(
+                                  offset: Offset(0, (1.0 - value) * 8),
+                                  child: child,
+                                ),
+                              ),
+                              child: VideoTile(
+                                video: v,
+                                listRow: false,
+                                sizeLabel: null,
+                                progress: continueItems[v.name]?.fraction,
+                                onTap: () => _open(v, videos),
+                              ),
+                            );
+                          },
+                          childCount: s.items.length,
+                        ),
                       ),
-                    ),
-            ),
+              ),
+            ],
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
           ],
-          const SliverToBoxAdapter(child: SizedBox(height: 24)),
-        ],
+        ),
       ),
     );
   }
