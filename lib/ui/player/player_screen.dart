@@ -71,9 +71,11 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   Future<void> _start() async {
     final session = ref.read(currentVideoProvider);
     if (session == null) return;
-    // Fresh entry must never inherit a stranded dismiss progress (the provider
-    // is app-scoped and survives the previous player route).
+    // Fresh entry must never inherit stale app-scoped overlay state from the
+    // previous player route: a stranded dismiss progress, or a resume toast
+    // still on screen when the user jumped to another video.
     ref.read(dismissProvider.notifier).state = 0;
+    ref.read(resumePromptProvider.notifier).state = null;
     final engine = ref.read(playbackEngineProvider);
     _resumeKey = session.resumeKey;
     final plan = planResume(
