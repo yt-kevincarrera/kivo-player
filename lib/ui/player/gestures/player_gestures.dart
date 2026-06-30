@@ -9,8 +9,8 @@ import '../../../player/engine/playback_provider.dart';
 import '../state/controls_visibility.dart';
 import '../state/dismiss_state.dart';
 import '../state/hud_state.dart';
-import '../state/skip_feedback.dart';
 import '../state/lock_state.dart';
+import 'ripple_state.dart';
 import '../speed/speed_ladder_overlay.dart';
 
 class PlayerGestures extends ConsumerStatefulWidget {
@@ -86,11 +86,11 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures>
       case TapZone.left:
         ctrl.skipBy(-st.doubleTapSkipLeft);
         _haptic();
-        ref.read(skipFeedbackProvider).bump(-st.doubleTapSkipLeft);
+        ref.read(rippleControllerProvider).bump(left: true, seconds: st.doubleTapSkipLeft);
       case TapZone.right:
         ctrl.skipBy(st.doubleTapSkipRight);
         _haptic();
-        ref.read(skipFeedbackProvider).bump(st.doubleTapSkipRight);
+        ref.read(rippleControllerProvider).bump(left: false, seconds: st.doubleTapSkipRight);
       case TapZone.center:
         if (st.doubleTapCenterPause) {
           ctrl.togglePlayPause();

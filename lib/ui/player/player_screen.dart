@@ -17,6 +17,7 @@ import 'controls/flash_overlay.dart';
 import 'controls/info_overlay.dart';
 import 'controls/resume_prompt.dart';
 import 'gestures/player_gestures.dart';
+import 'gestures/ripple_overlay.dart';
 import 'hud/hud_overlay.dart';
 import 'speed/speed_ladder_overlay.dart';
 import 'state/aspect_state.dart';
@@ -155,6 +156,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                       ),
                     ),
                     const Positioned.fill(child: PlayerGestures(child: SizedBox.expand())),
+                    const Positioned.fill(child: RippleOverlay()),
                     const Positioned.fill(child: ControlsOverlay()),
                     const Positioned.fill(child: InfoOverlay()),
                     const Positioned.fill(child: FlashOverlay()),
