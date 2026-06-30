@@ -26,6 +26,9 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   bool _holdLeft = false;
   bool _holding = false; // true while a hold-to-speed long-press is active
   double? _lastHoldSpeed;
+  double _holdStartY = 0;
+  int _holdBaseIndex = 0;
+  static const double _holdStepPx = 48.0;
   double _brightness = 0.5;
   double _volPct = 100;
   double _volCap = 100;
@@ -137,7 +140,9 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
       ref.read(holdSpeedIsLadderProvider.notifier).state = false;
       _lastHoldSpeed = st.holdLeftSpeed;
     } else {
-      final v = holdRightSpeedFor(d.localPosition.dy, _height, st.holdRightDetents);
+      _holdStartY = d.localPosition.dy;
+      _holdBaseIndex = defaultHoldRightIndex(st.holdRightDetents);
+      final v = holdRightSpeedFor(_holdStartY, d.localPosition.dy, _holdStepPx, st.holdRightDetents, _holdBaseIndex);
       ctrl.setRate(v);
       ref.read(holdSpeedProvider.notifier).state = v;
       ref.read(holdSpeedIsLadderProvider.notifier).state = true;
@@ -149,13 +154,10 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   void _onLongPressMove(LongPressMoveUpdateDetails d) {
     if (_holdLeft) return;
     final st = ref.read(settingsProvider);
-    final v = holdRightSpeedFor(d.localPosition.dy, _height, st.holdRightDetents);
+    final v = holdRightSpeedFor(_holdStartY, d.localPosition.dy, _holdStepPx, st.holdRightDetents, _holdBaseIndex);
     ref.read(playerControllerProvider).setRate(v);
     ref.read(holdSpeedProvider.notifier).state = v;
-    if (v != _lastHoldSpeed) {
-      _haptic();
-      _lastHoldSpeed = v;
-    }
+    if (v != _lastHoldSpeed) { _haptic(); _lastHoldSpeed = v; }
   }
 
   void _onLongPressEnd(LongPressEndDetails d) {
