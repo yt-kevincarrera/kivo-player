@@ -27,6 +27,7 @@ class KivoSettings {
   final bool rememberOrientationLock;
   final int accentColor;
   final int libraryColumns;
+  final String themeMode; // 'auto' | 'light' | 'dark'
 
   const KivoSettings({
     required this.doubleTapSkipLeft,
@@ -57,6 +58,7 @@ class KivoSettings {
     required this.rememberOrientationLock,
     required this.accentColor,
     required this.libraryColumns,
+    required this.themeMode,
   });
 
   factory KivoSettings.defaults() => const KivoSettings(
@@ -88,6 +90,7 @@ class KivoSettings {
         rememberOrientationLock: true,
         accentColor: 0xFFE8B84B,
         libraryColumns: 1,
+        themeMode: 'auto',
       );
 
   KivoSettings copyWith({
@@ -119,6 +122,7 @@ class KivoSettings {
     bool? rememberOrientationLock,
     int? accentColor,
     int? libraryColumns,
+    String? themeMode,
   }) {
     return KivoSettings(
       doubleTapSkipLeft: doubleTapSkipLeft ?? this.doubleTapSkipLeft,
@@ -149,6 +153,7 @@ class KivoSettings {
       rememberOrientationLock: rememberOrientationLock ?? this.rememberOrientationLock,
       accentColor: accentColor ?? this.accentColor,
       libraryColumns: libraryColumns ?? this.libraryColumns,
+      themeMode: themeMode ?? this.themeMode,
     );
   }
 
@@ -181,6 +186,7 @@ class KivoSettings {
         'rememberOrientationLock': rememberOrientationLock,
         'accentColor': accentColor,
         'libraryColumns': libraryColumns,
+        'themeMode': themeMode,
       };
 
   factory KivoSettings.fromMap(Map<String, dynamic> m) {
@@ -214,6 +220,7 @@ class KivoSettings {
       rememberOrientationLock: m['rememberOrientationLock'] ?? d.rememberOrientationLock,
       accentColor: m['accentColor'] ?? d.accentColor,
       libraryColumns: m['libraryColumns'] ?? d.libraryColumns,
+      themeMode: m['themeMode'] ?? d.themeMode,
     );
   }
 }

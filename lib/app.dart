@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'core/settings/settings_provider.dart';
 import 'core/theme/kivo_theme.dart';
 import 'ui/home/library_screen.dart';
 
-class KivoApp extends StatelessWidget {
+class KivoApp extends ConsumerWidget {
   const KivoApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mode = ref.watch(settingsProvider.select((s) => s.themeMode));
     return MaterialApp(
       title: 'Kivo',
       debugShowCheckedModeBanner: false,
-      theme: KivoTheme.dark(),
+      theme: KivoTheme.light(),
+      darkTheme: KivoTheme.dark(),
+      themeMode: themeModeFor(mode),
       home: const LibraryScreen(),
     );
   }
