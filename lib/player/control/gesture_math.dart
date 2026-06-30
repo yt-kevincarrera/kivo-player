@@ -72,6 +72,18 @@ int defaultHoldRightIndex(List<double> detents) {
   return best;
 }
 
+/// True when [localX] is in the left/right edge strips of width [margin].
+bool inLateralDeadZone(double localX, double width, double margin) =>
+    localX < margin || localX > width - margin;
+
+/// True when a touch is in a swipe-to-dismiss zone: the top strip
+/// ([topInset] + [topMargin]) or either lateral strip ([lateralMargin]).
+/// The bottom strip is intentionally excluded (controls live there).
+bool inDismissZone(double localX, double localY, double width,
+        double topInset, double lateralMargin, double topMargin) =>
+    localY < topInset + topMargin ||
+    inLateralDeadZone(localX, width, lateralMargin);
+
 ({double system01, double playerPercent}) volumeMapping(double percent, double boostMax) {
   final p = percent.clamp(0.0, boostMax);
   final system = (p < 100 ? p : 100) / 100;
