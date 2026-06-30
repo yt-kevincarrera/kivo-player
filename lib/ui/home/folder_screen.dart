@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/format.dart';
 import '../../core/settings/settings_provider.dart';
 import '../../platform/interfaces/media_indexer.dart';
 import '../../player/library/continue_watching.dart';
@@ -49,7 +50,8 @@ class FolderScreen extends ConsumerWidget {
           final v = videos[i];
           return VideoTile(
             video: v,
-            compact: cols > 1,
+            listRow: cols == 1,
+            sizeLabel: cols == 1 ? fmtSize(v.sizeBytes) : null,
             progress: continueItems[v.name]?.fraction,
             onTap: () => _open(context, ref, v),
           );

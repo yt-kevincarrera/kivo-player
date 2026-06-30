@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import '../../core/format.dart';
 import '../../core/icons/kivo_icons.dart';
 import '../../core/settings/settings_provider.dart';
 import '../../core/theme/kivo_theme.dart';
@@ -195,7 +196,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                     final v = s.items[i];
                     return VideoTile(
                       video: v,
-                      compact: cols > 1,
+                      listRow: cols == 1,
+                      sizeLabel: cols == 1 ? fmtSize(v.sizeBytes) : null,
                       progress: continueItems[v.name]?.fraction,
                       onTap: () => _open(v, videos),
                     );

@@ -9,13 +9,98 @@ import 'thumbnail_image.dart';
 class VideoTile extends ConsumerWidget {
   final VideoItem video;
   final double? progress; // 0..1 watched, or null
-  final bool compact;     // multi-column dense layout
+  final bool listRow;     // true = 1-col list row; false = cover-grid tile
   final VoidCallback onTap;
-  const VideoTile({super.key, required this.video, required this.onTap, this.progress, this.compact = false});
+  final String? sizeLabel; // e.g. "49 MB" — shown in list-row meta line
+  const VideoTile({
+    super.key,
+    required this.video,
+    required this.onTap,
+    this.progress,
+    this.listRow = false,
+    this.sizeLabel,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final accent = Color(ref.watch(settingsProvider).accentColor);
+    return listRow
+        ? _buildListRow(context, accent)
+        : _buildCover(context, accent);
+  }
+
+  Widget _buildListRow(BuildContext context, Color accent) {
+    final cs = Theme.of(context).colorScheme;
+    return PressBounce(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Row(
+          children: [
+            // Left: 132px-wide 16:9 thumbnail with badge + progress
+            SizedBox(
+              width: 132,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: Stack(fit: StackFit.expand, children: [
+                    Hero(tag: 'libhero-${video.uri}', child: ThumbnailImage(video.id)),
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: _badge(fmtDuration(Duration(milliseconds: video.durationMs))),
+                    ),
+                    if (progress != null)
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: _SegmentedProgress(progress!, accent, cs),
+                      ),
+                  ]),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            // Right: title + meta
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    video.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: cs.onSurface,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (sizeLabel != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      sizeLabel!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: cs.onSurfaceVariant,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCover(BuildContext context, Color accent) {
+    final cs = Theme.of(context).colorScheme;
     return PressBounce(
       child: GestureDetector(
         onTap: onTap,
@@ -24,22 +109,46 @@ class VideoTile extends ConsumerWidget {
           child: AspectRatio(
             aspectRatio: 16 / 9,
             child: Stack(fit: StackFit.expand, children: [
-              // Tag by uri so it pairs with PlayerScreen's Hero (keyed by the
-              // session playbackPath = this video's uri on library opens).
               Hero(tag: 'libhero-${video.uri}', child: ThumbnailImage(video.id)),
-              // duration badge
-              Positioned(top: 6, right: 6, child: _badge(fmtDuration(Duration(milliseconds: video.durationMs)))),
-              // title gradient + text
-              Positioned(left: 0, right: 0, bottom: 0, child: Container(
-                padding: EdgeInsets.fromLTRB(8, 16, 8, progress != null ? 8 : 6),
-                decoration: const BoxDecoration(gradient: LinearGradient(
-                    begin: Alignment.bottomCenter, end: Alignment.topCenter,
-                    colors: [Colors.black87, Colors.transparent])),
-                child: Text(video.name, maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: Colors.white, fontSize: compact ? 11 : 13, fontWeight: FontWeight.w600)),
-              )),
+              // Duration badge
+              Positioned(
+                top: 6,
+                right: 6,
+                child: _badge(fmtDuration(Duration(milliseconds: video.durationMs))),
+              ),
+              // Title gradient + text (on-thumbnail text stays white over the dark gradient)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  padding: EdgeInsets.fromLTRB(8, 16, 8, progress != null ? 8 : 6),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [Colors.black87, Colors.transparent],
+                    ),
+                  ),
+                  child: Text(
+                    video.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
               if (progress != null)
-                Positioned(left: 0, right: 0, bottom: 0, child: _SegmentedProgress(progress!, accent)),
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: _SegmentedProgress(progress!, accent, cs),
+                ),
             ]),
           ),
         ),
@@ -49,24 +158,39 @@ class VideoTile extends ConsumerWidget {
 
   Widget _badge(String t) => Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.55), borderRadius: BorderRadius.circular(8)),
-      child: Text(t, style: const TextStyle(color: Colors.white, fontSize: 9, fontFeatures: [FontFeature.tabularFigures()])));
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        t,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 9,
+          fontFeatures: [FontFeature.tabularFigures()],
+        ),
+      ));
 }
 
 class _SegmentedProgress extends StatelessWidget {
   final double fraction;
   final Color accent;
-  const _SegmentedProgress(this.fraction, this.accent);
+  final ColorScheme cs;
+  const _SegmentedProgress(this.fraction, this.accent, this.cs);
+
   @override
   Widget build(BuildContext context) {
     const n = 16;
     final lit = (fraction * n).round();
     return Row(children: [
       for (var i = 0; i < n; i++)
-        Expanded(child: Container(
-          height: 4, margin: const EdgeInsets.symmetric(horizontal: 0.5),
-          color: i < lit ? accent : Colors.white.withValues(alpha: 0.18),
-        )),
+        Expanded(
+          child: Container(
+            height: 4,
+            margin: const EdgeInsets.symmetric(horizontal: 0.5),
+            color: i < lit ? accent : cs.onSurface.withValues(alpha: 0.18),
+          ),
+        ),
     ]);
   }
 }

@@ -23,6 +23,7 @@ class ContinueRow extends ConsumerWidget {
         separatorBuilder: (_, __) => const SizedBox(width: 10),
         itemBuilder: (_, i) => SizedBox(width: 190, child: VideoTile(
           video: items[i].video, progress: items[i].fraction,
+          listRow: false,
           onTap: () => onOpen(items[i].video))),
       )),
     ]);
