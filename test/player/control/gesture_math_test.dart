@@ -73,4 +73,10 @@ void main() {
     // drag down 200px in 400px region: -50 -> 10
     expect(dragVolumePercent(60, 200, 400, 1.0, 100), closeTo(10, 1e-9));
   });
+
+  test('inVerticalDeadZone: top and bottom strips, middle is live', () {
+    expect(inVerticalDeadZone(10, 400, 20, 30, 24), isTrue);   // within top inset+margin
+    expect(inVerticalDeadZone(390, 400, 20, 30, 24), isTrue);  // within bottom strip
+    expect(inVerticalDeadZone(200, 400, 20, 30, 24), isFalse); // live middle
+  });
 }

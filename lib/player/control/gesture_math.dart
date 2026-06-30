@@ -43,6 +43,12 @@ double snapToDetent(double value, List<double> detents, double epsilon) {
 
 double clampRate(double value, double min, double max) => value.clamp(min, max);
 
+/// True when a touch at [localY] falls in the top/bottom dead strips reserved
+/// for system gestures (notch / nav bar), = system inset + [margin].
+bool inVerticalDeadZone(double localY, double height, double topInset,
+        double bottomInset, double margin) =>
+    localY < topInset + margin || localY > height - bottomInset - margin;
+
 double round2(double value) => (value * 100).round() / 100;
 
 ({double system01, double playerPercent}) volumeMapping(double percent, double boostMax) {
