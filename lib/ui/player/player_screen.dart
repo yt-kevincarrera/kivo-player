@@ -87,6 +87,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       setState(() {});
     }
     await engine.open(session.playbackPath, startAt: plan.startAt);
+    _deviceControls.currentVolume().then((v) {
+      if (mounted) ref.read(volumePercentProvider.notifier).state = (v * 100).clamp(0, 100);
+    });
     _frames.prepare(session.playbackPath); // fire-and-forget; no await to keep UI responsive
     final remembered = ref.read(rateProvider);
     ref.read(playerControllerProvider).setRate(
@@ -117,6 +120,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _deviceControls.setOrientation([DeviceOrientationLock.auto]);
     _deviceControls.keepAwake(false);
     _deviceControls.setImmersive(false);
+    _deviceControls.resetBrightness();
     super.dispose();
   }
 

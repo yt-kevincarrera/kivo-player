@@ -13,6 +13,7 @@ class RecCtrls implements DeviceControls {
   @override Future<void> setOrientation(List<DeviceOrientationLock> o) async => lastOrientation = o;
   @override Future<void> keepAwake(bool on) async {}
   @override Future<void> setImmersive(bool on) async {}
+  @override Future<void> resetBrightness() async {}
 }
 
 void main() {
