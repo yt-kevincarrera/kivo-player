@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 import 'package:volume_controller/volume_controller.dart';
@@ -5,10 +6,20 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../interfaces/device_controls.dart';
 
 class AndroidDeviceControls implements DeviceControls {
+  final StreamController<double> _volCtrl = StreamController<double>.broadcast();
+
   AndroidDeviceControls() {
     // Suppress Android's native volume slider — Kivo shows its own HUD.
     VolumeController.instance.showSystemUI = false;
+    // Forward all hardware-key volume changes into our own stream.
+    VolumeController.instance.addListener(
+      (v) { _volCtrl.add(v); },
+      fetchInitialVolume: false,
+    );
   }
+
+  @override
+  Stream<double> get systemVolumeStream => _volCtrl.stream;
 
   @override
   Future<void> setBrightness(double v01) =>

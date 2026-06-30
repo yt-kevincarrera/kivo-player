@@ -19,6 +19,7 @@ class NoopControls implements DeviceControls {
   @override Future<void> keepAwake(bool on) async {}
   @override Future<void> setImmersive(bool on) async {}
   @override Future<void> resetBrightness() async {}
+  @override Stream<double> get systemVolumeStream => const Stream<double>.empty();
 }
 
 void main() {

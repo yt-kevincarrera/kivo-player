@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit_video/media_kit_video.dart';
@@ -22,6 +23,7 @@ import 'hud/hud_overlay.dart';
 import 'speed/speed_ladder_overlay.dart';
 import 'state/aspect_state.dart';
 import 'state/dismiss_state.dart';
+import 'state/hud_state.dart';
 import 'state/orientation_state.dart';
 
 class PlayerScreen extends ConsumerStatefulWidget {
@@ -40,6 +42,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   late final PlaybackEngine _engine;
   late final ResumeService _resume;
   late final FrameExtractor _frames;
+  StreamSubscription<double>? _sysVolSub;
 
   @override
   void initState() {
@@ -55,6 +58,16 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     });
     _deviceControls.keepAwake(true);
     _deviceControls.setImmersive(true);
+    // Listen to hardware volume key changes and drive Kivo's model + HUD.
+    // The volumeGestureActiveProvider guard prevents clamping gesture-driven
+    // boost (>100%) when the system-volume listener receives the echo of a
+    // setSystemVolume call made during a vertical drag.
+    _sysVolSub = _deviceControls.systemVolumeStream.listen((v) {
+      if (!mounted) return;
+      if (ref.read(volumeGestureActiveProvider)) return;
+      ref.read(volumePercentProvider.notifier).state = (v * 100).clamp(0.0, 100.0);
+      ref.read(hudProvider.notifier).show(HudKind.volume, v, '${(v * 100).round()}%');
+    });
   }
 
   @override
@@ -113,6 +126,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
 
   @override
   void dispose() {
+    _sysVolSub?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _saveProgress(); // best-effort for in-app pop
     _engine.pause(); // stop audio when leaving the player (engine is a singleton)

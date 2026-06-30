@@ -117,6 +117,11 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures>
         ? 100.0
         : ref.read(settingsProvider).volumeBoostMax.toDouble();
     ref.read(deviceControlsProvider).currentBrightness().then((b) => _brightness = b);
+    if (!_leftSide) {
+      // Mark volume gesture active so the system-volume listener in player_screen
+      // ignores hardware-key echo events during the drag (preserves boost >100).
+      ref.read(volumeGestureActiveProvider.notifier).state = true;
+    }
   }
 
   void _onVerticalUpdate(DragUpdateDetails d) {
@@ -147,6 +152,9 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures>
   }
 
   void _onVerticalEnd(DragEndDetails d) {
+    // Always clear the volume-gesture flag so hardware-key events resume updating
+    // Kivo's volume model (regardless of whether this was a volume or dismiss drag).
+    ref.read(volumeGestureActiveProvider.notifier).state = false;
     if (!_isDismiss) return;
     _isDismiss = false;
     final progress = ref.read(dismissProvider);
