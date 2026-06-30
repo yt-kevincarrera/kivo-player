@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/format.dart';
 import '../resume/resume_service.dart';
 import '../queue/folder_queue_scanner.dart';
 import '../queue/file_system_lister.dart';
@@ -21,6 +22,14 @@ class VideoSession {
   final List<String> queue;
   final int index;
   const VideoSession({required this.path, required this.queue, required this.index});
+
+  /// Stable key for resume lookup. Android's file picker copies the chosen file
+  /// into a per-pick cache dir (e.g. `.../file_picker/1782833069003/clip.mp4`),
+  /// so the full [path] differs on every open and can't key resume. The
+  /// basename is preserved across copies, so we key by it. (A content-URI key
+  /// that also disambiguates same-named files in different folders is deferred
+  /// with the broader content:// normalization — see the class doc above.)
+  String get resumeKey => basenameOf(path);
 }
 
 final resumeServiceProvider = Provider<ResumeService>((ref) {

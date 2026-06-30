@@ -30,7 +30,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   VideoController? _controller;
   Duration _lastPosition = Duration.zero;
   Duration _lastDuration = Duration.zero;
-  String? _path;
+  String? _resumeKey;
   late final DeviceControls _deviceControls;
   late final PlaybackEngine _engine;
 
@@ -62,10 +62,11 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   Future<void> _start() async {
     final session = ref.read(currentVideoProvider);
     if (session == null) return;
-    _path = session.path;
     final engine = ref.read(playbackEngineProvider);
+    _resumeKey = session.resumeKey;
     final resume = ref.read(resumeServiceProvider);
-    final plan = planResume(resume.positionFor(session.path), ref.read(settingsProvider).resumeBehavior);
+    final plan = planResume(
+        resume.positionFor(_resumeKey!), ref.read(settingsProvider).resumeBehavior);
 
     final c = engine.createVideoController();
     if (c is VideoController) {
@@ -84,9 +85,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   }
 
   Future<void> _saveProgress() async {
-    final path = _path;
-    if (path == null || _lastDuration == Duration.zero) return;
-    await ref.read(resumeServiceProvider).record(path, _lastPosition, _lastDuration);
+    final key = _resumeKey;
+    if (key == null || _lastDuration == Duration.zero) return;
+    await ref.read(resumeServiceProvider).record(key, _lastPosition, _lastDuration);
   }
 
   @override
