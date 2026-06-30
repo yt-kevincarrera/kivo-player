@@ -13,7 +13,9 @@ import 'player/resume/resume_store.dart';
 import 'player/resume/resume_service.dart';
 import 'player/open/video_source.dart';
 import 'platform/android/android_frame_extractor.dart';
+import 'platform/android/android_media_indexer.dart';
 import 'platform/frame_extractor_provider.dart';
+import 'platform/media_indexer_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,6 +39,7 @@ Future<void> main() async {
       playbackEngineProvider.overrideWithValue(engine),
       resumeServiceProvider.overrideWithValue(resumeService),
       frameExtractorProvider.overrideWithValue(AndroidFrameExtractor()),
+      mediaIndexerProvider.overrideWithValue(AndroidMediaIndexer()),
     ],
     child: const KivoApp(),
   ));
