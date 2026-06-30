@@ -10,6 +10,7 @@ import '../state/flash_state.dart';
 import '../state/lock_state.dart';
 import '../state/orientation_state.dart';
 import 'seek_bar.dart';
+import '../seek/seek_preview_bubble.dart';
 
 class BottomBar extends ConsumerWidget {
   const BottomBar({super.key});
@@ -21,7 +22,16 @@ class BottomBar extends ConsumerWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const SeekBar(),
+        const Stack(
+          clipBehavior: Clip.none,
+          children: [
+            SeekBar(),
+            Positioned(
+              left: 0, right: 0, bottom: 28, // sit above the bar
+              child: SeekPreviewBubble(),
+            ),
+          ],
+        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [

@@ -5,6 +5,8 @@ import '../../core/settings/settings_provider.dart';
 import '../../platform/device_controls_provider.dart';
 import '../../platform/interfaces/device_controls.dart';
 import '../../player/control/player_controller.dart';
+import '../../platform/frame_extractor_provider.dart';
+import '../../platform/interfaces/frame_extractor.dart';
 import '../../player/engine/playback_engine.dart';
 import '../../player/engine/playback_provider.dart';
 import '../../player/open/video_source.dart';
@@ -35,6 +37,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   late final DeviceControls _deviceControls;
   late final PlaybackEngine _engine;
   late final ResumeService _resume;
+  late final FrameExtractor _frames;
 
   @override
   void initState() {
@@ -42,6 +45,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _deviceControls = ref.read(deviceControlsProvider);
     _engine = ref.read(playbackEngineProvider);
     _resume = ref.read(resumeServiceProvider);
+    _frames = ref.read(frameExtractorProvider);
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(orientationProvider.notifier).apply();
@@ -76,6 +80,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       setState(() {});
     }
     await engine.open(session.path, startAt: plan.startAt);
+    _frames.prepare(session.path); // fire-and-forget; no await to keep UI responsive
     final remembered = ref.read(rateProvider);
     ref.read(playerControllerProvider).setRate(
       ref.read(settingsProvider).rememberSpeed ? remembered : 1.0,
@@ -100,6 +105,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     WidgetsBinding.instance.removeObserver(this);
     _saveProgress(); // best-effort for in-app pop
     _engine.pause(); // stop audio when leaving the player (engine is a singleton)
+    _frames.release(); // release native frame-extractor resources (cached; never via ref)
     _deviceControls.setOrientation([DeviceOrientationLock.auto]);
     _deviceControls.keepAwake(false);
     _deviceControls.setImmersive(false);
