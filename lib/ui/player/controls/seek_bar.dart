@@ -6,6 +6,8 @@ import '../../../player/control/player_controller.dart';
 import '../../../player/engine/playback_provider.dart';
 import '../state/controls_visibility.dart';
 
+final showRemainingProvider = StateProvider<bool>((ref) => false);
+
 class SeekBar extends ConsumerWidget {
   const SeekBar({super.key});
   @override
@@ -30,7 +32,16 @@ class SeekBar extends ConsumerWidget {
             },
           ),
         ),
-        Text(fmtDuration(total), style: const TextStyle(color: Colors.white, fontSize: 12)),
+        GestureDetector(
+          onTap: () => ref.read(showRemainingProvider.notifier).update((v) => !v),
+          behavior: HitTestBehavior.opaque,
+          child: Text(
+            ref.watch(showRemainingProvider)
+                ? '-${fmtDuration(total - pos < Duration.zero ? Duration.zero : total - pos)}'
+                : fmtDuration(total),
+            style: const TextStyle(color: Colors.white, fontSize: 12),
+          ),
+        ),
       ],
     );
   }
