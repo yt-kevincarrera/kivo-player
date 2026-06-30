@@ -20,6 +20,7 @@ import 'gestures/player_gestures.dart';
 import 'hud/hud_overlay.dart';
 import 'speed/speed_ladder_overlay.dart';
 import 'state/aspect_state.dart';
+import 'state/dismiss_state.dart';
 import 'state/orientation_state.dart';
 
 class PlayerScreen extends ConsumerStatefulWidget {
@@ -123,27 +124,48 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Center(
-              child: _controller == null
-                  ? const CircularProgressIndicator()
-                  : Video(
-                      controller: _controller!,
-                      controls: NoVideoControls, // Kivo draws its own controls; this also kills media_kit's buffering spinner
-                      fit: boxFitFor(ref.watch(aspectModeProvider)),
+      body: Consumer(
+        builder: (context, ref, _) {
+          final dismissProgress = ref.watch(dismissProvider);
+          final scale = 1.0 - dismissProgress * 0.1;
+          final opacity = 1.0 - dismissProgress * 0.5;
+          // offsetY is derived from progress: progress = offsetY / (height * 0.5)
+          // We read the raw offset from the gesture via progress; reconstruct approximate
+          // pixel offset for the translate by reading MediaQuery height.
+          final screenHeight = MediaQuery.sizeOf(context).height;
+          final offsetY = dismissProgress * screenHeight;
+          return Transform.translate(
+            offset: Offset(0, offsetY),
+            child: Transform.scale(
+              scale: scale,
+              child: Opacity(
+                opacity: opacity.clamp(0.0, 1.0),
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: Center(
+                        child: _controller == null
+                            ? const CircularProgressIndicator()
+                            : Video(
+                                controller: _controller!,
+                                controls: NoVideoControls, // Kivo draws its own controls; this also kills media_kit's buffering spinner
+                                fit: boxFitFor(ref.watch(aspectModeProvider)),
+                              ),
+                      ),
                     ),
+                    const Positioned.fill(child: PlayerGestures(child: SizedBox.expand())),
+                    const Positioned.fill(child: ControlsOverlay()),
+                    const Positioned.fill(child: InfoOverlay()),
+                    const Positioned.fill(child: FlashOverlay()),
+                    const Positioned.fill(child: HudOverlay()),
+                    const Positioned.fill(child: SpeedLadderOverlay()),
+                    const Positioned.fill(child: ResumePrompt()),
+                  ],
+                ),
+              ),
             ),
-          ),
-          const Positioned.fill(child: PlayerGestures(child: SizedBox.expand())),
-          const Positioned.fill(child: ControlsOverlay()),
-          const Positioned.fill(child: InfoOverlay()),
-          const Positioned.fill(child: FlashOverlay()),
-          const Positioned.fill(child: HudOverlay()),
-          const Positioned.fill(child: SpeedLadderOverlay()),
-          const Positioned.fill(child: ResumePrompt()),
-        ],
+          );
+        },
       ),
     );
   }
