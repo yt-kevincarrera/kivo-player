@@ -4,6 +4,7 @@ import android.content.ContentUris
 import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
+import android.net.Uri
 import android.provider.MediaStore
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -53,7 +54,14 @@ class MainActivity : FlutterActivity() {
                                 if (retrieverPath != path) {
                                     retriever?.release()
                                     val r = MediaMetadataRetriever()
-                                    r.setDataSource(path)
+                                    // content:// URIs (MediaStore library) need the
+                                    // Context+Uri overload; setDataSource(String) only
+                                    // handles file paths/URLs.
+                                    if (path.startsWith("content://")) {
+                                        r.setDataSource(this@MainActivity, Uri.parse(path))
+                                    } else {
+                                        r.setDataSource(path)
+                                    }
                                     // Warm the decoder so the first scrub frame isn't a
                                     // ~half-second cold-start (discard the result).
                                     try {
