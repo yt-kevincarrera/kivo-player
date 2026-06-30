@@ -7,9 +7,11 @@ import '../../platform/interfaces/device_controls.dart';
 import '../../player/control/player_controller.dart';
 import '../../player/engine/playback_provider.dart';
 import '../../player/open/video_source.dart';
+import '../../player/resume/resume_plan.dart';
 import 'controls/controls_overlay.dart';
 import 'controls/flash_overlay.dart';
 import 'controls/info_overlay.dart';
+import 'controls/resume_prompt.dart';
 import 'gestures/player_gestures.dart';
 import 'hud/hud_overlay.dart';
 import 'speed/speed_ladder_overlay.dart';
@@ -57,18 +59,22 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _path = session.path;
     final engine = ref.read(playbackEngineProvider);
     final resume = ref.read(resumeServiceProvider);
-    final startAt = resume.positionFor(session.path) ?? Duration.zero;
+    final plan = planResume(resume.positionFor(session.path), ref.read(settingsProvider).resumeBehavior);
 
     final c = engine.createVideoController();
     if (c is VideoController) {
       _controller = c;
       setState(() {});
     }
-    await engine.open(session.path, startAt: startAt);
+    await engine.open(session.path, startAt: plan.startAt);
     final remembered = ref.read(rateProvider);
     ref.read(playerControllerProvider).setRate(
       ref.read(settingsProvider).rememberSpeed ? remembered : 1.0,
     );
+    if (plan.prompt != ResumePromptKind.none) {
+      ref.read(resumePromptProvider.notifier).state =
+          ResumePromptState(plan.prompt, plan.savedPosition);
+    }
   }
 
   Future<void> _saveProgress() async {
@@ -117,6 +123,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
           const Positioned.fill(child: FlashOverlay()),
           const Positioned.fill(child: HudOverlay()),
           const Positioned.fill(child: SpeedLadderOverlay()),
+          const Positioned.fill(child: ResumePrompt()),
         ],
       ),
     );
