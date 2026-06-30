@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
@@ -7,6 +7,7 @@ import '../../../player/control/gesture_math.dart';
 import '../../../player/control/player_controller.dart';
 import '../../../player/engine/playback_provider.dart';
 import '../state/controls_visibility.dart';
+import '../state/dismiss_state.dart';
 import '../state/hud_state.dart';
 import '../state/skip_feedback.dart';
 import '../state/lock_state.dart';
@@ -19,7 +20,8 @@ class PlayerGestures extends ConsumerStatefulWidget {
   ConsumerState<PlayerGestures> createState() => _PlayerGesturesState();
 }
 
-class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
+class _PlayerGesturesState extends ConsumerState<PlayerGestures>
+    with SingleTickerProviderStateMixin {
   double _lastTapDx = 0;
   double _width = 1, _height = 1;
   bool _leftSide = true;
@@ -36,9 +38,30 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   double _seekAccum = 0;
   bool _vDead = false;
   bool _hDead = false;
+  bool _isDismiss = false; // true when the current vertical drag is a dismiss gesture
   double _topInset = 0;
   double _bottomInset = 0;
   static const _deadMargin = 24.0;
+  static const _lateralMargin = 38.0;
+
+  late final AnimationController _dismissAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _dismissAnim = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    )..addListener(() {
+        ref.read(dismissProvider.notifier).state = _dismissAnim.value;
+      });
+  }
+
+  @override
+  void dispose() {
+    _dismissAnim.dispose();
+    super.dispose();
+  }
 
   bool _dead(double dy) =>
       inVerticalDeadZone(dy, _height, _topInset, _bottomInset, _deadMargin);
@@ -76,10 +99,17 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   }
 
   void _onVerticalStart(DragStartDetails d) {
-    _vDead = _dead(d.localPosition.dy);
+    final dx = d.localPosition.dx;
+    final dy = d.localPosition.dy;
+    _isDismiss = inDismissZone(dx, dy, _width, _topInset, _lateralMargin, _deadMargin);
+    if (_isDismiss) {
+      _dismissAnim.stop();
+      return;
+    }
+    _vDead = _dead(dy);
     if (_vDead) return;
     if (_holding) return; // a hold-to-speed gesture owns this touch
-    _leftSide = d.localPosition.dx < _width / 2;
+    _leftSide = dx < _width / 2;
     _volPct = ref.read(volumePercentProvider);
     _volCap = _volPct < 100
         ? 100.0
@@ -88,6 +118,13 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   }
 
   void _onVerticalUpdate(DragUpdateDetails d) {
+    if (_isDismiss) {
+      // Drive dismiss progress live: clamp downward (0..1).
+      final current = ref.read(dismissProvider);
+      final fraction = (current + d.delta.dy / _height).clamp(0.0, 1.0);
+      ref.read(dismissProvider.notifier).state = fraction;
+      return;
+    }
     if (_vDead) return;
     if (_holding) return; // don't change brightness/volume while holding to speed
     final st = ref.read(settingsProvider);
@@ -103,8 +140,29 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
     }
   }
 
+  void _onVerticalEnd(DragEndDetails d) {
+    if (!_isDismiss) return;
+    _isDismiss = false;
+    final progress = ref.read(dismissProvider);
+    final velocityY = d.primaryVelocity ?? 0;
+    final commit = progress >= 0.25 || velocityY > 700;
+    if (commit) {
+      // Animate to 1 then pop.
+      _dismissAnim.value = progress;
+      _dismissAnim.animateTo(1.0).then((_) {
+        if (mounted) Navigator.of(context).maybePop();
+      });
+    } else {
+      // Snap back to 0.
+      _dismissAnim.value = progress;
+      _dismissAnim.animateBack(0.0);
+    }
+  }
+
   void _onHorizontalStart(DragStartDetails d) {
-    _hDead = _dead(d.localPosition.dy);
+    final dy = d.localPosition.dy;
+    final dx = d.localPosition.dx;
+    _hDead = _dead(dy) || inLateralDeadZone(dx, _width, _lateralMargin);
     // The horizontalSeek setting is gated in _onHorizontalUpdate, not here:
     // GestureDetector handlers can't be conditionally unregistered without a
     // rebuild, and seeding start state is a harmless no-op when seek is off.
@@ -198,6 +256,7 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
           onDoubleTap: _onDoubleTap,
           onVerticalDragStart: _onVerticalStart,
           onVerticalDragUpdate: _onVerticalUpdate,
+          onVerticalDragEnd: _onVerticalEnd,
           onHorizontalDragStart: _onHorizontalStart,
           onHorizontalDragUpdate: _onHorizontalUpdate,
           onLongPressStart: _onLongPressStart,
