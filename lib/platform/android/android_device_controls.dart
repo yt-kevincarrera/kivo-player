@@ -45,6 +45,10 @@ class AndroidDeviceControls implements DeviceControls {
   }
 
   @override
+  Future<void> resetBrightness() =>
+      ScreenBrightness().resetApplicationScreenBrightness();
+
+  @override
   Future<void> keepAwake(bool on) => WakelockPlus.toggle(enable: on);
 
   @override

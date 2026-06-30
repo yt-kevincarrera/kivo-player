@@ -17,6 +17,8 @@ class RecordingControls implements DeviceControls {
   Future<void> keepAwake(bool on) async {}
   @override
   Future<void> setImmersive(bool on) async {}
+  @override
+  Future<void> resetBrightness() async {}
 }
 
 void main() {

@@ -101,9 +101,24 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 12,
-        title: _DiscreetTabs(
-          index: _tab,
-          onChanged: (i) => setState(() => _tab = i),
+        title: Row(
+          children: [
+            const Text(
+              'Kivo',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Flexible(
+              child: _DiscreetTabs(
+                index: _tab,
+                onChanged: (i) => setState(() => _tab = i),
+              ),
+            ),
+          ],
         ),
         actions: [
           IconButton(
