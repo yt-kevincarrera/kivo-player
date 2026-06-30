@@ -1,3 +1,5 @@
+import 'dart:async';
+
 enum DeviceOrientationLock { auto, portrait, landscape }
 
 abstract class DeviceControls {
@@ -9,4 +11,7 @@ abstract class DeviceControls {
   Future<void> keepAwake(bool on);
   Future<void> setImmersive(bool on);
   Future<void> resetBrightness();
+
+  /// Emits the system volume (0..1) on every change, including hardware keys.
+  Stream<double> get systemVolumeStream;
 }
