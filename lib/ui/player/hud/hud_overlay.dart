@@ -182,7 +182,10 @@ class HudOverlay extends ConsumerWidget {
     required Color accent,
     required String icon,
   }) {
-    return Center(
+    // Upper third, not centered — the centered play/skip controls would
+    // otherwise overlap the seek/speed chip while controls are visible.
+    return Align(
+      alignment: const Alignment(0, -0.55),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         decoration: BoxDecoration(
