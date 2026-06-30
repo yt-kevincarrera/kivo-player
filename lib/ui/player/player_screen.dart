@@ -104,7 +104,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     // Use the cached service, never `ref` — this runs from dispose(), where
     // reading a provider throws "ref used after dispose" and silently drops
     // the save (the root cause of resume never persisting on back-exit).
-    await _resume.record(key, _lastPosition, _lastDuration);
+    await _resume.record(key, _lastPosition, _lastDuration,
+        DateTime.now().millisecondsSinceEpoch);
   }
 
   @override
