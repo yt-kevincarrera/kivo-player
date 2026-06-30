@@ -20,4 +20,8 @@ class AndroidMediaIndexer implements MediaIndexer {
       );
     }).toList();
   }
+
+  @override
+  Future<Uint8List?> thumbnail(String id) async =>
+      _channel.invokeMethod<Uint8List>('thumbnail', {'id': id});
 }

@@ -2,6 +2,7 @@ package dev.selector.kivo_player
 
 import android.content.ContentUris
 import android.content.pm.ActivityInfo
+import android.os.Build
 import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.net.Uri
@@ -153,54 +154,80 @@ class MainActivity : FlutterActivity() {
         // ── kivo/media ────────────────────────────────────────────────────────
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "kivo/media")
             .setMethodCallHandler { call, result ->
-                if (call.method == "scan") {
-                    ioExecutor.execute {
-                        val out = ArrayList<HashMap<String, Any>>()
-                        try {
-                            val col = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                            val proj = arrayOf(
-                                MediaStore.Video.Media._ID,
-                                MediaStore.Video.Media.DISPLAY_NAME,
-                                MediaStore.Video.Media.BUCKET_DISPLAY_NAME,
-                                MediaStore.Video.Media.DURATION,
-                                MediaStore.Video.Media.SIZE,
-                                MediaStore.Video.Media.DATE_ADDED,
-                                MediaStore.Video.Media.DATA,
-                            )
-                            contentResolver.query(col, proj, null, null,
-                                "${MediaStore.Video.Media.DATE_ADDED} DESC")?.use { c ->
-                                val idC = c.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
-                                val nameC = c.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
-                                val bucketC = c.getColumnIndex(MediaStore.Video.Media.BUCKET_DISPLAY_NAME)
-                                val durC = c.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
-                                val sizeC = c.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)
-                                val dateC = c.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED)
-                                val dataC = c.getColumnIndex(MediaStore.Video.Media.DATA)
-                                while (c.moveToNext()) {
-                                    val id = c.getLong(idC)
-                                    val uri = ContentUris.withAppendedId(col, id).toString()
-                                    var folder = if (bucketC >= 0) c.getString(bucketC) else null
-                                    if (folder.isNullOrEmpty() && dataC >= 0) {
-                                        folder = c.getString(dataC)?.let { File(it).parentFile?.name }
+                when (call.method) {
+                    "scan" -> {
+                        ioExecutor.execute {
+                            val out = ArrayList<HashMap<String, Any>>()
+                            try {
+                                val col = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                                val proj = arrayOf(
+                                    MediaStore.Video.Media._ID,
+                                    MediaStore.Video.Media.DISPLAY_NAME,
+                                    MediaStore.Video.Media.BUCKET_DISPLAY_NAME,
+                                    MediaStore.Video.Media.DURATION,
+                                    MediaStore.Video.Media.SIZE,
+                                    MediaStore.Video.Media.DATE_ADDED,
+                                    MediaStore.Video.Media.DATA,
+                                )
+                                contentResolver.query(col, proj, null, null,
+                                    "${MediaStore.Video.Media.DATE_ADDED} DESC")?.use { c ->
+                                    val idC = c.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
+                                    val nameC = c.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
+                                    val bucketC = c.getColumnIndex(MediaStore.Video.Media.BUCKET_DISPLAY_NAME)
+                                    val durC = c.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
+                                    val sizeC = c.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)
+                                    val dateC = c.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED)
+                                    val dataC = c.getColumnIndex(MediaStore.Video.Media.DATA)
+                                    while (c.moveToNext()) {
+                                        val id = c.getLong(idC)
+                                        val uri = ContentUris.withAppendedId(col, id).toString()
+                                        var folder = if (bucketC >= 0) c.getString(bucketC) else null
+                                        if (folder.isNullOrEmpty() && dataC >= 0) {
+                                            folder = c.getString(dataC)?.let { File(it).parentFile?.name }
+                                        }
+                                        out.add(hashMapOf(
+                                            "id" to id.toString(),
+                                            "uri" to uri,
+                                            "name" to (c.getString(nameC) ?: ""),
+                                            "folder" to (folder ?: ""),
+                                            "durationMs" to c.getLong(durC),
+                                            "sizeBytes" to c.getLong(sizeC),
+                                            "dateAddedMs" to c.getLong(dateC) * 1000L, // DATE_ADDED is seconds
+                                        ))
                                     }
-                                    out.add(hashMapOf(
-                                        "id" to id.toString(),
-                                        "uri" to uri,
-                                        "name" to (c.getString(nameC) ?: ""),
-                                        "folder" to (folder ?: ""),
-                                        "durationMs" to c.getLong(durC),
-                                        "sizeBytes" to c.getLong(sizeC),
-                                        "dateAddedMs" to c.getLong(dateC) * 1000L, // DATE_ADDED is seconds
-                                    ))
                                 }
+                                runOnUiThread { result.success(out) }
+                            } catch (e: Exception) {
+                                runOnUiThread { result.error("SCAN_FAILED", e.message, null) }
                             }
-                            runOnUiThread { result.success(out) }
-                        } catch (e: Exception) {
-                            runOnUiThread { result.error("SCAN_FAILED", e.message, null) }
                         }
                     }
-                } else {
-                    result.notImplemented()
+                    "thumbnail" -> {
+                        val id = call.argument<String>("id")
+                        if (id == null) { result.error("INVALID_ARG", "id required", null); return@setMethodCallHandler }
+                        ioExecutor.execute {
+                            var bytes: ByteArray? = null
+                            try {
+                                val uri = ContentUris.withAppendedId(
+                                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id.toLong())
+                                val bmp = if (Build.VERSION.SDK_INT >= 29) {
+                                    contentResolver.loadThumbnail(uri, android.util.Size(320, 180), null)
+                                } else {
+                                    @Suppress("DEPRECATION")
+                                    MediaStore.Video.Thumbnails.getThumbnail(
+                                        contentResolver, id.toLong(),
+                                        MediaStore.Video.Thumbnails.MINI_KIND, null)
+                                }
+                                if (bmp != null) {
+                                    val bos = java.io.ByteArrayOutputStream()
+                                    bmp.compress(Bitmap.CompressFormat.JPEG, 80, bos)
+                                    bytes = bos.toByteArray()
+                                }
+                            } catch (_: Exception) {}
+                            runOnUiThread { result.success(bytes) }
+                        }
+                    }
+                    else -> result.notImplemented()
                 }
             }
     }

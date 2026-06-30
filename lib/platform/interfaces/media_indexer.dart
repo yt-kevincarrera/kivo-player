@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 class VideoItem {
   final String id;
   final String uri;
@@ -20,4 +22,5 @@ class VideoItem {
 /// Discovers the device's videos. Android: MediaStore. iOS: later.
 abstract class MediaIndexer {
   Future<List<VideoItem>> scan();
+  Future<Uint8List?> thumbnail(String id);
 }

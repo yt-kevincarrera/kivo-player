@@ -130,10 +130,13 @@ class FakeFrameExtractor implements FrameExtractor {
 class FakeMediaIndexer implements MediaIndexer {
   List<VideoItem> items;
   int scans = 0;
+  Uint8List? thumb;
   FakeMediaIndexer([this.items = const []]);
   @override
   Future<List<VideoItem>> scan() async {
     scans++;
     return items;
   }
+  @override
+  Future<Uint8List?> thumbnail(String id) async => thumb;
 }
