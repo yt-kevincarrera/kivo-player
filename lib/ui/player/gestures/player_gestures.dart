@@ -159,6 +159,9 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   }
 
   void _onLongPressEnd(LongPressEndDetails d) {
+    // A long-press that began in a dead zone never engaged (_holding stays
+    // false); Flutter still delivers End, so bail before touching the rate.
+    if (!_holding) return;
     final st = ref.read(settingsProvider);
     if (_holdLeft || st.holdRightReleaseToNormal) {
       ref.read(playerControllerProvider).setRate(1.0);
