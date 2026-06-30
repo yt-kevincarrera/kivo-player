@@ -36,9 +36,18 @@ class ControlsOverlay extends ConsumerWidget {
                       color: Colors.black.withValues(alpha: 0.22)),
                 ),
               ),
-              IgnorePointer(
-                ignoring: !visible,
-                child: Stack(
+              Listener(
+                // Any touch on a control restarts the auto-hide timer so the
+                // controls don't vanish while the user is interacting. Empty
+                // areas hit no child (deferToChild) and fall through to
+                // PlayerGestures' tap-to-hide.
+                onPointerDown: (_) =>
+                    ref.read(controlsVisibleProvider.notifier).show(),
+                onPointerMove: (_) =>
+                    ref.read(controlsVisibleProvider.notifier).show(),
+                child: IgnorePointer(
+                  ignoring: !visible,
+                  child: Stack(
                   children: [
                     Positioned(
                       top: 0, left: 0, right: 0,
@@ -70,6 +79,7 @@ class ControlsOverlay extends ConsumerWidget {
                       ),
                     ),
                   ],
+                ),
                 ),
               ),
             ]),

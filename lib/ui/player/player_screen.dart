@@ -5,6 +5,7 @@ import '../../core/settings/settings_provider.dart';
 import '../../platform/device_controls_provider.dart';
 import '../../platform/interfaces/device_controls.dart';
 import '../../player/control/player_controller.dart';
+import '../../player/engine/playback_engine.dart';
 import '../../player/engine/playback_provider.dart';
 import '../../player/open/video_source.dart';
 import '../../player/resume/resume_plan.dart';
@@ -31,11 +32,13 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   Duration _lastDuration = Duration.zero;
   String? _path;
   late final DeviceControls _deviceControls;
+  late final PlaybackEngine _engine;
 
   @override
   void initState() {
     super.initState();
     _deviceControls = ref.read(deviceControlsProvider);
+    _engine = ref.read(playbackEngineProvider);
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(orientationProvider.notifier).apply();
@@ -50,6 +53,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
       _saveProgress();
+    }
+    if (state == AppLifecycleState.paused) {
+      _engine.pause(); // no background playback in Hito 1
     }
   }
 
@@ -87,6 +93,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _saveProgress(); // best-effort for in-app pop
+    _engine.pause(); // stop audio when leaving the player (engine is a singleton)
     _deviceControls.setOrientation([DeviceOrientationLock.auto]);
     _deviceControls.keepAwake(false);
     _deviceControls.setImmersive(false);
