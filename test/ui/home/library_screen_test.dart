@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
+import 'package:kivo_player/core/theme/kivo_theme.dart';
 import 'package:kivo_player/platform/interfaces/media_indexer.dart';
 import 'package:kivo_player/platform/interfaces/media_permission.dart';
 import 'package:kivo_player/platform/media_indexer_provider.dart';
@@ -60,7 +61,10 @@ Future<ProviderScope> _buildApp(WidgetTester tester) async {
       playbackEngineProvider.overrideWithValue(engine),
       frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
     ],
-    child: const MaterialApp(home: LibraryScreen()),
+    child: MaterialApp(
+      theme: KivoTheme.light(),
+      home: const LibraryScreen(),
+    ),
   );
   await tester.pumpWidget(scope);
   await tester.pumpAndSettle();
@@ -68,11 +72,17 @@ Future<ProviderScope> _buildApp(WidgetTester tester) async {
 }
 
 void main() {
-  testWidgets('Videos tab shows known video name under a date section header',
+  testWidgets('Kivo wordmark is shown in the AppBar', (tester) async {
+    await _buildApp(tester);
+
+    expect(find.text('Kivo'), findsOneWidget);
+  });
+
+  testWidgets('Todas tab shows known video name under a date section header',
       (tester) async {
     await _buildApp(tester);
 
-    // The default tab is Videos (index 0). At least one video name must appear.
+    // The default tab is Todas (index 0). At least one video name must appear.
     expect(find.text('Inception.mp4'), findsOneWidget);
     expect(find.text('Avatar.mp4'), findsOneWidget);
   });
@@ -80,7 +90,7 @@ void main() {
   testWidgets('Tapping Carpetas tab shows folder names', (tester) async {
     await _buildApp(tester);
 
-    // Tap the "Carpetas" tab chip
+    // Tap the "Carpetas" filter chip
     await tester.tap(find.text('Carpetas'));
     await tester.pumpAndSettle();
 
@@ -89,16 +99,15 @@ void main() {
     expect(find.text('Downloads'), findsOneWidget);
   });
 
-  testWidgets('Videos tab is shown by default (Carpetas not rendered)',
+  testWidgets('Todas tab is shown by default (video names visible)',
       (tester) async {
     await _buildApp(tester);
 
-    // In Videos tab the folder card text should NOT be the primary content;
-    // video names should be visible.
+    // In Todas tab the video names should be visible.
     expect(find.text('Inception.mp4'), findsOneWidget);
   });
 
-  testWidgets('Switching back from Carpetas to Videos restores video list',
+  testWidgets('Switching back from Carpetas to Todas restores video list',
       (tester) async {
     await _buildApp(tester);
 
@@ -106,7 +115,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Movies'), findsOneWidget);
 
-    await tester.tap(find.text('Videos'));
+    await tester.tap(find.text('Todas'));
     await tester.pumpAndSettle();
     expect(find.text('Inception.mp4'), findsOneWidget);
   });

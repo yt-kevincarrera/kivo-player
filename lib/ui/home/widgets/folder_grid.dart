@@ -20,12 +20,13 @@ class FolderGrid extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final groups = groupByFolder(videos);
     final folders = groups.keys.toList()..sort();
+    final cs = Theme.of(context).colorScheme;
 
     if (folders.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           'No se encontraron carpetas',
-          style: TextStyle(color: Colors.white54),
+          style: TextStyle(color: cs.onSurfaceVariant),
         ),
       );
     }
@@ -61,11 +62,12 @@ class _FolderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF161A21),
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white12, width: 0.5),
+        border: Border.all(color: cs.onSurface.withValues(alpha: 0.08), width: 0.5),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -91,8 +93,8 @@ class _FolderCard extends StatelessWidget {
                       name,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: cs.onSurface,
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                       ),
