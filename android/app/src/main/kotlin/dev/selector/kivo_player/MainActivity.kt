@@ -63,7 +63,9 @@ class MainActivity : FlutterActivity() {
                     }
 
                     "frameAt" -> {
-                        val ms = call.argument<Int>("ms")
+                        // Accept Int or Long: the channel codec encodes a Dart
+                        // int as Long once it exceeds 32 bits (very long videos).
+                        val ms = (call.argument<Number>("ms"))?.toLong()
                         if (ms == null) {
                             result.error("INVALID_ARG", "ms is required", null)
                             return@setMethodCallHandler
@@ -77,13 +79,13 @@ class MainActivity : FlutterActivity() {
                                     }
                                     return@submit
                                 }
-                                val us = ms.toLong() * 1_000L
+                                val us = ms * 1_000L
                                 val raw: Bitmap? = if (Build.VERSION.SDK_INT >= 27) {
                                     r.getScaledFrameAtTime(
                                         us,
                                         MediaMetadataRetriever.OPTION_CLOSEST_SYNC,
                                         240,
-                                        135,
+                                        0, // height 0 → preserve aspect ratio (non-16:9 videos)
                                     )
                                 } else {
                                     val full = r.getFrameAtTime(
@@ -146,9 +148,13 @@ class MainActivity : FlutterActivity() {
     }
 
     override fun onDestroy() {
-        retriever?.release()
-        retriever = null
-        retrieverPath = null
+        // Release on the executor thread so it can't race an in-flight frameAt;
+        // shutdown() still lets this already-submitted task run to completion.
+        frameExecutor.submit {
+            retriever?.release()
+            retriever = null
+            retrieverPath = null
+        }
         frameExecutor.shutdown()
         super.onDestroy()
     }
