@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
+import 'package:kivo_player/platform/frame_extractor_provider.dart';
 import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/ui/player/controls/seek_bar.dart';
 import 'package:kivo_player/ui/player/state/controls_visibility.dart';
@@ -16,6 +17,7 @@ void main() {
     final c = ProviderContainer(overrides: [
       settingsServiceProvider.overrideWithValue(s),
       playbackEngineProvider.overrideWithValue(engine),
+      frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
     ]);
     addTearDown(c.dispose);
 

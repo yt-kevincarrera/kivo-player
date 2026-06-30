@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
+import 'package:kivo_player/platform/frame_extractor_provider.dart';
 import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
@@ -23,6 +24,7 @@ void main() {
       settingsServiceProvider.overrideWithValue(settingsService),
       playbackEngineProvider.overrideWithValue(engine),
       resumeServiceProvider.overrideWithValue(ResumeService(resumeStore)),
+      frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
     ]);
     addTearDown(container.dispose);
 

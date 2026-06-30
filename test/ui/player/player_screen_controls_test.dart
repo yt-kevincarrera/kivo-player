@@ -3,11 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
+import 'package:kivo_player/platform/device_controls_provider.dart';
+import 'package:kivo_player/platform/frame_extractor_provider.dart';
+import 'package:kivo_player/platform/interfaces/device_controls.dart';
 import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
-import 'package:kivo_player/platform/device_controls_provider.dart';
-import 'package:kivo_player/platform/interfaces/device_controls.dart';
 import 'package:kivo_player/ui/player/player_screen.dart';
 import 'package:kivo_player/ui/player/state/controls_visibility.dart';
 import 'package:kivo_player/ui/player/controls/center_controls.dart';
@@ -33,6 +34,7 @@ void main() {
       playbackEngineProvider.overrideWithValue(engine),
       deviceControlsProvider.overrideWithValue(NoopControls()),
       resumeServiceProvider.overrideWithValue(ResumeService(InMemoryResumeStore())),
+      frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
     ]);
     addTearDown(c.dispose);
     c.read(currentVideoProvider.notifier).open(
