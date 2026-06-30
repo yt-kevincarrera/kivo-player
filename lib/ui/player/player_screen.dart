@@ -84,8 +84,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       _controller = c;
       setState(() {});
     }
-    await engine.open(session.path, startAt: plan.startAt);
-    _frames.prepare(session.path); // fire-and-forget; no await to keep UI responsive
+    await engine.open(session.playbackPath, startAt: plan.startAt);
+    _frames.prepare(session.playbackPath); // fire-and-forget; no await to keep UI responsive
     final remembered = ref.read(rateProvider);
     ref.read(playerControllerProvider).setRate(
       ref.read(settingsProvider).rememberSpeed ? remembered : 1.0,

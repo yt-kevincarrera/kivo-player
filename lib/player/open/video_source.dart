@@ -1,35 +1,27 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/format.dart';
+import '../../platform/interfaces/media_indexer.dart';
+import '../../player/library/library_query.dart';
 import '../resume/resume_service.dart';
 import '../queue/folder_queue_scanner.dart';
 import '../queue/file_system_lister.dart';
 
 /// An immutable snapshot of the currently-opened video and its folder queue.
 ///
-/// **Resume-key and folder-queue stability assumption (Plan 1):**
-/// Both the resume service (keyed by [path]) and the folder-queue scanner
-/// (which lists siblings of [path]) assume [path] is a stable filesystem path
-/// as supplied by the file picker (e.g. `/storage/emulated/0/Movies/ep1.mkv`).
-///
-/// When the app receives a share intent on Android, the system may deliver a
-/// `content://` URI or a transient cache copy whose path changes between
-/// launches. In those cases resume lookup will silently miss and the folder
-/// scanner will return an empty sibling list (falling back to a single-item
-/// queue containing only [path] — no crash). Normalizing `content://` URIs to
-/// stable paths is deferred to a later plan.
+/// [playbackPath] is the path or content:// URI that media_kit opens.
+/// [displayName] is the stable human-readable file name used as the resume key.
 class VideoSession {
-  final String path;
-  final List<String> queue;
+  final String playbackPath; // file path or content:// uri opened by media_kit
+  final String displayName;  // file name — the stable resume key
+  final List<String> queue;  // folder playbackPaths, natural order
   final int index;
-  const VideoSession({required this.path, required this.queue, required this.index});
-
-  /// Stable key for resume lookup. Android's file picker copies the chosen file
-  /// into a per-pick cache dir (e.g. `.../file_picker/1782833069003/clip.mp4`),
-  /// so the full [path] differs on every open and can't key resume. The
-  /// basename is preserved across copies, so we key by it. (A content-URI key
-  /// that also disambiguates same-named files in different folders is deferred
-  /// with the broader content:// normalization — see the class doc above.)
-  String get resumeKey => basenameOf(path);
+  const VideoSession({
+    required this.playbackPath,
+    required this.displayName,
+    required this.queue,
+    required this.index,
+  });
+  String get resumeKey => displayName;
 }
 
 final resumeServiceProvider = Provider<ResumeService>((ref) {
@@ -44,15 +36,25 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
   @override
   VideoSession? build() => null;
 
+  /// Direct session open (used by tests and future callers that construct their own session).
   void open(VideoSession session) => state = session;
 
+  /// File-picker open: single-item queue (the picker gives a cache copy, no folder).
   void openPath(String path) {
-    final queue = ref.read(queueScannerProvider).siblingsOf(path);
-    final index = queue.indexOf(path);
+    final name = basenameOf(path);
     state = VideoSession(
-      path: path,
-      queue: queue.isEmpty ? [path] : queue,
-      index: index < 0 ? 0 : index,
+        playbackPath: path, displayName: name, queue: [path], index: 0);
+  }
+
+  /// Library open: queue = the current video's folder, natural order.
+  void openInFolder(VideoItem current, List<VideoItem> all) {
+    final folder = folderQueueFor(all, current);
+    final idx = folder.indexWhere((v) => v.uri == current.uri);
+    state = VideoSession(
+      playbackPath: current.uri,
+      displayName: current.name,
+      queue: folder.map((v) => v.uri).toList(),
+      index: idx < 0 ? 0 : idx,
     );
   }
 }
