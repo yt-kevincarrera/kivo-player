@@ -38,6 +38,9 @@ class SeekBar extends ConsumerWidget {
             onChangeEnd: (v) {
               ref.read(playerControllerProvider).seekTo(Duration(milliseconds: v.round()));
               ref.read(scrubProvider.notifier).state = null;
+              // Drop the last preview frame so the next scrub doesn't briefly
+              // flash the previous position's frame before the new one loads.
+              ref.read(seekPreviewFrameProvider.notifier).state = null;
             },
           ),
         ),
