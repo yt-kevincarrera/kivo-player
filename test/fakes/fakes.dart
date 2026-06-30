@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:kivo_player/core/settings/settings_store.dart';
+import 'package:kivo_player/platform/interfaces/frame_extractor.dart';
 import 'package:kivo_player/player/engine/playback_engine.dart';
 import 'package:kivo_player/player/queue/file_system_lister.dart';
 import 'package:kivo_player/player/resume/resume_store.dart';
@@ -91,4 +93,32 @@ class FakeFileSystemLister implements FileSystemLister {
   FakeFileSystemLister(this.dirs);
   @override
   List<String> listFiles(String dir) => dirs[dir] ?? const [];
+}
+
+class FakeFrameExtractor implements FrameExtractor {
+  final List<Duration> requested = [];
+  String? preparedPath;
+  bool released = false;
+  bool autoComplete = true;
+  final List<Completer<Uint8List?>> _pending = [];
+
+  @override
+  Future<void> prepare(String path) async => preparedPath = path;
+
+  @override
+  Future<void> release() async => released = true;
+
+  @override
+  Future<Uint8List?> frameAt(Duration position) {
+    requested.add(position);
+    if (autoComplete) {
+      return Future.value(Uint8List.fromList([position.inSeconds & 0xff]));
+    }
+    final c = Completer<Uint8List?>();
+    _pending.add(c);
+    return c.future;
+  }
+
+  /// Complete the oldest outstanding manual request with bytes tagged [tag].
+  void completeNext(int tag) => _pending.removeAt(0).complete(Uint8List.fromList([tag & 0xff]));
 }
