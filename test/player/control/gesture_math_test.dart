@@ -79,4 +79,16 @@ void main() {
     expect(inVerticalDeadZone(390, 400, 20, 30, 24), isTrue);  // within bottom strip
     expect(inVerticalDeadZone(200, 400, 20, 30, 24), isFalse); // live middle
   });
+
+  test('defaultHoldRightIndex picks the detent nearest 2.0x', () {
+    expect(defaultHoldRightIndex(const [1.0, 1.25, 1.5, 2.0, 3.0, 4.0]), 3);
+    expect(defaultHoldRightIndex(const []), 0);
+  });
+
+  test('anchoredDetentIndex: up = faster, clamped, viewport-independent', () {
+    expect(anchoredDetentIndex(300, 300, 48, 6, 3), 3);      // no move = base
+    expect(anchoredDetentIndex(300, 300 - 96, 48, 6, 3), 5); // up 2 steps
+    expect(anchoredDetentIndex(300, 300 + 144, 48, 6, 3), 0);// down 3 steps, clamped
+    expect(anchoredDetentIndex(300, 0, 48, 6, 3), 5);        // clamp high
+  });
 }

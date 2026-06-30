@@ -51,6 +51,27 @@ bool inVerticalDeadZone(double localY, double height, double topInset,
 
 double round2(double value) => (value * 100).round() / 100;
 
+/// Detent index for a finger-anchored hold-right drag: starts at [baseIndex]
+/// and moves one detent per [stepPx] of vertical travel (up = faster).
+/// Independent of viewport height.
+int anchoredDetentIndex(
+    double startY, double currentY, double stepPx, int count, int baseIndex) {
+  if (count <= 0) return 0;
+  final steps = stepPx <= 0 ? 0 : ((startY - currentY) / stepPx).round();
+  return (baseIndex + steps).clamp(0, count - 1);
+}
+
+/// Starting detent for a hold-right press: the one nearest 2.0x (an instant,
+/// familiar speed-up), so reaching the extremes is a short slide either way.
+int defaultHoldRightIndex(List<double> detents) {
+  if (detents.isEmpty) return 0;
+  var best = 0;
+  for (var i = 1; i < detents.length; i++) {
+    if ((detents[i] - 2.0).abs() < (detents[best] - 2.0).abs()) best = i;
+  }
+  return best;
+}
+
 ({double system01, double playerPercent}) volumeMapping(double percent, double boostMax) {
   final p = percent.clamp(0.0, boostMax);
   final system = (p < 100 ? p : 100) / 100;

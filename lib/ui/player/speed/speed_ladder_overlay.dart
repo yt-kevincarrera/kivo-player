@@ -9,8 +9,11 @@ final holdSpeedProvider = StateProvider<double?>((ref) => null);
 // false for hold-LEFT (fixed speed) → show only a compact badge.
 final holdSpeedIsLadderProvider = StateProvider<bool>((ref) => false);
 
-double holdRightSpeedFor(double localY, double height, List<double> detents) =>
-    detentSpeed(height <= 0 ? 0 : (1 - (localY / height)).clamp(0.0, 1.0), detents);
+double holdRightSpeedFor(
+        double startY, double currentY, double stepPx, List<double> detents, int baseIndex) =>
+    detents.isEmpty
+        ? 1.0
+        : detents[anchoredDetentIndex(startY, currentY, stepPx, detents.length, baseIndex)];
 
 String _fmtSpeed(double v) =>
     v.toStringAsFixed(2).replaceFirst(RegExp(r'\.?0+$'), '');
