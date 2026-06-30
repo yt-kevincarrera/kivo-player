@@ -17,7 +17,7 @@ void main() {
     final resumeStore = InMemoryResumeStore();
     // Resume is keyed by the stable basename (VideoSession.resumeKey), not the
     // full path — Android's file picker copies into a per-pick cache dir.
-    await resumeStore.put('ep1.mkv', 120); // 2 min saved
+    await resumeStore.put('ep1.mkv', 120, 0); // 2 min saved
     final settingsService = await SettingsService.load(InMemorySettingsStore());
 
     final container = ProviderContainer(overrides: [

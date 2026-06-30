@@ -80,13 +80,16 @@ class FakePlaybackEngine implements PlaybackEngine {
 }
 
 class InMemoryResumeStore implements ResumeStore {
-  final Map<String, int> data = {};
+  final Map<String, ResumeEntry> _m = {};
   @override
-  int? secondsFor(String key) => data[key];
+  int? secondsFor(String key) => _m[key]?.seconds;
   @override
-  Future<void> put(String key, int seconds) async => data[key] = seconds;
+  Future<void> put(String key, int seconds, int updatedAtMs) async =>
+      _m[key] = ResumeEntry(key, seconds, updatedAtMs);
   @override
-  Future<void> remove(String key) async => data.remove(key);
+  Future<void> remove(String key) async => _m.remove(key);
+  @override
+  List<ResumeEntry> entries() => _m.values.toList();
 }
 
 class FakeFileSystemLister implements FileSystemLister {
