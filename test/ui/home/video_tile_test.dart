@@ -35,7 +35,7 @@ Future<void> _pump(WidgetTester tester, Widget child) async {
 }
 
 void main() {
-  testWidgets('list-row mode: shows title, size, duration, fires onTap', (tester) async {
+  testWidgets('list-row mode: shows title, size, duration, fires onTap via title tap', (tester) async {
     var tapped = false;
     await _pump(
       tester,
@@ -52,7 +52,9 @@ void main() {
     expect(find.text('49.00 MB'), findsOneWidget);
     expect(find.text('01:05'), findsOneWidget);
 
-    await tester.tap(find.byType(VideoTile));
+    // Tap the TITLE text — proves the whole row is tappable, not just the thumbnail.
+    await tester.tap(find.text('cool.mkv'));
+    await tester.pump();
     expect(tapped, isTrue);
   });
 
@@ -72,6 +74,7 @@ void main() {
     expect(find.text('01:05'), findsOneWidget);
 
     await tester.tap(find.byType(VideoTile));
+    await tester.pump();
     expect(tapped, isTrue);
   });
 

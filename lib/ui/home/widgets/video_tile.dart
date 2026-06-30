@@ -32,13 +32,14 @@ class VideoTile extends ConsumerWidget {
   Widget _buildListRow(BuildContext context, Color accent) {
     final cs = Theme.of(context).colorScheme;
     return PressBounce(
-      child: GestureDetector(
-        onTap: onTap,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
           children: [
-            // Left: 132px-wide 16:9 thumbnail with badge + progress
+            // Left: 150px-wide 16:9 thumbnail with badge + progress
             SizedBox(
-              width: 132,
+              width: 150,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: AspectRatio(
@@ -62,7 +63,7 @@ class VideoTile extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: 10),
-            // Right: title + meta
+            // Right: title + size label
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -74,7 +75,7 @@ class VideoTile extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: cs.onSurface,
-                      fontSize: 13,
+                      fontSize: 15,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -86,7 +87,7 @@ class VideoTile extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: cs.onSurfaceVariant,
-                        fontSize: 11,
+                        fontSize: 13,
                       ),
                     ),
                   ],
@@ -102,55 +103,53 @@ class VideoTile extends ConsumerWidget {
   Widget _buildCover(BuildContext context, Color accent) {
     final cs = Theme.of(context).colorScheme;
     return PressBounce(
-      child: GestureDetector(
-        onTap: onTap,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: AspectRatio(
-            aspectRatio: 16 / 9,
-            child: Stack(fit: StackFit.expand, children: [
-              Hero(tag: 'libhero-${video.uri}', child: ThumbnailImage(video.id)),
-              // Duration badge
-              Positioned(
-                top: 6,
-                right: 6,
-                child: _badge(fmtDuration(Duration(milliseconds: video.durationMs))),
+      onTap: onTap,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: AspectRatio(
+          aspectRatio: 16 / 9,
+          child: Stack(fit: StackFit.expand, children: [
+            Hero(tag: 'libhero-${video.uri}', child: ThumbnailImage(video.id)),
+            // Duration badge
+            Positioned(
+              top: 6,
+              right: 6,
+              child: _badge(fmtDuration(Duration(milliseconds: video.durationMs))),
+            ),
+            // Title gradient + text (on-thumbnail text stays white over the dark gradient)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                padding: EdgeInsets.fromLTRB(8, 16, 8, progress != null ? 8 : 6),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [Colors.black87, Colors.transparent],
+                  ),
+                ),
+                child: Text(
+                  video.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
-              // Title gradient + text (on-thumbnail text stays white over the dark gradient)
+            ),
+            if (progress != null)
               Positioned(
                 left: 0,
                 right: 0,
                 bottom: 0,
-                child: Container(
-                  padding: EdgeInsets.fromLTRB(8, 16, 8, progress != null ? 8 : 6),
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter,
-                      colors: [Colors.black87, Colors.transparent],
-                    ),
-                  ),
-                  child: Text(
-                    video.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
+                child: _SegmentedProgress(progress!, accent, cs),
               ),
-              if (progress != null)
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: _SegmentedProgress(progress!, accent, cs),
-                ),
-            ]),
-          ),
+          ]),
         ),
       ),
     );

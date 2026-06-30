@@ -44,10 +44,8 @@ class FolderGrid extends ConsumerWidget {
         final name = folders[i];
         final items = groups[name]!;
         return PressBounce(
-          child: GestureDetector(
-            onTap: () => onOpenFolder(name, items),
-            child: _FolderCard(name: name, items: items),
-          ),
+          onTap: () => onOpenFolder(name, items),
+          child: _FolderCard(name: name, items: items),
         );
       },
     );
