@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/icons/kivo_icons.dart';
@@ -34,6 +35,8 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
     final ctrl = ref.read(playerControllerProvider);
     final detents = [...st.speedPresets, 3.0, 4.0];
 
+    final isCustomRate = !st.speedPresets.any((p) => (p - rate).abs() < 0.001);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -51,15 +54,15 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            IconButton(
+            _RepeatButton(
               icon: KivoIcon(KivoIcons.minus, size: 24, color: Colors.white),
-              onPressed: () => ctrl.setRate(round2(rate - st.speedFineStep)),
+              onStep: () => ctrl.setRate(round2(rate - st.speedFineStep)),
             ),
             Text('${rate.toStringAsFixed(2)}x',
                 style: const TextStyle(color: KivoColors.gold, fontSize: 40, fontWeight: FontWeight.bold)),
-            IconButton(
+            _RepeatButton(
               icon: KivoIcon(KivoIcons.plus, size: 24, color: Colors.white),
-              onPressed: () => ctrl.setRate(round2(rate + st.speedFineStep)),
+              onStep: () => ctrl.setRate(round2(rate + st.speedFineStep)),
             ),
           ],
         ),
@@ -97,6 +100,26 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
                       )),
                 ),
               ),
+            if (isCustomRate)
+              GestureDetector(
+                onTap: () {
+                  final next = [...st.speedPresets, round2(rate)]..sort();
+                  ref.read(settingsProvider.notifier).set(st.copyWith(speedPresets: next));
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: KivoColors.gold),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    KivoIcon(KivoIcons.plus, size: 16, color: KivoColors.gold),
+                    const SizedBox(width: 4),
+                    Text('Guardar ${round2(rate)}x',
+                        style: const TextStyle(color: KivoColors.gold, fontWeight: FontWeight.w600, fontSize: 13)),
+                  ]),
+                ),
+              ),
           ],
         ),
         const SizedBox(height: 12),
@@ -110,4 +133,54 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
       ],
     );
   }
+}
+
+class _RepeatButton extends StatefulWidget {
+  final Widget icon;
+  final VoidCallback onStep;
+  const _RepeatButton({required this.icon, required this.onStep});
+  @override
+  State<_RepeatButton> createState() => _RepeatButtonState();
+}
+
+class _RepeatButtonState extends State<_RepeatButton> {
+  Timer? _timer;
+
+  void _start() {
+    // Fire first step immediately on long-press recognition
+    widget.onStep();
+    // Start repeating: begin slow, accelerate each tick until floor
+    var interval = 300;
+    void schedule() {
+      _timer = Timer(Duration(milliseconds: interval), () {
+        if (!mounted) return;
+        widget.onStep();
+        if (interval > 70) {
+          interval = (interval * 0.80).round().clamp(70, 300);
+        }
+        schedule();
+      });
+    }
+    schedule();
+  }
+
+  void _stop() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+        onTap: widget.onStep,
+        onLongPress: _start,
+        onLongPressUp: _stop,
+        onLongPressCancel: _stop,
+        child: Padding(padding: const EdgeInsets.all(12), child: widget.icon),
+      );
 }
