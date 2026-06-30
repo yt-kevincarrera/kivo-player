@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'package:kivo_player/core/settings/settings_store.dart';
 import 'package:kivo_player/platform/interfaces/frame_extractor.dart';
+import 'package:kivo_player/platform/interfaces/media_indexer.dart';
 import 'package:kivo_player/player/engine/playback_engine.dart';
 import 'package:kivo_player/player/queue/file_system_lister.dart';
 import 'package:kivo_player/player/resume/resume_store.dart';
@@ -121,4 +122,15 @@ class FakeFrameExtractor implements FrameExtractor {
 
   /// Complete the oldest outstanding manual request with bytes tagged [tag].
   void completeNext(int tag) => _pending.removeAt(0).complete(Uint8List.fromList([tag & 0xff]));
+}
+
+class FakeMediaIndexer implements MediaIndexer {
+  List<VideoItem> items;
+  int scans = 0;
+  FakeMediaIndexer([this.items = const []]);
+  @override
+  Future<List<VideoItem>> scan() async {
+    scans++;
+    return items;
+  }
 }
