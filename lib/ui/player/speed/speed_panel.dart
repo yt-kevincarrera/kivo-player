@@ -35,7 +35,9 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
     final ctrl = ref.read(playerControllerProvider);
     final detents = [...st.speedPresets, 3.0, 4.0];
 
-    final isCustomRate = !st.speedPresets.any((p) => (p - rate).abs() < 0.001);
+    // Compare against the value we'd actually save (round2) at half the 0.01
+    // rounding granularity, so a near-duplicate rate can't surface the chip.
+    final isCustomRate = !st.speedPresets.any((p) => (p - round2(rate)).abs() < 0.005);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -103,7 +105,7 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
             if (isCustomRate)
               GestureDetector(
                 onTap: () {
-                  final next = [...st.speedPresets, round2(rate)]..sort();
+                  final next = {...st.speedPresets, round2(rate)}.toList()..sort();
                   ref.read(settingsProvider.notifier).set(st.copyWith(speedPresets: next));
                 },
                 child: Container(
