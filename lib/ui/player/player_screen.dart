@@ -58,6 +58,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     });
     _deviceControls.keepAwake(true);
     _deviceControls.setImmersive(true);
+    // Intercept hardware volume keys natively so the OS volume panel is
+    // suppressed inside the player — only Kivo's HUD shows. Disabled in
+    // dispose() so the library keeps the normal OS panel.
+    _deviceControls.setVolumeKeyInterception(true);
     // Listen to hardware volume key changes and drive Kivo's model + HUD.
     // The volumeGestureActiveProvider guard prevents clamping gesture-driven
     // boost (>100%) when the system-volume listener receives the echo of a
@@ -135,6 +139,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _deviceControls.keepAwake(false);
     _deviceControls.setImmersive(false);
     _deviceControls.resetBrightness();
+    _deviceControls.setVolumeKeyInterception(false);
     super.dispose();
   }
 

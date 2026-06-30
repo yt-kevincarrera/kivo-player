@@ -37,6 +37,11 @@ class AndroidDeviceControls implements DeviceControls {
 
   static const MethodChannel _orientationChannel =
       MethodChannel('kivo/orientation');
+  static const MethodChannel _volumeChannel = MethodChannel('kivo/volume');
+
+  @override
+  Future<void> setVolumeKeyInterception(bool on) =>
+      _volumeChannel.invokeMethod('setKeyInterception', {'on': on});
 
   /// Drives the native activity orientation. Uses SENSOR_LANDSCAPE/PORTRAIT so it
   /// overrides the system rotation lock (auto-rotate may be off) and still flips

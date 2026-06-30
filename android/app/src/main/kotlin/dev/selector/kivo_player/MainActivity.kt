@@ -1,12 +1,15 @@
 package dev.selector.kivo_player
 
 import android.content.ContentUris
+import android.content.Context
 import android.content.pm.ActivityInfo
 import android.os.Build
 import android.graphics.Bitmap
+import android.media.AudioManager
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.provider.MediaStore
+import android.view.KeyEvent
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -21,6 +24,13 @@ class MainActivity : FlutterActivity() {
     private val ioExecutor = Executors.newSingleThreadExecutor()
     private var retriever: MediaMetadataRetriever? = null
     private var retrieverPath: String? = null
+    // --- kivo/volume ---
+    // When true (player active), hardware volume keys are handled here and the
+    // OS volume panel is suppressed; the library leaves this false.
+    private var interceptVolume = false
+    private val audioManager by lazy {
+        getSystemService(Context.AUDIO_SERVICE) as AudioManager
+    }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -230,6 +240,41 @@ class MainActivity : FlutterActivity() {
                     else -> result.notImplemented()
                 }
             }
+
+        // ── kivo/volume ─────────────────────────────────────────────────────────
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "kivo/volume")
+            .setMethodCallHandler { call, result ->
+                if (call.method == "setKeyInterception") {
+                    interceptVolume = call.argument<Boolean>("on") ?: false
+                    result.success(null)
+                } else {
+                    result.notImplemented()
+                }
+            }
+    }
+
+    // While the player is active, swallow the hardware volume keys and adjust
+    // STREAM_MUSIC ourselves with flag 0 (no FLAG_SHOW_UI) so the OS volume
+    // panel never appears. The volume change still fires VolumeController's
+    // listener on the Dart side, which drives Kivo's own HUD. Returning true
+    // consumes the event so the framework's default (which shows the panel)
+    // never runs. Outside the player interceptVolume is false → normal OS behavior.
+    private fun isVolumeKey(keyCode: Int) =
+        keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (interceptVolume && isVolumeKey(keyCode)) {
+            val dir = if (keyCode == KeyEvent.KEYCODE_VOLUME_UP)
+                AudioManager.ADJUST_RAISE else AudioManager.ADJUST_LOWER
+            audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, dir, 0)
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        if (interceptVolume && isVolumeKey(keyCode)) return true
+        return super.onKeyUp(keyCode, event)
     }
 
     override fun onDestroy() {
