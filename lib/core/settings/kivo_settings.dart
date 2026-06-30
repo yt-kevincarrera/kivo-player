@@ -26,6 +26,7 @@ class KivoSettings {
   final int resumeMinSeconds;
   final bool rememberOrientationLock;
   final int accentColor;
+  final int libraryColumns;
 
   const KivoSettings({
     required this.doubleTapSkipLeft,
@@ -55,6 +56,7 @@ class KivoSettings {
     required this.resumeMinSeconds,
     required this.rememberOrientationLock,
     required this.accentColor,
+    required this.libraryColumns,
   });
 
   factory KivoSettings.defaults() => const KivoSettings(
@@ -85,6 +87,7 @@ class KivoSettings {
         resumeMinSeconds: 5,
         rememberOrientationLock: true,
         accentColor: 0xFFE8B84B,
+        libraryColumns: 1,
       );
 
   KivoSettings copyWith({
@@ -115,6 +118,7 @@ class KivoSettings {
     int? resumeMinSeconds,
     bool? rememberOrientationLock,
     int? accentColor,
+    int? libraryColumns,
   }) {
     return KivoSettings(
       doubleTapSkipLeft: doubleTapSkipLeft ?? this.doubleTapSkipLeft,
@@ -144,6 +148,7 @@ class KivoSettings {
       resumeMinSeconds: resumeMinSeconds ?? this.resumeMinSeconds,
       rememberOrientationLock: rememberOrientationLock ?? this.rememberOrientationLock,
       accentColor: accentColor ?? this.accentColor,
+      libraryColumns: libraryColumns ?? this.libraryColumns,
     );
   }
 
@@ -175,6 +180,7 @@ class KivoSettings {
         'resumeMinSeconds': resumeMinSeconds,
         'rememberOrientationLock': rememberOrientationLock,
         'accentColor': accentColor,
+        'libraryColumns': libraryColumns,
       };
 
   factory KivoSettings.fromMap(Map<String, dynamic> m) {
@@ -207,6 +213,7 @@ class KivoSettings {
       resumeMinSeconds: m['resumeMinSeconds'] ?? d.resumeMinSeconds,
       rememberOrientationLock: m['rememberOrientationLock'] ?? d.rememberOrientationLock,
       accentColor: m['accentColor'] ?? d.accentColor,
+      libraryColumns: m['libraryColumns'] ?? d.libraryColumns,
     );
   }
 }

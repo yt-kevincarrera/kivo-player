@@ -30,4 +30,11 @@ void main() {
     final s = KivoSettings.defaults().copyWith(accentColor: 0xFF2D6CFF);
     expect(KivoSettings.fromMap(s.toMap()).accentColor, 0xFF2D6CFF);
   });
+
+  test('libraryColumns defaults to 1 and round-trips', () {
+    final d = KivoSettings.defaults();
+    expect(d.libraryColumns, 1);
+    final m = d.copyWith(libraryColumns: 3).toMap();
+    expect(KivoSettings.fromMap(m).libraryColumns, 3);
+  });
 }
