@@ -7,6 +7,11 @@ import '../../../platform/interfaces/frame_extractor.dart';
 /// Current scrub target while dragging the seek bar; null when not dragging.
 final scrubProvider = StateProvider<Duration?>((ref) => null);
 
+/// Holds the seek bar at the just-committed target after release until real
+/// playback position catches up — avoids the slider snapping back to the old
+/// position for a few frames while the seek lands.
+final pendingSeekProvider = StateProvider<Duration?>((ref) => null);
+
 /// Latest preview frame bytes for the bubble (null = none/loading).
 final seekPreviewFrameProvider = StateProvider<Uint8List?>((ref) => null);
 
@@ -60,8 +65,10 @@ class SeekPreviewController {
         final bytes = await _extractor.frameAt(Duration(seconds: bucket));
         if (bytes != null) {
           _put(bucket, bytes);
-          // Only surface if no newer request superseded this one mid-flight.
-          if (_pendingBucket == null) onFrame(bytes);
+          // Surface every completed frame so the bubble tracks the finger
+          // continuously (each lags by one extraction). Suppressing while a
+          // newer request is pending froze the preview during a fast drag.
+          onFrame(bytes);
         }
       } catch (_) {
         // A native extraction failure must not strand _inFlight=true (which
