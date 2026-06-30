@@ -3,7 +3,6 @@ package dev.selector.kivo_player
 import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
-import android.os.Build
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -80,35 +79,22 @@ class MainActivity : FlutterActivity() {
                                     return@submit
                                 }
                                 val us = ms * 1_000L
-                                val raw: Bitmap? = if (Build.VERSION.SDK_INT >= 27) {
-                                    r.getScaledFrameAtTime(
-                                        us,
-                                        MediaMetadataRetriever.OPTION_CLOSEST_SYNC,
-                                        240,
-                                        0, // height 0 → preserve aspect ratio (non-16:9 videos)
-                                    )
+                                // Grab the full frame (already in display orientation) and
+                                // scale from the real bitmap dims — aspect- and rotation-
+                                // correct. getScaledFrameAtTime is avoided: it requires a
+                                // POSITIVE height, so there's no clean "preserve aspect" call.
+                                val full = r.getFrameAtTime(
+                                    us,
+                                    MediaMetadataRetriever.OPTION_CLOSEST_SYNC,
+                                )
+                                val raw: Bitmap? = if (full != null && full.width > 0) {
+                                    val targetW = 240
+                                    val targetH = (full.height * targetW / full.width).coerceAtLeast(1)
+                                    val scaled = Bitmap.createScaledBitmap(full, targetW, targetH, true)
+                                    if (scaled !== full) full.recycle()
+                                    scaled
                                 } else {
-                                    val full = r.getFrameAtTime(
-                                        us,
-                                        MediaMetadataRetriever.OPTION_CLOSEST_SYNC,
-                                    )
-                                    if (full != null) {
-                                        val w = full.width
-                                        val h = full.height
-                                        if (w > 0) {
-                                            val targetW = 240
-                                            val targetH = (h * targetW) / w
-                                            val scaled = Bitmap.createScaledBitmap(
-                                                full, targetW, targetH, true,
-                                            )
-                                            if (scaled !== full) full.recycle()
-                                            scaled
-                                        } else {
-                                            full
-                                        }
-                                    } else {
-                                        null
-                                    }
+                                    full
                                 }
                                 if (raw == null) {
                                     runOnUiThread { result.success(null) }
