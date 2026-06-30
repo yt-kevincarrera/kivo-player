@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'core/theme/kivo_theme.dart';
-import 'ui/home/open_screen.dart';
+import 'ui/home/library_screen.dart';
 
 class KivoApp extends StatelessWidget {
   const KivoApp({super.key});
@@ -11,7 +11,7 @@ class KivoApp extends StatelessWidget {
       title: 'Kivo',
       debugShowCheckedModeBanner: false,
       theme: KivoTheme.dark(),
-      home: const OpenScreen(),
+      home: const LibraryScreen(),
     );
   }
 }
