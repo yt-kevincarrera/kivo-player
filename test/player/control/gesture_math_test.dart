@@ -91,4 +91,19 @@ void main() {
     expect(anchoredDetentIndex(300, 300 + 144, 48, 6, 3), 0);// down 3 steps, clamped
     expect(anchoredDetentIndex(300, 0, 48, 6, 3), 5);        // clamp high
   });
+
+  test('inLateralDeadZone: left/right edge strips, center is live', () {
+    expect(inLateralDeadZone(10, 800, 38), isTrue);   // left strip
+    expect(inLateralDeadZone(790, 800, 38), isTrue);  // right strip
+    expect(inLateralDeadZone(400, 800, 38), isFalse); // center
+  });
+
+  test('inDismissZone: top strip and lateral strips true, center + bottom false', () {
+    // width 800, height 400, topInset 24, lateralMargin 38, topMargin 24
+    expect(inDismissZone(400, 10, 800, 24, 38, 24), isTrue);  // top strip (y<48)
+    expect(inDismissZone(5, 200, 800, 24, 38, 24), isTrue);   // left lateral
+    expect(inDismissZone(795, 200, 800, 24, 38, 24), isTrue); // right lateral
+    expect(inDismissZone(400, 200, 800, 24, 38, 24), isFalse);// center
+    expect(inDismissZone(400, 398, 800, 24, 38, 24), isFalse);// bottom (not a dismiss zone)
+  });
 }
