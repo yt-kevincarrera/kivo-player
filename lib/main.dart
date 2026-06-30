@@ -12,6 +12,8 @@ import 'player/engine/playback_provider.dart';
 import 'player/resume/resume_store.dart';
 import 'player/resume/resume_service.dart';
 import 'player/open/video_source.dart';
+import 'platform/android/android_frame_extractor.dart';
+import 'platform/frame_extractor_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +36,7 @@ Future<void> main() async {
       settingsServiceProvider.overrideWithValue(settingsService),
       playbackEngineProvider.overrideWithValue(engine),
       resumeServiceProvider.overrideWithValue(resumeService),
+      frameExtractorProvider.overrideWithValue(AndroidFrameExtractor()),
     ],
     child: const KivoApp(),
   ));
