@@ -9,6 +9,7 @@ import '../../player/engine/playback_engine.dart';
 import '../../player/engine/playback_provider.dart';
 import '../../player/open/video_source.dart';
 import '../../player/resume/resume_plan.dart';
+import '../../player/resume/resume_service.dart';
 import 'controls/controls_overlay.dart';
 import 'controls/flash_overlay.dart';
 import 'controls/info_overlay.dart';
@@ -33,12 +34,14 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   String? _resumeKey;
   late final DeviceControls _deviceControls;
   late final PlaybackEngine _engine;
+  late final ResumeService _resume;
 
   @override
   void initState() {
     super.initState();
     _deviceControls = ref.read(deviceControlsProvider);
     _engine = ref.read(playbackEngineProvider);
+    _resume = ref.read(resumeServiceProvider);
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(orientationProvider.notifier).apply();
@@ -64,9 +67,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     if (session == null) return;
     final engine = ref.read(playbackEngineProvider);
     _resumeKey = session.resumeKey;
-    final resume = ref.read(resumeServiceProvider);
     final plan = planResume(
-        resume.positionFor(_resumeKey!), ref.read(settingsProvider).resumeBehavior);
+        _resume.positionFor(_resumeKey!), ref.read(settingsProvider).resumeBehavior);
 
     final c = engine.createVideoController();
     if (c is VideoController) {
@@ -87,7 +89,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   Future<void> _saveProgress() async {
     final key = _resumeKey;
     if (key == null || _lastDuration == Duration.zero) return;
-    await ref.read(resumeServiceProvider).record(key, _lastPosition, _lastDuration);
+    // Use the cached service, never `ref` — this runs from dispose(), where
+    // reading a provider throws "ref used after dispose" and silently drops
+    // the save (the root cause of resume never persisting on back-exit).
+    await _resume.record(key, _lastPosition, _lastDuration);
   }
 
   @override
