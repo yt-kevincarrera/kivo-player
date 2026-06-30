@@ -393,7 +393,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
 }
 
 // ---------------------------------------------------------------------------
-// Filter chips row — Todas | Carpetas
+// Filter chips row — Todo | Carpetas
 // ---------------------------------------------------------------------------
 class _FilterChips extends StatelessWidget {
   final int selected;
