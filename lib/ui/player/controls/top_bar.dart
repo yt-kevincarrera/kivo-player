@@ -17,6 +17,8 @@ class TopBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(currentVideoProvider);
+    final infoOn = ref.watch(settingsProvider).showInfoOverlay;
+    final accent = Color(ref.watch(settingsProvider).accentColor);
     return Row(
       children: [
         IconButton(
@@ -32,9 +34,9 @@ class TopBar extends ConsumerWidget {
               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
         ),
         IconButton(
-          color: Colors.white,
-          tooltip: 'Información en pantalla',
-          icon: KivoIcon(KivoIcons.info, size: 24, color: Colors.white),
+          color: infoOn ? accent : Colors.white54,
+          tooltip: infoOn ? 'Ocultar información en pantalla' : 'Mostrar información en pantalla',
+          icon: KivoIcon(KivoIcons.info, size: 24, color: infoOn ? accent : Colors.white54),
           onPressed: () {
             final s = ref.read(settingsProvider);
             ref.read(settingsProvider.notifier).set(s.copyWith(showInfoOverlay: !s.showInfoOverlay));
