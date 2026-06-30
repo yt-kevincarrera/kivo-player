@@ -31,6 +31,14 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   double _volCap = 100;
   Duration _seekStart = Duration.zero;
   double _seekAccum = 0;
+  bool _vDead = false;
+  bool _hDead = false;
+  double _topInset = 0;
+  double _bottomInset = 0;
+  static const _deadMargin = 24.0;
+
+  bool _dead(double dy) =>
+      inVerticalDeadZone(dy, _height, _topInset, _bottomInset, _deadMargin);
 
   void _haptic() {
     if (ref.read(settingsProvider).hapticsOnGestures) HapticFeedback.lightImpact();
@@ -65,6 +73,8 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   }
 
   void _onVerticalStart(DragStartDetails d) {
+    _vDead = _dead(d.localPosition.dy);
+    if (_vDead) return;
     if (_holding) return; // a hold-to-speed gesture owns this touch
     _leftSide = d.localPosition.dx < _width / 2;
     _volPct = ref.read(volumePercentProvider);
@@ -75,6 +85,7 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   }
 
   void _onVerticalUpdate(DragUpdateDetails d) {
+    if (_vDead) return;
     if (_holding) return; // don't change brightness/volume while holding to speed
     final st = ref.read(settingsProvider);
     final ctrl = ref.read(playerControllerProvider);
@@ -90,6 +101,7 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   }
 
   void _onHorizontalStart(DragStartDetails d) {
+    _hDead = _dead(d.localPosition.dy);
     // The horizontalSeek setting is gated in _onHorizontalUpdate, not here:
     // GestureDetector handlers can't be conditionally unregistered without a
     // rebuild, and seeding start state is a harmless no-op when seek is off.
@@ -98,6 +110,7 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   }
 
   void _onHorizontalUpdate(DragUpdateDetails d) {
+    if (_hDead) return;
     if (_holding) return; // don't scrub while holding to speed
     final st = ref.read(settingsProvider);
     if (!st.horizontalSeek) return;
@@ -113,6 +126,7 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   }
 
   void _onLongPressStart(LongPressStartDetails d) {
+    if (_dead(d.localPosition.dy)) { _holding = false; return; }
     final st = ref.read(settingsProvider);
     final ctrl = ref.read(playerControllerProvider);
     _holding = true;
@@ -158,6 +172,9 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   @override
   Widget build(BuildContext context) {
     final locked = ref.watch(lockProvider);
+    final mq = MediaQuery.of(context);
+    _topInset = mq.viewPadding.top;
+    _bottomInset = mq.viewPadding.bottom;
     return LayoutBuilder(
       builder: (context, constraints) {
         _width = constraints.maxWidth;
