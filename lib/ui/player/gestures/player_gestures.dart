@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
@@ -39,6 +39,7 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures>
   bool _vDead = false;
   bool _hDead = false;
   bool _isDismiss = false; // true when the current vertical drag is a dismiss gesture
+  bool _dismissHaptic = false; // fired the threshold-crossing tick once this drag
   double _topInset = 0;
   double _bottomInset = 0;
   static const _deadMargin = 24.0;
@@ -103,6 +104,7 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures>
     final dy = d.localPosition.dy;
     _isDismiss = inDismissZone(dx, dy, _width, _topInset, _lateralMargin, _deadMargin);
     if (_isDismiss) {
+      _dismissHaptic = false;
       _dismissAnim.stop();
       return;
     }
@@ -123,6 +125,10 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures>
       final current = ref.read(dismissProvider);
       final fraction = (current + d.delta.dy / _height).clamp(0.0, 1.0);
       ref.read(dismissProvider.notifier).state = fraction;
+      if (!_dismissHaptic && fraction >= 0.25) {
+        _dismissHaptic = true;
+        _haptic(); // tick once when crossing the commit threshold
+      }
       return;
     }
     if (_vDead) return;
@@ -150,7 +156,11 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures>
       // Animate to 1 then pop.
       _dismissAnim.value = progress;
       _dismissAnim.animateTo(1.0).then((_) {
-        if (mounted) Navigator.of(context).maybePop();
+        if (!mounted) return;
+        Navigator.of(context).maybePop();
+        // If the pop was blocked (root route), don't leave the player stranded
+        // off-screen; reset so it snaps back into view.
+        ref.read(dismissProvider.notifier).state = 0;
       });
     } else {
       // Snap back to 0.
