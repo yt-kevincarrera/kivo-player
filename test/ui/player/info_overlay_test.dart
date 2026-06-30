@@ -30,7 +30,7 @@ void main() {
     ]);
     addTearDown(c.dispose);
     c.read(currentVideoProvider.notifier).open(
-        const VideoSession(path: '/v/ep1.mkv', queue: ['/v/ep1.mkv'], index: 0));
+        const VideoSession(playbackPath: '/v/ep1.mkv', displayName: 'ep1.mkv', queue: ['/v/ep1.mkv'], index: 0));
 
     await tester.pumpWidget(UncontrolledProviderScope(
       container: c,

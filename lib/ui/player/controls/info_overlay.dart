@@ -30,7 +30,7 @@ class InfoOverlay extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     if (!settings.showInfoOverlay) return const SizedBox.shrink();
-    final name = basenameOf(ref.watch(currentVideoProvider)?.path);
+    final name = ref.watch(currentVideoProvider)?.displayName ?? 'Kivo';
     return IgnorePointer(
       child: SafeArea(
         child: Align(

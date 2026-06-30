@@ -7,13 +7,6 @@ import '../../../player/open/video_source.dart';
 class TopBar extends ConsumerWidget {
   const TopBar({super.key});
 
-  String _name(String? path) {
-    if (path == null) return 'Kivo';
-    final p = path.replaceAll('\\', '/');
-    final i = p.lastIndexOf('/');
-    return i < 0 ? p : p.substring(i + 1);
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(currentVideoProvider);
@@ -28,7 +21,7 @@ class TopBar extends ConsumerWidget {
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         Expanded(
-          child: Text(_name(session?.path),
+          child: Text(session?.displayName ?? 'Kivo',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
