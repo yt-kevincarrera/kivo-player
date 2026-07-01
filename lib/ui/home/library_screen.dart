@@ -123,6 +123,15 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         titleSpacing: 12,
         title: AnimatedSwitcher(
           duration: const Duration(milliseconds: 200),
+          // Default AnimatedSwitcher alignment is center — "Kivo" (narrow)
+          // and the search TextField (fills the slot) then anchor
+          // differently, so the text visibly jumps sideways as it
+          // crossfades. Anchoring both to the left (matching the AppBar's
+          // normal title position) keeps them in place; only opacity animates.
+          layoutBuilder: (currentChild, previousChildren) => Stack(
+            alignment: Alignment.centerLeft,
+            children: [...previousChildren, if (currentChild != null) currentChild],
+          ),
           child: ref.watch(librarySearchActiveProvider)
               ? TextField(
                   key: const ValueKey('search-field'),
