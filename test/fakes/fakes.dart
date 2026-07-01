@@ -23,6 +23,7 @@ class FakePlaybackEngine implements PlaybackEngine {
 
   String? openedPath;
   Duration? openedAt;
+  int openCount = 0;
   Duration? lastSeek;
   bool? lastPlayingCommand;
   double rate = 1.0;
@@ -49,6 +50,7 @@ class FakePlaybackEngine implements PlaybackEngine {
   Future<void> open(String path, {Duration startAt = Duration.zero}) async {
     openedPath = path;
     openedAt = startAt;
+    openCount++;
   }
 
   @override

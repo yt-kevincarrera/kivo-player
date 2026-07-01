@@ -95,6 +95,17 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   Future<void> _start() async {
     final session = ref.read(currentVideoProvider);
     if (session == null) return;
+    // Captured BEFORE the reset below: true only when this entry is an
+    // expand-from-mini-bar for THIS SAME session (compared by resume key,
+    // not just "was something minimized" — opening a DIFFERENT video while
+    // one happens to be minimized must still do a normal fresh open). The
+    // engine may already be further along than the resume store when
+    // expanding the same session — the mini-bar's own play/pause button can
+    // advance playback with nothing persisting that progress — so
+    // re-opening would reseek to the stale saved position instead of
+    // wherever it actually is now.
+    final expandingFromMini = ref.read(playerMinimizedProvider) &&
+        ref.read(minimizedSessionKeyProvider) == session.resumeKey;
     // Fresh entry must never inherit stale app-scoped overlay state from the
     // previous player route: a stranded dismiss progress, or a resume toast
     // still on screen when the user jumped to another video.
@@ -103,18 +114,28 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     ref.read(restartRequestProvider.notifier).state = 0;
     ref.read(playerMinimizedProvider.notifier).state = false;
     ref.read(miniPlayerThumbnailProvider.notifier).state = null;
+    ref.read(minimizedSessionKeyProvider.notifier).state = null;
     final engine = ref.read(playbackEngineProvider);
     _resumeKey = session.resumeKey;
     ref.read(playedStoreProvider).markPlayed(_resumeKey!);
-    final plan = planResume(
-        _resume.positionFor(_resumeKey!), ref.read(settingsProvider).resumeBehavior);
 
     final c = engine.createVideoController();
     if (c is VideoController) {
       _controller = c;
       setState(() {});
     }
-    await engine.open(session.playbackPath, startAt: plan.startAt);
+    if (expandingFromMini) {
+      // Reconnect to the already-open, already-playing session as-is — do
+      // not reopen the file or seek.
+    } else {
+      final plan = planResume(
+          _resume.positionFor(_resumeKey!), ref.read(settingsProvider).resumeBehavior);
+      await engine.open(session.playbackPath, startAt: plan.startAt);
+      if (plan.prompt != ResumePromptKind.none) {
+        ref.read(resumePromptProvider.notifier).state =
+            ResumePromptState(plan.prompt, plan.savedPosition);
+      }
+    }
     _deviceControls.currentVolume().then((v) {
       if (mounted) ref.read(volumePercentProvider.notifier).state = (v * 100).clamp(0, 100);
     });
@@ -123,10 +144,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     ref.read(playerControllerProvider).setRate(
       ref.read(settingsProvider).rememberSpeed ? remembered : 1.0,
     );
-    if (plan.prompt != ResumePromptKind.none) {
-      ref.read(resumePromptProvider.notifier).state =
-          ResumePromptState(plan.prompt, plan.savedPosition);
-    }
   }
 
   Future<void> _saveProgress() async {
@@ -193,6 +210,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
         await _saveProgress();
         await _captureMiniPreview();
         if (!mounted) return;
+        ref.read(minimizedSessionKeyProvider.notifier).state = _resumeKey;
         ref.read(playerMinimizedProvider.notifier).state = true;
         navigator.pop();
       },

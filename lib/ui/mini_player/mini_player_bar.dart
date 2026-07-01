@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,17 +16,59 @@ import '../player/state/mini_player_state.dart';
 /// minimized (see [playerMinimizedProvider]). Mounted once in `app.dart` via
 /// `MaterialApp.builder`, above the Navigator, so it survives route changes.
 ///
-/// No swipe-to-dismiss — closing is X-button only. (An earlier version had
-/// swipe-to-close, which turned out to be a red herring for the real
-/// "tap doesn't expand" bug: `MaterialApp.builder`'s context is an ancestor
-/// of the Navigator, and a widget built inside that builder's returned tree
-/// ends up a SIBLING of the Navigator, not a descendant — so
-/// `Navigator.of(context)` from here could never find it. See
-/// `kivoNavigatorKey` for the actual fix.)
-class MiniPlayerBar extends ConsumerWidget {
+/// Tap-to-expand uses [kivoNavigatorKey] rather than `Navigator.of(context)`:
+/// `MaterialApp.builder`'s context is an ancestor of the Navigator, and a
+/// widget built inside that builder's returned tree ends up a SIBLING of the
+/// Navigator, not a descendant of it — `Navigator.of(context)` from here can
+/// never find it.
+///
+/// Swipe-to-dismiss uses Flutter's [Dismissible] (mounted only while
+/// minimized, per its own contract), which is the proven pattern for
+/// "swipeable AND tappable" and exits toward whichever side it was swiped.
+///
+/// While minimized AND playing (the mini-bar's own play button can resume
+/// playback), a periodic timer persists progress — otherwise closing via the
+/// X without ever expanding would leave "Continuar" stuck at the
+/// position saved when minimizing, even though playback kept advancing.
+class MiniPlayerBar extends ConsumerStatefulWidget {
   const MiniPlayerBar({super.key});
 
-  void _expand(WidgetRef ref) {
+  @override
+  ConsumerState<MiniPlayerBar> createState() => _MiniPlayerBarState();
+}
+
+class _MiniPlayerBarState extends ConsumerState<MiniPlayerBar> {
+  Timer? _saveTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _saveTimer = Timer.periodic(const Duration(seconds: 4), (_) => _maybeSaveProgress());
+  }
+
+  @override
+  void dispose() {
+    _saveTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _maybeSaveProgress() async {
+    if (!ref.read(playerMinimizedProvider)) return;
+    final session = ref.read(currentVideoProvider);
+    if (session == null) return;
+    if (!(ref.read(playingProvider).valueOrNull ?? false)) return;
+    final position = ref.read(positionProvider).valueOrNull;
+    final duration = ref.read(durationProvider).valueOrNull;
+    if (position == null || duration == null || duration == Duration.zero) return;
+    await ref.read(resumeServiceProvider).record(
+          session.resumeKey,
+          position,
+          duration,
+          DateTime.now().millisecondsSinceEpoch,
+        );
+  }
+
+  void _expand() {
     kivoNavigatorKey.currentState
         ?.push(MaterialPageRoute(builder: (_) => const PlayerScreen()))
         .then((_) {
@@ -35,29 +78,36 @@ class MiniPlayerBar extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final minimized = ref.watch(playerMinimizedProvider);
     final session = ref.watch(currentVideoProvider);
-    if (session == null) return const SizedBox.shrink();
+    if (!minimized || session == null) return const SizedBox.shrink();
 
-    return IgnorePointer(
-      ignoring: !minimized,
-      child: AnimatedSlide(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-        offset: minimized ? Offset.zero : const Offset(0, 1),
-        child: AnimatedOpacity(
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
+        // A fresh instance mounts every time minimizing happens (the `if`
+        // above renders nothing otherwise), so this plays once per mount —
+        // a simple slide-up + fade-in entrance, no AnimationController needed.
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: 1),
           duration: const Duration(milliseconds: 220),
-          opacity: minimized ? 1 : 0,
-          child: SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
-              child: _MiniPlayerContent(
-                session: session,
-                onExpand: () => _expand(ref),
-              ),
-            ),
+          curve: Curves.easeOutCubic,
+          builder: (context, t, child) => Opacity(
+            opacity: t,
+            child: Transform.translate(offset: Offset(0, (1 - t) * 24), child: child),
+          ),
+          child: Dismissible(
+            key: ValueKey('mini-player-${session.playbackPath}'),
+            direction: DismissDirection.horizontal,
+            // No list to shrink into — the bar just vanishes once the
+            // parent stops rendering it (the `if` above, on the next
+            // build after this fires), so opt out of Dismissible's own
+            // resize-then-remove choreography.
+            resizeDuration: null,
+            onDismissed: (_) => ref.read(playerMinimizedProvider.notifier).state = false,
+            child: _MiniPlayerContent(session: session, onExpand: _expand),
           ),
         ),
       ),
