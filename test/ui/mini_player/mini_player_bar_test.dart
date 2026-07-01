@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kivo_player/core/navigation.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/platform/device_controls_provider.dart';
@@ -51,7 +52,11 @@ Future<ProviderContainer> _pumpBar(WidgetTester tester, {required bool minimized
 
   await tester.pumpWidget(UncontrolledProviderScope(
     container: c,
-    child: const MaterialApp(home: Scaffold(body: MiniPlayerBar())),
+    // MiniPlayerBar navigates via kivoNavigatorKey (not Navigator.of(context))
+    // since in the real app it's mounted as a sibling of the Navigator via
+    // MaterialApp.builder, not a descendant of it — attach the same key here
+    // so "tap expands" exercises the real navigation path.
+    child: MaterialApp(navigatorKey: kivoNavigatorKey, home: const Scaffold(body: MiniPlayerBar())),
   ));
   await tester.pump();
   return c;

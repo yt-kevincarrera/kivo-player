@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'core/navigation.dart';
 import 'core/settings/settings_provider.dart';
 import 'core/theme/kivo_theme.dart';
 import 'ui/home/library_screen.dart';
@@ -12,6 +13,7 @@ class KivoApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final mode = ref.watch(settingsProvider.select((s) => s.themeMode));
     return MaterialApp(
+      navigatorKey: kivoNavigatorKey,
       title: 'Kivo',
       debugShowCheckedModeBanner: false,
       theme: KivoTheme.light(),

@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/navigation.dart';
 import '../../core/theme/kivo_theme.dart';
 import '../../player/control/player_controller.dart';
 import '../../player/engine/playback_provider.dart';
@@ -14,18 +15,19 @@ import '../player/state/mini_player_state.dart';
 /// minimized (see [playerMinimizedProvider]). Mounted once in `app.dart` via
 /// `MaterialApp.builder`, above the Navigator, so it survives route changes.
 ///
-/// No swipe-to-dismiss: two different drag implementations (a hand-rolled
-/// GestureDetector, then Dismissible) both let a horizontal-drag recognizer
-/// win the gesture arena over a plain tap on real devices — confirmed
-/// on-device twice, with tap-to-expand never firing either time. With the
-/// drag gesture removed entirely there is nothing left to compete with
-/// tap, so it's unambiguous. Closing is X-button only.
+/// No swipe-to-dismiss — closing is X-button only. (An earlier version had
+/// swipe-to-close, which turned out to be a red herring for the real
+/// "tap doesn't expand" bug: `MaterialApp.builder`'s context is an ancestor
+/// of the Navigator, and a widget built inside that builder's returned tree
+/// ends up a SIBLING of the Navigator, not a descendant — so
+/// `Navigator.of(context)` from here could never find it. See
+/// `kivoNavigatorKey` for the actual fix.)
 class MiniPlayerBar extends ConsumerWidget {
   const MiniPlayerBar({super.key});
 
-  void _expand(BuildContext context, WidgetRef ref) {
-    Navigator.of(context)
-        .push(MaterialPageRoute(builder: (_) => const PlayerScreen()))
+  void _expand(WidgetRef ref) {
+    kivoNavigatorKey.currentState
+        ?.push(MaterialPageRoute(builder: (_) => const PlayerScreen()))
         .then((_) {
       ref.invalidate(continueWatchingProvider);
       ref.invalidate(playedKeysProvider);
@@ -53,7 +55,7 @@ class MiniPlayerBar extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
               child: _MiniPlayerContent(
                 session: session,
-                onExpand: () => _expand(context, ref),
+                onExpand: () => _expand(ref),
               ),
             ),
           ),
