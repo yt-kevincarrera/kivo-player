@@ -6,8 +6,6 @@ import '../../core/settings/kivo_settings.dart';
 import '../../core/settings/settings_provider.dart';
 import '../../platform/device_controls_provider.dart';
 import '../../platform/interfaces/device_controls.dart';
-import '../../platform/interfaces/subtitle_finder.dart';
-import '../../platform/subtitle_finder_provider.dart';
 import '../../player/control/player_controller.dart';
 import '../../platform/frame_extractor_provider.dart';
 import '../../platform/interfaces/frame_extractor.dart';
@@ -48,10 +46,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   late final PlaybackEngine _engine;
   late final ResumeService _resume;
   late final FrameExtractor _frames;
-  // Cached now; wired into external-subtitle discovery in a follow-up task
-  // (uses VideoSession.folder to find sidecar .srt/.vtt files near the video).
-  // ignore: unused_field
-  late final SubtitleFinder _subtitleFinder;
   StreamSubscription<double>? _sysVolSub;
   Timer? _saveTimer;
 
@@ -62,7 +56,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _engine = ref.read(playbackEngineProvider);
     _resume = ref.read(resumeServiceProvider);
     _frames = ref.read(frameExtractorProvider);
-    _subtitleFinder = ref.read(subtitleFinderProvider);
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Force portrait on every fresh entry — a manual rotation left over
