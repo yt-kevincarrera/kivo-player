@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/format.dart';
 import '../../../core/settings/settings_provider.dart';
+import '../../../core/theme/kivo_theme.dart';
 import '../../../platform/interfaces/media_indexer.dart';
 import '../../widgets/press_bounce.dart';
 import 'thumbnail_image.dart';
@@ -12,6 +13,9 @@ class VideoTile extends ConsumerWidget {
   final bool listRow;     // true = 1-col list row; false = cover-grid tile
   final VoidCallback onTap;
   final String? sizeLabel; // e.g. "49 MB" — shown in list-row meta line
+  final bool isNew;
+  final VoidCallback? onOptions;
+
   const VideoTile({
     super.key,
     required this.video,
@@ -19,6 +23,8 @@ class VideoTile extends ConsumerWidget {
     this.progress,
     this.listRow = false,
     this.sizeLabel,
+    this.isNew = false,
+    this.onOptions,
   });
 
   @override
@@ -37,9 +43,9 @@ class VideoTile extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
           children: [
-            // Left: 150px-wide 16:9 thumbnail with badge + progress
+            // Left: 168px-wide 16:9 thumbnail with badge + progress
             SizedBox(
-              width: 150,
+              width: 168,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: AspectRatio(
@@ -51,6 +57,12 @@ class VideoTile extends ConsumerWidget {
                       right: 4,
                       child: _badge(fmtDuration(Duration(milliseconds: video.durationMs))),
                     ),
+                    if (isNew)
+                      Positioned(
+                        top: 4,
+                        left: 4,
+                        child: _newBadge(),
+                      ),
                     if (progress != null)
                       Positioned(
                         left: 0,
@@ -75,7 +87,7 @@ class VideoTile extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: cs.onSurface,
-                      fontSize: 15,
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -87,12 +99,20 @@ class VideoTile extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: cs.onSurfaceVariant,
-                        fontSize: 13,
+                        fontSize: 14,
                       ),
                     ),
                   ],
                 ],
               ),
+            ),
+            // Far right: options menu icon — has its own onPressed, does not trigger row onTap
+            IconButton(
+              icon: Icon(Icons.more_vert, size: 20, color: cs.onSurfaceVariant),
+              onPressed: onOptions ?? () {},
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.all(4),
+              constraints: const BoxConstraints(),
             ),
           ],
         ),
@@ -110,12 +130,19 @@ class VideoTile extends ConsumerWidget {
           aspectRatio: 16 / 9,
           child: Stack(fit: StackFit.expand, children: [
             Hero(tag: 'libhero-${video.uri}', child: ThumbnailImage(video.id)),
-            // Duration badge
+            // Duration badge (top-right)
             Positioned(
               top: 6,
               right: 6,
               child: _badge(fmtDuration(Duration(milliseconds: video.durationMs))),
             ),
+            // Nuevo badge (top-left)
+            if (isNew)
+              Positioned(
+                top: 6,
+                left: 6,
+                child: _newBadge(),
+              ),
             // Title gradient + text (on-thumbnail text stays white over the dark gradient)
             Positioned(
               left: 0,
@@ -167,6 +194,21 @@ class VideoTile extends ConsumerWidget {
           color: Colors.white,
           fontSize: 9,
           fontFeatures: [FontFeature.tabularFigures()],
+        ),
+      ));
+
+  Widget _newBadge() => Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: KivoColors.blue,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: const Text(
+        'Nuevo',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
         ),
       ));
 }

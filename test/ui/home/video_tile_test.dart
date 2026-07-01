@@ -92,4 +92,67 @@ void main() {
     // sizeLabel is passed but cover layout does not render it
     expect(find.text('49.00 MB'), findsNothing);
   });
+
+  testWidgets('list-row with isNew:true shows Nuevo badge', (tester) async {
+    await _pump(
+      tester,
+      VideoTile(
+        video: _video,
+        listRow: true,
+        isNew: true,
+        onTap: () {},
+      ),
+    );
+
+    expect(find.text('Nuevo'), findsOneWidget);
+  });
+
+  testWidgets('list-row shows more_vert options icon', (tester) async {
+    await _pump(
+      tester,
+      VideoTile(
+        video: _video,
+        listRow: true,
+        onTap: () {},
+      ),
+    );
+
+    expect(find.byIcon(Icons.more_vert), findsOneWidget);
+  });
+
+  testWidgets('list-row: tapping title fires onTap', (tester) async {
+    var tapped = false;
+    await _pump(
+      tester,
+      VideoTile(
+        video: _video,
+        listRow: true,
+        onTap: () => tapped = true,
+      ),
+    );
+
+    await tester.tap(find.text('cool.mkv'));
+    await tester.pump();
+    expect(tapped, isTrue);
+  });
+
+  testWidgets('list-row: tapping more_vert fires onOptions and NOT onTap', (tester) async {
+    var tapped = false;
+    var optionsTapped = false;
+    await _pump(
+      tester,
+      VideoTile(
+        video: _video,
+        listRow: true,
+        onTap: () => tapped = true,
+        onOptions: () => optionsTapped = true,
+      ),
+    );
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pump();
+
+    expect(optionsTapped, isTrue);
+    expect(tapped, isFalse);
+  });
 }
