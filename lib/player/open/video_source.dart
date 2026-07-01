@@ -15,11 +15,13 @@ class VideoSession {
   final String displayName;  // file name — the stable resume key
   final List<String> queue;  // folder playbackPaths, natural order
   final int index;
+  final String? folder; // set only when opened from the library — enables external-subtitle discovery
   const VideoSession({
     required this.playbackPath,
     required this.displayName,
     required this.queue,
     required this.index,
+    this.folder,
   });
   String get resumeKey => displayName;
 }
@@ -55,6 +57,7 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
       displayName: current.name,
       queue: folder.map((v) => v.uri).toList(),
       index: idx < 0 ? 0 : idx,
+      folder: current.folder,
     );
   }
 }

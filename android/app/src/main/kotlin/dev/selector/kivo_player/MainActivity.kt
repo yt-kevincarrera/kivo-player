@@ -237,6 +237,41 @@ class MainActivity : FlutterActivity() {
                             runOnUiThread { result.success(bytes) }
                         }
                     }
+                    "findSubtitles" -> {
+                        val folder = call.argument<String>("folder")
+                        if (folder == null) { result.error("INVALID_ARG", "folder required", null); return@setMethodCallHandler }
+                        ioExecutor.execute {
+                            val out = ArrayList<HashMap<String, Any>>()
+                            try {
+                                val col = MediaStore.Files.getContentUri("external")
+                                val proj = arrayOf(
+                                    MediaStore.Files.FileColumns._ID,
+                                    MediaStore.Files.FileColumns.DISPLAY_NAME,
+                                )
+                                val exts = listOf("srt", "vtt", "ass", "ssa", "sub")
+                                val likeClauses = exts.joinToString(" OR ") {
+                                    "${MediaStore.Files.FileColumns.DISPLAY_NAME} LIKE ?"
+                                }
+                                val selection = "${MediaStore.Files.FileColumns.BUCKET_DISPLAY_NAME} = ? AND ($likeClauses)"
+                                val args = arrayOf(folder) + exts.map { "%.$it" }.toTypedArray()
+                                contentResolver.query(col, proj, selection, args, null)?.use { c ->
+                                    val idC = c.getColumnIndexOrThrow(MediaStore.Files.FileColumns._ID)
+                                    val nameC = c.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DISPLAY_NAME)
+                                    while (c.moveToNext()) {
+                                        val id = c.getLong(idC)
+                                        val uri = ContentUris.withAppendedId(col, id).toString()
+                                        out.add(hashMapOf(
+                                            "uri" to uri,
+                                            "displayName" to (c.getString(nameC) ?: ""),
+                                        ))
+                                    }
+                                }
+                                runOnUiThread { result.success(out) }
+                            } catch (e: Exception) {
+                                runOnUiThread { result.error("FIND_SUBTITLES_FAILED", e.message, null) }
+                            }
+                        }
+                    }
                     else -> result.notImplemented()
                 }
             }

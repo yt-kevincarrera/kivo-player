@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:kivo_player/core/settings/settings_store.dart';
 import 'package:kivo_player/platform/interfaces/frame_extractor.dart';
 import 'package:kivo_player/platform/interfaces/media_indexer.dart';
+import 'package:kivo_player/platform/interfaces/subtitle_finder.dart';
 import 'package:kivo_player/player/engine/playback_engine.dart';
 import 'package:kivo_player/player/queue/file_system_lister.dart';
 import 'package:kivo_player/player/resume/resume_store.dart';
@@ -197,4 +198,14 @@ class FakeMediaIndexer implements MediaIndexer {
   }
   @override
   Future<Uint8List?> thumbnail(String id) async => thumb;
+}
+
+class FakeSubtitleFinder implements SubtitleFinder {
+  Map<String, List<ExternalSubtitle>> byFolder = {};
+  List<String> requestedFolders = [];
+  @override
+  Future<List<ExternalSubtitle>> findNear(String folder) async {
+    requestedFolders.add(folder);
+    return byFolder[folder] ?? const [];
+  }
 }
