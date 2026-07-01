@@ -29,6 +29,12 @@ class KivoSettings {
   final int libraryColumns;
   final String themeMode; // 'auto' | 'light' | 'dark'
   final String librarySort; // LibrarySort enum name — see lib/player/library/library_filter.dart
+  final bool subtitlesEnabledByDefault;
+  final String? preferredSubtitleLanguage;
+  final String? preferredAudioLanguage;
+  final double subtitleFontSize;
+  final int subtitleTextColor;
+  final int subtitleBackgroundColor; // ARGB, default is semi-opaque black
 
   const KivoSettings({
     required this.doubleTapSkipLeft,
@@ -61,6 +67,12 @@ class KivoSettings {
     required this.libraryColumns,
     required this.themeMode,
     required this.librarySort,
+    required this.subtitlesEnabledByDefault,
+    required this.preferredSubtitleLanguage,
+    required this.preferredAudioLanguage,
+    required this.subtitleFontSize,
+    required this.subtitleTextColor,
+    required this.subtitleBackgroundColor,
   });
 
   factory KivoSettings.defaults() => const KivoSettings(
@@ -94,6 +106,12 @@ class KivoSettings {
         libraryColumns: 1,
         themeMode: 'auto',
         librarySort: 'recent',
+        subtitlesEnabledByDefault: true,
+        preferredSubtitleLanguage: null,
+        preferredAudioLanguage: null,
+        subtitleFontSize: 26.0,
+        subtitleTextColor: 0xFFFFFFFF,
+        subtitleBackgroundColor: 0xB3000000,
       );
 
   KivoSettings copyWith({
@@ -127,6 +145,12 @@ class KivoSettings {
     int? libraryColumns,
     String? themeMode,
     String? librarySort,
+    bool? subtitlesEnabledByDefault,
+    String? preferredSubtitleLanguage,
+    String? preferredAudioLanguage,
+    double? subtitleFontSize,
+    int? subtitleTextColor,
+    int? subtitleBackgroundColor,
   }) {
     return KivoSettings(
       doubleTapSkipLeft: doubleTapSkipLeft ?? this.doubleTapSkipLeft,
@@ -159,6 +183,12 @@ class KivoSettings {
       libraryColumns: libraryColumns ?? this.libraryColumns,
       themeMode: themeMode ?? this.themeMode,
       librarySort: librarySort ?? this.librarySort,
+      subtitlesEnabledByDefault: subtitlesEnabledByDefault ?? this.subtitlesEnabledByDefault,
+      preferredSubtitleLanguage: preferredSubtitleLanguage ?? this.preferredSubtitleLanguage,
+      preferredAudioLanguage: preferredAudioLanguage ?? this.preferredAudioLanguage,
+      subtitleFontSize: subtitleFontSize ?? this.subtitleFontSize,
+      subtitleTextColor: subtitleTextColor ?? this.subtitleTextColor,
+      subtitleBackgroundColor: subtitleBackgroundColor ?? this.subtitleBackgroundColor,
     );
   }
 
@@ -193,6 +223,12 @@ class KivoSettings {
         'libraryColumns': libraryColumns,
         'themeMode': themeMode,
         'librarySort': librarySort,
+        'subtitlesEnabledByDefault': subtitlesEnabledByDefault,
+        'preferredSubtitleLanguage': preferredSubtitleLanguage,
+        'preferredAudioLanguage': preferredAudioLanguage,
+        'subtitleFontSize': subtitleFontSize,
+        'subtitleTextColor': subtitleTextColor,
+        'subtitleBackgroundColor': subtitleBackgroundColor,
       };
 
   factory KivoSettings.fromMap(Map<String, dynamic> m) {
@@ -228,6 +264,12 @@ class KivoSettings {
       libraryColumns: m['libraryColumns'] ?? d.libraryColumns,
       themeMode: m['themeMode'] ?? d.themeMode,
       librarySort: m['librarySort'] ?? d.librarySort,
+      subtitlesEnabledByDefault: m['subtitlesEnabledByDefault'] ?? d.subtitlesEnabledByDefault,
+      preferredSubtitleLanguage: m['preferredSubtitleLanguage'] ?? d.preferredSubtitleLanguage,
+      preferredAudioLanguage: m['preferredAudioLanguage'] ?? d.preferredAudioLanguage,
+      subtitleFontSize: (m['subtitleFontSize'] ?? d.subtitleFontSize).toDouble(),
+      subtitleTextColor: m['subtitleTextColor'] ?? d.subtitleTextColor,
+      subtitleBackgroundColor: m['subtitleBackgroundColor'] ?? d.subtitleBackgroundColor,
     );
   }
 }
