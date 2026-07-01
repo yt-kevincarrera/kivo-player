@@ -121,37 +121,50 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 12,
-        title: ref.watch(librarySearchActiveProvider)
-            ? TextField(
-                controller: _searchController,
-                autofocus: true,
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                decoration: const InputDecoration(
-                  hintText: 'Buscar videos o carpetas',
-                  border: InputBorder.none,
+        title: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          child: ref.watch(librarySearchActiveProvider)
+              ? TextField(
+                  key: const ValueKey('search-field'),
+                  controller: _searchController,
+                  autofocus: true,
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                  decoration: const InputDecoration(
+                    hintText: 'Buscar videos o carpetas',
+                    border: InputBorder.none,
+                  ),
+                  onChanged: (q) =>
+                      ref.read(librarySearchQueryProvider.notifier).state = q,
+                )
+              : Text(
+                  'Kivo',
+                  key: const ValueKey('title'),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
-                onChanged: (q) =>
-                    ref.read(librarySearchQueryProvider.notifier).state = q,
-              )
-            : Text(
-                'Kivo',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
+        ),
         actions: [
-          if (ref.watch(librarySearchActiveProvider))
-            IconButton(
-              tooltip: 'Cerrar búsqueda',
-              icon: const Icon(Icons.close),
-              onPressed: _closeSearch,
-            )
-          else
-            IconButton(
-              tooltip: 'Buscar',
-              icon: const Icon(Icons.search),
-              onPressed: _openSearch,
-            ),
+          // Distinct keys force Flutter to treat search/close as genuinely
+          // different widgets rather than reusing the same IconButton
+          // Element with a swapped icon — without this, an in-flight tap
+          // ripple can visibly carry over onto the new icon.
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: ref.watch(librarySearchActiveProvider)
+                ? IconButton(
+                    key: const ValueKey('close'),
+                    tooltip: 'Cerrar búsqueda',
+                    icon: const Icon(Icons.close),
+                    onPressed: _closeSearch,
+                  )
+                : IconButton(
+                    key: const ValueKey('search'),
+                    tooltip: 'Buscar',
+                    icon: const Icon(Icons.search),
+                    onPressed: _openSearch,
+                  ),
+          ),
           if (ref.watch(librarySearchActiveProvider) || _tab == 0)
             const _SortMenuButton(),
           if (!ref.watch(librarySearchActiveProvider)) ...[

@@ -177,17 +177,26 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
                       delegate: SliverChildBuilderDelegate(
                         (_, i) {
                           final v = s.items[i];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 7),
-                            child: _reflowTile(
-                              child: VideoTile(
-                                video: v,
-                                listRow: true,
-                                sizeLabel: fmtSize(v.sizeBytes),
-                                progress: continueItems[v.name]?.fraction,
-                                isNew: !played.contains(v.name),
-                                onOptions: null,
-                                onTap: () => widget.onOpen(v, widget.videos),
+                          // Keyed by uri so reordering (sort/filter changes)
+                          // reuses the existing Element for a still-visible
+                          // video instead of rebuilding it at a new index —
+                          // otherwise its ThumbnailImage loses its provider
+                          // watcher and re-fetches, causing an avoidable
+                          // placeholder->image flash.
+                          return KeyedSubtree(
+                            key: ValueKey(v.uri),
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 7),
+                              child: _reflowTile(
+                                child: VideoTile(
+                                  video: v,
+                                  listRow: true,
+                                  sizeLabel: fmtSize(v.sizeBytes),
+                                  progress: continueItems[v.name]?.fraction,
+                                  isNew: !played.contains(v.name),
+                                  onOptions: null,
+                                  onTap: () => widget.onOpen(v, widget.videos),
+                                ),
                               ),
                             ),
                           );
@@ -205,15 +214,18 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
                       delegate: SliverChildBuilderDelegate(
                         (_, i) {
                           final v = s.items[i];
-                          return _reflowTile(
-                            child: VideoTile(
-                              video: v,
-                              listRow: false,
-                              sizeLabel: null,
-                              progress: continueItems[v.name]?.fraction,
-                              isNew: !played.contains(v.name),
-                              onOptions: null,
-                              onTap: () => widget.onOpen(v, widget.videos),
+                          return KeyedSubtree(
+                            key: ValueKey(v.uri),
+                            child: _reflowTile(
+                              child: VideoTile(
+                                video: v,
+                                listRow: false,
+                                sizeLabel: null,
+                                progress: continueItems[v.name]?.fraction,
+                                isNew: !played.contains(v.name),
+                                onOptions: null,
+                                onTap: () => widget.onOpen(v, widget.videos),
+                              ),
                             ),
                           );
                         },

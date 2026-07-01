@@ -11,10 +11,11 @@ class ThumbnailImage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(thumbnailProvider(id));
     final bytes = async.valueOrNull;
+    final cs = Theme.of(context).colorScheme;
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 220),
+      duration: const Duration(milliseconds: 180),
       child: bytes == null
-          ? Container(key: const ValueKey('ph'), color: const Color(0xFF1C2230))
+          ? Container(key: const ValueKey('ph'), color: cs.surfaceContainerHigh)
           : Image.memory(bytes, key: ValueKey(id), fit: fit, gaplessPlayback: true),
     );
   }

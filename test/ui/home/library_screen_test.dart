@@ -134,7 +134,7 @@ void main() {
     expect(find.text('Kivo'), findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.search));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(find.text('Kivo'), findsNothing);
     expect(find.byType(TextField), findsOneWidget);
@@ -143,7 +143,7 @@ void main() {
   testWidgets('typing a query filters to matching videos', (tester) async {
     await _buildApp(tester);
     await tester.tap(find.byIcon(Icons.search));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), 'inception');
     await tester.pump();
@@ -155,7 +155,7 @@ void main() {
   testWidgets('search matches by folder name too', (tester) async {
     await _buildApp(tester);
     await tester.tap(find.byIcon(Icons.search));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), 'downloads');
     await tester.pump();
@@ -168,12 +168,12 @@ void main() {
       (tester) async {
     await _buildApp(tester);
     await tester.tap(find.byIcon(Icons.search));
-    await tester.pump();
+    await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'inception');
     await tester.pump();
 
     await tester.tap(find.byIcon(Icons.close));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(find.text('Kivo'), findsOneWidget);
     expect(find.text('Inception.mp4'), findsOneWidget);
@@ -183,7 +183,7 @@ void main() {
   testWidgets('no search matches shows the empty message', (tester) async {
     await _buildApp(tester);
     await tester.tap(find.byIcon(Icons.search));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), 'zzz-no-match');
     await tester.pump();
