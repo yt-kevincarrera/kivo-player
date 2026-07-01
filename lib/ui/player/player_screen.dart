@@ -2,9 +2,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+import '../../core/settings/kivo_settings.dart';
 import '../../core/settings/settings_provider.dart';
 import '../../platform/device_controls_provider.dart';
 import '../../platform/interfaces/device_controls.dart';
+import '../../platform/interfaces/subtitle_finder.dart';
+import '../../platform/subtitle_finder_provider.dart';
 import '../../player/control/player_controller.dart';
 import '../../platform/frame_extractor_provider.dart';
 import '../../platform/interfaces/frame_extractor.dart';
@@ -14,6 +17,7 @@ import '../../player/library/played.dart';
 import '../../player/open/video_source.dart';
 import '../../player/resume/resume_plan.dart';
 import '../../player/resume/resume_service.dart';
+import '../../player/tracks/track_selection.dart';
 import 'controls/controls_overlay.dart';
 import 'controls/flash_overlay.dart';
 import 'controls/info_overlay.dart';
@@ -44,6 +48,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   late final PlaybackEngine _engine;
   late final ResumeService _resume;
   late final FrameExtractor _frames;
+  // Cached now; wired into external-subtitle discovery in a follow-up task
+  // (uses VideoSession.folder to find sidecar .srt/.vtt files near the video).
+  // ignore: unused_field
+  late final SubtitleFinder _subtitleFinder;
   StreamSubscription<double>? _sysVolSub;
   Timer? _saveTimer;
 
@@ -54,6 +62,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _engine = ref.read(playbackEngineProvider);
     _resume = ref.read(resumeServiceProvider);
     _frames = ref.read(frameExtractorProvider);
+    _subtitleFinder = ref.read(subtitleFinderProvider);
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Force portrait on every fresh entry — a manual rotation left over
@@ -136,6 +145,15 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
             ResumePromptState(plan.prompt, plan.savedPosition);
       }
     }
+    final settings = ref.read(settingsProvider);
+    await engine.setSubtitleStyle(
+      fontSize: settings.subtitleFontSize,
+      textColorArgb: settings.subtitleTextColor,
+      backgroundColorArgb: settings.subtitleBackgroundColor,
+    );
+    if (!expandingFromMini) {
+      _applyDefaultTracks(engine, settings, session);
+    }
     _deviceControls.currentVolume().then((v) {
       if (mounted) ref.read(volumePercentProvider.notifier).state = (v * 100).clamp(0, 100);
     });
@@ -144,6 +162,31 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     ref.read(playerControllerProvider).setRate(
       ref.read(settingsProvider).rememberSpeed ? remembered : 1.0,
     );
+  }
+
+  void _applyDefaultTracks(PlaybackEngine engine, KivoSettings settings, VideoSession session) {
+    () async {
+      final audioTracks = await engine.audioTracksStream.first.timeout(
+        const Duration(seconds: 2),
+        onTimeout: () => const <MediaTrack>[],
+      );
+      final audioPick = selectAudioTrack(
+        tracks: audioTracks,
+        preferredLanguage: settings.preferredAudioLanguage,
+      );
+      if (audioPick != null) await engine.setAudioTrack(audioPick.id);
+
+      final subtitleTracks = await engine.subtitleTracksStream.first.timeout(
+        const Duration(seconds: 2),
+        onTimeout: () => const <MediaTrack>[],
+      );
+      final subtitlePick = selectSubtitleTrack(
+        tracks: subtitleTracks,
+        enabledByDefault: settings.subtitlesEnabledByDefault,
+        preferredLanguage: settings.preferredSubtitleLanguage,
+      );
+      if (subtitlePick != null) await engine.setSubtitleTrack(subtitlePick.id);
+    }();
   }
 
   Future<void> _saveProgress() async {

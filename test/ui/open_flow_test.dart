@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/platform/frame_extractor_provider.dart';
+import 'package:kivo_player/platform/subtitle_finder_provider.dart';
 import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/player/library/played.dart';
 import 'package:kivo_player/player/open/video_source.dart';
@@ -27,6 +28,7 @@ void main() {
       resumeServiceProvider.overrideWithValue(ResumeService(resumeStore)),
       playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
       frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
+      subtitleFinderProvider.overrideWithValue(FakeSubtitleFinder()),
     ]);
     addTearDown(container.dispose);
 
@@ -41,5 +43,12 @@ void main() {
 
     expect(engine.openedPath, '/movies/ep1.mkv');
     expect(engine.openedAt, const Duration(seconds: 120));
+
+    // Drain _applyDefaultTracks' pending 2s stream-timeout timers: audio and
+    // subtitle track streams never emit here, and the two timeouts run
+    // sequentially (subtitle's timer is only scheduled once audio's fires),
+    // so two separate 2s pumps are needed to flush both in turn.
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pump(const Duration(seconds: 2));
   });
 }

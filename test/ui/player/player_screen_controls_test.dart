@@ -7,6 +7,8 @@ import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/platform/device_controls_provider.dart';
 import 'package:kivo_player/platform/frame_extractor_provider.dart';
 import 'package:kivo_player/platform/interfaces/device_controls.dart';
+import 'package:kivo_player/platform/subtitle_finder_provider.dart';
+import 'package:kivo_player/player/engine/playback_engine.dart' show MediaTrack;
 import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/player/library/played.dart';
 import 'package:kivo_player/player/open/video_source.dart';
@@ -42,6 +44,7 @@ void main() {
       resumeServiceProvider.overrideWithValue(ResumeService(InMemoryResumeStore())),
       playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
       frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
+      subtitleFinderProvider.overrideWithValue(FakeSubtitleFinder()),
     ]);
     addTearDown(c.dispose);
     c.read(currentVideoProvider.notifier).open(
@@ -75,6 +78,7 @@ void main() {
       resumeServiceProvider.overrideWithValue(ResumeService(resumeStore)),
       playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
       frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
+      subtitleFinderProvider.overrideWithValue(FakeSubtitleFinder()),
     ]);
     addTearDown(c.dispose);
     c.read(currentVideoProvider.notifier).open(
@@ -156,6 +160,7 @@ void main() {
       resumeServiceProvider.overrideWithValue(ResumeService(resumeStore)),
       playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
       frameExtractorProvider.overrideWithValue(frames),
+      subtitleFinderProvider.overrideWithValue(FakeSubtitleFinder()),
     ]);
     addTearDown(c.dispose);
     c.read(currentVideoProvider.notifier).open(
@@ -215,6 +220,7 @@ void main() {
       resumeServiceProvider.overrideWithValue(ResumeService(InMemoryResumeStore())),
       playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
       frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
+      subtitleFinderProvider.overrideWithValue(FakeSubtitleFinder()),
     ]);
     addTearDown(c.dispose);
     // Simulate leftover state from a previously minimized video.
@@ -249,6 +255,7 @@ void main() {
       resumeServiceProvider.overrideWithValue(ResumeService(InMemoryResumeStore())),
       playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
       frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
+      subtitleFinderProvider.overrideWithValue(FakeSubtitleFinder()),
     ]);
     addTearDown(c.dispose);
     c.read(currentVideoProvider.notifier).open(
@@ -310,5 +317,52 @@ void main() {
     expect(c.read(playerMinimizedProvider), false);
 
     await tester.pump(const Duration(seconds: 4));
+  });
+
+  testWidgets('opening a video auto-selects the preferred subtitle language',
+      (tester) async {
+    final engine = FakePlaybackEngine();
+    addTearDown(engine.dispose);
+    final s = await SettingsService.load(InMemorySettingsStore());
+    await s.update(s.current.copyWith(preferredSubtitleLanguage: 'es'));
+    final c = ProviderContainer(overrides: [
+      settingsServiceProvider.overrideWithValue(s),
+      playbackEngineProvider.overrideWithValue(engine),
+      deviceControlsProvider.overrideWithValue(NoopControls()),
+      resumeServiceProvider.overrideWithValue(ResumeService(InMemoryResumeStore())),
+      playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
+      frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
+      subtitleFinderProvider.overrideWithValue(FakeSubtitleFinder()),
+    ]);
+    addTearDown(c.dispose);
+    c.read(currentVideoProvider.notifier).open(
+      const VideoSession(playbackPath: '/v/ep1.mkv', displayName: 'ep1.mkv', queue: ['/v/ep1.mkv'], index: 0),
+    );
+
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: c,
+      child: const MaterialApp(home: PlayerScreen()),
+    ));
+    await tester.pump();
+
+    // _applyDefaultTracks awaits the audio-tracks stream first (both streams
+    // are broadcast, so an emission is dropped unless a listener is already
+    // subscribed). Emit audio tracks and pump so the audio stage resolves and
+    // _applyDefaultTracks moves on to subscribe to subtitleTracksStream,
+    // THEN emit the subtitle tracks it's actually waiting on.
+    engine.emitAudioTracks(const []);
+    await tester.pump();
+    engine.emitSubtitleTracks(const [
+      MediaTrack(id: 'sub-en', language: 'en'),
+      MediaTrack(id: 'sub-es', language: 'es'),
+    ]);
+    await tester.pump();
+    // Drain the async _applyDefaultTracks chain (the .first future resolves
+    // on the next microtask/pump after the stream emits).
+    await tester.pump();
+
+    expect(engine.currentSubtitleTrackId, 'sub-es');
+
+    await tester.pump(const Duration(seconds: 4)); // drain the periodic save timer
   });
 }
