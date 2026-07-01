@@ -10,6 +10,10 @@ String fmtSize(int bytes) {
   return '${mb.toStringAsFixed(mb >= 100 ? 0 : 2)} MB';
 }
 
+/// True when a video was added within the last 3 days (worth a "Nuevo" badge).
+bool isNewVideo(int dateAddedMs, DateTime now) =>
+    now.difference(DateTime.fromMillisecondsSinceEpoch(dateAddedMs)).inDays < 3;
+
 String basenameOf(String? path) {
   if (path == null || path.isEmpty) return 'Kivo';
   final p = path.replaceAll('\\', '/');

@@ -32,25 +32,27 @@ class LibraryScreen extends ConsumerStatefulWidget {
 
 class _LibraryScreenState extends ConsumerState<LibraryScreen>
     with SingleTickerProviderStateMixin {
-  static const double _pagePad = 16;
+  // Video sections sit more inset than the "Continuar" strip.
+  static const double _sectionPad = 20;
 
   int _tab = 0; // 0 = Todo, 1 = Carpetas
-  int _prevTab = 0;
-  double _scaleBaseline = 1.0;
   StreamSubscription<dynamic>? _shareSub;
+  late final PageController _pageController;
+
+  // One column step per pinch gesture (locks until the gesture ends).
+  bool _pinchStepDone = false;
 
   // Animated reflow ("reacomodado") when the column count changes.
   late final AnimationController _reflowCtrl;
   late final Animation<double> _reflow;
-  int _prevCols = 1;
 
   @override
   void initState() {
     super.initState();
-    _prevCols = ref.read(settingsProvider).libraryColumns;
+    _pageController = PageController();
     _reflowCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 260),
+      duration: const Duration(milliseconds: 300),
       value: 1.0, // at rest → scale 1.0 (no effect)
     );
     _reflow = CurvedAnimation(parent: _reflowCtrl, curve: Curves.easeOutCubic);
@@ -70,6 +72,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
   @override
   void dispose() {
     _shareSub?.cancel();
+    _pageController.dispose();
     _reflowCtrl.dispose();
     super.dispose();
   }
@@ -101,24 +104,24 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
   }
 
   void _onScaleUpdate(ScaleUpdateDetails d) {
-    // Only react to a genuine 2-finger pinch. Gating on pointerCount (rather
-    // than horizontal movement) makes the gesture direction-agnostic, like a
-    // photo gallery.
-    if (d.pointerCount < 2) return;
-    final rel = d.scale / _scaleBaseline;
+    // One column step per gesture: once we've stepped, ignore the rest of this
+    // pinch until it ends. Only react to a genuine 2-finger pinch (gating on
+    // pointerCount makes the gesture direction-agnostic, like a photo gallery).
+    if (_pinchStepDone || d.pointerCount < 2) return;
+    final rel = d.scale; // cumulative from gesture start
     final cols = ref.read(settingsProvider).libraryColumns;
     int next = cols;
-    if (rel > 1.15) {
+    if (rel > 1.08) {
       next = (cols - 1).clamp(1, 3); // pinch out → fewer cols (bigger tiles)
-    } else if (rel < 0.87) {
+    } else if (rel < 0.92) {
       next = (cols + 1).clamp(1, 3); // pinch in → more cols (smaller tiles)
+    } else {
+      return;
     }
     if (next != cols) {
-      // Reset baseline so each further notch needs a fresh pinch — one step
-      // per notch, so 1↔2↔3 are all reachable (no 1→3 skip).
-      _scaleBaseline = d.scale;
       HapticFeedback.selectionClick();
       _setColumns(next);
+      _pinchStepDone = true; // lock until this gesture ends
     }
   }
 
@@ -141,7 +144,6 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     ref.listen<int>(settingsProvider.select((s) => s.libraryColumns),
         (prev, next) {
       if (prev != null && prev != next) {
-        _prevCols = prev;
         _reflowCtrl.forward(from: 0);
       }
     });
@@ -193,35 +195,26 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
         children: [
           _FilterChips(
             selected: _tab,
-            onChanged: (i) => setState(() {
-              _prevTab = _tab;
-              _tab = i;
-            }),
+            onChanged: (i) {
+              setState(() => _tab = i);
+              _pageController.animateToPage(
+                i,
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOutCubic,
+              );
+            },
           ),
           Expanded(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              switchInCurve: Curves.easeOutCubic,
-              switchOutCurve: Curves.easeOutCubic,
-              transitionBuilder: (child, animation) {
-                // Direction by travel: going to Carpetas (tab 1) slides in from
-                // the right; going back to Todo slides from the left.
-                final goingRight = _tab > _prevTab;
-                final dx = goingRight ? 0.12 : -0.12;
-                final offset = Tween<Offset>(
-                  begin: Offset(dx, 0),
-                  end: Offset.zero,
-                ).animate(animation);
-                return SlideTransition(
-                  position: offset,
-                  // A whisper of fade just softens the edge; the slide is the
-                  // primary motion.
-                  child: FadeTransition(opacity: animation, child: child),
-                );
-              },
-              child: _tab == 0
-                  ? _videosTab(videos, key: const ValueKey(0))
-                  : _foldersTab(videos, key: const ValueKey(1)),
+            // The PageView provides the horizontal slide between tabs — no
+            // fade. Swipe is disabled so the page changes only via chip taps,
+            // which keeps the 2-finger pinch on the videos page conflict-free.
+            child: PageView(
+              controller: _pageController,
+              physics: const NeverScrollableScrollPhysics(),
+              children: [
+                _videosTab(videos, key: const ValueKey(0)),
+                _foldersTab(videos, key: const ValueKey(1)),
+              ],
             ),
           ),
         ],
@@ -241,7 +234,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     return GestureDetector(
       key: key,
       onScaleStart: (_) {
-        _scaleBaseline = 1.0;
+        _pinchStepDone = false;
       },
       onScaleUpdate: _onScaleUpdate,
       // The CustomScrollView renders DIRECTLY at the current `cols` — positions
@@ -266,7 +259,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
                   ),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
+                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
                   child: Row(children: [
                     Container(width: 3, height: 13, color: accentColor),
                     const SizedBox(width: 7),
@@ -283,21 +276,22 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
               ),
             ),
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: _pagePad),
+              padding: const EdgeInsets.symmetric(horizontal: _sectionPad),
               sliver: cols == 1
                   ? SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (_, i) {
                           final v = s.items[i];
                           return Padding(
-                            padding: const EdgeInsets.only(bottom: 14),
+                            padding: const EdgeInsets.only(bottom: 7),
                             child: _reflowTile(
-                              cols: cols,
                               child: VideoTile(
                                 video: v,
                                 listRow: true,
                                 sizeLabel: fmtSize(v.sizeBytes),
                                 progress: continueItems[v.name]?.fraction,
+                                isNew: isNewVideo(v.dateAddedMs, DateTime.now()),
+                                onOptions: null,
                                 onTap: () => _open(v, videos),
                               ),
                             ),
@@ -317,12 +311,13 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
                         (_, i) {
                           final v = s.items[i];
                           return _reflowTile(
-                            cols: cols,
                             child: VideoTile(
                               video: v,
                               listRow: false,
                               sizeLabel: null,
                               progress: continueItems[v.name]?.fraction,
+                              isNew: isNewVideo(v.dateAddedMs, DateTime.now()),
+                              onOptions: null,
                               onTap: () => _open(v, videos),
                             ),
                           );
@@ -338,20 +333,17 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     );
   }
 
-  /// Wraps a tile so that, on a column change, it animates from its previous
-  /// relative extent up/down to its new one — tiles grow/shrink into place
-  /// ("reacomodado") instead of fading. At rest the scale is 1.0 (no effect).
-  Widget _reflowTile({required int cols, required Widget child}) {
+  /// Wraps a tile so that, on a column change, it settles into place with a
+  /// subtle 0.92→1.0 scale ("reacomodado") instead of fading. At rest the
+  /// scale is 1.0 (no effect). The grid lays out at the new column count
+  /// immediately — positions are final and scroll is preserved.
+  Widget _reflowTile({required Widget child}) {
     return AnimatedBuilder(
       animation: _reflow,
       child: child,
       builder: (context, c) {
-        if (_reflowCtrl.value >= 1.0 || _prevCols == cols) return c!;
-        final usableWidth = MediaQuery.sizeOf(context).width - 2 * _pagePad;
-        final newExtent = usableWidth / cols;
-        final prevExtent = usableWidth / _prevCols;
-        final fromScale = prevExtent / newExtent;
-        final scale = lerpDouble(fromScale, 1.0, _reflow.value)!;
+        if (_reflowCtrl.value >= 1.0) return c!;
+        final scale = lerpDouble(0.92, 1.0, _reflow.value)!;
         return Transform.scale(
           scale: scale,
           alignment: Alignment.center,
