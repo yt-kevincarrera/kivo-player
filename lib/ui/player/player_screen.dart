@@ -25,6 +25,7 @@ import 'speed/speed_ladder_overlay.dart';
 import 'state/aspect_state.dart';
 import 'state/dismiss_state.dart';
 import 'state/hud_state.dart';
+import 'state/mini_player_state.dart';
 import 'state/orientation_state.dart';
 
 class PlayerScreen extends ConsumerStatefulWidget {
@@ -100,6 +101,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     ref.read(dismissProvider.notifier).state = 0;
     ref.read(resumePromptProvider.notifier).state = null;
     ref.read(restartRequestProvider.notifier).state = 0;
+    ref.read(playerMinimizedProvider.notifier).state = false;
+    ref.read(miniPlayerThumbnailProvider.notifier).state = null;
     final engine = ref.read(playbackEngineProvider);
     _resumeKey = session.resumeKey;
     ref.read(playedStoreProvider).markPlayed(_resumeKey!);
@@ -134,6 +137,16 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     // the save (the root cause of resume never persisting on back-exit).
     await _resume.record(key, _lastPosition, _lastDuration,
         DateTime.now().millisecondsSinceEpoch);
+  }
+
+  Future<void> _captureMiniPreview() async {
+    try {
+      final bytes = await _frames.frameAt(_lastPosition);
+      if (mounted) ref.read(miniPlayerThumbnailProvider.notifier).state = bytes;
+    } catch (_) {
+      // Extraction can fail (e.g. no keyframe near this position); the
+      // mini-bar falls back to a placeholder icon when the bytes are null.
+    }
   }
 
   @override
@@ -174,7 +187,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
         if (didPop) return;
         final navigator = Navigator.of(context);
         await _saveProgress();
+        await _captureMiniPreview();
         if (!mounted) return;
+        ref.read(playerMinimizedProvider.notifier).state = true;
         navigator.pop();
       },
       child: Scaffold(

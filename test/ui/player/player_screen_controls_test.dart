@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +13,7 @@ import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/ui/player/player_screen.dart';
 import 'package:kivo_player/ui/player/state/controls_visibility.dart';
+import 'package:kivo_player/ui/player/state/mini_player_state.dart';
 import 'package:kivo_player/ui/player/controls/center_controls.dart';
 import '../../fakes/fakes.dart';
 
@@ -137,6 +139,100 @@ void main() {
     expect(saved.single.seconds, const Duration(minutes: 2).inSeconds);
 
     // Drain the periodic save timer so no pending timers remain at teardown.
+    await tester.pump(const Duration(seconds: 4));
+  });
+
+  testWidgets('popping the player minimizes it and captures a preview frame',
+      (tester) async {
+    final engine = FakePlaybackEngine();
+    addTearDown(engine.dispose);
+    final s = await SettingsService.load(InMemorySettingsStore());
+    final resumeStore = InMemoryResumeStore();
+    final frames = FakeFrameExtractor();
+    final c = ProviderContainer(overrides: [
+      settingsServiceProvider.overrideWithValue(s),
+      playbackEngineProvider.overrideWithValue(engine),
+      deviceControlsProvider.overrideWithValue(NoopControls()),
+      resumeServiceProvider.overrideWithValue(ResumeService(resumeStore)),
+      playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
+      frameExtractorProvider.overrideWithValue(frames),
+    ]);
+    addTearDown(c.dispose);
+    c.read(currentVideoProvider.notifier).open(
+      const VideoSession(playbackPath: '/v/ep1.mkv', displayName: 'ep1.mkv', queue: ['/v/ep1.mkv'], index: 0),
+    );
+
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: c,
+      child: MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: ElevatedButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PlayerScreen()),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    ));
+    await tester.pump();
+    await tester.tap(find.text('open'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(c.read(playerMinimizedProvider), false);
+
+    engine.emitDuration(const Duration(minutes: 10));
+    engine.emitPosition(const Duration(minutes: 3));
+    await tester.pump();
+
+    final playerElement = tester.element(find.byType(PlayerScreen));
+    Navigator.of(playerElement).maybePop();
+    await tester.pump();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.byType(PlayerScreen), findsNothing);
+    expect(c.read(playerMinimizedProvider), true);
+    expect(c.read(miniPlayerThumbnailProvider), isNotNull);
+    expect(frames.requested, contains(const Duration(minutes: 3)));
+
+    await tester.pump(const Duration(seconds: 4));
+  });
+
+  testWidgets('opening a video resets minimized state and the preview',
+      (tester) async {
+    final engine = FakePlaybackEngine();
+    addTearDown(engine.dispose);
+    final s = await SettingsService.load(InMemorySettingsStore());
+    final c = ProviderContainer(overrides: [
+      settingsServiceProvider.overrideWithValue(s),
+      playbackEngineProvider.overrideWithValue(engine),
+      deviceControlsProvider.overrideWithValue(NoopControls()),
+      resumeServiceProvider.overrideWithValue(ResumeService(InMemoryResumeStore())),
+      playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
+      frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
+    ]);
+    addTearDown(c.dispose);
+    // Simulate leftover state from a previously minimized video.
+    c.read(playerMinimizedProvider.notifier).state = true;
+    c.read(miniPlayerThumbnailProvider.notifier).state = Uint8List.fromList([1, 2, 3]);
+    c.read(currentVideoProvider.notifier).open(
+      const VideoSession(playbackPath: '/v/ep2.mkv', displayName: 'ep2.mkv', queue: ['/v/ep2.mkv'], index: 0),
+    );
+
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: c,
+      child: const MaterialApp(home: PlayerScreen()),
+    ));
+    await tester.pump();
+
+    expect(c.read(playerMinimizedProvider), false);
+    expect(c.read(miniPlayerThumbnailProvider), isNull);
+
     await tester.pump(const Duration(seconds: 4));
   });
 }
