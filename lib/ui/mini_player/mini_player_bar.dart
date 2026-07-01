@@ -13,6 +13,18 @@ import '../player/state/mini_player_state.dart';
 /// Global, persistent mini-bar shown above any screen while a video is
 /// minimized (see [playerMinimizedProvider]). Mounted once in `app.dart` via
 /// `MaterialApp.builder`, above the Navigator, so it survives route changes.
+///
+/// Mounted ONLY while minimized (not persistently, with a visibility toggle)
+/// so it can use Flutter's [Dismissible] for swipe-to-close — a hand-rolled
+/// GestureDetector combining onTap + onHorizontalDrag on one widget works in
+/// synthetic widget tests (which move zero pixels during a "tap") but not on
+/// real touchscreens: any jitter during a real finger tap gets misread as
+/// the start of a drag, and the drag recognizer wins the gesture arena
+/// before the tap ever fires. Dismissible's own gesture handling is the
+/// battle-tested pattern for "swipeable AND tappable" (the same shape as a
+/// swipe-to-delete ListTile that's also tappable), and it exits toward
+/// whichever side it was swiped, matching the "desaparece por los costados"
+/// requirement for free.
 class MiniPlayerBar extends ConsumerWidget {
   const MiniPlayerBar({super.key});
 
@@ -29,25 +41,35 @@ class MiniPlayerBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final minimized = ref.watch(playerMinimizedProvider);
     final session = ref.watch(currentVideoProvider);
-    if (session == null) return const SizedBox.shrink();
+    if (!minimized || session == null) return const SizedBox.shrink();
 
-    return IgnorePointer(
-      ignoring: !minimized,
-      child: AnimatedSlide(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-        offset: minimized ? Offset.zero : const Offset(0, 1),
-        child: AnimatedOpacity(
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
+        // A fresh instance mounts every time minimizing happens (the `if`
+        // above returns nothing otherwise), so this plays once per mount —
+        // a simple slide-up + fade-in entrance, no AnimationController needed.
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: 1),
           duration: const Duration(milliseconds: 220),
-          opacity: minimized ? 1 : 0,
-          child: SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
-              child: _MiniPlayerContent(
-                session: session,
-                onExpand: () => _expand(context, ref),
-              ),
+          curve: Curves.easeOutCubic,
+          builder: (context, t, child) => Opacity(
+            opacity: t,
+            child: Transform.translate(offset: Offset(0, (1 - t) * 24), child: child),
+          ),
+          child: Dismissible(
+            key: ValueKey('mini-player-${session.playbackPath}'),
+            direction: DismissDirection.horizontal,
+            // No list to shrink into — the bar just vanishes once the
+            // parent stops rendering it (the `if` above, on the next
+            // build after this fires), so opt out of Dismissible's own
+            // resize-then-remove choreography.
+            resizeDuration: null,
+            onDismissed: (_) => ref.read(playerMinimizedProvider.notifier).state = false,
+            child: _MiniPlayerContent(
+              session: session,
+              onExpand: () => _expand(context, ref),
             ),
           ),
         ),
@@ -56,37 +78,13 @@ class MiniPlayerBar extends ConsumerWidget {
   }
 }
 
-class _MiniPlayerContent extends ConsumerStatefulWidget {
+class _MiniPlayerContent extends ConsumerWidget {
   final VideoSession session;
   final VoidCallback onExpand;
   const _MiniPlayerContent({required this.session, required this.onExpand});
 
   @override
-  ConsumerState<_MiniPlayerContent> createState() => _MiniPlayerContentState();
-}
-
-class _MiniPlayerContentState extends ConsumerState<_MiniPlayerContent> {
-  double _dragDx = 0;
-
-  void _close() => ref.read(playerMinimizedProvider.notifier).state = false;
-
-  void _onDragEnd(DragEndDetails d) {
-    if (_dragDx.abs() > 80) {
-      _close();
-      // Don't snap the horizontal offset back yet — let the bar continue
-      // fading/sliding away from wherever the swipe left it (a continuous
-      // exit motion) instead of jumping back to center first. Reset only
-      // once it's already invisible, so it reappears centered next time.
-      Future.delayed(const Duration(milliseconds: 220), () {
-        if (mounted) setState(() => _dragDx = 0);
-      });
-    } else {
-      setState(() => _dragDx = 0);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final thumb = ref.watch(miniPlayerThumbnailProvider);
     final playing = ref.watch(playingProvider).valueOrNull ?? false;
     final position = ref.watch(positionProvider).valueOrNull ?? Duration.zero;
@@ -96,76 +94,55 @@ class _MiniPlayerContentState extends ConsumerState<_MiniPlayerContent> {
         : 0.0;
     final cs = Theme.of(context).colorScheme;
 
-    // Deliberately NOT Flutter's Dismissible: the bar is always mounted (so
-    // the show/hide slide+fade can animate smoothly regardless of which
-    // action triggers it), but Dismissible expects its parent to stop
-    // rebuilding it with the same key once dismissed — a persistently
-    // mounted widget fights that contract. A hand-rolled drag-to-close
-    // avoids it while keeping the same swipe-to-dismiss behavior.
-    //
-    // Tap-to-expand and drag-to-dismiss are on the SAME GestureDetector
-    // (not a separate ancestor GestureDetector wrapping an InkWell) — two
-    // independent recognizers competing over the same area in a
-    // parent/child relationship can let the drag recognizer swallow a
-    // plain tap. A single GestureDetector's own recognizers form one team
-    // and disambiguate tap vs. drag correctly via touch slop.
-    return GestureDetector(
-      onTap: widget.onExpand,
-      onHorizontalDragUpdate: (d) => setState(() => _dragDx += d.delta.dx),
-      onHorizontalDragEnd: _onDragEnd,
-      child: Transform.translate(
-        offset: Offset(_dragDx, 0),
-        child: Opacity(
-          opacity: (1 - (_dragDx.abs() / 200)).clamp(0.3, 1.0),
-          child: Material(
-            color: cs.surfaceContainerHighest,
-            elevation: 8,
-            borderRadius: BorderRadius.circular(14),
-            clipBehavior: Clip.antiAlias,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  height: 2,
-                  child: FractionallySizedBox(
-                    alignment: Alignment.centerLeft,
-                    widthFactor: fraction,
-                    child: Container(color: KivoColors.gold),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  child: Row(
-                    children: [
-                      _Preview(bytes: thumb),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          widget.session.displayName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: cs.onSurface,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(playing ? Icons.pause : Icons.play_arrow, color: cs.onSurface),
-                        onPressed: () => ref.read(playerControllerProvider).togglePlayPause(),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.close, color: cs.onSurfaceVariant),
-                        onPressed: _close,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+    return Material(
+      color: cs.surfaceContainerHighest,
+      elevation: 8,
+      borderRadius: BorderRadius.circular(14),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            height: 2,
+            child: FractionallySizedBox(
+              alignment: Alignment.centerLeft,
+              widthFactor: fraction,
+              child: Container(color: KivoColors.gold),
             ),
           ),
-        ),
+          InkWell(
+            onTap: onExpand,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              child: Row(
+                children: [
+                  _Preview(bytes: thumb),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      session.displayName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: cs.onSurface,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(playing ? Icons.pause : Icons.play_arrow, color: cs.onSurface),
+                    onPressed: () => ref.read(playerControllerProvider).togglePlayPause(),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.close, color: cs.onSurfaceVariant),
+                    onPressed: () => ref.read(playerMinimizedProvider.notifier).state = false,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
