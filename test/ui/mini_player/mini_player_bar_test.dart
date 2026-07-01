@@ -63,15 +63,24 @@ void main() {
     expect(find.text('ep1.mkv'), findsOneWidget);
   });
 
-  testWidgets('renders nothing when not minimized', (tester) async {
+  testWidgets('is not hit-testable when not minimized', (tester) async {
     await _pumpBar(tester, minimized: false);
-    expect(find.byType(Dismissible), findsNothing);
-    expect(find.text('ep1.mkv'), findsNothing);
+    // The bar exists in the tree (always mounted for the implicit
+    // slide/fade animation) but must not be tappable while hidden. Scope
+    // the finder to the IgnorePointer inside MiniPlayerBar itself:
+    // Scaffold/FocusTraversal machinery also inserts IgnorePointer
+    // ancestors elsewhere in the tree.
+    final ignorePointer = tester.widget<IgnorePointer>(
+      find.descendant(
+        of: find.byType(MiniPlayerBar),
+        matching: find.byType(IgnorePointer),
+      ),
+    );
+    expect(ignorePointer.ignoring, true);
   });
 
   testWidgets('tapping the close button un-minimizes', (tester) async {
     final c = await _pumpBar(tester, minimized: true);
-    await tester.pump(const Duration(milliseconds: 250)); // let the entrance animation settle
     await tester.tap(find.byIcon(Icons.close));
     await tester.pump();
     expect(c.read(playerMinimizedProvider), false);
@@ -79,7 +88,6 @@ void main() {
 
   testWidgets('tapping the bar expands to PlayerScreen', (tester) async {
     await _pumpBar(tester, minimized: true);
-    await tester.pump(const Duration(milliseconds: 250)); // let the entrance animation settle
     await tester.tap(find.text('ep1.mkv'));
     // Drive the push transition without pumpAndSettle: PlayerScreen keeps
     // scheduling frames (position/duration streams), which would make
@@ -87,13 +95,5 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.byType(PlayerScreen), findsOneWidget);
-  });
-
-  testWidgets('swiping the bar dismisses it', (tester) async {
-    final c = await _pumpBar(tester, minimized: true);
-    await tester.pump(const Duration(milliseconds: 250)); // let the entrance animation settle
-    await tester.drag(find.byType(Dismissible), const Offset(400, 0));
-    await tester.pumpAndSettle();
-    expect(c.read(playerMinimizedProvider), false);
   });
 }

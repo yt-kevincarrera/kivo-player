@@ -14,17 +14,12 @@ import '../player/state/mini_player_state.dart';
 /// minimized (see [playerMinimizedProvider]). Mounted once in `app.dart` via
 /// `MaterialApp.builder`, above the Navigator, so it survives route changes.
 ///
-/// Mounted ONLY while minimized (not persistently, with a visibility toggle)
-/// so it can use Flutter's [Dismissible] for swipe-to-close — a hand-rolled
-/// GestureDetector combining onTap + onHorizontalDrag on one widget works in
-/// synthetic widget tests (which move zero pixels during a "tap") but not on
-/// real touchscreens: any jitter during a real finger tap gets misread as
-/// the start of a drag, and the drag recognizer wins the gesture arena
-/// before the tap ever fires. Dismissible's own gesture handling is the
-/// battle-tested pattern for "swipeable AND tappable" (the same shape as a
-/// swipe-to-delete ListTile that's also tappable), and it exits toward
-/// whichever side it was swiped, matching the "desaparece por los costados"
-/// requirement for free.
+/// No swipe-to-dismiss: two different drag implementations (a hand-rolled
+/// GestureDetector, then Dismissible) both let a horizontal-drag recognizer
+/// win the gesture arena over a plain tap on real devices — confirmed
+/// on-device twice, with tap-to-expand never firing either time. With the
+/// drag gesture removed entirely there is nothing left to compete with
+/// tap, so it's unambiguous. Closing is X-button only.
 class MiniPlayerBar extends ConsumerWidget {
   const MiniPlayerBar({super.key});
 
@@ -41,35 +36,25 @@ class MiniPlayerBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final minimized = ref.watch(playerMinimizedProvider);
     final session = ref.watch(currentVideoProvider);
-    if (!minimized || session == null) return const SizedBox.shrink();
+    if (session == null) return const SizedBox.shrink();
 
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
-        // A fresh instance mounts every time minimizing happens (the `if`
-        // above returns nothing otherwise), so this plays once per mount —
-        // a simple slide-up + fade-in entrance, no AnimationController needed.
-        child: TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0, end: 1),
+    return IgnorePointer(
+      ignoring: !minimized,
+      child: AnimatedSlide(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        offset: minimized ? Offset.zero : const Offset(0, 1),
+        child: AnimatedOpacity(
           duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOutCubic,
-          builder: (context, t, child) => Opacity(
-            opacity: t,
-            child: Transform.translate(offset: Offset(0, (1 - t) * 24), child: child),
-          ),
-          child: Dismissible(
-            key: ValueKey('mini-player-${session.playbackPath}'),
-            direction: DismissDirection.horizontal,
-            // No list to shrink into — the bar just vanishes once the
-            // parent stops rendering it (the `if` above, on the next
-            // build after this fires), so opt out of Dismissible's own
-            // resize-then-remove choreography.
-            resizeDuration: null,
-            onDismissed: (_) => ref.read(playerMinimizedProvider.notifier).state = false,
-            child: _MiniPlayerContent(
-              session: session,
-              onExpand: () => _expand(context, ref),
+          opacity: minimized ? 1 : 0,
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
+              child: _MiniPlayerContent(
+                session: session,
+                onExpand: () => _expand(context, ref),
+              ),
             ),
           ),
         ),
