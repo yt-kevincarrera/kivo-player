@@ -9,7 +9,7 @@ DeviceOrientationLock nextOrientation(DeviceOrientationLock c) =>
 
 class OrientationNotifier extends Notifier<DeviceOrientationLock> {
   @override
-  DeviceOrientationLock build() => DeviceOrientationLock.landscape;
+  DeviceOrientationLock build() => DeviceOrientationLock.portrait;
 
   void apply() => ref.read(deviceControlsProvider).setOrientation([state]);
 
@@ -17,6 +17,12 @@ class OrientationNotifier extends Notifier<DeviceOrientationLock> {
     state = nextOrientation(state);
     apply();
   }
+
+  /// Forces portrait, ignoring any manual rotation left over from a
+  /// previous video. Call before [apply] on every fresh player entry so
+  /// each video always opens in portrait by default (a future setting will
+  /// make this configurable).
+  void reset() => state = DeviceOrientationLock.portrait;
 }
 
 final orientationProvider =

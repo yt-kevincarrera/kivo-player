@@ -55,6 +55,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _frames = ref.read(frameExtractorProvider);
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Force portrait on every fresh entry — a manual rotation left over
+      // from a previous video must never carry over to the next one.
+      ref.read(orientationProvider.notifier).reset();
       ref.read(orientationProvider.notifier).apply();
       _start();
     });

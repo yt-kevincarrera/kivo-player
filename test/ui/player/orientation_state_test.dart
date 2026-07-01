@@ -28,9 +28,19 @@ void main() {
     final ctrls = RecCtrls();
     final c = ProviderContainer(overrides: [deviceControlsProvider.overrideWithValue(ctrls)]);
     addTearDown(c.dispose);
-    expect(c.read(orientationProvider), DeviceOrientationLock.landscape);
-    c.read(orientationProvider.notifier).cycle();
     expect(c.read(orientationProvider), DeviceOrientationLock.portrait);
-    expect(ctrls.lastOrientation, [DeviceOrientationLock.portrait]);
+    c.read(orientationProvider.notifier).cycle();
+    expect(c.read(orientationProvider), DeviceOrientationLock.landscape);
+    expect(ctrls.lastOrientation, [DeviceOrientationLock.landscape]);
+  });
+
+  test('reset() forces portrait regardless of prior state', () {
+    final ctrls = RecCtrls();
+    final c = ProviderContainer(overrides: [deviceControlsProvider.overrideWithValue(ctrls)]);
+    addTearDown(c.dispose);
+    c.read(orientationProvider.notifier).cycle(); // now landscape
+    expect(c.read(orientationProvider), DeviceOrientationLock.landscape);
+    c.read(orientationProvider.notifier).reset();
+    expect(c.read(orientationProvider), DeviceOrientationLock.portrait);
   });
 }
