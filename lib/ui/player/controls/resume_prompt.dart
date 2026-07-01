@@ -63,11 +63,11 @@ class _ResumePromptState extends ConsumerState<ResumePrompt> {
     if (s.kind == ResumePromptKind.undo) {
       children.add(Flexible(child: Text('Reanudado desde $pos',
           style: const TextStyle(color: Colors.white))));
-      children.add(action('Reiniciar', () { ctrl.seekTo(Duration.zero); _clear(); }));
+      children.add(action('Reiniciar', () { ref.read(restartRequestProvider.notifier).state++; _clear(); }));
     } else {
       children.add(Flexible(child: Text('¿Reanudar desde $pos?',
           style: const TextStyle(color: Colors.white))));
-      children.add(action('Desde el inicio', _clear));
+      children.add(action('Desde el inicio', () { ref.read(restartRequestProvider.notifier).state++; _clear(); }));
       children.add(action('Reanudar', () { ctrl.seekTo(s.savedPosition); _clear(); }));
     }
 

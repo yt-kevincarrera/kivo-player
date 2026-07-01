@@ -93,6 +93,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     // still on screen when the user jumped to another video.
     ref.read(dismissProvider.notifier).state = 0;
     ref.read(resumePromptProvider.notifier).state = null;
+    ref.read(restartRequestProvider.notifier).state = 0;
     final engine = ref.read(playbackEngineProvider);
     _resumeKey = session.resumeKey;
     final plan = planResume(
@@ -150,6 +151,13 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     });
     ref.listen(durationProvider, (_, next) {
       next.whenData((d) => _lastDuration = d);
+    });
+    ref.listen<int>(restartRequestProvider, (prev, next) {
+      if (next > 0) {
+        ref.read(playerControllerProvider).seekTo(Duration.zero);
+        if (_resumeKey != null) _resume.clear(_resumeKey!);
+        _lastPosition = Duration.zero;
+      }
     });
 
     return Scaffold(

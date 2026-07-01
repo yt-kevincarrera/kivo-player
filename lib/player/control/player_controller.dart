@@ -7,6 +7,7 @@ import 'gesture_math.dart';
 final volumePercentProvider = StateProvider<double>((ref) => 100);
 final volumeGestureActiveProvider = StateProvider<bool>((ref) => false);
 final rateProvider = StateProvider<double>((ref) => 1.0);
+final restartRequestProvider = StateProvider<int>((ref) => 0);
 
 final playerControllerProvider = Provider<PlayerController>((ref) => PlayerController(ref));
 
