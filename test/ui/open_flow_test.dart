@@ -5,6 +5,7 @@ import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/platform/frame_extractor_provider.dart';
 import 'package:kivo_player/player/engine/playback_provider.dart';
+import 'package:kivo_player/player/library/played.dart';
 import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/ui/player/player_screen.dart';
@@ -24,6 +25,7 @@ void main() {
       settingsServiceProvider.overrideWithValue(settingsService),
       playbackEngineProvider.overrideWithValue(engine),
       resumeServiceProvider.overrideWithValue(ResumeService(resumeStore)),
+      playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
       frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
     ]);
     addTearDown(container.dispose);

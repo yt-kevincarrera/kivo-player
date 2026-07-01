@@ -7,6 +7,7 @@ import 'package:kivo_player/platform/device_controls_provider.dart';
 import 'package:kivo_player/platform/frame_extractor_provider.dart';
 import 'package:kivo_player/platform/interfaces/device_controls.dart';
 import 'package:kivo_player/player/engine/playback_provider.dart';
+import 'package:kivo_player/player/library/played.dart';
 import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/ui/player/player_screen.dart';
@@ -37,6 +38,7 @@ void main() {
       playbackEngineProvider.overrideWithValue(engine),
       deviceControlsProvider.overrideWithValue(NoopControls()),
       resumeServiceProvider.overrideWithValue(ResumeService(InMemoryResumeStore())),
+      playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
       frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
     ]);
     addTearDown(c.dispose);

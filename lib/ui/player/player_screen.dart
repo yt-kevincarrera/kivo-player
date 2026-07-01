@@ -10,6 +10,7 @@ import '../../platform/frame_extractor_provider.dart';
 import '../../platform/interfaces/frame_extractor.dart';
 import '../../player/engine/playback_engine.dart';
 import '../../player/engine/playback_provider.dart';
+import '../../player/library/played.dart';
 import '../../player/open/video_source.dart';
 import '../../player/resume/resume_plan.dart';
 import '../../player/resume/resume_service.dart';
@@ -43,6 +44,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   late final ResumeService _resume;
   late final FrameExtractor _frames;
   StreamSubscription<double>? _sysVolSub;
+  Timer? _saveTimer;
 
   @override
   void initState() {
@@ -72,6 +74,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       ref.read(volumePercentProvider.notifier).state = (v * 100).clamp(0.0, 100.0);
       ref.read(hudProvider.notifier).show(HudKind.volume, v, '${(v * 100).round()}%');
     });
+    _saveTimer = Timer.periodic(const Duration(seconds: 4), (_) => _saveProgress());
   }
 
   @override
@@ -96,6 +99,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     ref.read(restartRequestProvider.notifier).state = 0;
     final engine = ref.read(playbackEngineProvider);
     _resumeKey = session.resumeKey;
+    ref.read(playedStoreProvider).markPlayed(_resumeKey!);
     final plan = planResume(
         _resume.positionFor(_resumeKey!), ref.read(settingsProvider).resumeBehavior);
 
@@ -131,6 +135,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
 
   @override
   void dispose() {
+    _saveTimer?.cancel();
     _sysVolSub?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _saveProgress(); // best-effort for in-app pop

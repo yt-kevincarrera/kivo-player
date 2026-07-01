@@ -11,6 +11,7 @@ import 'player/engine/media_kit_engine.dart';
 import 'player/engine/playback_provider.dart';
 import 'player/resume/resume_store.dart';
 import 'player/resume/resume_service.dart';
+import 'player/library/played.dart';
 import 'player/open/video_source.dart';
 import 'platform/android/android_frame_extractor.dart';
 import 'platform/android/android_media_indexer.dart';
@@ -27,6 +28,7 @@ Future<void> main() async {
   Hive.init(dir.path);
   final settingsBox = await Hive.openBox('settings');
   final resumeBox = await Hive.openBox('resume');
+  final playedBox = await Hive.openBox('played');
 
   final settingsService = await SettingsService.load(HiveSettingsStore(settingsBox));
   final resumeService = ResumeService(
@@ -40,6 +42,7 @@ Future<void> main() async {
       settingsServiceProvider.overrideWithValue(settingsService),
       playbackEngineProvider.overrideWithValue(engine),
       resumeServiceProvider.overrideWithValue(resumeService),
+      playedStoreProvider.overrideWithValue(HivePlayedStore(playedBox)),
       frameExtractorProvider.overrideWithValue(AndroidFrameExtractor()),
       mediaIndexerProvider.overrideWithValue(AndroidMediaIndexer()),
       mediaPermissionImplProvider.overrideWithValue(PermissionHandlerMediaPermission()),
