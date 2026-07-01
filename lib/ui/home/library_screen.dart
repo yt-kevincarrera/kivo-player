@@ -15,6 +15,7 @@ import '../../player/library/continue_watching.dart';
 import '../../player/library/library_grouping.dart';
 import '../../player/library/media_index.dart';
 import '../../player/library/media_permission.dart';
+import '../../player/library/played.dart';
 import '../../player/open/video_source.dart';
 import '../player/controls/resume_prompt.dart';
 import '../player/player_screen.dart';
@@ -33,7 +34,7 @@ class LibraryScreen extends ConsumerStatefulWidget {
 class _LibraryScreenState extends ConsumerState<LibraryScreen>
     with SingleTickerProviderStateMixin {
   // Video sections sit more inset than the "Continuar" strip.
-  static const double _sectionPad = 20;
+  static const double _sectionPad = 24;
 
   int _tab = 0; // 0 = Todo, 1 = Carpetas
   StreamSubscription<dynamic>? _shareSub;
@@ -52,10 +53,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     _pageController = PageController();
     _reflowCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 320),
       value: 1.0, // at rest → scale 1.0 (no effect)
     );
-    _reflow = CurvedAnimation(parent: _reflowCtrl, curve: Curves.easeOutCubic);
+    _reflow = CurvedAnimation(parent: _reflowCtrl, curve: Curves.easeInOut);
     try {
       ReceiveSharingIntent.instance.getInitialMedia().then((files) {
         if (!mounted) return;
@@ -81,7 +82,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     ref.read(resumePromptProvider.notifier).state = null;
     Navigator.of(context)
         .push(MaterialPageRoute(builder: (_) => const PlayerScreen()))
-        .then((_) => ref.invalidate(continueWatchingProvider));
+        .then((_) {
+      ref.invalidate(continueWatchingProvider);
+      ref.invalidate(playedKeysProvider);
+    });
   }
 
   void _openPath(String path) {
@@ -94,7 +98,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     ref.read(currentVideoProvider.notifier).openInFolder(v, all);
     Navigator.of(context)
         .push(MaterialPageRoute(builder: (_) => const PlayerScreen()))
-        .then((_) => ref.invalidate(continueWatchingProvider));
+        .then((_) {
+      ref.invalidate(continueWatchingProvider);
+      ref.invalidate(playedKeysProvider);
+    });
   }
 
   Future<void> _pick() async {
@@ -228,6 +235,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     final continueItems = {
       for (final c in ref.watch(continueWatchingProvider)) c.video.name: c,
     };
+    final played = ref.watch(playedKeysProvider);
     final cs = Theme.of(context).colorScheme;
     final accentColor = Color(ref.watch(settingsProvider).accentColor);
 
@@ -247,32 +255,21 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
           ),
           for (final s in sections) ...[
             SliverToBoxAdapter(
-              child: TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0.0, end: 1.0),
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeOut,
-                builder: (context, value, child) => Opacity(
-                  opacity: value,
-                  child: Transform.translate(
-                    offset: Offset(0, (1.0 - value) * 8),
-                    child: child,
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
-                  child: Row(children: [
-                    Container(width: 3, height: 13, color: accentColor),
-                    const SizedBox(width: 7),
-                    Text(
-                      s.label,
-                      style: TextStyle(
-                        color: cs.onSurfaceVariant,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                      ),
+              child: Padding(
+                padding:
+                    const EdgeInsets.fromLTRB(_sectionPad, 18, _sectionPad, 8),
+                child: Row(children: [
+                  Container(width: 3, height: 13, color: accentColor),
+                  const SizedBox(width: 7),
+                  Text(
+                    s.label,
+                    style: TextStyle(
+                      color: cs.onSurfaceVariant,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
                     ),
-                  ]),
-                ),
+                  ),
+                ]),
               ),
             ),
             SliverPadding(
@@ -290,7 +287,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
                                 listRow: true,
                                 sizeLabel: fmtSize(v.sizeBytes),
                                 progress: continueItems[v.name]?.fraction,
-                                isNew: isNewVideo(v.dateAddedMs, DateTime.now()),
+                                isNew: !played.contains(v.name),
                                 onOptions: null,
                                 onTap: () => _open(v, videos),
                               ),
@@ -316,7 +313,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
                               listRow: false,
                               sizeLabel: null,
                               progress: continueItems[v.name]?.fraction,
-                              isNew: isNewVideo(v.dateAddedMs, DateTime.now()),
+                              isNew: !played.contains(v.name),
                               onOptions: null,
                               onTap: () => _open(v, videos),
                             ),

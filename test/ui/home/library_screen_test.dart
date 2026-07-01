@@ -9,6 +9,7 @@ import 'package:kivo_player/platform/interfaces/media_permission.dart';
 import 'package:kivo_player/platform/media_indexer_provider.dart';
 import 'package:kivo_player/platform/media_permission_provider.dart';
 import 'package:kivo_player/player/engine/playback_provider.dart';
+import 'package:kivo_player/player/library/played.dart';
 import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/platform/frame_extractor_provider.dart';
@@ -60,6 +61,7 @@ Future<ProviderScope> _buildApp(WidgetTester tester) async {
       resumeServiceProvider.overrideWithValue(ResumeService(resumeStore)),
       playbackEngineProvider.overrideWithValue(engine),
       frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
+      playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
     ],
     child: MaterialApp(
       theme: KivoTheme.light(),
