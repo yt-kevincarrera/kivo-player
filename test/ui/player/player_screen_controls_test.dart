@@ -7,6 +7,7 @@ import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/platform/device_controls_provider.dart';
 import 'package:kivo_player/platform/frame_extractor_provider.dart';
 import 'package:kivo_player/platform/interfaces/device_controls.dart';
+import 'package:kivo_player/platform/interfaces/subtitle_finder.dart';
 import 'package:kivo_player/platform/subtitle_finder_provider.dart';
 import 'package:kivo_player/player/engine/playback_engine.dart' show MediaTrack;
 import 'package:kivo_player/player/engine/playback_provider.dart';
@@ -362,6 +363,62 @@ void main() {
     await tester.pump();
 
     expect(engine.currentSubtitleTrackId, 'sub-es');
+
+    await tester.pump(const Duration(seconds: 4)); // drain the periodic save timer
+  });
+
+  testWidgets(
+      'opening a video with no embedded subtitle match auto-applies an external subtitle by filename language',
+      (tester) async {
+    final engine = FakePlaybackEngine();
+    addTearDown(engine.dispose);
+    final s = await SettingsService.load(InMemorySettingsStore());
+    await s.update(s.current.copyWith(
+      preferredSubtitleLanguage: 'es',
+      subtitlesEnabledByDefault: true,
+    ));
+    final finder = FakeSubtitleFinder();
+    finder.byFolder['/v'] = const [
+      ExternalSubtitle(uri: 'content://external-sub-1', displayName: 'Pelicula.es.srt'),
+    ];
+    final c = ProviderContainer(overrides: [
+      settingsServiceProvider.overrideWithValue(s),
+      playbackEngineProvider.overrideWithValue(engine),
+      deviceControlsProvider.overrideWithValue(NoopControls()),
+      resumeServiceProvider.overrideWithValue(ResumeService(InMemoryResumeStore())),
+      playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
+      frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
+      subtitleFinderProvider.overrideWithValue(finder),
+    ]);
+    addTearDown(c.dispose);
+    c.read(currentVideoProvider.notifier).open(
+      const VideoSession(
+        playbackPath: '/v/ep1.mkv',
+        displayName: 'ep1.mkv',
+        queue: ['/v/ep1.mkv'],
+        index: 0,
+        folder: '/v',
+      ),
+    );
+
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: c,
+      child: const MaterialApp(home: PlayerScreen()),
+    ));
+    await tester.pump();
+
+    // Same mount-before-emit / audio-before-subtitle ordering as the
+    // embedded-track test above, avoiding the broadcast-stream race.
+    engine.emitAudioTracks(const []);
+    await tester.pump();
+    engine.emitSubtitleTracks(const []);
+    await tester.pump();
+    // Drain the async _applyDefaultTracks chain, including the external
+    // finder lookup that happens after the empty embedded-track result.
+    await tester.pump();
+    await tester.pump();
+
+    expect(engine.externalSubtitleUri, 'content://external-sub-1');
 
     await tester.pump(const Duration(seconds: 4)); // drain the periodic save timer
   });

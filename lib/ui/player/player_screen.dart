@@ -9,6 +9,7 @@ import '../../platform/interfaces/device_controls.dart';
 import '../../player/control/player_controller.dart';
 import '../../platform/frame_extractor_provider.dart';
 import '../../platform/interfaces/frame_extractor.dart';
+import '../../platform/subtitle_finder_provider.dart';
 import '../../player/engine/playback_engine.dart';
 import '../../player/engine/playback_provider.dart';
 import '../../player/library/played.dart';
@@ -178,7 +179,29 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
         enabledByDefault: settings.subtitlesEnabledByDefault,
         preferredLanguage: settings.preferredSubtitleLanguage,
       );
-      if (subtitlePick != null) await engine.setSubtitleTrack(subtitlePick.id);
+      if (subtitlePick != null) {
+        await engine.setSubtitleTrack(subtitlePick.id);
+      } else if (settings.subtitlesEnabledByDefault &&
+          settings.preferredSubtitleLanguage != null &&
+          session.folder != null) {
+        // No embedded track matched — fall back to an external subtitle file
+        // sitting next to the video whose filename encodes the preferred
+        // language (e.g. "Pelicula.es.srt").
+        try {
+          final finder = ref.read(subtitleFinderProvider);
+          final externals = await finder.findNear(session.folder!);
+          for (final ext in externals) {
+            if (languageFromFilename(ext.displayName) ==
+                settings.preferredSubtitleLanguage) {
+              await engine.setExternalSubtitle(ext.uri, title: ext.displayName);
+              break;
+            }
+          }
+        } catch (_) {
+          // Best-effort — native channel errors or an empty/unreadable
+          // folder must never break playback start.
+        }
+      }
     }();
   }
 
