@@ -60,4 +60,83 @@ void main() {
     // Drain the auto-hide timer so no pending timers remain at teardown.
     await tester.pump(const Duration(seconds: 4));
   });
+
+  testWidgets('popping the player saves progress before the route is removed', (tester) async {
+    final engine = FakePlaybackEngine();
+    addTearDown(engine.dispose);
+    final s = await SettingsService.load(InMemorySettingsStore());
+    final resumeStore = InMemoryResumeStore();
+    final c = ProviderContainer(overrides: [
+      settingsServiceProvider.overrideWithValue(s),
+      playbackEngineProvider.overrideWithValue(engine),
+      deviceControlsProvider.overrideWithValue(NoopControls()),
+      resumeServiceProvider.overrideWithValue(ResumeService(resumeStore)),
+      playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
+      frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
+    ]);
+    addTearDown(c.dispose);
+    c.read(currentVideoProvider.notifier).open(
+      const VideoSession(playbackPath: '/v/ep1.mkv', displayName: 'ep1.mkv', queue: ['/v/ep1.mkv'], index: 0),
+    );
+
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: c,
+      child: MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: ElevatedButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PlayerScreen()),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    ));
+    await tester.pump();
+    await tester.tap(find.text('open'));
+    // Drive the push transition without pumpAndSettle: PlayerScreen's
+    // periodic 4s save timer keeps scheduling frames forever, which would
+    // make pumpAndSettle time out.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300)); // finish the route transition
+
+    expect(find.byType(PlayerScreen), findsOneWidget);
+
+    // Simulate real playback progress flowing through the position/duration
+    // providers, the same wiring PlayerScreen's build() listens to via
+    // ref.listen to keep _lastPosition/_lastDuration current.
+    engine.emitDuration(const Duration(minutes: 10));
+    engine.emitPosition(const Duration(minutes: 2));
+    await tester.pump();
+
+    // Nothing persisted yet — no pop, no periodic timer fired.
+    expect(resumeStore.entries(), isEmpty);
+
+    // Pop via the navigator, exactly like the top-bar back button, the
+    // system back gesture, and the swipe-down dismiss all do (they all
+    // funnel through Navigator.maybePop()).
+    final playerElement = tester.element(find.byType(PlayerScreen));
+    Navigator.of(playerElement).maybePop();
+    // PopScope's onPopInvokedWithResult awaits _saveProgress() before the
+    // actual pop happens; pump to let that microtask/await chain complete,
+    // then pump the pop's exit transition to completion.
+    await tester.pump();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    // The player route is gone...
+    expect(find.byType(PlayerScreen), findsNothing);
+    // ...and the resume store already reflects the latest position, proving
+    // the save happened as part of the pop rather than racing behind it.
+    final saved = resumeStore.entries();
+    expect(saved, hasLength(1));
+    expect(saved.single.key, 'ep1.mkv');
+    expect(saved.single.seconds, const Duration(minutes: 2).inSeconds);
+
+    // Drain the periodic save timer so no pending timers remain at teardown.
+    await tester.pump(const Duration(seconds: 4));
+  });
 }
