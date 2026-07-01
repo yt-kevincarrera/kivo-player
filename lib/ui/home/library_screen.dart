@@ -219,8 +219,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
               controller: _pageController,
               physics: const NeverScrollableScrollPhysics(),
               children: [
-                _videosTab(videos, key: const ValueKey(0)),
-                _foldersTab(videos, key: const ValueKey(1)),
+                _KeepAlivePage(key: const ValueKey(0), child: _videosTab(videos)),
+                _KeepAlivePage(key: const ValueKey(1), child: _foldersTab(videos)),
               ],
             ),
           ),
@@ -229,7 +229,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     );
   }
 
-  Widget _videosTab(List<VideoItem> videos, {Key? key}) {
+  Widget _videosTab(List<VideoItem> videos) {
     final cols = ref.watch(settingsProvider).libraryColumns;
     final sections = groupByDay(videos, DateTime.now());
     final continueItems = {
@@ -240,7 +240,6 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     final accentColor = Color(ref.watch(settingsProvider).accentColor);
 
     return GestureDetector(
-      key: key,
       onScaleStart: (_) {
         _pinchStepDone = false;
       },
@@ -350,8 +349,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     );
   }
 
-  Widget _foldersTab(List<VideoItem> videos, {Key? key}) => FolderGrid(
-        key: key,
+  Widget _foldersTab(List<VideoItem> videos) => FolderGrid(
         videos: videos,
         onOpenFolder: (folder, items) => Navigator.of(context).push(
           MaterialPageRoute(
@@ -427,5 +425,27 @@ class _FilterChips extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Keeps a PageView page's Element alive so it isn't disposed/rebuilt when
+// swiped offscreen (prevents thumbnail re-fetch/fade-in flicker on return).
+// ---------------------------------------------------------------------------
+class _KeepAlivePage extends StatefulWidget {
+  final Widget child;
+  const _KeepAlivePage({super.key, required this.child});
+  @override
+  State<_KeepAlivePage> createState() => _KeepAlivePageState();
+}
+
+class _KeepAlivePageState extends State<_KeepAlivePage>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+  @override
+  Widget build(BuildContext context) {
+    super.build(context); // required by AutomaticKeepAliveClientMixin
+    return widget.child;
   }
 }
