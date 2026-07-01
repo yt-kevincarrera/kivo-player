@@ -28,6 +28,7 @@ class KivoSettings {
   final int accentColor;
   final int libraryColumns;
   final String themeMode; // 'auto' | 'light' | 'dark'
+  final String librarySort; // LibrarySort enum name — see lib/player/library/library_filter.dart
 
   const KivoSettings({
     required this.doubleTapSkipLeft,
@@ -59,6 +60,7 @@ class KivoSettings {
     required this.accentColor,
     required this.libraryColumns,
     required this.themeMode,
+    required this.librarySort,
   });
 
   factory KivoSettings.defaults() => const KivoSettings(
@@ -91,6 +93,7 @@ class KivoSettings {
         accentColor: 0xFFE8B84B,
         libraryColumns: 1,
         themeMode: 'auto',
+        librarySort: 'recent',
       );
 
   KivoSettings copyWith({
@@ -123,6 +126,7 @@ class KivoSettings {
     int? accentColor,
     int? libraryColumns,
     String? themeMode,
+    String? librarySort,
   }) {
     return KivoSettings(
       doubleTapSkipLeft: doubleTapSkipLeft ?? this.doubleTapSkipLeft,
@@ -154,6 +158,7 @@ class KivoSettings {
       accentColor: accentColor ?? this.accentColor,
       libraryColumns: libraryColumns ?? this.libraryColumns,
       themeMode: themeMode ?? this.themeMode,
+      librarySort: librarySort ?? this.librarySort,
     );
   }
 
@@ -187,6 +192,7 @@ class KivoSettings {
         'accentColor': accentColor,
         'libraryColumns': libraryColumns,
         'themeMode': themeMode,
+        'librarySort': librarySort,
       };
 
   factory KivoSettings.fromMap(Map<String, dynamic> m) {
@@ -221,6 +227,7 @@ class KivoSettings {
       accentColor: m['accentColor'] ?? d.accentColor,
       libraryColumns: m['libraryColumns'] ?? d.libraryColumns,
       themeMode: m['themeMode'] ?? d.themeMode,
+      librarySort: m['librarySort'] ?? d.librarySort,
     );
   }
 }
