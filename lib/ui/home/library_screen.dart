@@ -10,6 +10,7 @@ import '../../core/theme/kivo_theme.dart';
 import '../../platform/interfaces/media_indexer.dart';
 import '../../platform/interfaces/media_permission.dart';
 import '../../player/library/continue_watching.dart';
+import '../../player/library/library_filter.dart';
 import '../../player/library/media_index.dart';
 import '../../player/library/media_permission.dart';
 import '../../player/library/played.dart';
@@ -17,6 +18,7 @@ import '../../player/open/video_source.dart';
 import '../player/controls/resume_prompt.dart';
 import '../player/player_screen.dart';
 import 'folder_screen.dart';
+import 'state/library_filter_state.dart';
 import 'widgets/folder_grid.dart';
 import 'widgets/video_density_feed.dart';
 
@@ -31,6 +33,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   int _tab = 0; // 0 = Todo, 1 = Carpetas
   StreamSubscription<dynamic>? _shareSub;
   late final PageController _pageController;
+  final _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -53,6 +56,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   void dispose() {
     _shareSub?.cancel();
     _pageController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -101,29 +105,67 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     ref.read(settingsProvider.notifier).set(s.copyWith(libraryColumns: cols));
   }
 
+  void _openSearch() {
+    ref.read(librarySearchActiveProvider.notifier).state = true;
+  }
+
+  void _closeSearch() {
+    ref.read(librarySearchActiveProvider.notifier).state = false;
+    ref.read(librarySearchQueryProvider.notifier).state = '';
+    _searchController.clear();
+  }
+
   @override
   Widget build(BuildContext context) {
     final perm = ref.watch(mediaPermissionProvider);
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 12,
-        title: Text(
-          'Kivo',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
+        title: ref.watch(librarySearchActiveProvider)
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                decoration: const InputDecoration(
+                  hintText: 'Buscar videos o carpetas',
+                  border: InputBorder.none,
+                ),
+                onChanged: (q) =>
+                    ref.read(librarySearchQueryProvider.notifier).state = q,
+              )
+            : Text(
+                'Kivo',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
-        ),
         actions: [
-          IconButton(
-            tooltip: 'Cambiar densidad',
-            icon: const Icon(Icons.grid_view),
-            onPressed: _cycleDensity,
-          ),
-          IconButton(
-            tooltip: 'Abrir archivo',
-            icon: KivoIcon(KivoIcons.folderOpen, size: 22),
-            onPressed: _pick,
-          ),
+          if (ref.watch(librarySearchActiveProvider))
+            IconButton(
+              tooltip: 'Cerrar búsqueda',
+              icon: const Icon(Icons.close),
+              onPressed: _closeSearch,
+            )
+          else
+            IconButton(
+              tooltip: 'Buscar',
+              icon: const Icon(Icons.search),
+              onPressed: _openSearch,
+            ),
+          if (ref.watch(librarySearchActiveProvider) || _tab == 0)
+            const _SortMenuButton(),
+          if (!ref.watch(librarySearchActiveProvider)) ...[
+            IconButton(
+              tooltip: 'Cambiar densidad',
+              icon: const Icon(Icons.grid_view),
+              onPressed: _cycleDensity,
+            ),
+            IconButton(
+              tooltip: 'Abrir archivo',
+              icon: KivoIcon(KivoIcons.folderOpen, size: 22),
+              onPressed: _pick,
+            ),
+          ],
         ],
       ),
       body: perm.when(
@@ -147,43 +189,114 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           ),
         ),
       ),
-      data: (videos) => Column(
-        children: [
-          _FilterChips(
-            selected: _tab,
-            onChanged: (i) {
-              setState(() => _tab = i);
-              _pageController.animateToPage(
-                i,
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeOutCubic,
-              );
-            },
-          ),
-          Expanded(
-            // The PageView provides the horizontal slide between tabs — no
-            // fade. Swipe is disabled so the page changes only via chip taps,
-            // which keeps the 2-finger pinch on the videos page conflict-free.
-            child: PageView(
-              controller: _pageController,
-              physics: const NeverScrollableScrollPhysics(),
-              children: [
-                _KeepAlivePage(key: const ValueKey(0), child: _videosTab(videos)),
-                _KeepAlivePage(key: const ValueKey(1), child: _foldersTab(videos)),
-              ],
+      data: (videos) {
+        if (ref.watch(librarySearchActiveProvider)) {
+          return _searchResults(videos);
+        }
+        return Column(
+          children: [
+            _FilterChips(
+              selected: _tab,
+              onChanged: (i) {
+                setState(() => _tab = i);
+                _pageController.animateToPage(
+                  i,
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeOutCubic,
+                );
+              },
+              showUnwatchedToggle: _tab == 0,
+              unwatchedOnly: ref.watch(libraryUnwatchedOnlyProvider),
+              onToggleUnwatched: () {
+                final notifier = ref.read(libraryUnwatchedOnlyProvider.notifier);
+                notifier.state = !notifier.state;
+              },
             ),
-          ),
-        ],
-      ),
+            Expanded(
+              // The PageView provides the horizontal slide between tabs — no
+              // fade. Swipe is disabled so the page changes only via chip taps,
+              // which keeps the 2-finger pinch on the videos page conflict-free.
+              child: PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  _KeepAlivePage(
+                      key: const ValueKey(0), child: _videosTab(videos)),
+                  _KeepAlivePage(
+                      key: const ValueKey(1), child: _foldersTab(videos)),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
-  Widget _videosTab(List<VideoItem> videos) => VideoDensityFeed(
-        videos: videos,
-        onOpen: (v, all) => _open(v, all),
-        groupByDate: true,
-        showContinueRow: true,
-      );
+  Widget _searchResults(List<VideoItem> videos) {
+    final query = ref.watch(librarySearchQueryProvider);
+    final sort = librarySortFor(ref.watch(settingsProvider).librarySort);
+    final unwatchedOnly = ref.watch(libraryUnwatchedOnlyProvider);
+    final played = ref.watch(playedKeysProvider);
+    final filtered = applyLibraryFilters(
+      videos,
+      query: query,
+      sort: sort,
+      unwatchedOnly: unwatchedOnly,
+      playedKeys: played,
+    );
+    final cs = Theme.of(context).colorScheme;
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+          child: Row(
+            children: [
+              _UnwatchedChip(
+                active: unwatchedOnly,
+                onTap: () => ref
+                    .read(libraryUnwatchedOnlyProvider.notifier)
+                    .state = !unwatchedOnly,
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: query.trim().isEmpty || filtered.isNotEmpty
+              ? VideoDensityFeed(
+                  videos: filtered,
+                  onOpen: (v, all) => _open(v, all),
+                  groupByDate: sort == LibrarySort.recent,
+                  showContinueRow: false,
+                )
+              : Center(
+                  child: Text(
+                    'No se encontraron videos para "$query"',
+                    style: TextStyle(color: cs.onSurfaceVariant),
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _videosTab(List<VideoItem> videos) {
+    final sort = librarySortFor(ref.watch(settingsProvider).librarySort);
+    final unwatchedOnly = ref.watch(libraryUnwatchedOnlyProvider);
+    final played = ref.watch(playedKeysProvider);
+    final filtered = applyLibraryFilters(
+      videos,
+      sort: sort,
+      unwatchedOnly: unwatchedOnly,
+      playedKeys: played,
+    );
+    return VideoDensityFeed(
+      videos: filtered,
+      onOpen: (v, all) => _open(v, all),
+      groupByDate: sort == LibrarySort.recent,
+      showContinueRow: true,
+    );
+  }
 
   Widget _foldersTab(List<VideoItem> videos) => FolderGrid(
         videos: videos,
@@ -221,8 +334,17 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 class _FilterChips extends StatelessWidget {
   final int selected;
   final ValueChanged<int> onChanged;
+  final bool showUnwatchedToggle;
+  final bool unwatchedOnly;
+  final VoidCallback onToggleUnwatched;
 
-  const _FilterChips({required this.selected, required this.onChanged});
+  const _FilterChips({
+    required this.selected,
+    required this.onChanged,
+    required this.showUnwatchedToggle,
+    required this.unwatchedOnly,
+    required this.onToggleUnwatched,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -234,6 +356,10 @@ class _FilterChips extends StatelessWidget {
           _chip(context, cs, 'Todo', 0),
           const SizedBox(width: 8),
           _chip(context, cs, 'Carpetas', 1),
+          if (showUnwatchedToggle) ...[
+            const SizedBox(width: 8),
+            _UnwatchedChip(active: unwatchedOnly, onTap: onToggleUnwatched),
+          ],
         ],
       ),
     );
@@ -260,6 +386,96 @@ class _FilterChips extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// "No vistos" toggle — a filter, not a tab (visually distinct from _chip).
+// ---------------------------------------------------------------------------
+class _UnwatchedChip extends StatelessWidget {
+  final bool active;
+  final VoidCallback onTap;
+  const _UnwatchedChip({required this.active, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: active ? KivoColors.blue : cs.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.visibility_off_outlined,
+              size: 14,
+              color: active ? Colors.white : cs.onSurfaceVariant,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              'No vistos',
+              style: TextStyle(
+                color: active ? Colors.white : cs.onSurfaceVariant,
+                fontSize: 13,
+                fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Sort menu — reads/writes settings.librarySort directly (like libraryColumns).
+// ---------------------------------------------------------------------------
+class _SortMenuButton extends ConsumerWidget {
+  const _SortMenuButton();
+
+  static const _labels = {
+    LibrarySort.recent: 'Más reciente',
+    LibrarySort.nameAsc: 'Nombre A-Z',
+    LibrarySort.nameDesc: 'Nombre Z-A',
+    LibrarySort.durationDesc: 'Duración: más larga',
+    LibrarySort.durationAsc: 'Duración: más corta',
+    LibrarySort.sizeDesc: 'Tamaño: más pesado',
+    LibrarySort.sizeAsc: 'Tamaño: más liviano',
+  };
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final current = librarySortFor(ref.watch(settingsProvider).librarySort);
+    return PopupMenuButton<LibrarySort>(
+      tooltip: 'Ordenar',
+      icon: const Icon(Icons.sort),
+      onSelected: (sort) {
+        final s = ref.read(settingsProvider);
+        ref.read(settingsProvider.notifier).set(s.copyWith(librarySort: sort.name));
+      },
+      itemBuilder: (context) => _labels.entries.map((e) {
+        return PopupMenuItem<LibrarySort>(
+          value: e.key,
+          child: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                child: e.key == current ? const Icon(Icons.check, size: 18) : null,
+              ),
+              const SizedBox(width: 6),
+              Flexible(child: Text(e.value)),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 }

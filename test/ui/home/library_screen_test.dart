@@ -127,4 +127,89 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Inception.mp4'), findsOneWidget);
   });
+
+  testWidgets('tapping search shows a text field and hides the title',
+      (tester) async {
+    await _buildApp(tester);
+    expect(find.text('Kivo'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pump();
+
+    expect(find.text('Kivo'), findsNothing);
+    expect(find.byType(TextField), findsOneWidget);
+  });
+
+  testWidgets('typing a query filters to matching videos', (tester) async {
+    await _buildApp(tester);
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pump();
+
+    await tester.enterText(find.byType(TextField), 'inception');
+    await tester.pump();
+
+    expect(find.text('Inception.mp4'), findsOneWidget);
+    expect(find.text('Avatar.mp4'), findsNothing);
+  });
+
+  testWidgets('search matches by folder name too', (tester) async {
+    await _buildApp(tester);
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pump();
+
+    await tester.enterText(find.byType(TextField), 'downloads');
+    await tester.pump();
+
+    expect(find.text('Avatar.mp4'), findsOneWidget);
+    expect(find.text('Inception.mp4'), findsNothing);
+  });
+
+  testWidgets('closing search restores the title and clears the query',
+      (tester) async {
+    await _buildApp(tester);
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pump();
+    await tester.enterText(find.byType(TextField), 'inception');
+    await tester.pump();
+
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pump();
+
+    expect(find.text('Kivo'), findsOneWidget);
+    expect(find.text('Inception.mp4'), findsOneWidget);
+    expect(find.text('Avatar.mp4'), findsOneWidget);
+  });
+
+  testWidgets('no search matches shows the empty message', (tester) async {
+    await _buildApp(tester);
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pump();
+
+    await tester.enterText(find.byType(TextField), 'zzz-no-match');
+    await tester.pump();
+
+    expect(find.text('No se encontraron videos para "zzz-no-match"'), findsOneWidget);
+  });
+
+  testWidgets('sort menu changes order to alphabetical', (tester) async {
+    await _buildApp(tester);
+    await tester.tap(find.byIcon(Icons.sort));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Nombre A-Z'));
+    await tester.pumpAndSettle();
+
+    final avatarCenter = tester.getCenter(find.text('Avatar.mp4'));
+    final inceptionCenter = tester.getCenter(find.text('Inception.mp4'));
+    expect(avatarCenter.dy, lessThan(inceptionCenter.dy));
+  });
+
+  testWidgets('"No vistos" chip is hidden on the Carpetas tab', (tester) async {
+    await _buildApp(tester);
+    expect(find.text('No vistos'), findsOneWidget);
+
+    await tester.tap(find.text('Carpetas'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('No vistos'), findsNothing);
+  });
 }
