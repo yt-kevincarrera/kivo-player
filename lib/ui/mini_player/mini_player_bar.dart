@@ -71,8 +71,18 @@ class _MiniPlayerContentState extends ConsumerState<_MiniPlayerContent> {
   void _close() => ref.read(playerMinimizedProvider.notifier).state = false;
 
   void _onDragEnd(DragEndDetails d) {
-    if (_dragDx.abs() > 80) _close();
-    setState(() => _dragDx = 0);
+    if (_dragDx.abs() > 80) {
+      _close();
+      // Don't snap the horizontal offset back yet — let the bar continue
+      // fading/sliding away from wherever the swipe left it (a continuous
+      // exit motion) instead of jumping back to center first. Reset only
+      // once it's already invisible, so it reappears centered next time.
+      Future.delayed(const Duration(milliseconds: 220), () {
+        if (mounted) setState(() => _dragDx = 0);
+      });
+    } else {
+      setState(() => _dragDx = 0);
+    }
   }
 
   @override
@@ -84,6 +94,7 @@ class _MiniPlayerContentState extends ConsumerState<_MiniPlayerContent> {
     final fraction = duration.inMilliseconds > 0
         ? (position.inMilliseconds / duration.inMilliseconds).clamp(0.0, 1.0)
         : 0.0;
+    final cs = Theme.of(context).colorScheme;
 
     // Deliberately NOT Flutter's Dismissible: the bar is always mounted (so
     // the show/hide slide+fade can animate smoothly regardless of which
@@ -91,7 +102,15 @@ class _MiniPlayerContentState extends ConsumerState<_MiniPlayerContent> {
     // rebuilding it with the same key once dismissed — a persistently
     // mounted widget fights that contract. A hand-rolled drag-to-close
     // avoids it while keeping the same swipe-to-dismiss behavior.
+    //
+    // Tap-to-expand and drag-to-dismiss are on the SAME GestureDetector
+    // (not a separate ancestor GestureDetector wrapping an InkWell) — two
+    // independent recognizers competing over the same area in a
+    // parent/child relationship can let the drag recognizer swallow a
+    // plain tap. A single GestureDetector's own recognizers form one team
+    // and disambiguate tap vs. drag correctly via touch slop.
     return GestureDetector(
+      onTap: widget.onExpand,
       onHorizontalDragUpdate: (d) => setState(() => _dragDx += d.delta.dx),
       onHorizontalDragEnd: _onDragEnd,
       child: Transform.translate(
@@ -99,7 +118,7 @@ class _MiniPlayerContentState extends ConsumerState<_MiniPlayerContent> {
         child: Opacity(
           opacity: (1 - (_dragDx.abs() / 200)).clamp(0.3, 1.0),
           child: Material(
-            color: Colors.black.withValues(alpha: 0.92),
+            color: cs.surfaceContainerHighest,
             elevation: 8,
             borderRadius: BorderRadius.circular(14),
             clipBehavior: Clip.antiAlias,
@@ -114,36 +133,33 @@ class _MiniPlayerContentState extends ConsumerState<_MiniPlayerContent> {
                     child: Container(color: KivoColors.gold),
                   ),
                 ),
-                InkWell(
-                  onTap: widget.onExpand,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                    child: Row(
-                      children: [
-                        _Preview(bytes: thumb),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            widget.session.displayName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  child: Row(
+                    children: [
+                      _Preview(bytes: thumb),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          widget.session.displayName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: cs.onSurface,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        IconButton(
-                          icon: Icon(playing ? Icons.pause : Icons.play_arrow, color: Colors.white),
-                          onPressed: () => ref.read(playerControllerProvider).togglePlayPause(),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close, color: Colors.white70),
-                          onPressed: _close,
-                        ),
-                      ],
-                    ),
+                      ),
+                      IconButton(
+                        icon: Icon(playing ? Icons.pause : Icons.play_arrow, color: cs.onSurface),
+                        onPressed: () => ref.read(playerControllerProvider).togglePlayPause(),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.close, color: cs.onSurfaceVariant),
+                        onPressed: _close,
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -161,6 +177,7 @@ class _Preview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: SizedBox(
@@ -169,8 +186,8 @@ class _Preview extends StatelessWidget {
         child: bytes != null
             ? Image.memory(bytes!, fit: BoxFit.cover, gaplessPlayback: true)
             : Container(
-                color: Colors.white12,
-                child: const Icon(Icons.movie_outlined, color: Colors.white54, size: 20),
+                color: cs.surfaceContainerHigh,
+                child: Icon(Icons.movie_outlined, color: cs.onSurfaceVariant, size: 20),
               ),
       ),
     );
