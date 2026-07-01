@@ -1,18 +1,15 @@
 import 'dart:async';
-import 'dart:ui' show lerpDouble;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
-import '../../core/format.dart';
 import '../../core/icons/kivo_icons.dart';
 import '../../core/settings/settings_provider.dart';
 import '../../core/theme/kivo_theme.dart';
 import '../../platform/interfaces/media_indexer.dart';
 import '../../platform/interfaces/media_permission.dart';
 import '../../player/library/continue_watching.dart';
-import '../../player/library/library_grouping.dart';
 import '../../player/library/media_index.dart';
 import '../../player/library/media_permission.dart';
 import '../../player/library/played.dart';
@@ -20,9 +17,8 @@ import '../../player/open/video_source.dart';
 import '../player/controls/resume_prompt.dart';
 import '../player/player_screen.dart';
 import 'folder_screen.dart';
-import 'widgets/continue_row.dart';
 import 'widgets/folder_grid.dart';
-import 'widgets/video_tile.dart';
+import 'widgets/video_density_feed.dart';
 
 class LibraryScreen extends ConsumerStatefulWidget {
   const LibraryScreen({super.key});
@@ -31,32 +27,15 @@ class LibraryScreen extends ConsumerStatefulWidget {
   ConsumerState<LibraryScreen> createState() => _LibraryScreenState();
 }
 
-class _LibraryScreenState extends ConsumerState<LibraryScreen>
-    with SingleTickerProviderStateMixin {
-  // Video sections sit more inset than the "Continuar" strip.
-  static const double _sectionPad = 24;
-
+class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   int _tab = 0; // 0 = Todo, 1 = Carpetas
   StreamSubscription<dynamic>? _shareSub;
   late final PageController _pageController;
-
-  // One column step per pinch gesture (locks until the gesture ends).
-  bool _pinchStepDone = false;
-
-  // Animated reflow ("reacomodado") when the column count changes.
-  late final AnimationController _reflowCtrl;
-  late final Animation<double> _reflow;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
-    _reflowCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 320),
-      value: 1.0, // at rest → scale 1.0 (no effect)
-    );
-    _reflow = CurvedAnimation(parent: _reflowCtrl, curve: Curves.easeInOut);
     try {
       ReceiveSharingIntent.instance.getInitialMedia().then((files) {
         if (!mounted) return;
@@ -74,7 +53,6 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
   void dispose() {
     _shareSub?.cancel();
     _pageController.dispose();
-    _reflowCtrl.dispose();
     super.dispose();
   }
 
@@ -110,28 +88,6 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     if (path != null) _openPath(path);
   }
 
-  void _onScaleUpdate(ScaleUpdateDetails d) {
-    // One column step per gesture: once we've stepped, ignore the rest of this
-    // pinch until it ends. Only react to a genuine 2-finger pinch (gating on
-    // pointerCount makes the gesture direction-agnostic, like a photo gallery).
-    if (_pinchStepDone || d.pointerCount < 2) return;
-    final rel = d.scale; // cumulative from gesture start
-    final cols = ref.read(settingsProvider).libraryColumns;
-    int next = cols;
-    if (rel > 1.08) {
-      next = (cols - 1).clamp(1, 3); // pinch out → fewer cols (bigger tiles)
-    } else if (rel < 0.92) {
-      next = (cols + 1).clamp(1, 3); // pinch in → more cols (smaller tiles)
-    } else {
-      return;
-    }
-    if (next != cols) {
-      HapticFeedback.selectionClick();
-      _setColumns(next);
-      _pinchStepDone = true; // lock until this gesture ends
-    }
-  }
-
   void _cycleDensity() {
     final s = ref.read(settingsProvider);
     final next = (s.libraryColumns % 3) + 1; // 1→2→3→1
@@ -147,13 +103,6 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Any column change (pinch OR the density icon) triggers the reflow.
-    ref.listen<int>(settingsProvider.select((s) => s.libraryColumns),
-        (prev, next) {
-      if (prev != null && prev != next) {
-        _reflowCtrl.forward(from: 0);
-      }
-    });
     final perm = ref.watch(mediaPermissionProvider);
     return Scaffold(
       appBar: AppBar(
@@ -229,125 +178,12 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     );
   }
 
-  Widget _videosTab(List<VideoItem> videos) {
-    final cols = ref.watch(settingsProvider).libraryColumns;
-    final sections = groupByDay(videos, DateTime.now());
-    final continueItems = {
-      for (final c in ref.watch(continueWatchingProvider)) c.video.name: c,
-    };
-    final played = ref.watch(playedKeysProvider);
-    final cs = Theme.of(context).colorScheme;
-    final accentColor = Color(ref.watch(settingsProvider).accentColor);
-
-    return GestureDetector(
-      onScaleStart: (_) {
-        _pinchStepDone = false;
-      },
-      onScaleUpdate: _onScaleUpdate,
-      // The CustomScrollView renders DIRECTLY at the current `cols` — positions
-      // are final and scroll is preserved. Only the per-tile scale animates,
-      // giving the "reacomodado" settle with no cross-fade or scroll reset.
-      child: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: ContinueRow(onOpen: (v) => _open(v, videos)),
-          ),
-          for (final s in sections) ...[
-            SliverToBoxAdapter(
-              child: Padding(
-                padding:
-                    const EdgeInsets.fromLTRB(_sectionPad, 18, _sectionPad, 8),
-                child: Row(children: [
-                  Container(width: 3, height: 13, color: accentColor),
-                  const SizedBox(width: 7),
-                  Text(
-                    s.label,
-                    style: TextStyle(
-                      color: cs.onSurfaceVariant,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ]),
-              ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: _sectionPad),
-              sliver: cols == 1
-                  ? SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (_, i) {
-                          final v = s.items[i];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 7),
-                            child: _reflowTile(
-                              child: VideoTile(
-                                video: v,
-                                listRow: true,
-                                sizeLabel: fmtSize(v.sizeBytes),
-                                progress: continueItems[v.name]?.fraction,
-                                isNew: !played.contains(v.name),
-                                onOptions: null,
-                                onTap: () => _open(v, videos),
-                              ),
-                            ),
-                          );
-                        },
-                        childCount: s.items.length,
-                      ),
-                    )
-                  : SliverGrid(
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: cols,
-                        childAspectRatio: 16 / 9,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                      ),
-                      delegate: SliverChildBuilderDelegate(
-                        (_, i) {
-                          final v = s.items[i];
-                          return _reflowTile(
-                            child: VideoTile(
-                              video: v,
-                              listRow: false,
-                              sizeLabel: null,
-                              progress: continueItems[v.name]?.fraction,
-                              isNew: !played.contains(v.name),
-                              onOptions: null,
-                              onTap: () => _open(v, videos),
-                            ),
-                          );
-                        },
-                        childCount: s.items.length,
-                      ),
-                    ),
-            ),
-          ],
-          const SliverToBoxAdapter(child: SizedBox(height: 24)),
-        ],
-      ),
-    );
-  }
-
-  /// Wraps a tile so that, on a column change, it settles into place with a
-  /// subtle 0.92→1.0 scale ("reacomodado") instead of fading. At rest the
-  /// scale is 1.0 (no effect). The grid lays out at the new column count
-  /// immediately — positions are final and scroll is preserved.
-  Widget _reflowTile({required Widget child}) {
-    return AnimatedBuilder(
-      animation: _reflow,
-      child: child,
-      builder: (context, c) {
-        if (_reflowCtrl.value >= 1.0) return c!;
-        final scale = lerpDouble(0.92, 1.0, _reflow.value)!;
-        return Transform.scale(
-          scale: scale,
-          alignment: Alignment.center,
-          child: c,
-        );
-      },
-    );
-  }
+  Widget _videosTab(List<VideoItem> videos) => VideoDensityFeed(
+        videos: videos,
+        onOpen: (v, all) => _open(v, all),
+        groupByDate: true,
+        showContinueRow: true,
+      );
 
   Widget _foldersTab(List<VideoItem> videos) => FolderGrid(
         videos: videos,
