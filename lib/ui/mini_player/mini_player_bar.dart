@@ -85,6 +85,12 @@ class _MiniPlayerContentState extends ConsumerState<_MiniPlayerContent> {
         ? (position.inMilliseconds / duration.inMilliseconds).clamp(0.0, 1.0)
         : 0.0;
 
+    // Deliberately NOT Flutter's Dismissible: the bar is always mounted (so
+    // the show/hide slide+fade can animate smoothly regardless of which
+    // action triggers it), but Dismissible expects its parent to stop
+    // rebuilding it with the same key once dismissed — a persistently
+    // mounted widget fights that contract. A hand-rolled drag-to-close
+    // avoids it while keeping the same swipe-to-dismiss behavior.
     return GestureDetector(
       onHorizontalDragUpdate: (d) => setState(() => _dragDx += d.delta.dx),
       onHorizontalDragEnd: _onDragEnd,

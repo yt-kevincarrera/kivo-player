@@ -186,6 +186,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
         final navigator = Navigator.of(context);
+        // Pause immediately — minimizing must never leave audio playing
+        // through the (possibly slow) freeze-frame capture below. Relying
+        // on dispose()'s pause alone would leave an audible gap.
+        _engine.pause();
         await _saveProgress();
         await _captureMiniPreview();
         if (!mounted) return;
