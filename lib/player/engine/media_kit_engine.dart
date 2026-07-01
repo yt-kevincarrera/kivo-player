@@ -52,4 +52,87 @@ class MediaKitEngine implements PlaybackEngine {
   Future<void> setVolume(double percent) => _player.setVolume(percent);
   @override
   Future<void> dispose() => _player.dispose();
+
+  MediaTrack _audioToMedia(AudioTrack t) => MediaTrack(
+        id: t.id,
+        title: t.title,
+        language: t.language,
+        isDefault: t.isDefault ?? false,
+      );
+
+  MediaTrack? _subtitleToMedia(SubtitleTrack t) {
+    if (t.id == 'no') return null; // media_kit's own "off" sentinel
+    return MediaTrack(
+      id: t.id,
+      title: t.title,
+      language: t.language,
+      isDefault: t.isDefault ?? false,
+    );
+  }
+
+  @override
+  Stream<List<MediaTrack>> get audioTracksStream =>
+      _player.stream.tracks.map((t) => t.audio.map(_audioToMedia).toList());
+
+  @override
+  Stream<List<MediaTrack>> get subtitleTracksStream => _player.stream.tracks
+      .map((t) => t.subtitle.map(_subtitleToMedia).whereType<MediaTrack>().toList());
+
+  @override
+  Stream<MediaTrack?> get currentAudioTrackStream =>
+      _player.stream.track.map((t) => _audioToMedia(t.audio));
+
+  @override
+  Stream<MediaTrack?> get currentSubtitleTrackStream =>
+      _player.stream.track.map((t) => _subtitleToMedia(t.subtitle));
+
+  @override
+  Future<void> setAudioTrack(String id) async {
+    final track = _player.state.tracks.audio.firstWhere(
+      (t) => t.id == id,
+      orElse: () => AudioTrack.auto(),
+    );
+    await _player.setAudioTrack(track);
+  }
+
+  @override
+  Future<void> setSubtitleTrack(String? id) async {
+    if (id == null) {
+      await _player.setSubtitleTrack(SubtitleTrack.no());
+      return;
+    }
+    final track = _player.state.tracks.subtitle.firstWhere(
+      (t) => t.id == id,
+      orElse: () => SubtitleTrack.no(),
+    );
+    await _player.setSubtitleTrack(track);
+  }
+
+  @override
+  Future<void> setExternalSubtitle(String uri, {String? title}) async {
+    await _player.setSubtitleTrack(SubtitleTrack.uri(uri, title: title));
+  }
+
+  @override
+  Future<void> setSubtitleStyle({
+    required double fontSize,
+    required int textColorArgb,
+    required int backgroundColorArgb,
+  }) async {
+    final native = _player.platform as NativePlayer?;
+    if (native == null) return;
+    await native.setProperty('sub-ass-override', 'force');
+    await native.setProperty('sub-font-size', fontSize.toStringAsFixed(0));
+    await native.setProperty('sub-color', _toMpvColor(textColorArgb));
+    await native.setProperty('sub-back-color', _toMpvColor(backgroundColorArgb));
+  }
+
+  String _toMpvColor(int argb) {
+    final a = (argb >> 24) & 0xFF;
+    final r = (argb >> 16) & 0xFF;
+    final g = (argb >> 8) & 0xFF;
+    final b = argb & 0xFF;
+    String hex(int v) => v.toRadixString(16).padLeft(2, '0');
+    return '#${hex(a)}${hex(r)}${hex(g)}${hex(b)}';
+  }
 }

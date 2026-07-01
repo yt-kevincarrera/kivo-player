@@ -20,6 +20,13 @@ class FakePlaybackEngine implements PlaybackEngine {
   final _dur = StreamController<Duration>.broadcast();
   final _playing = StreamController<bool>.broadcast();
   final _buffering = StreamController<bool>.broadcast();
+  final _audioTracks = StreamController<List<MediaTrack>>.broadcast();
+  final _subtitleTracks = StreamController<List<MediaTrack>>.broadcast();
+  final _currentAudio = StreamController<MediaTrack?>.broadcast();
+  final _currentSubtitle = StreamController<MediaTrack?>.broadcast();
+  String? currentAudioTrackId;
+  String? currentSubtitleTrackId; // null = off
+  String? externalSubtitleUri;
 
   String? openedPath;
   Duration? openedAt;
@@ -78,6 +85,55 @@ class FakePlaybackEngine implements PlaybackEngine {
   @override
   Future<void> dispose() async {
     _pos.close(); _dur.close(); _playing.close(); _buffering.close();
+    _audioTracks.close();
+    _subtitleTracks.close();
+    _currentAudio.close();
+    _currentSubtitle.close();
+  }
+
+  @override
+  Stream<List<MediaTrack>> get audioTracksStream => _audioTracks.stream;
+  @override
+  Stream<List<MediaTrack>> get subtitleTracksStream => _subtitleTracks.stream;
+  @override
+  Stream<MediaTrack?> get currentAudioTrackStream => _currentAudio.stream;
+  @override
+  Stream<MediaTrack?> get currentSubtitleTrackStream => _currentSubtitle.stream;
+
+  void emitAudioTracks(List<MediaTrack> t) => _audioTracks.add(t);
+  void emitSubtitleTracks(List<MediaTrack> t) => _subtitleTracks.add(t);
+  void emitCurrentAudio(MediaTrack? t) => _currentAudio.add(t);
+  void emitCurrentSubtitle(MediaTrack? t) => _currentSubtitle.add(t);
+
+  @override
+  Future<void> setAudioTrack(String id) async {
+    currentAudioTrackId = id;
+  }
+
+  @override
+  Future<void> setSubtitleTrack(String? id) async {
+    currentSubtitleTrackId = id;
+  }
+
+  @override
+  Future<void> setExternalSubtitle(String uri, {String? title}) async {
+    externalSubtitleUri = uri;
+    currentSubtitleTrackId = uri;
+  }
+
+  double? lastSubtitleFontSize;
+  int? lastSubtitleTextColorArgb;
+  int? lastSubtitleBackgroundColorArgb;
+
+  @override
+  Future<void> setSubtitleStyle({
+    required double fontSize,
+    required int textColorArgb,
+    required int backgroundColorArgb,
+  }) async {
+    lastSubtitleFontSize = fontSize;
+    lastSubtitleTextColorArgb = textColorArgb;
+    lastSubtitleBackgroundColorArgb = backgroundColorArgb;
   }
 }
 
