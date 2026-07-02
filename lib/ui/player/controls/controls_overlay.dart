@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
+import '../loop/ab_loop_chip.dart';
 import '../state/controls_visibility.dart';
 import '../state/lock_state.dart';
 import 'bottom_bar.dart';
@@ -77,6 +78,11 @@ class ControlsOverlay extends ConsumerWidget {
                         ),
                         child: const SafeArea(top: false, child: BottomBar()),
                       ),
+                    ),
+                    const Positioned(
+                      right: 14,
+                      bottom: 116, // clear of the seek bar + button row
+                      child: AbLoopChip(),
                     ),
                   ],
                 ),
