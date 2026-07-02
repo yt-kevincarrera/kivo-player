@@ -1,14 +1,22 @@
 package dev.selector.kivo_player
 
+import android.app.PendingIntent
+import android.app.PictureInPictureParams
+import android.app.RemoteAction
+import android.content.BroadcastReceiver
 import android.content.ContentUris
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.ActivityInfo
+import android.graphics.drawable.Icon
 import android.os.Build
 import android.graphics.Bitmap
 import android.media.AudioManager
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.provider.MediaStore
+import android.util.Rational
 import android.view.KeyEvent
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -30,6 +38,33 @@ class MainActivity : FlutterActivity() {
     private var interceptVolume = false
     private val audioManager by lazy {
         getSystemService(Context.AUDIO_SERVICE) as AudioManager
+    }
+
+    // --- kivo/pip ---
+    private var pipChannel: MethodChannel? = null
+    private var pipArmed = false
+    private var pipWidth = 16
+    private var pipHeight = 9
+    private var pipPlaying = false
+    private var pipReceiverRegistered = false
+    private val pipSupported: Boolean
+        get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+            packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_PICTURE_IN_PICTURE)
+
+    companion object {
+        private const val PIP_ACTION = "dev.selector.kivo_player.PIP_ACTION"
+        private const val PIP_EXTRA = "action"
+    }
+
+    private val pipReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.getStringExtra(PIP_EXTRA)) {
+                "play" -> pipChannel?.invokeMethod("play", null)
+                "pause" -> pipChannel?.invokeMethod("pause", null)
+                "rewind" -> pipChannel?.invokeMethod("skip", mapOf("seconds" to -10))
+                "forward" -> pipChannel?.invokeMethod("skip", mapOf("seconds" to 10))
+            }
+        }
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -311,6 +346,35 @@ class MainActivity : FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
+
+        // ── kivo/pip ──────────────────────────────────────────────────────────
+        val pip = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "kivo/pip")
+        pipChannel = pip
+        pip.setMethodCallHandler { call, result ->
+            when (call.method) {
+                "isSupported" -> result.success(pipSupported)
+                "arm" -> {
+                    pipArmed = true
+                    pipWidth = (call.argument<Number>("width") ?: 16).toInt().coerceAtLeast(1)
+                    pipHeight = (call.argument<Number>("height") ?: 9).toInt().coerceAtLeast(1)
+                    pipPlaying = call.argument<Boolean>("playing") ?: false
+                    result.success(null)
+                }
+                "disarm" -> { pipArmed = false; result.success(null) }
+                "updateState" -> {
+                    pipWidth = (call.argument<Number>("width") ?: pipWidth).toInt().coerceAtLeast(1)
+                    pipHeight = (call.argument<Number>("height") ?: pipHeight).toInt().coerceAtLeast(1)
+                    pipPlaying = call.argument<Boolean>("playing") ?: pipPlaying
+                    // Refresh params live if already floating.
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isInPictureInPictureMode) {
+                        setPictureInPictureParams(buildPipParams())
+                    }
+                    result.success(null)
+                }
+                "enterNow" -> { enterPip(); result.success(null) }
+                else -> result.notImplemented()
+            }
+        }
     }
 
     // While the player is active, swallow the hardware volume keys and adjust
@@ -348,5 +412,67 @@ class MainActivity : FlutterActivity() {
         frameExecutor.shutdown()
         ioExecutor.shutdown()
         super.onDestroy()
+    }
+
+    private fun remoteAction(iconRes: Int, title: String, action: String, requestCode: Int): RemoteAction {
+        val intent = Intent(PIP_ACTION).setPackage(packageName).putExtra(PIP_EXTRA, action)
+        val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        val pi = PendingIntent.getBroadcast(this, requestCode, intent, flags)
+        val icon = Icon.createWithResource(this, iconRes)
+        return RemoteAction(icon, title, title, pi)
+    }
+
+    private fun buildPipParams(): PictureInPictureParams {
+        // Android requires the aspect between ~0.42 and ~2.39; clamp to be safe.
+        val ratio = pipWidth.toFloat() / pipHeight.toFloat()
+        val clamped = ratio.coerceIn(0.45f, 2.35f)
+        val rational = Rational((clamped * 1000).toInt(), 1000)
+        val actions = listOf(
+            remoteAction(android.R.drawable.ic_media_rew, "Retroceder", "rewind", 1),
+            if (pipPlaying) {
+                remoteAction(android.R.drawable.ic_media_pause, "Pausa", "pause", 2)
+            } else {
+                remoteAction(android.R.drawable.ic_media_play, "Reproducir", "play", 2)
+            },
+            remoteAction(android.R.drawable.ic_media_ff, "Avanzar", "forward", 3),
+        )
+        return PictureInPictureParams.Builder()
+            .setAspectRatio(rational)
+            .setActions(actions)
+            .build()
+    }
+
+    private fun enterPip() {
+        if (!pipSupported) return
+        if (!pipReceiverRegistered) {
+            val filter = IntentFilter(PIP_ACTION)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(pipReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                @Suppress("UnspecifiedRegisterReceiverFlag")
+                registerReceiver(pipReceiver, filter)
+            }
+            pipReceiverRegistered = true
+        }
+        try {
+            enterPictureInPictureMode(buildPipParams())
+        } catch (_: Exception) {
+            // Some OEM builds throw if PiP is disabled by the user; ignore.
+        }
+    }
+
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        if (pipArmed && pipPlaying && pipSupported) enterPip()
+    }
+
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: android.content.res.Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        pipChannel?.invokeMethod("modeChanged", mapOf("inPip" to isInPictureInPictureMode))
+        if (!isInPictureInPictureMode && pipReceiverRegistered) {
+            // Left PiP (restored or closed) — drop the receiver; re-registered on next enter.
+            try { unregisterReceiver(pipReceiver) } catch (_: Exception) {}
+            pipReceiverRegistered = false
+        }
     }
 }
