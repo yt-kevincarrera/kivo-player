@@ -61,7 +61,10 @@ class MediaKitEngine implements PlaybackEngine {
       );
 
   MediaTrack? _subtitleToMedia(SubtitleTrack t) {
-    if (t.id == 'no') return null; // media_kit's own "off" sentinel
+    // media_kit's pseudo-tracks: 'no' = explicitly off, 'auto' = nothing
+    // selected (what a video with no subtitles reports). Both mean "no
+    // subtitle showing" on this side of the boundary.
+    if (t.id == 'no' || t.id == 'auto') return null;
     return MediaTrack(
       id: t.id,
       title: t.title,
@@ -71,8 +74,11 @@ class MediaKitEngine implements PlaybackEngine {
   }
 
   @override
-  Stream<List<MediaTrack>> get audioTracksStream =>
-      _player.stream.tracks.map((t) => t.audio.map(_audioToMedia).toList());
+  Stream<List<MediaTrack>> get audioTracksStream => _player.stream.tracks.map(
+      (t) => t.audio
+          .where((a) => a.id != 'auto' && a.id != 'no') // pseudo-tracks, not pickable rows
+          .map(_audioToMedia)
+          .toList());
 
   @override
   Stream<List<MediaTrack>> get subtitleTracksStream => _player.stream.tracks
