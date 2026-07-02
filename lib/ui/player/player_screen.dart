@@ -137,6 +137,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     ref.read(playerMinimizedProvider.notifier).state = false;
     ref.read(miniPlayerThumbnailProvider.notifier).state = null;
     ref.read(minimizedSessionKeyProvider.notifier).state = null;
+    // Deterministically clear any PiP flag: a modeChanged(false) that arrived
+    // after the previous screen was disposed would have been dropped by its
+    // mounted-guard, leaving this app-scoped flag stuck true → overlays hidden.
+    ref.read(pipModeProvider.notifier).state = false;
     final engine = ref.read(playbackEngineProvider);
     _resumeKey = session.resumeKey;
     ref.read(playedStoreProvider).markPlayed(_resumeKey!);

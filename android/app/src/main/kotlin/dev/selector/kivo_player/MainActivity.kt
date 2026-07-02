@@ -411,6 +411,13 @@ class MainActivity : FlutterActivity() {
         }
         frameExecutor.shutdown()
         ioExecutor.shutdown()
+        // Destroying straight from PiP (close ✕ / swipe from recents) may skip
+        // onPictureInPictureModeChanged(false) where the receiver is normally
+        // unregistered — unregister here too or Android logs a leaked receiver.
+        if (pipReceiverRegistered) {
+            try { unregisterReceiver(pipReceiver) } catch (_: Exception) {}
+            pipReceiverRegistered = false
+        }
         super.onDestroy()
     }
 

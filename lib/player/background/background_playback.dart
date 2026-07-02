@@ -79,6 +79,14 @@ class BackgroundPlaybackCoordinator with WidgetsBindingObserver {
         _bridge.ensureNotificationPermission();
       }
     });
+    _ref.listen(pipModeProvider, (_, inPip) {
+      // Entering PiP: the floating window owns the controls, so tear down any
+      // media-session notification. The lifecycle `paused` and the PiP
+      // `modeChanged` events race on Home-press; if `paused` won and started a
+      // session before `pipMode` flipped, `_push`'s gate can't undo it — this
+      // does.
+      if (inPip && _sessionActive) _end();
+    });
   }
 
   bool _permissionAsked = false;
