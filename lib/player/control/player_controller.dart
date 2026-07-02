@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/settings/settings_provider.dart';
 import '../../platform/device_controls_provider.dart';
 import '../engine/playback_provider.dart';
+import '../loop/ab_loop.dart';
 import 'gesture_math.dart';
 
 final volumePercentProvider = StateProvider<double>((ref) => 100);
@@ -27,7 +28,12 @@ class PlayerController {
     seekTo(clampSeek(pos, Duration(seconds: seconds), total));
   }
 
-  void seekTo(Duration p) => _ref.read(playbackEngineProvider).seek(p);
+  void seekTo(Duration p) {
+    // A user seek outside the active A-B range dissolves the loop — every
+    // user-initiated seek funnels through here (seek bar, skips, gestures).
+    _ref.read(abLoopProvider.notifier).userSeeked(p);
+    _ref.read(playbackEngineProvider).seek(p);
+  }
 
   double get currentRate => _ref.read(rateProvider);
 
