@@ -3,11 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/format.dart';
 import '../../../core/icons/kivo_icons.dart';
 import '../../../core/settings/settings_provider.dart';
+import '../../../platform/pip_controller_provider.dart';
 import '../../../player/engine/playback_provider.dart';
 import '../../../player/open/video_source.dart';
 import '../../../player/sleep/sleep_timer.dart';
 import '../more/more_menu.dart';
 import '../tracks/track_picker.dart';
+
+final _pipSupportedProvider = FutureProvider<bool>((ref) => ref.read(pipControllerProvider).isSupported());
 
 class TopBar extends ConsumerWidget {
   const TopBar({super.key});
@@ -68,8 +71,18 @@ class TopBar extends ConsumerWidget {
             );
           },
         ),
-        // PiP lands in 3d — still disabled here.
-        IconButton(color: Colors.white38, tooltip: 'Imagen en imagen', icon: KivoIcon(KivoIcons.pip, size: 24, opacity: 0.38), onPressed: null),
+        Consumer(
+          builder: (context, ref, _) {
+            final supported = ref.watch(_pipSupportedProvider).value ?? false;
+            if (!supported) return const SizedBox.shrink();
+            return IconButton(
+              color: Colors.white,
+              tooltip: 'Imagen en imagen',
+              icon: KivoIcon(KivoIcons.pip, size: 24, color: Colors.white),
+              onPressed: () => ref.read(pipControllerProvider).enterNow(),
+            );
+          },
+        ),
         Builder(
           builder: (context) => IconButton(
             color: Colors.white,

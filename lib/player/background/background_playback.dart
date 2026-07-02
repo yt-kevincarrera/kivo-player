@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/settings/settings_provider.dart';
 import '../../platform/interfaces/media_session.dart';
 import '../../platform/media_session_provider.dart';
+import '../../ui/player/state/pip_state.dart';
 import '../control/gesture_math.dart';
 import '../control/player_controller.dart';
 import '../engine/playback_provider.dart';
@@ -102,7 +103,7 @@ class BackgroundPlaybackCoordinator with WidgetsBindingObserver {
     if (!force && second == _lastSentSecond) return;
     // Only feed the channel when a session exists or should start — in the
     // foreground with no session there is nothing to keep updated.
-    final shouldHaveSession = _inBackground && _playing;
+    final shouldHaveSession = _inBackground && _playing && !_ref.read(pipModeProvider);
     if (!shouldHaveSession && !_sessionActive) return;
     _lastSentSecond = second;
     if (shouldHaveSession && !_sessionActive) {

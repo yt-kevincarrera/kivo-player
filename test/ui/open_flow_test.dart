@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/platform/frame_extractor_provider.dart';
+import 'package:kivo_player/platform/pip_controller_provider.dart';
 import 'package:kivo_player/platform/subtitle_finder_provider.dart';
 import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/player/library/played.dart';
@@ -29,6 +30,7 @@ void main() {
       playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
       frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
       subtitleFinderProvider.overrideWithValue(FakeSubtitleFinder()),
+      pipControllerProvider.overrideWithValue(FakePipController()),
     ]);
     addTearDown(container.dispose);
 

@@ -7,6 +7,8 @@ import '../../core/settings/kivo_settings.dart';
 import '../../core/settings/settings_provider.dart';
 import '../../platform/device_controls_provider.dart';
 import '../../platform/interfaces/device_controls.dart';
+import '../../platform/interfaces/pip_controller.dart';
+import '../../platform/pip_controller_provider.dart';
 import '../../player/control/player_controller.dart';
 import '../../platform/frame_extractor_provider.dart';
 import '../../platform/interfaces/frame_extractor.dart';
@@ -34,6 +36,7 @@ import 'state/dismiss_state.dart';
 import 'state/hud_state.dart';
 import 'state/mini_player_state.dart';
 import 'state/orientation_state.dart';
+import 'state/pip_state.dart';
 
 class PlayerScreen extends ConsumerStatefulWidget {
   const PlayerScreen({super.key});
@@ -54,6 +57,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   late final FrameExtractor _frames;
   late final AudioOnlyNotifier _audioOnly;
   late final StateController<Uint8List?> _miniThumb;
+  late final PipController _pip;
   StreamSubscription<double>? _sysVolSub;
   Timer? _saveTimer;
 
@@ -66,6 +70,15 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _frames = ref.read(frameExtractorProvider);
     _audioOnly = ref.read(audioOnlyProvider.notifier);
     _miniThumb = ref.read(miniPlayerThumbnailProvider.notifier);
+    _pip = ref.read(pipControllerProvider);
+    _pip.setCallbacks(PipCallbacks(
+      onModeChanged: (inPip) {
+        if (mounted) ref.read(pipModeProvider.notifier).state = inPip;
+      },
+      onPlay: () => _engine.play(),
+      onPause: () => _engine.pause(),
+      onSkip: (s) => ref.read(playerControllerProvider).skipBy(s),
+    ));
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Force portrait on every fresh entry — a manual rotation left over
@@ -162,6 +175,14 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     ref.read(playerControllerProvider).setRate(
       ref.read(settingsProvider).rememberSpeed ? remembered : 1.0,
     );
+    _armPip();
+  }
+
+  ({int width, int height}) get _pipSize => _engine.videoSize ?? (width: 16, height: 9);
+
+  void _armPip() {
+    final playing = ref.read(playingProvider).value ?? false;
+    _pip.arm(width: _pipSize.width, height: _pipSize.height, playing: playing);
   }
 
   void _applyDefaultTracks(PlaybackEngine engine, KivoSettings settings, VideoSession session) {
@@ -241,6 +262,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _saveProgress(); // best-effort for in-app pop
     _engine.pause(); // stop audio when leaving the player (engine is a singleton)
     _audioOnly.disable(); // reset "Solo audio" so it never carries over to the next open
+    _pip.disarm();
     _frames.release(); // release native frame-extractor resources (cached; never via ref)
     _deviceControls.setOrientation([DeviceOrientationLock.auto]);
     _deviceControls.keepAwake(false);
@@ -257,6 +279,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     });
     ref.listen(durationProvider, (_, next) {
       next.whenData((d) => _lastDuration = d);
+    });
+    ref.listen(playingProvider, (_, next) {
+      final playing = next.value ?? false;
+      _pip.updateState(width: _pipSize.width, height: _pipSize.height, playing: playing);
     });
     ref.listen<int>(restartRequestProvider, (prev, next) {
       if (next > 0) {
@@ -364,18 +390,20 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                           child: videoBox,
                         ),
                       ),
-                      const Positioned.fill(child: PlayerGestures(child: SizedBox.expand())),
-                      // Above gestures: only its "Ver video" pill is
-                      // hit-testable; taps/drags elsewhere fall through.
-                      const Positioned.fill(child: AudioOnlyView()),
-                      const Positioned.fill(child: RippleOverlay()),
-                      const Positioned.fill(child: ControlsOverlay()),
-                      const Positioned.fill(child: InfoOverlay()),
-                      const Positioned.fill(child: FlashOverlay()),
-                      const Positioned.fill(child: HudOverlay()),
-                      const Positioned.fill(child: SpeedLadderOverlay()),
-                      const Positioned.fill(child: ResumePrompt()),
-                      const Positioned.fill(child: SleepWarningToast()),
+                      if (!ref.watch(pipModeProvider)) ...[
+                        const Positioned.fill(child: PlayerGestures(child: SizedBox.expand())),
+                        // Above gestures: only its "Ver video" pill is
+                        // hit-testable; taps/drags elsewhere fall through.
+                        const Positioned.fill(child: AudioOnlyView()),
+                        const Positioned.fill(child: RippleOverlay()),
+                        const Positioned.fill(child: ControlsOverlay()),
+                        const Positioned.fill(child: InfoOverlay()),
+                        const Positioned.fill(child: FlashOverlay()),
+                        const Positioned.fill(child: HudOverlay()),
+                        const Positioned.fill(child: SpeedLadderOverlay()),
+                        const Positioned.fill(child: ResumePrompt()),
+                        const Positioned.fill(child: SleepWarningToast()),
+                      ],
                     ],
                   ),
                 ),

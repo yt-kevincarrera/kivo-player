@@ -7,6 +7,7 @@ import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/platform/device_controls_provider.dart';
 import 'package:kivo_player/platform/frame_extractor_provider.dart';
 import 'package:kivo_player/platform/interfaces/device_controls.dart';
+import 'package:kivo_player/platform/pip_controller_provider.dart';
 import 'package:kivo_player/platform/subtitle_finder_provider.dart';
 import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/player/library/played.dart';
@@ -45,6 +46,7 @@ Future<ProviderContainer> _pumpBar(WidgetTester tester, {required bool minimized
     playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
     frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
     subtitleFinderProvider.overrideWithValue(FakeSubtitleFinder()),
+    pipControllerProvider.overrideWithValue(FakePipController()),
   ]);
   addTearDown(c.dispose);
   c.read(currentVideoProvider.notifier).open(

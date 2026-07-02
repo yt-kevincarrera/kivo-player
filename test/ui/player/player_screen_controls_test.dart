@@ -8,6 +8,7 @@ import 'package:kivo_player/platform/device_controls_provider.dart';
 import 'package:kivo_player/platform/frame_extractor_provider.dart';
 import 'package:kivo_player/platform/interfaces/device_controls.dart';
 import 'package:kivo_player/platform/interfaces/subtitle_finder.dart';
+import 'package:kivo_player/platform/pip_controller_provider.dart';
 import 'package:kivo_player/platform/subtitle_finder_provider.dart';
 import 'package:kivo_player/player/engine/playback_engine.dart' show MediaTrack;
 import 'package:kivo_player/player/engine/playback_provider.dart';
@@ -46,6 +47,7 @@ void main() {
       playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
       frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
       subtitleFinderProvider.overrideWithValue(FakeSubtitleFinder()),
+      pipControllerProvider.overrideWithValue(FakePipController()),
     ]);
     addTearDown(c.dispose);
     c.read(currentVideoProvider.notifier).open(
@@ -80,6 +82,7 @@ void main() {
       playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
       frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
       subtitleFinderProvider.overrideWithValue(FakeSubtitleFinder()),
+      pipControllerProvider.overrideWithValue(FakePipController()),
     ]);
     addTearDown(c.dispose);
     c.read(currentVideoProvider.notifier).open(
@@ -162,6 +165,7 @@ void main() {
       playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
       frameExtractorProvider.overrideWithValue(frames),
       subtitleFinderProvider.overrideWithValue(FakeSubtitleFinder()),
+      pipControllerProvider.overrideWithValue(FakePipController()),
     ]);
     addTearDown(c.dispose);
     c.read(currentVideoProvider.notifier).open(
@@ -222,6 +226,7 @@ void main() {
       playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
       frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
       subtitleFinderProvider.overrideWithValue(FakeSubtitleFinder()),
+      pipControllerProvider.overrideWithValue(FakePipController()),
     ]);
     addTearDown(c.dispose);
     // Simulate leftover state from a previously minimized video.
@@ -257,6 +262,7 @@ void main() {
       playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
       frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
       subtitleFinderProvider.overrideWithValue(FakeSubtitleFinder()),
+      pipControllerProvider.overrideWithValue(FakePipController()),
     ]);
     addTearDown(c.dispose);
     c.read(currentVideoProvider.notifier).open(
@@ -334,6 +340,7 @@ void main() {
       playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
       frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
       subtitleFinderProvider.overrideWithValue(FakeSubtitleFinder()),
+      pipControllerProvider.overrideWithValue(FakePipController()),
     ]);
     addTearDown(c.dispose);
     c.read(currentVideoProvider.notifier).open(
@@ -389,6 +396,7 @@ void main() {
       playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
       frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
       subtitleFinderProvider.overrideWithValue(finder),
+      pipControllerProvider.overrideWithValue(FakePipController()),
     ]);
     addTearDown(c.dispose);
     c.read(currentVideoProvider.notifier).open(
