@@ -57,4 +57,8 @@ abstract class PlaybackEngine {
   /// Turns the video track off ([enabled] = false → mpv `vid=no`, audio-only)
   /// or back to automatic selection (true → `vid=auto`).
   Future<void> setVideoTrackEnabled(bool enabled);
+
+  /// Current video pixel dimensions, or null if unknown (used for the PiP
+  /// window aspect ratio).
+  ({int width, int height})? get videoSize;
 }

@@ -140,6 +140,14 @@ class MediaKitEngine implements PlaybackEngine {
     await native.setProperty('vid', enabled ? 'auto' : 'no');
   }
 
+  @override
+  ({int width, int height})? get videoSize {
+    final w = _player.state.width;
+    final h = _player.state.height;
+    if (w == null || h == null || w <= 0 || h <= 0) return null;
+    return (width: w, height: h);
+  }
+
   String _toMpvColor(int argb) {
     final a = (argb >> 24) & 0xFF;
     final r = (argb >> 16) & 0xFF;

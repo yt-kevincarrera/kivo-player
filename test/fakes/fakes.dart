@@ -4,6 +4,7 @@ import 'package:kivo_player/core/settings/settings_store.dart';
 import 'package:kivo_player/platform/interfaces/frame_extractor.dart';
 import 'package:kivo_player/platform/interfaces/media_indexer.dart';
 import 'package:kivo_player/platform/interfaces/media_session.dart';
+import 'package:kivo_player/platform/interfaces/pip_controller.dart';
 import 'package:kivo_player/platform/interfaces/subtitle_finder.dart';
 import 'package:kivo_player/player/engine/playback_engine.dart';
 import 'package:kivo_player/player/queue/file_system_lister.dart';
@@ -147,6 +148,10 @@ class FakePlaybackEngine implements PlaybackEngine {
   Future<void> setVideoTrackEnabled(bool enabled) async {
     videoTrackEnabled = enabled;
   }
+
+  ({int width, int height})? videoSizeValue;
+  @override
+  ({int width, int height})? get videoSize => videoSizeValue;
 }
 
 class InMemoryResumeStore implements ResumeStore {
@@ -244,6 +249,42 @@ class FakeMediaSessionBridge implements MediaSessionBridge {
 
   @override
   Future<void> endSession() async => endCount++;
+}
+
+class FakePipController implements PipController {
+  bool supported = true;
+  bool armed = false;
+  int enterCount = 0;
+  int? lastWidth, lastHeight;
+  bool? lastPlaying;
+  PipCallbacks? _cb;
+
+  @override
+  Future<bool> isSupported() async => supported;
+  @override
+  void setCallbacks(PipCallbacks cb) => _cb = cb;
+  @override
+  Future<void> arm({required int width, required int height, required bool playing}) async {
+    armed = true;
+    lastWidth = width;
+    lastHeight = height;
+    lastPlaying = playing;
+  }
+  @override
+  Future<void> disarm() async => armed = false;
+  @override
+  Future<void> enterNow() async => enterCount++;
+  @override
+  Future<void> updateState({required int width, required int height, required bool playing}) async {
+    lastWidth = width;
+    lastHeight = height;
+    lastPlaying = playing;
+  }
+
+  void emitMode(bool inPip) => _cb?.onModeChanged(inPip);
+  void emitPlay() => _cb?.onPlay();
+  void emitPause() => _cb?.onPause();
+  void emitSkip(int s) => _cb?.onSkip(s);
 }
 
 class FakeSubtitleFinder implements SubtitleFinder {
