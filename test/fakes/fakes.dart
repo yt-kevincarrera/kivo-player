@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:kivo_player/core/settings/settings_store.dart';
 import 'package:kivo_player/platform/interfaces/frame_extractor.dart';
 import 'package:kivo_player/platform/interfaces/media_indexer.dart';
+import 'package:kivo_player/platform/interfaces/media_session.dart';
 import 'package:kivo_player/platform/interfaces/subtitle_finder.dart';
 import 'package:kivo_player/player/engine/playback_engine.dart';
 import 'package:kivo_player/player/queue/file_system_lister.dart';
@@ -208,6 +209,39 @@ class FakeMediaIndexer implements MediaIndexer {
   }
   @override
   Future<Uint8List?> thumbnail(String id) async => thumb;
+}
+
+class FakeMediaSessionBridge implements MediaSessionBridge {
+  MediaSessionCallbacks? callbacks;
+  final List<Map<String, Object>> updates = [];
+  int endCount = 0;
+  int permissionRequests = 0;
+
+  @override
+  void setCallbacks(MediaSessionCallbacks cb) => callbacks = cb;
+
+  @override
+  Future<void> ensureNotificationPermission() async => permissionRequests++;
+
+  @override
+  Future<void> updateSession({
+    required String title,
+    required Duration position,
+    required Duration duration,
+    required bool playing,
+    required bool inBackground,
+  }) async {
+    updates.add({
+      'title': title,
+      'position': position,
+      'duration': duration,
+      'playing': playing,
+      'inBackground': inBackground,
+    });
+  }
+
+  @override
+  Future<void> endSession() async => endCount++;
 }
 
 class FakeSubtitleFinder implements SubtitleFinder {
