@@ -4,6 +4,7 @@ import '../../../core/icons/kivo_icons.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../player/engine/playback_provider.dart';
 import '../../../player/open/video_source.dart';
+import '../more/more_menu.dart';
 import '../tracks/track_picker.dart';
 
 class TopBar extends ConsumerWidget {
@@ -75,7 +76,14 @@ class TopBar extends ConsumerWidget {
             onPressed: () => showAudioPicker(context, ref),
           ),
         ),
-        IconButton(color: Colors.white38, tooltip: 'Más opciones', icon: KivoIcon(KivoIcons.more, size: 24, opacity: 0.38), onPressed: null),
+        Builder(
+          builder: (context) => IconButton(
+            color: Colors.white,
+            tooltip: 'Más opciones',
+            icon: KivoIcon(KivoIcons.more, size: 24, color: Colors.white),
+            onPressed: () => showMoreMenu(context, ref),
+          ),
+        ),
       ],
     );
   }
