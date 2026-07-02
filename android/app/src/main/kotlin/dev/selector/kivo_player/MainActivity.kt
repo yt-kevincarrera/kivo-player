@@ -286,6 +286,30 @@ class MainActivity : FlutterActivity() {
                     result.notImplemented()
                 }
             }
+
+        // ── kivo/media_session ────────────────────────────────────────────────
+        val sessionChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "kivo/media_session")
+        PlaybackSessionHub.channel = sessionChannel
+        sessionChannel.setMethodCallHandler { call, result ->
+            when (call.method) {
+                "update" -> {
+                    PlaybackSessionHub.update(
+                        applicationContext,
+                        call.argument<String>("title") ?: "Kivo",
+                        (call.argument<Number>("positionMs") ?: 0).toLong(),
+                        (call.argument<Number>("durationMs") ?: 0).toLong(),
+                        call.argument<Boolean>("playing") ?: false,
+                        call.argument<Boolean>("inBackground") ?: false,
+                    )
+                    result.success(null)
+                }
+                "end" -> {
+                    PlaybackSessionHub.end(applicationContext)
+                    result.success(null)
+                }
+                else -> result.notImplemented()
+            }
+        }
     }
 
     // While the player is active, swallow the hardware volume keys and adjust
