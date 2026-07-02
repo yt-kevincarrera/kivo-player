@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Status-bar notification icon: monochrome white version of the Kivo mark
+     (K stem + play triangle pointing LEFT toward the stem, mirroring
+     ic_launcher_foreground). Status icons are alpha-masked. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M5.5,6 h3 v12 h-3 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M19.5,6.6 L10.5,12 L19.5,17.4 Z" />
+</vector>

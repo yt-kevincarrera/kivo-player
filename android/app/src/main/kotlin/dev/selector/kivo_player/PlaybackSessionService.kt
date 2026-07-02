@@ -60,6 +60,7 @@ class PlaybackSessionService : Service() {
     private val artExecutor = Executors.newSingleThreadExecutor()
     @Volatile private var artUri: String? = null
     @Volatile private var artBitmap: Bitmap? = null
+    private var _foregrounded = false
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -93,6 +94,7 @@ class PlaybackSessionService : Service() {
         session?.release()
         session = null
         instance = null
+        _foregrounded = false
         artExecutor.shutdown()
         super.onDestroy()
     }
@@ -103,20 +105,45 @@ class PlaybackSessionService : Service() {
         artUri = uri
         artBitmap = null
         artExecutor.submit {
-            val bmp = try {
-                val r = MediaMetadataRetriever()
-                try {
-                    if (uri.startsWith("content://")) {
-                        r.setDataSource(this, Uri.parse(uri))
-                    } else {
-                        r.setDataSource(uri)
-                    }
-                    r.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
-                } finally {
-                    r.release()
+            // MediaStore's own thumbnail first — it works for every indexed
+            // video regardless of container (MediaMetadataRetriever chokes on
+            // MKV and some codecs); frame extraction is only the fallback.
+            var bmp: Bitmap? = null
+            if (uri.startsWith("content://") && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                bmp = try {
+                    contentResolver.loadThumbnail(Uri.parse(uri), android.util.Size(512, 512), null)
+                } catch (_: Exception) {
+                    null
                 }
-            } catch (_: Exception) {
-                null
+            }
+            if (bmp == null) {
+                bmp = try {
+                    val r = MediaMetadataRetriever()
+                    try {
+                        if (uri.startsWith("content://")) {
+                            r.setDataSource(this, Uri.parse(uri))
+                        } else {
+                            r.setDataSource(uri)
+                        }
+                        r.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                    } finally {
+                        r.release()
+                    }
+                } catch (_: Exception) {
+                    null
+                }
+            }
+            // Cap the bitmap: full video frames (8MB+ ARGB) blow past binder
+            // limits when shipped inside MediaSession metadata.
+            bmp = bmp?.let { b ->
+                val maxSide = maxOf(b.width, b.height)
+                if (maxSide <= 512) b else {
+                    val scale = 512f / maxSide
+                    Bitmap.createScaledBitmap(
+                        b, (b.width * scale).toInt().coerceAtLeast(1),
+                        (b.height * scale).toInt().coerceAtLeast(1), true
+                    )
+                }
             }
             // Only publish if the uri is still current, then repaint.
             if (artUri == uri) {
@@ -156,19 +183,31 @@ class PlaybackSessionService : Service() {
                 .build()
         )
         val notification = buildNotification(playing)
-        // ALWAYS enter the foreground first: this service is started with
-        // startForegroundService, and Android kills the process if a start
-        // isn't matched by a startForeground within ~5s — a pause arriving
-        // in the window before onStartCommand (sleep timer firing, a call,
-        // the user pausing instantly) must not skip it.
-        startForeground(NOTIFICATION_ID, notification)
-        if (!playing) {
+        // Every startForegroundService MUST be matched by one startForeground
+        // (Android kills the process after ~5s otherwise), even if a pause
+        // arrived before onStartCommand ran. After that first call, updates
+        // go through notify() — re-calling startForeground on every position
+        // tick works but spams ActivityManager warnings once per second.
+        if (playing) {
+            if (!_foregrounded) {
+                startForeground(NOTIFICATION_ID, notification)
+                _foregrounded = true
+            } else {
+                val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                nm.notify(NOTIFICATION_ID, notification)
+            }
+        } else {
+            if (!_foregrounded) {
+                // Satisfy the pending startForegroundService before detaching.
+                startForeground(NOTIFICATION_ID, notification)
+            }
             // Paused: detach so the notification stays but can be swiped away.
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 stopForeground(STOP_FOREGROUND_DETACH)
             } else {
                 @Suppress("DEPRECATION") stopForeground(false)
             }
+            _foregrounded = false
             val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             nm.notify(NOTIFICATION_ID, notification)
         }
@@ -182,7 +221,7 @@ class PlaybackSessionService : Service() {
             this, PlaybackStateCompat.ACTION_STOP
         )
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_stat_kivo)
             .setLargeIcon(artBitmap)
             .setContentTitle(PlaybackSessionHub.title)
             .setContentText(if (playing) "Reproduciendo" else "En pausa")
