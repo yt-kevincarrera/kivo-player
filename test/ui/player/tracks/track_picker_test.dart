@@ -67,23 +67,35 @@ Future<ProviderContainer> _pumpAndOpenSheet(
 }
 
 void main() {
-  testWidgets('subtitle sheet lists "Desactivado" plus tracks', (tester) async {
+  testWidgets('subtitle sheet shows the "Mostrar subtítulos" switch plus tracks', (tester) async {
     await _pumpAndOpenSheet(tester, subtitles: true);
-    expect(find.text('Desactivado'), findsOneWidget);
+    expect(find.text('Mostrar subtítulos'), findsOneWidget);
+    expect(find.byType(Switch), findsOneWidget);
     expect(find.text('English'), findsOneWidget);
   });
 
-  testWidgets('audio sheet lists tracks without "Desactivado"', (tester) async {
+  testWidgets('audio sheet lists tracks without the subtitles switch', (tester) async {
     await _pumpAndOpenSheet(tester, subtitles: false);
-    expect(find.text('Desactivado'), findsNothing);
+    expect(find.text('Mostrar subtítulos'), findsNothing);
+    expect(find.byType(Switch), findsNothing);
     expect(find.text('English'), findsOneWidget);
   });
 
-  testWidgets('tapping "Desactivado" turns subtitles off and persists the choice',
+  testWidgets('turning the switch off turns subtitles off and persists the choice',
       (tester) async {
     final c = await _pumpAndOpenSheet(tester, subtitles: true);
-    await tester.tap(find.text('Desactivado'));
+    await tester.tap(find.byType(Switch));
     await tester.pumpAndSettle();
     expect(c.read(settingsProvider).subtitlesEnabledByDefault, false);
+  });
+
+  testWidgets('the Estilo tab shows the live preview and hides the track list',
+      (tester) async {
+    await _pumpAndOpenSheet(tester, subtitles: true);
+    expect(find.text('English'), findsOneWidget);
+    await tester.tap(find.text('Estilo'));
+    await tester.pumpAndSettle();
+    expect(find.text('English'), findsNothing);
+    expect(find.text('Estamos cerca de encontrarlo.'), findsOneWidget);
   });
 }

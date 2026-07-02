@@ -42,7 +42,22 @@ class TopBar extends ConsumerWidget {
             return IconButton(
               color: subsOn ? accent : Colors.white,
               tooltip: 'Subtítulos',
-              icon: KivoIcon(KivoIcons.subtitles, size: 24, color: subsOn ? accent : Colors.white),
+              icon: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  KivoIcon(KivoIcons.subtitles, size: 24, color: subsOn ? accent : Colors.white),
+                  if (subsOn)
+                    Positioned(
+                      right: -1,
+                      bottom: -1,
+                      child: Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
+                      ),
+                    ),
+                ],
+              ),
               onPressed: () => showSubtitlePicker(context, ref),
             );
           },
