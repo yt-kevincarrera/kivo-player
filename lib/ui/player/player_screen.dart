@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit_video/media_kit_video.dart';
@@ -44,6 +45,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     with WidgetsBindingObserver {
   VideoController? _controller;
   Duration _lastPosition = Duration.zero;
+  bool _previewCaptured = false; // guards one-shot eager mini-preview per drag
   Duration _lastDuration = Duration.zero;
   String? _resumeKey;
   late final DeviceControls _deviceControls;
@@ -51,6 +53,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   late final ResumeService _resume;
   late final FrameExtractor _frames;
   late final AudioOnlyNotifier _audioOnly;
+  late final StateController<Uint8List?> _miniThumb;
   StreamSubscription<double>? _sysVolSub;
   Timer? _saveTimer;
 
@@ -62,6 +65,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _resume = ref.read(resumeServiceProvider);
     _frames = ref.read(frameExtractorProvider);
     _audioOnly = ref.read(audioOnlyProvider.notifier);
+    _miniThumb = ref.read(miniPlayerThumbnailProvider.notifier);
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Force portrait on every fresh entry — a manual rotation left over
@@ -220,7 +224,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   Future<void> _captureMiniPreview() async {
     try {
       final bytes = await _frames.frameAt(_lastPosition);
-      if (mounted) ref.read(miniPlayerThumbnailProvider.notifier).state = bytes;
+      // Cached notifier (never `ref` here): this can resolve after the widget
+      // is unmounted — it runs fire-and-forget, off the pop's critical path.
+      _miniThumb.state = bytes;
     } catch (_) {
       // Extraction can fail (e.g. no keyframe near this position); the
       // mini-bar falls back to a placeholder icon when the bytes are null.
@@ -259,25 +265,44 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
         _lastPosition = Duration.zero;
       }
     });
+    // Capture the mini-player freeze frame EAGERLY, as soon as a dismiss drag
+    // gets underway — so the (slow, native) frame extraction runs during the
+    // ~300ms slide instead of blocking the pop. Fire once per drag; reset when
+    // the player snaps back to fullscreen.
+    ref.listen<double>(dismissProvider, (prev, next) {
+      if (next >= 0.12 && !_previewCaptured) {
+        _previewCaptured = true;
+        _captureMiniPreview();
+      } else if (next == 0) {
+        _previewCaptured = false;
+      }
+    });
 
     return PopScope(
       canPop: false,
-      onPopInvokedWithResult: (didPop, result) async {
+      onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        final navigator = Navigator.of(context);
-        // Pause immediately — minimizing must never leave audio playing
-        // through the (possibly slow) freeze-frame capture below. Relying
-        // on dispose()'s pause alone would leave an audible gap.
+        // Synchronous so the pop is immediate — no await delay before the
+        // route leaves. The mini-player preview was already captured during
+        // the drag (see the dismissProvider listener in build); progress is
+        // saved fire-and-forget here and again in dispose().
         _engine.pause();
-        await _saveProgress();
-        await _captureMiniPreview();
-        if (!mounted) return;
+        _saveProgress();
+        // A swipe-dismiss already captured the preview eagerly during the
+        // drag; a back-button / programmatic pop hasn't, so capture now —
+        // fire-and-forget (the frame extractor's native call is queued before
+        // dispose()'s release, so it still completes and sets the thumbnail
+        // via the cached notifier).
+        if (!_previewCaptured) _captureMiniPreview();
         ref.read(minimizedSessionKeyProvider.notifier).state = _resumeKey;
         ref.read(playerMinimizedProvider.notifier).state = true;
-        navigator.pop();
+        Navigator.of(context).pop();
       },
+      // Transparent so the (non-opaque) player route lets the library paint
+      // behind it; the black backdrop below fades in/out with the dismiss so
+      // the swipe reveals the library instead of a black void.
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.transparent,
         body: Consumer(
           builder: (context, ref, _) {
             final dismissProgress = ref.watch(dismissProvider);
@@ -287,7 +312,34 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
             // Slide the whole player down by progress × screen height.
             final screenHeight = MediaQuery.sizeOf(context).height;
             final offsetY = dismissProgress * screenHeight;
-            return Transform.translate(
+            final videoBox = Container(
+              color: Colors.black,
+              alignment: Alignment.center,
+              child: _controller == null
+                  ? const CircularProgressIndicator()
+                  : Video(
+                      controller: _controller!,
+                      controls: NoVideoControls, // Kivo draws its own controls; this also kills media_kit's buffering spinner
+                      fit: boxFitFor(ref.watch(aspectModeProvider)),
+                      // 3e: the widget's own lifecycle handler pauses on
+                      // app-background by default, silently defeating
+                      // background playback.
+                      pauseUponEnteringBackgroundMode: false,
+                    ),
+            );
+            return Stack(
+              children: [
+                // Full-screen black backdrop, fully opaque at rest and fading
+                // out as the player is dragged down → the library shows behind.
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: Opacity(
+                      opacity: (1.0 - dismissProgress).clamp(0.0, 1.0),
+                      child: const ColoredBox(color: Colors.black),
+                    ),
+                  ),
+                ),
+                Transform.translate(
               offset: Offset(0, offsetY),
               child: Transform.scale(
                 scale: scale,
@@ -297,25 +349,19 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                     children: [
                       Positioned.fill(
                         child: Hero(
-                          // Pairs with the library tile's Hero (tagged by uri);
-                          // a full-bleed black box so the thumbnail expands to the
-                          // whole screen cleanly even before the video is ready.
+                          // Pairs with the library tile's Hero (tagged by uri)
+                          // for the OPEN flight. On CLOSE we minimize to the
+                          // mini-player, not back to a tile, so the pop flight
+                          // is suppressed (invisible shuttle) — the dismiss
+                          // drag + faded backdrop carry the close.
                           tag: heroTag,
-                          child: Container(
-                            color: Colors.black,
-                            alignment: Alignment.center,
-                            child: _controller == null
-                                ? const CircularProgressIndicator()
-                                : Video(
-                                    controller: _controller!,
-                                    controls: NoVideoControls, // Kivo draws its own controls; this also kills media_kit's buffering spinner
-                                    fit: boxFitFor(ref.watch(aspectModeProvider)),
-                                    // 3e: the widget's own lifecycle handler pauses on
-                                    // app-background by default, silently defeating
-                                    // background playback.
-                                    pauseUponEnteringBackgroundMode: false,
-                                  ),
-                          ),
+                          flightShuttleBuilder: (_, __, direction, ___, toContext) {
+                            if (direction == HeroFlightDirection.pop) {
+                              return const SizedBox.shrink();
+                            }
+                            return (toContext.widget as Hero).child;
+                          },
+                          child: videoBox,
                         ),
                       ),
                       const Positioned.fill(child: PlayerGestures(child: SizedBox.expand())),
@@ -334,6 +380,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                   ),
                 ),
               ),
+                ),
+              ],
             );
           },
         ),

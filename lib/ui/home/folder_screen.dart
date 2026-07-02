@@ -5,7 +5,7 @@ import '../../player/library/continue_watching.dart';
 import '../../player/library/played.dart';
 import '../../player/open/video_source.dart';
 import '../player/controls/resume_prompt.dart';
-import '../player/player_screen.dart';
+import '../player/player_route.dart';
 import 'widgets/video_density_feed.dart';
 
 class FolderScreen extends ConsumerWidget {
@@ -23,7 +23,7 @@ class FolderScreen extends ConsumerWidget {
     ref.read(resumePromptProvider.notifier).state = null;
     ref.read(currentVideoProvider.notifier).openInFolder(current, all);
     Navigator.of(context)
-        .push(MaterialPageRoute(builder: (_) => const PlayerScreen()))
+        .push(playerRoute())
         .then((_) {
       ref.invalidate(continueWatchingProvider);
       ref.invalidate(playedKeysProvider);

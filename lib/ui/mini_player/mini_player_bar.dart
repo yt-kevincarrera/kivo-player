@@ -9,7 +9,7 @@ import '../../player/engine/playback_provider.dart';
 import '../../player/library/continue_watching.dart';
 import '../../player/library/played.dart';
 import '../../player/open/video_source.dart';
-import '../player/player_screen.dart';
+import '../player/player_route.dart';
 import '../player/state/mini_player_state.dart';
 
 /// Global, persistent mini-bar shown above any screen while a video is
@@ -70,7 +70,7 @@ class _MiniPlayerBarState extends ConsumerState<MiniPlayerBar> {
 
   void _expand() {
     kivoNavigatorKey.currentState
-        ?.push(MaterialPageRoute(builder: (_) => const PlayerScreen()))
+        ?.push(playerRoute())
         .then((_) {
       ref.invalidate(continueWatchingProvider);
       ref.invalidate(playedKeysProvider);

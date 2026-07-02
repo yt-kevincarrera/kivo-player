@@ -16,7 +16,7 @@ import '../../player/library/media_permission.dart';
 import '../../player/library/played.dart';
 import '../../player/open/video_source.dart';
 import '../player/controls/resume_prompt.dart';
-import '../player/player_screen.dart';
+import '../player/player_route.dart';
 import 'folder_screen.dart';
 import 'state/library_filter_state.dart';
 import 'widgets/folder_grid.dart';
@@ -63,7 +63,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   void _push() {
     ref.read(resumePromptProvider.notifier).state = null;
     Navigator.of(context)
-        .push(MaterialPageRoute(builder: (_) => const PlayerScreen()))
+        .push(playerRoute())
         .then((_) {
       ref.invalidate(continueWatchingProvider);
       ref.invalidate(playedKeysProvider);
@@ -79,7 +79,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   void _open(VideoItem v, List<VideoItem> all) {
     ref.read(currentVideoProvider.notifier).openInFolder(v, all);
     Navigator.of(context)
-        .push(MaterialPageRoute(builder: (_) => const PlayerScreen()))
+        .push(playerRoute())
         .then((_) {
       ref.invalidate(continueWatchingProvider);
       ref.invalidate(playedKeysProvider);
