@@ -15,11 +15,13 @@ import 'player/library/played.dart';
 import 'player/open/video_source.dart';
 import 'platform/android/android_frame_extractor.dart';
 import 'platform/android/android_media_indexer.dart';
+import 'platform/android/android_media_session.dart';
 import 'platform/android/android_subtitle_finder.dart';
 import 'platform/android/permission_handler_media_permission.dart';
 import 'platform/frame_extractor_provider.dart';
 import 'platform/media_indexer_provider.dart';
 import 'platform/media_permission_provider.dart';
+import 'platform/media_session_provider.dart';
 import 'platform/subtitle_finder_provider.dart';
 
 Future<void> main() async {
@@ -49,6 +51,7 @@ Future<void> main() async {
       mediaIndexerProvider.overrideWithValue(AndroidMediaIndexer()),
       mediaPermissionImplProvider.overrideWithValue(PermissionHandlerMediaPermission()),
       subtitleFinderProvider.overrideWithValue(AndroidSubtitleFinder()),
+      mediaSessionProvider.overrideWithValue(AndroidMediaSessionBridge()),
     ],
     child: const KivoApp(),
   ));

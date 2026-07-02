@@ -10,6 +10,7 @@ import '../../player/control/player_controller.dart';
 import '../../platform/frame_extractor_provider.dart';
 import '../../platform/interfaces/frame_extractor.dart';
 import '../../platform/subtitle_finder_provider.dart';
+import '../../player/background/audio_only.dart';
 import '../../player/engine/playback_engine.dart';
 import '../../player/engine/playback_provider.dart';
 import '../../player/library/played.dart';
@@ -17,6 +18,7 @@ import '../../player/open/video_source.dart';
 import '../../player/resume/resume_plan.dart';
 import '../../player/resume/resume_service.dart';
 import '../../player/tracks/track_selection.dart';
+import 'audio_only/audio_only_view.dart';
 import 'controls/controls_overlay.dart';
 import 'controls/flash_overlay.dart';
 import 'controls/info_overlay.dart';
@@ -48,6 +50,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   late final PlaybackEngine _engine;
   late final ResumeService _resume;
   late final FrameExtractor _frames;
+  late final AudioOnlyNotifier _audioOnly;
   StreamSubscription<double>? _sysVolSub;
   Timer? _saveTimer;
 
@@ -58,6 +61,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _engine = ref.read(playbackEngineProvider);
     _resume = ref.read(resumeServiceProvider);
     _frames = ref.read(frameExtractorProvider);
+    _audioOnly = ref.read(audioOnlyProvider.notifier);
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Force portrait on every fresh entry — a manual rotation left over
@@ -90,9 +94,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
       _saveProgress();
-    }
-    if (state == AppLifecycleState.paused) {
-      _engine.pause(); // no background playback in Hito 1
     }
   }
 
@@ -233,6 +234,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     WidgetsBinding.instance.removeObserver(this);
     _saveProgress(); // best-effort for in-app pop
     _engine.pause(); // stop audio when leaving the player (engine is a singleton)
+    _audioOnly.disable(); // reset "Solo audio" so it never carries over to the next open
     _frames.release(); // release native frame-extractor resources (cached; never via ref)
     _deviceControls.setOrientation([DeviceOrientationLock.auto]);
     _deviceControls.keepAwake(false);
@@ -312,6 +314,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                           ),
                         ),
                       ),
+                      const Positioned.fill(child: AudioOnlyView()),
                       const Positioned.fill(child: PlayerGestures(child: SizedBox.expand())),
                       const Positioned.fill(child: RippleOverlay()),
                       const Positioned.fill(child: ControlsOverlay()),
