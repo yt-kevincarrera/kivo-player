@@ -92,6 +92,29 @@ void main() {
     expect(engine.volume, 100);
   });
 
+  test('opening a new video after a dismissed warning produces a fresh cycle', () async {
+    await setUpContainer();
+    container.read(volumePercentProvider.notifier).state = 100;
+    container.read(sleepTimerProvider.notifier).startEpisode();
+    engine.emitDuration(const Duration(minutes: 10));
+    engine.emitPosition(const Duration(minutes: 9, seconds: 55));
+    await pumpStreams();
+    final cycleBefore = container.read(sleepTimerProvider)!.cycle;
+
+    // New video opens: the warning window for the new video must be a fresh
+    // cycle so a ✕ dismissal on the previous video's warning doesn't
+    // permanently suppress the toast for this one.
+    container.read(currentVideoProvider.notifier).open(
+      const VideoSession(playbackPath: '/v/ep2.mkv', displayName: 'ep2.mkv', queue: ['/v/ep2.mkv'], index: 0),
+    );
+    engine.emitDuration(const Duration(minutes: 20));
+    engine.emitPosition(Duration.zero);
+    await pumpStreams();
+    final cycleAfter = container.read(sleepTimerProvider)!.cycle;
+
+    expect(cycleAfter, isNot(cycleBefore));
+  });
+
   test('extend in episode mode cancels the timer', () async {
     await setUpContainer();
     container.read(sleepTimerProvider.notifier).startEpisode();

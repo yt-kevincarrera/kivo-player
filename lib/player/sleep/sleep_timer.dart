@@ -13,6 +13,10 @@ enum SleepTimerMode { fixed, episode }
 /// tell a fresh warning window from one the user already dismissed with ✕.
 class SleepTimerState {
   final SleepTimerMode mode;
+  /// Meaning depends on [mode]: in fixed mode this is the user-chosen
+  /// duration (what Extender restarts to); in episode mode this is the
+  /// remaining-at-engage baseline, used only as the draining meter's 100%
+  /// reference.
   final Duration original;
   final Duration remaining;
   final bool warning;
@@ -78,7 +82,14 @@ class SleepTimerNotifier extends Notifier<SleepTimerState?> {
         _stopFadeAndRestore();
         _duration = null;
         _episodeBaseline = null;
-        state = state!.copyWith(remaining: Duration.zero, warning: false);
+        _cycle++;
+        state = SleepTimerState(
+          mode: SleepTimerMode.episode,
+          original: state!.original,
+          remaining: Duration.zero,
+          warning: false,
+          cycle: _cycle,
+        );
       }
     });
     ref.onDispose(() => _ticker?.cancel());
@@ -171,6 +182,8 @@ class SleepTimerNotifier extends Notifier<SleepTimerState?> {
     _ticker?.cancel();
     _ticker = null;
     _endsAt = null;
+    _duration = null;
+    _episodeBaseline = null;
     state = null;
   }
 

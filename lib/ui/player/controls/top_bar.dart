@@ -78,8 +78,8 @@ class TopBar extends ConsumerWidget {
             onPressed: () => showAudioPicker(context, ref),
           ),
         ),
-        Builder(
-          builder: (context) {
+        Consumer(
+          builder: (context, ref, _) {
             final sleep = ref.watch(sleepTimerProvider);
             final active = sleep != null;
             return IconButton(
