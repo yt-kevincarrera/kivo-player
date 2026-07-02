@@ -5,7 +5,10 @@ import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
 import '../../../player/sleep/sleep_timer.dart';
 
-Future<void> showSleepTimerPanel(BuildContext context, WidgetRef ref) {
+/// [onBack] renders a back arrow in the header that closes this panel and
+/// runs the callback (the more-menu passes "reopen me") — sheet-to-sheet
+/// navigation without a real Navigator stack.
+Future<void> showSleepTimerPanel(BuildContext context, WidgetRef ref, {VoidCallback? onBack}) {
   return showModalBottomSheet(
     context: context,
     backgroundColor: KivoColors.panel,
@@ -13,12 +16,13 @@ Future<void> showSleepTimerPanel(BuildContext context, WidgetRef ref) {
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
     isScrollControlled: true,
-    builder: (_) => const _SleepTimerSheet(),
+    builder: (_) => _SleepTimerSheet(onBack: onBack),
   );
 }
 
 class _SleepTimerSheet extends ConsumerStatefulWidget {
-  const _SleepTimerSheet();
+  final VoidCallback? onBack;
+  const _SleepTimerSheet({this.onBack});
   @override
   ConsumerState<_SleepTimerSheet> createState() => _SleepTimerSheetState();
 }
@@ -68,6 +72,25 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
             ),
             Row(
               children: [
+                if (widget.onBack != null) ...[
+                  InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      widget.onBack!();
+                    },
+                    child: Container(
+                      width: 26,
+                      height: 26,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.arrow_back_rounded, size: 15, color: Colors.white70),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                ],
                 const Text('Temporizador de apagado',
                     style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800)),
                 const Spacer(),

@@ -137,7 +137,21 @@ class SleepTimerNotifier extends Notifier<SleepTimerState?> {
     final s = state;
     if (s == null) return;
     if (s.mode == SleepTimerMode.fixed) {
-      startFixed(s.original);
+      // Additive: "Extender +30" adds the original duration on top of what's
+      // left, rather than restarting the clock (extending twice mid-run must
+      // never shorten the timer).
+      final endsAt = _endsAt;
+      if (endsAt == null) return;
+      _endsAt = endsAt.add(s.original);
+      _stopFadeAndRestore();
+      _cycle++;
+      state = SleepTimerState(
+        mode: SleepTimerMode.fixed,
+        original: s.original,
+        remaining: _endsAt!.difference(_now),
+        warning: false,
+        cycle: _cycle,
+      );
     } else {
       cancel();
     }

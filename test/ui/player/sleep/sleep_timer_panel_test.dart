@@ -51,6 +51,23 @@ void main() {
     expect(find.textContaining('Iniciar ·'), findsOneWidget);
   });
 
+  testWidgets('the panel back arrow returns to the more menu', (tester) async {
+    await _pump(tester, viaMenu: true);
+    await tester.tap(find.text('Temporizador de apagado'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Iniciar ·'), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.arrow_back_rounded));
+    await tester.pumpAndSettle();
+    // Back in the menu: the timer entry row is visible again, the panel is gone.
+    expect(find.text('Detener la reproducción automáticamente'), findsOneWidget);
+    expect(find.textContaining('Iniciar ·'), findsNothing);
+  });
+
+  testWidgets('opened directly (no onBack) the panel shows no back arrow', (tester) async {
+    await _pump(tester, viaMenu: false);
+    expect(find.byIcon(Icons.arrow_back_rounded), findsNothing);
+  });
+
   testWidgets('stepper adjusts minutes and the start button label follows', (tester) async {
     await _pump(tester, viaMenu: false);
     expect(find.text('Iniciar · 30 min'), findsOneWidget); // default from settings

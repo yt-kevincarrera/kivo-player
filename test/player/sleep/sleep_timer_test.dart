@@ -83,7 +83,7 @@ void main() {
     });
   });
 
-  test('extend restarts the original duration and restores volume', () async {
+  test('extend ADDS the original duration to the remaining time and restores volume', () async {
     now = DateTime(2026, 1, 1, 22, 0, 0);
     container = await makeContainer();
     fakeAsync((async) {
@@ -92,13 +92,21 @@ void main() {
       n.startFixed(const Duration(minutes: 30));
       now = now.add(const Duration(minutes: 29, seconds: 55));
       async.elapse(const Duration(milliseconds: 300));
-      expect(container.read(sleepTimerProvider)!.warning, true);
+      final before = container.read(sleepTimerProvider)!;
+      expect(before.warning, true);
       n.extend();
       final st = container.read(sleepTimerProvider)!;
       expect(st.warning, false);
-      expect(st.remaining, const Duration(minutes: 30));
-      expect(st.cycle, greaterThan(0)); // new cycle → toast reappears next time
+      // Additive: ~5s were left, +30 min → just over 30 min, NOT a restart to 30.
+      expect(st.remaining, const Duration(minutes: 30, seconds: 5));
+      expect(st.original, const Duration(minutes: 30)); // preset unchanged
+      expect(st.cycle, greaterThan(before.cycle)); // new cycle → toast reappears next time
       expect(engine.volume, 100);
+
+      // Extending twice mid-run must never shorten the timer.
+      n.extend();
+      expect(container.read(sleepTimerProvider)!.remaining,
+          const Duration(minutes: 60, seconds: 5));
     });
   });
 

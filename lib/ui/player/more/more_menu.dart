@@ -36,7 +36,8 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
               subtitle: 'Detener la reproducción automáticamente',
               onTap: () {
                 Navigator.of(sheetContext).pop();
-                showSleepTimerPanel(context, ref);
+                showSleepTimerPanel(context, ref,
+                    onBack: () => showMoreMenu(context, ref));
               },
             ),
           ],
