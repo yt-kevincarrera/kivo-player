@@ -13,13 +13,16 @@ import '../../player/control/player_controller.dart';
 import '../../platform/frame_extractor_provider.dart';
 import '../../platform/interfaces/frame_extractor.dart';
 import '../../platform/subtitle_finder_provider.dart';
+import '../../player/autoplay/autoplay_logic.dart';
 import '../../player/background/audio_only.dart';
 import '../../player/engine/playback_engine.dart';
 import '../../player/engine/playback_provider.dart';
 import '../../player/library/played.dart';
+import '../../player/loop/ab_loop.dart';
 import '../../player/open/video_source.dart';
 import '../../player/resume/resume_plan.dart';
 import '../../player/resume/resume_service.dart';
+import '../../player/sleep/sleep_timer.dart';
 import '../../player/tracks/track_selection.dart';
 import 'audio_only/audio_only_view.dart';
 import 'controls/controls_overlay.dart';
@@ -32,6 +35,7 @@ import 'hud/hud_overlay.dart';
 import 'sleep/sleep_warning_toast.dart';
 import 'speed/speed_ladder_overlay.dart';
 import 'state/aspect_state.dart';
+import 'state/autoplay_state.dart';
 import 'state/dismiss_state.dart';
 import 'state/hud_state.dart';
 import 'state/mini_player_state.dart';
@@ -141,19 +145,30 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     // after the previous screen was disposed would have been dropped by its
     // mounted-guard, leaving this app-scoped flag stuck true → overlays hidden.
     ref.read(pipModeProvider.notifier).state = false;
+    // A fresh entry must never carry over a pending/confirmed autoplay from
+    // whatever the previous session was doing.
+    ref.read(autoplayPendingProvider.notifier).state = null;
+    ref.read(autoplayConfirmProvider.notifier).state = false;
+    await _openSession(session, expandingFromMini: expandingFromMini);
+    _deviceControls.currentVolume().then((v) {
+      if (mounted) ref.read(volumePercentProvider.notifier).state = (v * 100).clamp(0, 100);
+    });
+    final remembered = ref.read(rateProvider);
+    ref.read(playerControllerProvider).setRate(
+      ref.read(settingsProvider).rememberSpeed ? remembered : 1.0,
+    );
+  }
+
+  Future<void> _openSession(VideoSession session, {required bool expandingFromMini}) async {
     final engine = ref.read(playbackEngineProvider);
     _resumeKey = session.resumeKey;
     ref.read(playedStoreProvider).markPlayed(_resumeKey!);
-
     final c = engine.createVideoController();
     if (c is VideoController) {
       _controller = c;
       setState(() {});
     }
-    if (expandingFromMini) {
-      // Reconnect to the already-open, already-playing session as-is — do
-      // not reopen the file or seek.
-    } else {
+    if (!expandingFromMini) {
       final plan = planResume(
           _resume.positionFor(_resumeKey!), ref.read(settingsProvider).resumeBehavior);
       await engine.open(session.playbackPath, startAt: plan.startAt);
@@ -168,18 +183,45 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       textColorArgb: settings.subtitleTextColor,
       backgroundColorArgb: settings.subtitleBackgroundColor,
     );
-    if (!expandingFromMini) {
-      _applyDefaultTracks(engine, settings, session);
-    }
-    _deviceControls.currentVolume().then((v) {
-      if (mounted) ref.read(volumePercentProvider.notifier).state = (v * 100).clamp(0, 100);
-    });
-    _frames.prepare(session.playbackPath); // fire-and-forget; no await to keep UI responsive
-    final remembered = ref.read(rateProvider);
-    ref.read(playerControllerProvider).setRate(
-      ref.read(settingsProvider).rememberSpeed ? remembered : 1.0,
-    );
+    if (!expandingFromMini) _applyDefaultTracks(engine, settings, session);
+    _frames.prepare(session.playbackPath);
     _armPip();
+  }
+
+  void _onCompleted() {
+    final loopActive = ref.read(abLoopProvider)?.phase == AbLoopPhase.active;
+    final sleepStop = sleepStopsHere(ref.read(sleepTimerProvider));
+    final next = ref.read(currentVideoProvider.notifier).peekNext();
+    final go = shouldAutoplay(
+      enabled: ref.read(settingsProvider).autoplayNext,
+      hasNext: next != null,
+      loopActive: loopActive,
+      sleepStopsHere: sleepStop,
+    );
+    if (!go) {
+      // Sleep timer's N-episodes / episode mode reaching its stop: pause + end
+      // the timer so the video rests at its end (matches the timer's intent).
+      if (sleepStop && next != null && ref.read(settingsProvider).autoplayNext && !loopActive) {
+        _engine.pause();
+        ref.read(sleepTimerProvider.notifier).cancel();
+      }
+      return;
+    }
+    // Foreground fullscreen → countdown overlay; background/PiP → advance now.
+    final foreground = WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
+    if (foreground) {
+      ref.read(autoplayPendingProvider.notifier).state = next;
+    } else {
+      _advance(next!);
+    }
+  }
+
+  void _advance(VideoSession next) {
+    ref.read(autoplayPendingProvider.notifier).state = null;
+    ref.read(autoplayConfirmProvider.notifier).state = false;
+    ref.read(sleepTimerProvider.notifier).onAutoplayAdvance();
+    ref.read(currentVideoProvider.notifier).advanceTo(next);
+    _openSession(next, expandingFromMini: false);
   }
 
   ({int width, int height}) get _pipSize => _engine.videoSize ?? (width: 16, height: 9);
@@ -306,6 +348,13 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       } else if (next == 0) {
         _previewCaptured = false;
       }
+    });
+    ref.listen(completedProvider, (_, next) {
+      if (next.value == true) _onCompleted();
+    });
+    ref.listen(autoplayConfirmProvider, (_, next) {
+      final pending = ref.read(autoplayPendingProvider);
+      if (next && pending != null) _advance(pending);
     });
 
     return PopScope(
