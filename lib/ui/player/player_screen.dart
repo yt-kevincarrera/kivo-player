@@ -310,6 +310,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                                     controller: _controller!,
                                     controls: NoVideoControls, // Kivo draws its own controls; this also kills media_kit's buffering spinner
                                     fit: boxFitFor(ref.watch(aspectModeProvider)),
+                                    // 3e: the widget's own lifecycle handler pauses on
+                                    // app-background by default, silently defeating
+                                    // background playback.
+                                    pauseUponEnteringBackgroundMode: false,
                                   ),
                           ),
                         ),

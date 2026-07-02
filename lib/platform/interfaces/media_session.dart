@@ -34,8 +34,11 @@ abstract class MediaSessionBridge {
   /// Pushed on every playing-state change, every new position second while
   /// relevant, and every lifecycle change. Native decides from [playing] +
   /// [inBackground] whether a foreground service/notification must exist.
+  /// [mediaUri] lets the native side load the video's thumbnail itself for
+  /// the notification artwork (content:// or file path; cached per uri).
   Future<void> updateSession({
     required String title,
+    required String mediaUri,
     required Duration position,
     required Duration duration,
     required bool playing,

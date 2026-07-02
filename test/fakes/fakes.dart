@@ -226,6 +226,7 @@ class FakeMediaSessionBridge implements MediaSessionBridge {
   @override
   Future<void> updateSession({
     required String title,
+    required String mediaUri,
     required Duration position,
     required Duration duration,
     required bool playing,
@@ -233,6 +234,7 @@ class FakeMediaSessionBridge implements MediaSessionBridge {
   }) async {
     updates.add({
       'title': title,
+      'mediaUri': mediaUri,
       'position': position,
       'duration': duration,
       'playing': playing,

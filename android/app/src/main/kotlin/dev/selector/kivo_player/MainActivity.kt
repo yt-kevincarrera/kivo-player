@@ -296,6 +296,7 @@ class MainActivity : FlutterActivity() {
                     PlaybackSessionHub.update(
                         applicationContext,
                         call.argument<String>("title") ?: "Kivo",
+                        call.argument<String>("mediaUri") ?: "",
                         (call.argument<Number>("positionMs") ?: 0).toLong(),
                         (call.argument<Number>("durationMs") ?: 0).toLong(),
                         call.argument<Boolean>("playing") ?: false,

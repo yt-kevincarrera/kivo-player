@@ -108,9 +108,10 @@ class BackgroundPlaybackCoordinator with WidgetsBindingObserver {
     if (shouldHaveSession && !_sessionActive) {
       _sessionActive = true;
     }
-    final title = _ref.read(currentVideoProvider)?.displayName ?? 'Kivo';
+    final session = _ref.read(currentVideoProvider);
     _bridge.updateSession(
-      title: title,
+      title: session?.displayName ?? 'Kivo',
+      mediaUri: session?.playbackPath ?? '',
       position: _position,
       duration: _duration,
       playing: _playing,

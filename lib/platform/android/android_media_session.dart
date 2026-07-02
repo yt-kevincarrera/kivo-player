@@ -51,6 +51,7 @@ class AndroidMediaSessionBridge implements MediaSessionBridge {
   @override
   Future<void> updateSession({
     required String title,
+    required String mediaUri,
     required Duration position,
     required Duration duration,
     required bool playing,
@@ -58,6 +59,7 @@ class AndroidMediaSessionBridge implements MediaSessionBridge {
   }) {
     return _channel.invokeMethod('update', {
       'title': title,
+      'mediaUri': mediaUri,
       'positionMs': position.inMilliseconds,
       'durationMs': duration.inMilliseconds,
       'playing': playing,

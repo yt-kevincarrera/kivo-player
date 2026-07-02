@@ -7,6 +7,9 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.media.MediaMetadataRetriever
+import android.net.Uri
 import android.os.Build
 import android.os.IBinder
 import android.support.v4.media.MediaMetadataCompat
@@ -14,6 +17,7 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.core.app.NotificationCompat
 import androidx.media.session.MediaButtonReceiver
+import java.util.concurrent.Executors
 
 /**
  * Foreground mediaPlayback service: owns the MediaSessionCompat and the
@@ -51,6 +55,12 @@ class PlaybackSessionService : Service() {
 
     private var session: MediaSessionCompat? = null
 
+    // Notification artwork: the video's own thumbnail, loaded off the main
+    // thread and cached per media uri.
+    private val artExecutor = Executors.newSingleThreadExecutor()
+    @Volatile private var artUri: String? = null
+    @Volatile private var artBitmap: Bitmap? = null
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
@@ -83,16 +93,48 @@ class PlaybackSessionService : Service() {
         session?.release()
         session = null
         instance = null
+        artExecutor.shutdown()
         super.onDestroy()
+    }
+
+    private fun ensureArtwork() {
+        val uri = PlaybackSessionHub.mediaUri
+        if (uri.isEmpty() || uri == artUri) return
+        artUri = uri
+        artBitmap = null
+        artExecutor.submit {
+            val bmp = try {
+                val r = MediaMetadataRetriever()
+                try {
+                    if (uri.startsWith("content://")) {
+                        r.setDataSource(this, Uri.parse(uri))
+                    } else {
+                        r.setDataSource(uri)
+                    }
+                    r.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                } finally {
+                    r.release()
+                }
+            } catch (_: Exception) {
+                null
+            }
+            // Only publish if the uri is still current, then repaint.
+            if (artUri == uri) {
+                artBitmap = bmp
+                PlaybackSessionHub.runOnMain { updateFromHub() }
+            }
+        }
     }
 
     fun updateFromHub() {
         val s = session ?: return
+        ensureArtwork()
         val playing = PlaybackSessionHub.playing
         s.setMetadata(
             MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, PlaybackSessionHub.title)
                 .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, PlaybackSessionHub.durationMs)
+                .apply { artBitmap?.let { putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, it) } }
                 .build()
         )
         s.setPlaybackState(
@@ -140,7 +182,8 @@ class PlaybackSessionService : Service() {
             this, PlaybackStateCompat.ACTION_STOP
         )
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_media_play)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setLargeIcon(artBitmap)
             .setContentTitle(PlaybackSessionHub.title)
             .setContentText(if (playing) "Reproduciendo" else "En pausa")
             .setContentIntent(contentIntent)

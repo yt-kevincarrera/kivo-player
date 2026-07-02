@@ -20,6 +20,7 @@ object PlaybackSessionHub {
 
     // Latest state pushed from Dart.
     @Volatile var title: String = "Kivo"
+    @Volatile var mediaUri: String = ""
     @Volatile var positionMs: Long = 0
     @Volatile var durationMs: Long = 0
     @Volatile var playing: Boolean = false
@@ -31,8 +32,13 @@ object PlaybackSessionHub {
         mainHandler.post { channel?.invokeMethod(method, args) }
     }
 
-    fun update(context: Context, title: String, positionMs: Long, durationMs: Long, playing: Boolean, inBackground: Boolean) {
+    fun runOnMain(block: () -> Unit) {
+        mainHandler.post(block)
+    }
+
+    fun update(context: Context, title: String, mediaUri: String, positionMs: Long, durationMs: Long, playing: Boolean, inBackground: Boolean) {
         this.title = title
+        this.mediaUri = mediaUri
         this.positionMs = positionMs
         this.durationMs = durationMs
         this.playing = playing
