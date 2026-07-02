@@ -161,14 +161,18 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures>
     final velocityY = d.primaryVelocity ?? 0;
     final commit = progress >= 0.25 || velocityY > 700;
     if (commit) {
-      // Animate to 1 then pop.
+      // Animate the slide-down to completion, then minimize. We deliberately
+      // do NOT reset dismissProgress to 0 here: maybePop()'s work is async
+      // (pause → save → freeze-frame capture → pop), so resetting now would
+      // snap the player back to fullscreen — showing the paused frame — for
+      // the whole capture before the route actually pops. Leaving it at 1.0
+      // keeps the player off-screen through the capture; the next open resets
+      // dismissProgress in PlayerScreen._start(). (PlayerScreen is never the
+      // root route, so the pop always succeeds — no stranded-off-screen case.)
       _dismissAnim.value = progress;
       _dismissAnim.animateTo(1.0).then((_) {
         if (!mounted) return;
         Navigator.of(context).maybePop();
-        // If the pop was blocked (root route), don't leave the player stranded
-        // off-screen; reset so it snaps back into view.
-        ref.read(dismissProvider.notifier).state = 0;
       });
     } else {
       // Snap back to 0.
