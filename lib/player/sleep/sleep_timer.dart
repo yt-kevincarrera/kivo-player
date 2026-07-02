@@ -4,6 +4,7 @@ import '../../core/settings/settings_provider.dart';
 import '../control/gesture_math.dart';
 import '../control/player_controller.dart';
 import '../engine/playback_provider.dart';
+import '../open/video_source.dart';
 
 enum SleepTimerMode { fixed, episode }
 
@@ -47,6 +48,9 @@ class SleepTimerNotifier extends Notifier<SleepTimerState?> {
   DateTime? _endsAt; // fixed mode only
   int _cycle = 0;
 
+  Duration? _duration;        // last known video duration
+  Duration? _episodeBaseline; // remaining when episode mode engaged (meter 100%)
+
   // Fade bookkeeping. The fade multiplies the player volume the user actually
   // has (mapped through volumeMapping, system volume untouched); a manual
   // volume change mid-fade cancels the fade silently — clear awake signal.
@@ -58,6 +62,24 @@ class SleepTimerNotifier extends Notifier<SleepTimerState?> {
   SleepTimerState? build() {
     ref.listen(volumePercentProvider, (prev, next) {
       if (_fading) _fadeCancelled = true;
+    });
+    ref.listen(positionProvider, (prev, next) {
+      final pos = next.value;
+      if (pos != null) _onPosition(pos);
+    });
+    ref.listen(durationProvider, (prev, next) {
+      final dur = next.value;
+      if (dur != null) _duration = dur;
+    });
+    ref.listen(currentVideoProvider, (prev, next) {
+      // New video while episode mode is active: re-apply to the new video —
+      // reset the warning/fade so the countdown restarts from its length.
+      if (state?.mode == SleepTimerMode.episode && prev != next) {
+        _stopFadeAndRestore();
+        _duration = null;
+        _episodeBaseline = null;
+        state = state!.copyWith(remaining: Duration.zero, warning: false);
+      }
     });
     ref.onDispose(() => _ticker?.cancel());
     return null;
@@ -86,10 +108,9 @@ class SleepTimerNotifier extends Notifier<SleepTimerState?> {
     _startTicker();
   }
 
-  /// Episode mode is completed in the next task (position/duration tracking);
-  /// this only establishes the state shape.
   void startEpisode() {
     _endsAt = null;
+    _episodeBaseline = null;
     _stopFadeAndRestore();
     _cycle++;
     state = SleepTimerState(
@@ -116,6 +137,7 @@ class SleepTimerNotifier extends Notifier<SleepTimerState?> {
     _ticker?.cancel();
     _ticker = null;
     _endsAt = null;
+    _episodeBaseline = null;
     state = null;
   }
 
@@ -150,6 +172,33 @@ class SleepTimerNotifier extends Notifier<SleepTimerState?> {
     _ticker = null;
     _endsAt = null;
     state = null;
+  }
+
+  void _onPosition(Duration pos) {
+    final s = state;
+    final dur = _duration;
+    if (s == null || s.mode != SleepTimerMode.episode || dur == null || dur == Duration.zero) {
+      return;
+    }
+    final remaining = dur - pos;
+    if (remaining <= const Duration(milliseconds: 300)) {
+      // Video reached its natural end. pause() is a safety belt — with no
+      // autoplay the engine stops on the last frame anyway.
+      _fire();
+      return;
+    }
+    _episodeBaseline ??= remaining;
+    final warning = remaining <= warningWindow;
+    if (warning) _applyFade(remaining);
+    if (warning != s.warning || remaining.inSeconds != s.remaining.inSeconds) {
+      state = SleepTimerState(
+        mode: SleepTimerMode.episode,
+        original: _episodeBaseline!,
+        remaining: remaining,
+        warning: warning,
+        cycle: s.cycle,
+      );
+    }
   }
 
   void _applyFade(Duration remaining) {
