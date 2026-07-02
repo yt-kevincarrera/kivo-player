@@ -71,14 +71,14 @@ void main() {
   testWidgets('stepper adjusts minutes and the start button label follows', (tester) async {
     await _pump(tester, viaMenu: false);
     expect(find.text('Iniciar · 30 min'), findsOneWidget); // default from settings
-    await tester.tap(find.text('+'));
+    await tester.tap(find.text('+').first); // the duration stepper, not the episodes-card one
     await tester.pump();
     expect(find.text('Iniciar · 35 min'), findsOneWidget);
   });
 
   testWidgets('starting a fixed timer activates the provider and persists the minutes', (tester) async {
     final c = await _pump(tester, viaMenu: false);
-    await tester.tap(find.text('+')); // 35
+    await tester.tap(find.text('+').first); // 35
     await tester.pump();
     await tester.tap(find.text('Iniciar · 35 min'));
     await tester.pumpAndSettle();
@@ -97,6 +97,24 @@ void main() {
     await tester.tap(find.text('Iniciar · Al terminar el episodio'));
     await tester.pumpAndSettle();
     expect(c.read(sleepTimerProvider)!.mode, SleepTimerMode.episode);
+  });
+
+  testWidgets('episodes card selects episodes mode, stepper adjusts count, and starts it',
+      (tester) async {
+    final c = await _pump(tester, viaMenu: false);
+    await tester.tap(find.text('Tras N episodios'));
+    await tester.pump();
+    expect(find.text('Iniciar · Tras 3 episodios'), findsOneWidget); // default
+    await tester.tap(find.text('+').last); // the episodes-card stepper, not the duration one
+    await tester.pump();
+    expect(find.text('Iniciar · Tras 4 episodios'), findsOneWidget);
+    await tester.tap(find.text('Iniciar · Tras 4 episodios'));
+    await tester.pumpAndSettle();
+    final st = c.read(sleepTimerProvider);
+    expect(st, isNotNull);
+    expect(st!.mode, SleepTimerMode.episodes);
+    expect(st.episodesLeft, 4);
+    c.read(sleepTimerProvider.notifier).cancel();
   });
 
   testWidgets('active view shows countdown and Desactivar cancels', (tester) async {

@@ -30,6 +30,8 @@ class _SleepTimerSheet extends ConsumerStatefulWidget {
 class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
   late int _minutes; // 5..120
   bool _episodeSelected = false;
+  bool _episodesSelected = false;
+  int _episodes = 3; // 1..10
 
   @override
   void initState() {
@@ -39,7 +41,9 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
 
   void _start() {
     final n = ref.read(sleepTimerProvider.notifier);
-    if (_episodeSelected) {
+    if (_episodesSelected) {
+      n.startEpisodes(_episodes);
+    } else if (_episodeSelected) {
       n.startEpisode();
     } else {
       n.startFixed(Duration(minutes: _minutes));
@@ -118,6 +122,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
   }
 
   List<Widget> _selectorChildren() {
+    final durationActive = !_episodeSelected && !_episodesSelected;
     return [
       const _Eyebrow('Duración'),
       Row(
@@ -126,12 +131,13 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
           _StepButton(label: '−', onTap: () => setState(() {
             _minutes = (_minutes - 5).clamp(5, 120);
             _episodeSelected = false;
+            _episodesSelected = false;
           })),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text('$_minutes min',
                 style: TextStyle(
-                  color: _episodeSelected ? Colors.white38 : KivoColors.gold,
+                  color: durationActive ? KivoColors.gold : Colors.white38,
                   fontSize: 34,
                   fontWeight: FontWeight.w800,
                   fontFeatures: const [FontFeature.tabularFigures()],
@@ -140,25 +146,53 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
           _StepButton(label: '+', onTap: () => setState(() {
             _minutes = (_minutes + 5).clamp(5, 120);
             _episodeSelected = false;
+            _episodesSelected = false;
           })),
         ],
       ),
       const SizedBox(height: 8),
       _SegmentMeter(
-        litFraction: _episodeSelected ? 0 : _minutes / 120,
+        litFraction: durationActive ? _minutes / 120 : 0,
         onSegmentTap: (i) => setState(() {
           _minutes = (i + 1) * 15;
           _episodeSelected = false;
+          _episodesSelected = false;
         }),
       ),
       const _Eyebrow('O bien'),
       _EpisodeCard(
         selected: _episodeSelected,
-        onTap: () => setState(() => _episodeSelected = !_episodeSelected),
+        onTap: () => setState(() {
+          _episodeSelected = !_episodeSelected;
+          _episodesSelected = false;
+        }),
+      ),
+      const SizedBox(height: 10),
+      _EpisodesCountCard(
+        selected: _episodesSelected,
+        episodes: _episodes,
+        onTap: () => setState(() {
+          _episodesSelected = !_episodesSelected;
+          _episodeSelected = false;
+        }),
+        onDecrement: () => setState(() {
+          _episodes = (_episodes - 1).clamp(1, 10);
+          _episodesSelected = true;
+          _episodeSelected = false;
+        }),
+        onIncrement: () => setState(() {
+          _episodes = (_episodes + 1).clamp(1, 10);
+          _episodesSelected = true;
+          _episodeSelected = false;
+        }),
       ),
       const SizedBox(height: 12),
       _PrimaryButton(
-        label: _episodeSelected ? 'Iniciar · Al terminar el episodio' : 'Iniciar · $_minutes min',
+        label: _episodesSelected
+            ? 'Iniciar · Tras $_episodes episodios'
+            : _episodeSelected
+                ? 'Iniciar · Al terminar el episodio'
+                : 'Iniciar · $_minutes min',
         onTap: _start,
       ),
     ];
@@ -170,13 +204,21 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
     return [
       const SizedBox(height: 4),
       Center(
-        child: Text(fmtDuration(st.remaining),
-            style: const TextStyle(
-              color: KivoColors.gold,
-              fontSize: 34,
-              fontWeight: FontWeight.w800,
-              fontFeatures: [FontFeature.tabularFigures()],
-            )),
+        child: st.mode == SleepTimerMode.episodes
+            ? Text('${st.episodesLeft}',
+                style: const TextStyle(
+                  color: KivoColors.gold,
+                  fontSize: 34,
+                  fontWeight: FontWeight.w800,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ))
+            : Text(fmtDuration(st.remaining),
+                style: const TextStyle(
+                  color: KivoColors.gold,
+                  fontSize: 34,
+                  fontWeight: FontWeight.w800,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                )),
       ),
       Center(
         child: Padding(
@@ -184,7 +226,9 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
           child: Text(
             st.mode == SleepTimerMode.fixed
                 ? 'restante · de ${st.original.inMinutes} min'
-                : 'hasta el final del episodio',
+                : st.mode == SleepTimerMode.episodes
+                    ? (st.episodesLeft == 1 ? 'episodio restante' : 'episodios restantes')
+                    : 'hasta el final del episodio',
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.42),
               fontSize: 10,
@@ -194,7 +238,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
           ),
         ),
       ),
-      _SegmentMeter(litFraction: frac, onSegmentTap: null),
+      if (st.mode != SleepTimerMode.episodes) _SegmentMeter(litFraction: frac, onSegmentTap: null),
       const SizedBox(height: 14),
       if (st.mode == SleepTimerMode.fixed)
         Row(
@@ -361,6 +405,85 @@ class _EpisodeCard extends StatelessWidget {
               ),
             ),
             if (selected) const Icon(Icons.check_rounded, size: 18, color: KivoColors.gold),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EpisodesCountCard extends StatelessWidget {
+  final bool selected;
+  final int episodes;
+  final VoidCallback onTap;
+  final VoidCallback onDecrement;
+  final VoidCallback onIncrement;
+  const _EpisodesCountCard({
+    required this.selected,
+    required this.episodes,
+    required this.onTap,
+    required this.onDecrement,
+    required this.onIncrement,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(13),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: selected ? KivoColors.gold.withValues(alpha: 0.16) : const Color(0xFF182036),
+          borderRadius: BorderRadius.circular(13),
+          border: Border.all(
+              color: selected ? KivoColors.gold.withValues(alpha: 0.5) : Colors.transparent),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                color: selected
+                    ? KivoColors.gold.withValues(alpha: 0.16)
+                    : Colors.white.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(9),
+              ),
+              child: Icon(Icons.playlist_play_rounded,
+                  size: 16, color: selected ? KivoColors.gold : Colors.white70),
+            ),
+            const SizedBox(width: 11),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Tras N episodios',
+                      style: TextStyle(
+                        color: selected ? KivoColors.gold : Colors.white,
+                        fontSize: 13,
+                        fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                      )),
+                  const SizedBox(height: 1),
+                  Text('Deja correr el autoplay y detiene',
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.42), fontSize: 11)),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            _StepButton(label: '−', onTap: onDecrement),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text('$episodes',
+                  style: TextStyle(
+                    color: selected ? KivoColors.gold : Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  )),
+            ),
+            _StepButton(label: '+', onTap: onIncrement),
           ],
         ),
       ),

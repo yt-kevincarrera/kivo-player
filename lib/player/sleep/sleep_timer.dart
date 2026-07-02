@@ -6,7 +6,7 @@ import '../control/player_controller.dart';
 import '../engine/playback_provider.dart';
 import '../open/video_source.dart';
 
-enum SleepTimerMode { fixed, episode }
+enum SleepTimerMode { fixed, episode, episodes }
 
 /// Immutable snapshot of the running sleep timer. `null` provider state means
 /// no timer. [cycle] increments on every (re)start so the warning toast can
@@ -21,21 +21,36 @@ class SleepTimerState {
   final Duration remaining;
   final bool warning;
   final int cycle;
+  /// Episodes left in `episodes` mode; 0 when N/A (fixed/episode modes).
+  final int episodesLeft;
   const SleepTimerState({
     required this.mode,
     required this.original,
     required this.remaining,
     required this.warning,
     required this.cycle,
+    this.episodesLeft = 0,
   });
 
-  SleepTimerState copyWith({Duration? remaining, bool? warning}) => SleepTimerState(
+  SleepTimerState copyWith({Duration? remaining, bool? warning, int? episodesLeft}) =>
+      SleepTimerState(
         mode: mode,
         original: original,
         remaining: remaining ?? this.remaining,
         warning: warning ?? this.warning,
         cycle: cycle,
+        episodesLeft: episodesLeft ?? this.episodesLeft,
       );
+}
+
+/// True when a video ending should STOP rather than autoplay-advance,
+/// because of the sleep timer: episode mode (stop at this end) or the last
+/// of an N-episodes countdown.
+bool sleepStopsHere(SleepTimerState? s) {
+  if (s == null) return false;
+  if (s.mode == SleepTimerMode.episode) return true;
+  if (s.mode == SleepTimerMode.episodes) return s.episodesLeft <= 1;
+  return false;
 }
 
 /// Injectable clock so tests can control wall-time.
@@ -130,6 +145,37 @@ class SleepTimerNotifier extends Notifier<SleepTimerState?> {
       remaining: Duration.zero,
       warning: false,
       cycle: _cycle,
+    );
+  }
+
+  void startEpisodes(int n) {
+    _endsAt = null;
+    _episodeBaseline = null;
+    _stopFadeAndRestore();
+    _cycle++;
+    state = SleepTimerState(
+      mode: SleepTimerMode.episodes,
+      original: Duration.zero,
+      remaining: Duration.zero,
+      warning: false,
+      cycle: _cycle,
+      episodesLeft: n.clamp(1, 10),
+    );
+  }
+
+  /// Called by autoplay each time it advances to the next video. In
+  /// `episodes` mode, decrement; the caller checks `sleepStopsHere` BEFORE
+  /// advancing, so this only runs when an advance is actually allowed.
+  void onAutoplayAdvance() {
+    final s = state;
+    if (s == null || s.mode != SleepTimerMode.episodes) return;
+    state = SleepTimerState(
+      mode: SleepTimerMode.episodes,
+      original: s.original,
+      remaining: s.remaining,
+      warning: s.warning,
+      cycle: s.cycle,
+      episodesLeft: (s.episodesLeft - 1).clamp(0, 10),
     );
   }
 
