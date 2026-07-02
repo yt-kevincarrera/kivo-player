@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/settings/kivo_settings.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
 import '../../../platform/interfaces/subtitle_finder.dart';
@@ -52,50 +53,70 @@ class _TrackPickerSheetState extends ConsumerState<_TrackPickerSheet> {
     final session = ref.watch(currentVideoProvider);
     final showStyle = widget.isSubtitles && _styleTab;
 
+    final header = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Center(child: _Grabber()),
+        _SheetHeader(title: widget.isSubtitles ? 'Subtítulos' : 'Audio'),
+        if (widget.isSubtitles) ...[
+          const SizedBox(height: 4),
+          _TabBar(
+            value: _styleTab,
+            onChanged: (v) => setState(() => _styleTab = v),
+          ),
+          const SizedBox(height: 4),
+        ] else
+          const SizedBox(height: 10),
+      ],
+    );
+
+    final body = showStyle
+        ? const _StyleSection()
+        : StreamBuilder<List<MediaTrack>>(
+            stream: widget.isSubtitles ? engine.subtitleTracksStream : engine.audioTracksStream,
+            builder: (context, tracksSnap) {
+              final tracks = tracksSnap.data ?? const <MediaTrack>[];
+              return StreamBuilder<MediaTrack?>(
+                stream: widget.isSubtitles
+                    ? engine.currentSubtitleTrackStream
+                    : engine.currentAudioTrackStream,
+                builder: (context, currentSnap) {
+                  final current = currentSnap.data;
+                  return _TracksSection(
+                    isSubtitles: widget.isSubtitles,
+                    tracks: tracks,
+                    current: current,
+                    session: session,
+                    engine: engine,
+                  );
+                },
+              );
+            },
+          );
+
+    // Subtitles switch between two tabs of differing content height — a
+    // fixed sheet height with the body scrolling inside it keeps the sheet
+    // itself from jumping size when the tab changes. Audio has no tabs, so
+    // it keeps the simpler wrap-content sizing.
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Center(child: _Grabber()),
-            _SheetHeader(title: widget.isSubtitles ? 'Subtítulos' : 'Audio'),
-            if (widget.isSubtitles) ...[
-              const SizedBox(height: 4),
-              _TabBar(
-                value: _styleTab,
-                onChanged: (v) => setState(() => _styleTab = v),
+        child: widget.isSubtitles
+            ? SizedBox(
+                height: MediaQuery.of(context).size.height * 0.6,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    header,
+                    Expanded(child: SingleChildScrollView(child: body)),
+                  ],
+                ),
+              )
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [header, body],
               ),
-              const SizedBox(height: 4),
-            ] else
-              const SizedBox(height: 10),
-            if (showStyle)
-              const _StyleSection()
-            else
-              StreamBuilder<List<MediaTrack>>(
-                stream: widget.isSubtitles ? engine.subtitleTracksStream : engine.audioTracksStream,
-                builder: (context, tracksSnap) {
-                  final tracks = tracksSnap.data ?? const <MediaTrack>[];
-                  return StreamBuilder<MediaTrack?>(
-                    stream: widget.isSubtitles
-                        ? engine.currentSubtitleTrackStream
-                        : engine.currentAudioTrackStream,
-                    builder: (context, currentSnap) {
-                      final current = currentSnap.data;
-                      return _TracksSection(
-                        isSubtitles: widget.isSubtitles,
-                        tracks: tracks,
-                        current: current,
-                        session: session,
-                        engine: engine,
-                      );
-                    },
-                  );
-                },
-              ),
-          ],
-        ),
       ),
     );
   }
@@ -466,6 +487,15 @@ class _StyleSection extends ConsumerWidget {
         );
   }
 
+  void _reset(WidgetRef ref) {
+    final d = KivoSettings.defaults();
+    _apply(ref, KivoSettingsPatch(
+      fontSize: d.subtitleFontSize,
+      textColor: d.subtitleTextColor,
+      backgroundColor: d.subtitleBackgroundColor,
+    ));
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(settingsProvider);
@@ -580,6 +610,14 @@ class _StyleSection extends ConsumerWidget {
                 ),
               ),
           ],
+        ),
+        const SizedBox(height: 4),
+        Center(
+          child: TextButton(
+            style: TextButton.styleFrom(foregroundColor: KivoColors.gold),
+            onPressed: () => _reset(ref),
+            child: const Text('Restablecer estilo'),
+          ),
         ),
       ],
     );

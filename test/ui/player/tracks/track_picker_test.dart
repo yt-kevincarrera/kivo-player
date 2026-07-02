@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kivo_player/core/settings/kivo_settings.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/core/theme/kivo_theme.dart';
@@ -97,5 +98,61 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('English'), findsNothing);
     expect(find.text('Estamos cerca de encontrarlo.'), findsOneWidget);
+  });
+
+  testWidgets('Restablecer estilo resets font size and colors to defaults', (tester) async {
+    final engine = FakePlaybackEngine();
+    addTearDown(engine.dispose);
+    final s = await SettingsService.load(InMemorySettingsStore());
+    await s.update(s.current.copyWith(
+      subtitleFontSize: 40,
+      subtitleTextColor: 0xFF000000,
+      subtitleBackgroundColor: 0xFF000000,
+    ));
+    final c = ProviderContainer(overrides: [
+      settingsServiceProvider.overrideWithValue(s),
+      playbackEngineProvider.overrideWithValue(engine),
+      subtitleFinderProvider.overrideWithValue(FakeSubtitleFinder()),
+    ]);
+    addTearDown(c.dispose);
+    c.read(currentVideoProvider.notifier).open(
+      const VideoSession(playbackPath: '/v/ep1.mkv', displayName: 'ep1.mkv', queue: ['/v/ep1.mkv'], index: 0),
+    );
+
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: c,
+      child: MaterialApp(
+        theme: KivoTheme.dark(),
+        home: Scaffold(
+          body: Center(
+            child: Consumer(
+              builder: (context, ref, _) => ElevatedButton(
+                onPressed: () => showSubtitlePicker(context, ref),
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ));
+    await tester.pump();
+    await tester.tap(find.text('open'));
+    await tester.pump();
+    engine.emitSubtitleTracks(const []);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Estilo'));
+    await tester.pumpAndSettle();
+    // The style tab scrolls inside the sheet's fixed-height body — bring the
+    // reset button into view before tapping it.
+    await tester.ensureVisible(find.text('Restablecer estilo'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Restablecer estilo'));
+    await tester.pumpAndSettle();
+
+    final defaults = KivoSettings.defaults();
+    expect(c.read(settingsProvider).subtitleFontSize, defaults.subtitleFontSize);
+    expect(c.read(settingsProvider).subtitleTextColor, defaults.subtitleTextColor);
+    expect(c.read(settingsProvider).subtitleBackgroundColor, defaults.subtitleBackgroundColor);
   });
 }
