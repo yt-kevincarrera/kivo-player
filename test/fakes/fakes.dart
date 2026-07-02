@@ -73,9 +73,12 @@ class FakePlaybackEngine implements PlaybackEngine {
     _playing.add(false);
   }
 
+  int seekCount = 0;
+
   @override
   Future<void> seek(Duration p) async {
     lastSeek = p;
+    seekCount++;
     _pos.add(p);
   }
 

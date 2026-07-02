@@ -106,6 +106,28 @@ void main() {
     expect(c.read(abLoopProvider)!.phase, AbLoopPhase.active); // still looping
   });
 
+  test('position ticks still >= B while the jump is in flight do not re-seek', () async {
+    await setUpContainer();
+    final n = c.read(abLoopProvider.notifier);
+    n.begin();
+    await at(const Duration(seconds: 60));
+    n.mark();
+    await at(const Duration(seconds: 90));
+    n.mark();
+    engine.seekCount = 0;
+    // The jump's own seek echoes position A (< B), which re-arms the guard —
+    // so emit the burst of stale >= B ticks in one go before yielding.
+    engine.emitPosition(const Duration(seconds: 91));
+    engine.emitPosition(const Duration(seconds: 91, milliseconds: 250));
+    engine.emitPosition(const Duration(seconds: 91, milliseconds: 500));
+    await pump();
+    expect(engine.seekCount, 1); // one jump, not one per tick
+    // Once position drops below B (the seek echo), the guard re-arms.
+    await at(const Duration(seconds: 89));
+    await at(const Duration(seconds: 91));
+    expect(engine.seekCount, 2);
+  });
+
   test('userSeeked outside the range cancels; inside does not', () async {
     await setUpContainer();
     final n = c.read(abLoopProvider.notifier);

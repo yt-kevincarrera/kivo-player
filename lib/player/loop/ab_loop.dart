@@ -23,6 +23,7 @@ class AbLoopNotifier extends Notifier<AbLoopState?> {
 
   Duration _position = Duration.zero;
   Duration _duration = Duration.zero;
+  bool _jumpInFlight = false;
 
   @override
   AbLoopState? build() {
@@ -31,10 +32,18 @@ class AbLoopNotifier extends Notifier<AbLoopState?> {
       if (pos == null) return;
       _position = pos;
       final s = state;
-      if (s != null && s.phase == AbLoopPhase.active && pos >= s.b!) {
+      if (s == null || s.phase != AbLoopPhase.active) return;
+      if (pos >= s.b!) {
         // The loop's own jump goes straight to the engine — user seeks go
-        // through PlayerController.seekTo, which is the cancel path.
-        ref.read(playbackEngineProvider).seek(s.a!);
+        // through PlayerController.seekTo, which is the cancel path. The
+        // in-flight flag stops the ticks that arrive while the seek lands
+        // (still ≥ B) from re-issuing the same jump.
+        if (!_jumpInFlight) {
+          _jumpInFlight = true;
+          ref.read(playbackEngineProvider).seek(s.a!);
+        }
+      } else {
+        _jumpInFlight = false;
       }
     });
     ref.listen(durationProvider, (_, next) {
@@ -47,7 +56,10 @@ class AbLoopNotifier extends Notifier<AbLoopState?> {
     return null;
   }
 
-  void begin() => state = const AbLoopState(phase: AbLoopPhase.armedA);
+  void begin() {
+    _jumpInFlight = false;
+    state = const AbLoopState(phase: AbLoopPhase.armedA);
+  }
 
   void mark() {
     final s = state;
@@ -66,7 +78,10 @@ class AbLoopNotifier extends Notifier<AbLoopState?> {
     }
   }
 
-  void cancel() => state = null;
+  void cancel() {
+    _jumpInFlight = false;
+    state = null;
+  }
 
   /// Called from PlayerController.seekTo for every user-initiated seek.
   void userSeeked(Duration target) {
