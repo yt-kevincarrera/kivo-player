@@ -4,6 +4,7 @@ import '../../../core/format.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../player/control/player_controller.dart';
 import '../../../player/engine/playback_provider.dart';
+import '../loop/ab_range_layer.dart';
 import '../seek/seek_preview.dart';
 import '../state/controls_visibility.dart';
 
@@ -93,37 +94,43 @@ class _SeekBarState extends ConsumerState<SeekBar>
       children: [
         Text(fmtDuration(shownPos), style: const TextStyle(color: Colors.white, fontSize: 12)),
         Expanded(
-          child: AnimatedBuilder(
-            animation: _thumbAnim,
-            builder: (context, _) => SliderTheme(
-              data: SliderTheme.of(context).copyWith(
-                thumbShape: _GrowingThumbShape(_thumbAnim, accent),
-                overlayShape: SliderComponentShape.noOverlay,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              const Positioned.fill(child: AbRangeLayer()),
+              AnimatedBuilder(
+                animation: _thumbAnim,
+                builder: (context, _) => SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    thumbShape: _GrowingThumbShape(_thumbAnim, accent),
+                    overlayShape: SliderComponentShape.noOverlay,
+                  ),
+                  child: Slider(
+                    min: 0,
+                    max: maxMs,
+                    value: shownPos.inMilliseconds.clamp(0, maxMs.toInt()).toDouble(),
+                    activeColor: accent,
+                    inactiveColor: Colors.white24,
+                    onChanged: (v) {
+                      final d = Duration(milliseconds: v.round());
+                      ref.read(pendingSeekProvider.notifier).state = null; // new drag supersedes
+                      ref.read(scrubProvider.notifier).state = d;
+                      ref.read(controlsVisibleProvider.notifier).show();
+                      ref.read(seekPreviewControllerProvider).request(d);
+                    },
+                    onChangeEnd: (v) {
+                      final target = Duration(milliseconds: v.round());
+                      ref.read(playerControllerProvider).seekTo(target);
+                      ref.read(pendingSeekProvider.notifier).state = target; // hold slider until pos catches up
+                      ref.read(scrubProvider.notifier).state = null; // hide the bubble
+                      // Drop the last preview frame so the next scrub doesn't briefly
+                      // flash the previous position's frame before the new one loads.
+                      ref.read(seekPreviewFrameProvider.notifier).state = null;
+                    },
+                  ),
+                ),
               ),
-              child: Slider(
-                min: 0,
-                max: maxMs,
-                value: shownPos.inMilliseconds.clamp(0, maxMs.toInt()).toDouble(),
-                activeColor: accent,
-                inactiveColor: Colors.white24,
-                onChanged: (v) {
-                  final d = Duration(milliseconds: v.round());
-                  ref.read(pendingSeekProvider.notifier).state = null; // new drag supersedes
-                  ref.read(scrubProvider.notifier).state = d;
-                  ref.read(controlsVisibleProvider.notifier).show();
-                  ref.read(seekPreviewControllerProvider).request(d);
-                },
-                onChangeEnd: (v) {
-                  final target = Duration(milliseconds: v.round());
-                  ref.read(playerControllerProvider).seekTo(target);
-                  ref.read(pendingSeekProvider.notifier).state = target; // hold slider until pos catches up
-                  ref.read(scrubProvider.notifier).state = null; // hide the bubble
-                  // Drop the last preview frame so the next scrub doesn't briefly
-                  // flash the previous position's frame before the new one loads.
-                  ref.read(seekPreviewFrameProvider.notifier).state = null;
-                },
-              ),
-            ),
+            ],
           ),
         ),
         GestureDetector(
