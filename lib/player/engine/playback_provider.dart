@@ -21,6 +21,10 @@ final bufferingProvider = StreamProvider<bool>((ref) {
   return ref.watch(playbackEngineProvider).bufferingStream;
 });
 
+final completedProvider = StreamProvider<bool>((ref) {
+  return ref.watch(playbackEngineProvider).completedStream;
+});
+
 final currentSubtitleTrackProvider = StreamProvider<MediaTrack?>((ref) {
   return ref.watch(playbackEngineProvider).currentSubtitleTrackStream;
 });

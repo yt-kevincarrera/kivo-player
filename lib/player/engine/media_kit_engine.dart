@@ -34,6 +34,8 @@ class MediaKitEngine implements PlaybackEngine {
   Stream<bool> get playingStream => _player.stream.playing;
   @override
   Stream<bool> get bufferingStream => _player.stream.buffering;
+  @override
+  Stream<bool> get completedStream => _player.stream.completed;
 
   @override
   Future<void> open(String path, {Duration startAt = Duration.zero}) async {

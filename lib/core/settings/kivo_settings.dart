@@ -30,6 +30,7 @@ class KivoSettings {
   final String themeMode; // 'auto' | 'light' | 'dark'
   final String librarySort; // LibrarySort enum name — see lib/player/library/library_filter.dart
   final bool subtitlesEnabledByDefault;
+  final bool autoplayNext;
   final String? preferredSubtitleLanguage;
   final String? preferredAudioLanguage;
   final double subtitleFontSize;
@@ -69,6 +70,7 @@ class KivoSettings {
     required this.themeMode,
     required this.librarySort,
     required this.subtitlesEnabledByDefault,
+    required this.autoplayNext,
     required this.preferredSubtitleLanguage,
     required this.preferredAudioLanguage,
     required this.subtitleFontSize,
@@ -109,6 +111,7 @@ class KivoSettings {
         themeMode: 'auto',
         librarySort: 'recent',
         subtitlesEnabledByDefault: true,
+        autoplayNext: true,
         preferredSubtitleLanguage: null,
         preferredAudioLanguage: null,
         subtitleFontSize: 26.0,
@@ -149,6 +152,7 @@ class KivoSettings {
     String? themeMode,
     String? librarySort,
     bool? subtitlesEnabledByDefault,
+    bool? autoplayNext,
     String? preferredSubtitleLanguage,
     String? preferredAudioLanguage,
     double? subtitleFontSize,
@@ -188,6 +192,7 @@ class KivoSettings {
       themeMode: themeMode ?? this.themeMode,
       librarySort: librarySort ?? this.librarySort,
       subtitlesEnabledByDefault: subtitlesEnabledByDefault ?? this.subtitlesEnabledByDefault,
+      autoplayNext: autoplayNext ?? this.autoplayNext,
       preferredSubtitleLanguage: preferredSubtitleLanguage ?? this.preferredSubtitleLanguage,
       preferredAudioLanguage: preferredAudioLanguage ?? this.preferredAudioLanguage,
       subtitleFontSize: subtitleFontSize ?? this.subtitleFontSize,
@@ -229,6 +234,7 @@ class KivoSettings {
         'themeMode': themeMode,
         'librarySort': librarySort,
         'subtitlesEnabledByDefault': subtitlesEnabledByDefault,
+        'autoplayNext': autoplayNext,
         'preferredSubtitleLanguage': preferredSubtitleLanguage,
         'preferredAudioLanguage': preferredAudioLanguage,
         'subtitleFontSize': subtitleFontSize,
@@ -271,6 +277,7 @@ class KivoSettings {
       themeMode: m['themeMode'] ?? d.themeMode,
       librarySort: m['librarySort'] ?? d.librarySort,
       subtitlesEnabledByDefault: m['subtitlesEnabledByDefault'] ?? d.subtitlesEnabledByDefault,
+      autoplayNext: m['autoplayNext'] ?? d.autoplayNext,
       preferredSubtitleLanguage: m['preferredSubtitleLanguage'] ?? d.preferredSubtitleLanguage,
       preferredAudioLanguage: m['preferredAudioLanguage'] ?? d.preferredAudioLanguage,
       subtitleFontSize: (m['subtitleFontSize'] ?? d.subtitleFontSize).toDouble(),

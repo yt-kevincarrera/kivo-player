@@ -23,6 +23,7 @@ class FakePlaybackEngine implements PlaybackEngine {
   final _dur = StreamController<Duration>.broadcast();
   final _playing = StreamController<bool>.broadcast();
   final _buffering = StreamController<bool>.broadcast();
+  final _completed = StreamController<bool>.broadcast();
   final _audioTracks = StreamController<List<MediaTrack>>.broadcast();
   final _subtitleTracks = StreamController<List<MediaTrack>>.broadcast();
   final _currentAudio = StreamController<MediaTrack?>.broadcast();
@@ -51,10 +52,13 @@ class FakePlaybackEngine implements PlaybackEngine {
   Stream<bool> get playingStream => _playing.stream;
   @override
   Stream<bool> get bufferingStream => _buffering.stream;
+  @override
+  Stream<bool> get completedStream => _completed.stream;
 
   void emitPosition(Duration d) => _pos.add(d);
   void emitDuration(Duration d) => _dur.add(d);
   void emitPlaying(bool v) => _playing.add(v);
+  void emitCompleted(bool v) => _completed.add(v);
 
   @override
   Future<void> open(String path, {Duration startAt = Duration.zero}) async {
@@ -91,6 +95,7 @@ class FakePlaybackEngine implements PlaybackEngine {
   @override
   Future<void> dispose() async {
     _pos.close(); _dur.close(); _playing.close(); _buffering.close();
+    _completed.close();
     _audioTracks.close();
     _subtitleTracks.close();
     _currentAudio.close();

@@ -24,6 +24,7 @@ abstract class PlaybackEngine {
   Stream<Duration> get durationStream;
   Stream<bool> get playingStream;
   Stream<bool> get bufferingStream;
+  Stream<bool> get completedStream;
 
   /// Returns a platform video controller (e.g. [VideoController] from
   /// package:media_kit_video) or null if no video surface is available.
