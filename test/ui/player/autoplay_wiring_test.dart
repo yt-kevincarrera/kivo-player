@@ -103,6 +103,32 @@ void main() {
     await tester.pump(const Duration(seconds: 4)); // drain periodic save timer
   });
 
+  testWidgets('background completion advances immediately (no overlay, engine reopens)',
+      (tester) async {
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    final engine = FakePlaybackEngine();
+    addTearDown(engine.dispose);
+    final c = await pumpPlayer(tester, engine: engine);
+    expect(engine.openCount, 1); // initial open
+
+    // App backgrounded (Home / screen off) → immediate advance, no overlay.
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump();
+    engine.emitCompleted(true);
+    await tester.pump();
+    await tester.pump();
+
+    expect(c.read(autoplayPendingProvider), isNull); // no countdown in background
+    expect(engine.openCount, 2); // advanced → reopened the next
+    expect(engine.openedPath, '/v/ep2.mkv');
+    expect(c.read(currentVideoProvider)!.index, 1);
+
+    // Drain the newly-opened session's track-stream timeouts + save timer.
+    engine.emitAudioTracks(const []);
+    engine.emitSubtitleTracks(const []);
+    await tester.pump(const Duration(seconds: 4));
+  });
+
   testWidgets('autoplayNext=false leaves pending null on completion', (tester) async {
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     final engine = FakePlaybackEngine();

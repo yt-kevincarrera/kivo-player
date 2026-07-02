@@ -54,6 +54,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   VideoController? _controller;
   Duration _lastPosition = Duration.zero;
   bool _previewCaptured = false; // guards one-shot eager mini-preview per drag
+  bool _advancing = false; // guards autoplay against re-entrant completed events
   Duration _lastDuration = Duration.zero;
   String? _resumeKey;
   late final DeviceControls _deviceControls;
@@ -190,6 +191,11 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   }
 
   void _onCompleted() {
+    // Re-entrancy guard: completedStream can emit `true` more than once, and
+    // an advance-in-flight (or a pending countdown) must not be reprocessed —
+    // otherwise a stray second event would peekNext() off the ALREADY-advanced
+    // index and skip a video.
+    if (_advancing || ref.read(autoplayPendingProvider) != null) return;
     final loopActive = ref.read(abLoopProvider)?.phase == AbLoopPhase.active;
     final sleepStop = sleepStopsHere(ref.read(sleepTimerProvider));
     final next = ref.read(currentVideoProvider.notifier).peekNext();
@@ -208,21 +214,31 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       }
       return;
     }
-    // Foreground fullscreen → countdown overlay; background/PiP → advance now.
-    final foreground = WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
-    if (foreground) {
+    // Overlay only when the player is actually on-screen (resumed AND not in
+    // the tiny PiP window, where the overlay is suppressed — pinning it there
+    // would leave autoplay stuck with an invisible countdown). Otherwise
+    // advance immediately.
+    final onScreen = WidgetsBinding.instance.lifecycleState ==
+            AppLifecycleState.resumed &&
+        !ref.read(pipModeProvider);
+    if (onScreen) {
       ref.read(autoplayPendingProvider.notifier).state = next;
     } else {
       _advance(next!);
     }
   }
 
-  void _advance(VideoSession next) {
+  Future<void> _advance(VideoSession next) async {
+    _advancing = true;
     ref.read(autoplayPendingProvider.notifier).state = null;
     ref.read(autoplayConfirmProvider.notifier).state = false;
     ref.read(sleepTimerProvider.notifier).onAutoplayAdvance();
     ref.read(currentVideoProvider.notifier).advanceTo(next);
-    _openSession(next, expandingFromMini: false);
+    try {
+      await _openSession(next, expandingFromMini: false);
+    } finally {
+      _advancing = false;
+    }
   }
 
   ({int width, int height}) get _pipSize => _engine.videoSize ?? (width: 16, height: 9);
