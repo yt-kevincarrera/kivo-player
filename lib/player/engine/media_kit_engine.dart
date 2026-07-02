@@ -133,6 +133,13 @@ class MediaKitEngine implements PlaybackEngine {
     await native.setProperty('sub-back-color', _toMpvColor(backgroundColorArgb));
   }
 
+  @override
+  Future<void> setVideoTrackEnabled(bool enabled) async {
+    final native = _player.platform as NativePlayer?;
+    if (native == null) return;
+    await native.setProperty('vid', enabled ? 'auto' : 'no');
+  }
+
   String _toMpvColor(int argb) {
     final a = (argb >> 24) & 0xFF;
     final r = (argb >> 16) & 0xFF;

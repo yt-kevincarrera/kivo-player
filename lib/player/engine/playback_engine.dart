@@ -53,4 +53,8 @@ abstract class PlaybackEngine {
     required int textColorArgb,
     required int backgroundColorArgb,
   });
+
+  /// Turns the video track off ([enabled] = false → mpv `vid=no`, audio-only)
+  /// or back to automatic selection (true → `vid=auto`).
+  Future<void> setVideoTrackEnabled(bool enabled);
 }

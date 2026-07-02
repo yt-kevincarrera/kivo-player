@@ -139,6 +139,13 @@ class FakePlaybackEngine implements PlaybackEngine {
     lastSubtitleTextColorArgb = textColorArgb;
     lastSubtitleBackgroundColorArgb = backgroundColorArgb;
   }
+
+  bool videoTrackEnabled = true;
+
+  @override
+  Future<void> setVideoTrackEnabled(bool enabled) async {
+    videoTrackEnabled = enabled;
+  }
 }
 
 class InMemoryResumeStore implements ResumeStore {
