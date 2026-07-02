@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
+import '../../../player/background/audio_only.dart';
 import '../loop/ab_loop_chip.dart';
 import '../state/controls_visibility.dart';
 import '../state/lock_state.dart';
@@ -13,7 +14,11 @@ class ControlsOverlay extends ConsumerWidget {
   const ControlsOverlay({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final visible = ref.watch(controlsVisibleProvider);
+    // Audio-only behaves like a music player: controls never auto-hide and
+    // the transport moves down to its own row so the center stays clear for
+    // the waves/title.
+    final audioOnly = ref.watch(audioOnlyProvider);
+    final visible = ref.watch(controlsVisibleProvider) || audioOnly;
     final locked = ref.watch(lockProvider);
     final accent = Color(ref.watch(settingsProvider).accentColor);
     return AnimatedOpacity(
@@ -64,7 +69,22 @@ class ControlsOverlay extends ConsumerWidget {
                         child: const SafeArea(bottom: false, child: TopBar()),
                       ),
                     ),
-                    const Center(child: CenterControls()),
+                    if (audioOnly)
+                      // Music-player layout: transport above the bottom bar,
+                      // scaled down so it reads as a row, not a hero.
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 118,
+                        child: Center(
+                          child: Transform.scale(
+                            scale: 0.82,
+                            child: const CenterControls(),
+                          ),
+                        ),
+                      )
+                    else
+                      const Center(child: CenterControls()),
                     Positioned(
                       bottom: 0, left: 0, right: 0,
                       child: Container(

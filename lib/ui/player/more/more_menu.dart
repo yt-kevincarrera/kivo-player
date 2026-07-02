@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/format.dart';
 import '../../../core/theme/kivo_theme.dart';
-import '../../../player/background/audio_only.dart';
 import '../../../player/loop/ab_loop.dart';
 import '../sleep/sleep_timer_panel.dart';
 import '../state/controls_visibility.dart';
@@ -69,54 +68,8 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                     }
                   },
                 ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF182036),
-                    borderRadius: BorderRadius.circular(13),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 30,
-                        height: 30,
-                        decoration: BoxDecoration(
-                          color: sheetRef.watch(audioOnlyProvider)
-                              ? const Color(0x29E8B84B)
-                              : Colors.white.withValues(alpha: 0.06),
-                          borderRadius: BorderRadius.circular(9),
-                        ),
-                        child: Icon(Icons.headphones_rounded,
-                            size: 16,
-                            color: sheetRef.watch(audioOnlyProvider)
-                                ? KivoColors.gold
-                                : Colors.white70),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text('Solo audio',
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 13.5, fontWeight: FontWeight.w600)),
-                            const SizedBox(height: 1),
-                            Text('Apagar el video, seguir escuchando',
-                                style: TextStyle(
-                                    color: Colors.white.withValues(alpha: 0.42), fontSize: 11)),
-                          ],
-                        ),
-                      ),
-                      Switch(
-                        value: sheetRef.watch(audioOnlyProvider),
-                        activeThumbColor: KivoColors.gold,
-                        onChanged: (_) => ref.read(audioOnlyProvider.notifier).toggle(),
-                      ),
-                    ],
-                  ),
-                ),
+                // "Solo audio" moved to the bottom bar (headphones button)
+                // per user feedback — the menu keeps timer + A-B loop only.
               ],
             );
           },

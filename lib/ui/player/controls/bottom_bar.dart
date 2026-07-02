@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/icons/kivo_icons.dart';
 import '../../../core/settings/settings_provider.dart';
+import '../../../player/background/audio_only.dart';
 import '../../../player/control/player_controller.dart';
 import '../speed/speed_panel.dart';
 import '../state/controls_visibility.dart';
@@ -66,6 +67,35 @@ class BottomBar extends ConsumerWidget {
               tooltip: 'Rotar',
               icon: KivoIcon(KivoIcons.rotate, size: 24, color: Colors.white),
               onPressed: () => ref.read(orientationProvider.notifier).cycle(),
+            ),
+            Consumer(
+              builder: (context, ref, _) {
+                final audioOnly = ref.watch(audioOnlyProvider);
+                return IconButton(
+                  color: audioOnly ? accent : Colors.white,
+                  tooltip: audioOnly ? 'Ver video' : 'Solo audio',
+                  icon: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Icon(Icons.headphones_rounded,
+                          size: 24, color: audioOnly ? accent : Colors.white),
+                      if (audioOnly)
+                        Positioned(
+                          right: -1,
+                          bottom: -1,
+                          child: Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                                color: accent, shape: BoxShape.circle),
+                          ),
+                        ),
+                    ],
+                  ),
+                  onPressed: () =>
+                      ref.read(audioOnlyProvider.notifier).toggle(),
+                );
+              },
             ),
           ],
         ),

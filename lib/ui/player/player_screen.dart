@@ -318,8 +318,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                           ),
                         ),
                       ),
-                      const Positioned.fill(child: AudioOnlyView()),
                       const Positioned.fill(child: PlayerGestures(child: SizedBox.expand())),
+                      // Above gestures: only its "Ver video" pill is
+                      // hit-testable; taps/drags elsewhere fall through.
+                      const Positioned.fill(child: AudioOnlyView()),
                       const Positioned.fill(child: RippleOverlay()),
                       const Positioned.fill(child: ControlsOverlay()),
                       const Positioned.fill(child: InfoOverlay()),
