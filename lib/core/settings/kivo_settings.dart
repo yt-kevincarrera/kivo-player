@@ -35,6 +35,7 @@ class KivoSettings {
   final double subtitleFontSize;
   final int subtitleTextColor;
   final int subtitleBackgroundColor; // ARGB, default is transparent
+  final int sleepTimerLastMinutes;
 
   const KivoSettings({
     required this.doubleTapSkipLeft,
@@ -73,6 +74,7 @@ class KivoSettings {
     required this.subtitleFontSize,
     required this.subtitleTextColor,
     required this.subtitleBackgroundColor,
+    required this.sleepTimerLastMinutes,
   });
 
   factory KivoSettings.defaults() => const KivoSettings(
@@ -112,6 +114,7 @@ class KivoSettings {
         subtitleFontSize: 26.0,
         subtitleTextColor: 0xFFFFFFFF,
         subtitleBackgroundColor: 0x00000000,
+        sleepTimerLastMinutes: 30,
       );
 
   KivoSettings copyWith({
@@ -151,6 +154,7 @@ class KivoSettings {
     double? subtitleFontSize,
     int? subtitleTextColor,
     int? subtitleBackgroundColor,
+    int? sleepTimerLastMinutes,
   }) {
     return KivoSettings(
       doubleTapSkipLeft: doubleTapSkipLeft ?? this.doubleTapSkipLeft,
@@ -189,6 +193,7 @@ class KivoSettings {
       subtitleFontSize: subtitleFontSize ?? this.subtitleFontSize,
       subtitleTextColor: subtitleTextColor ?? this.subtitleTextColor,
       subtitleBackgroundColor: subtitleBackgroundColor ?? this.subtitleBackgroundColor,
+      sleepTimerLastMinutes: sleepTimerLastMinutes ?? this.sleepTimerLastMinutes,
     );
   }
 
@@ -229,6 +234,7 @@ class KivoSettings {
         'subtitleFontSize': subtitleFontSize,
         'subtitleTextColor': subtitleTextColor,
         'subtitleBackgroundColor': subtitleBackgroundColor,
+        'sleepTimerLastMinutes': sleepTimerLastMinutes,
       };
 
   factory KivoSettings.fromMap(Map<String, dynamic> m) {
@@ -270,6 +276,7 @@ class KivoSettings {
       subtitleFontSize: (m['subtitleFontSize'] ?? d.subtitleFontSize).toDouble(),
       subtitleTextColor: m['subtitleTextColor'] ?? d.subtitleTextColor,
       subtitleBackgroundColor: m['subtitleBackgroundColor'] ?? d.subtitleBackgroundColor,
+      sleepTimerLastMinutes: m['sleepTimerLastMinutes'] ?? d.sleepTimerLastMinutes,
     );
   }
 }
