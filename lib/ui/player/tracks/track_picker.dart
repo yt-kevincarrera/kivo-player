@@ -467,9 +467,9 @@ class _StyleSection extends ConsumerWidget {
 
   static const _textSwatches = [0xFFFFFFFF, 0xFF000000, 0xFFFFEB3B, 0xFF2D6CFF, 0xFFE8B84B];
   static const _bgSwatches = [
-    (value: 0xB3000000, label: 'Semi-opaco'),
     (value: 0x00000000, label: 'Transparente'),
-    (value: 0xFF000000, label: 'Opaco'),
+    (value: 0xFF000000, label: 'Negro'),
+    (value: 0xFFFFFFFF, label: 'Blanco'),
   ];
 
   void _apply(WidgetRef ref, KivoSettingsPatch patch) {
@@ -611,12 +611,13 @@ class _StyleSection extends ConsumerWidget {
               ),
           ],
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 18),
         Center(
-          child: TextButton(
+          child: TextButton.icon(
             style: TextButton.styleFrom(foregroundColor: KivoColors.gold),
             onPressed: () => _reset(ref),
-            child: const Text('Restablecer estilo'),
+            icon: const Icon(Icons.restart_alt_rounded, size: 17),
+            label: const Text('Restablecer estilo'),
           ),
         ),
       ],

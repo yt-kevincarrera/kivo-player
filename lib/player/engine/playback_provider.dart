@@ -20,3 +20,7 @@ final playingProvider = StreamProvider<bool>((ref) {
 final bufferingProvider = StreamProvider<bool>((ref) {
   return ref.watch(playbackEngineProvider).bufferingStream;
 });
+
+final currentSubtitleTrackProvider = StreamProvider<MediaTrack?>((ref) {
+  return ref.watch(playbackEngineProvider).currentSubtitleTrackStream;
+});

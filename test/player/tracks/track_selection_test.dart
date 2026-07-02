@@ -15,7 +15,7 @@ void main() {
     expect(d.preferredAudioLanguage, isNull);
     expect(d.subtitleFontSize, 26.0);
     expect(d.subtitleTextColor, 0xFFFFFFFF);
-    expect(d.subtitleBackgroundColor, 0xB3000000);
+    expect(d.subtitleBackgroundColor, 0x00000000);
 
     final m = d
         .copyWith(

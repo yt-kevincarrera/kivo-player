@@ -34,7 +34,7 @@ class KivoSettings {
   final String? preferredAudioLanguage;
   final double subtitleFontSize;
   final int subtitleTextColor;
-  final int subtitleBackgroundColor; // ARGB, default is semi-opaque black
+  final int subtitleBackgroundColor; // ARGB, default is transparent
 
   const KivoSettings({
     required this.doubleTapSkipLeft,
@@ -111,7 +111,7 @@ class KivoSettings {
         preferredAudioLanguage: null,
         subtitleFontSize: 26.0,
         subtitleTextColor: 0xFFFFFFFF,
-        subtitleBackgroundColor: 0xB3000000,
+        subtitleBackgroundColor: 0x00000000,
       );
 
   KivoSettings copyWith({

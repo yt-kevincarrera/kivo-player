@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/icons/kivo_icons.dart';
 import '../../../core/settings/settings_provider.dart';
+import '../../../player/engine/playback_provider.dart';
 import '../../../player/open/video_source.dart';
 import '../tracks/track_picker.dart';
 
@@ -38,15 +39,17 @@ class TopBar extends ConsumerWidget {
         ),
         Builder(
           builder: (context) {
-            final subsOn = ref.watch(settingsProvider).subtitlesEnabledByDefault;
+            // Tint only when a subtitle track is actually active right now —
+            // "mostrar por defecto" being on doesn't mean this video has one.
+            final subsActive = ref.watch(currentSubtitleTrackProvider).valueOrNull != null;
             return IconButton(
-              color: subsOn ? accent : Colors.white,
+              color: subsActive ? accent : Colors.white,
               tooltip: 'Subtítulos',
               icon: Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  KivoIcon(KivoIcons.subtitles, size: 24, color: subsOn ? accent : Colors.white),
-                  if (subsOn)
+                  KivoIcon(KivoIcons.subtitles, size: 24, color: subsActive ? accent : Colors.white),
+                  if (subsActive)
                     Positioned(
                       right: -1,
                       bottom: -1,
