@@ -24,6 +24,7 @@ import 'controls/resume_prompt.dart';
 import 'gestures/player_gestures.dart';
 import 'gestures/ripple_overlay.dart';
 import 'hud/hud_overlay.dart';
+import 'sleep/sleep_warning_toast.dart';
 import 'speed/speed_ladder_overlay.dart';
 import 'state/aspect_state.dart';
 import 'state/dismiss_state.dart';
@@ -319,6 +320,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                       const Positioned.fill(child: HudOverlay()),
                       const Positioned.fill(child: SpeedLadderOverlay()),
                       const Positioned.fill(child: ResumePrompt()),
+                      const Positioned.fill(child: SleepWarningToast()),
                     ],
                   ),
                 ),

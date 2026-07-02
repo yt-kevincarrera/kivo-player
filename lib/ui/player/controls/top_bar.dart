@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/format.dart';
 import '../../../core/icons/kivo_icons.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../player/engine/playback_provider.dart';
 import '../../../player/open/video_source.dart';
+import '../../../player/sleep/sleep_timer.dart';
 import '../more/more_menu.dart';
 import '../tracks/track_picker.dart';
 
@@ -77,12 +79,31 @@ class TopBar extends ConsumerWidget {
           ),
         ),
         Builder(
-          builder: (context) => IconButton(
-            color: Colors.white,
-            tooltip: 'Más opciones',
-            icon: KivoIcon(KivoIcons.more, size: 24, color: Colors.white),
-            onPressed: () => showMoreMenu(context, ref),
-          ),
+          builder: (context) {
+            final sleep = ref.watch(sleepTimerProvider);
+            final active = sleep != null;
+            return IconButton(
+              color: active ? accent : Colors.white,
+              tooltip: 'Más opciones',
+              icon: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  KivoIcon(KivoIcons.more, size: active ? 20 : 24, color: active ? accent : Colors.white),
+                  if (active)
+                    Text(
+                      fmtDuration(sleep.remaining),
+                      style: TextStyle(
+                        color: accent,
+                        fontSize: 8.5,
+                        fontWeight: FontWeight.w800,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                ],
+              ),
+              onPressed: () => showMoreMenu(context, ref),
+            );
+          },
         ),
       ],
     );
