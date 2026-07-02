@@ -127,15 +127,27 @@ class BackgroundPlaybackCoordinator with WidgetsBindingObserver {
   // ── audio focus ──────────────────────────────────────────────────────────
 
   void _onFocusLoss() {
+    // A focus loss that interrupts a duck never gets its duckEnd — restore
+    // the user's volume now or playback would resume stuck at 30%.
+    _restoreDuckIfActive();
     if (_playing) _ref.read(playbackEngineProvider).pause();
     _pausedByFocus = false; // permanent: never auto-resume
   }
 
   void _onFocusTransientLoss() {
+    _restoreDuckIfActive();
     if (_playing) {
       _ref.read(playbackEngineProvider).pause();
       _pausedByFocus = true;
     }
+  }
+
+  void _restoreDuckIfActive() {
+    if (_ducking && !_duckUserAdjusted) {
+      _ref.read(playbackEngineProvider).setVolume(_userPlayerVolume);
+    }
+    _ducking = false;
+    _duckUserAdjusted = false;
   }
 
   void _onFocusRegained() {
@@ -157,11 +169,5 @@ class BackgroundPlaybackCoordinator with WidgetsBindingObserver {
     _ref.read(playbackEngineProvider).setVolume(_userPlayerVolume * 0.3);
   }
 
-  void _onDuckEnd() {
-    if (_ducking && !_duckUserAdjusted) {
-      _ref.read(playbackEngineProvider).setVolume(_userPlayerVolume);
-    }
-    _ducking = false;
-    _duckUserAdjusted = false;
-  }
+  void _onDuckEnd() => _restoreDuckIfActive();
 }

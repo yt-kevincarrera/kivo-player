@@ -170,4 +170,20 @@ void main() {
     bridge.callbacks!.onDuckEnd();
     expect(engine.volume, 77); // duck end must not clobber the user's level
   });
+
+  test('a focus loss interrupting a duck restores the volume (no stuck 30%)', () async {
+    await setUpAll_();
+    c.read(volumePercentProvider.notifier).state = 100;
+    engine.emitPlaying(true);
+    await pump();
+    bridge.callbacks!.onDuckStart();
+    expect(engine.volume, closeTo(30, 0.01));
+    // Duck interrupted by a transient loss (call) that never yields a duckEnd,
+    // then a permanent loss — resuming later must NOT be stuck at 30%.
+    bridge.callbacks!.onFocusTransientLoss();
+    expect(engine.volume, 100); // restored on the loss itself
+    expect(engine.lastPlayingCommand, false); // and paused
+    bridge.callbacks!.onFocusLoss();
+    expect(engine.volume, 100);
+  });
 }

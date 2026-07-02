@@ -114,10 +114,14 @@ class PlaybackSessionService : Service() {
                 .build()
         )
         val notification = buildNotification(playing)
-        if (playing) {
-            startForeground(NOTIFICATION_ID, notification)
-        } else {
-            // Paused: keep the notification but let the user swipe it away.
+        // ALWAYS enter the foreground first: this service is started with
+        // startForegroundService, and Android kills the process if a start
+        // isn't matched by a startForeground within ~5s — a pause arriving
+        // in the window before onStartCommand (sleep timer firing, a call,
+        // the user pausing instantly) must not skip it.
+        startForeground(NOTIFICATION_ID, notification)
+        if (!playing) {
+            // Paused: detach so the notification stays but can be swiped away.
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 stopForeground(STOP_FOREGROUND_DETACH)
             } else {
