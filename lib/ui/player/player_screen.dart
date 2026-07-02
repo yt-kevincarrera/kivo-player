@@ -25,6 +25,7 @@ import '../../player/resume/resume_service.dart';
 import '../../player/sleep/sleep_timer.dart';
 import '../../player/tracks/track_selection.dart';
 import 'audio_only/audio_only_view.dart';
+import 'autoplay/autoplay_overlay.dart';
 import 'controls/controls_overlay.dart';
 import 'controls/flash_overlay.dart';
 import 'controls/info_overlay.dart';
@@ -456,6 +457,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                         const Positioned.fill(child: SpeedLadderOverlay()),
                         const Positioned.fill(child: ResumePrompt()),
                         const Positioned.fill(child: SleepWarningToast()),
+                        const Positioned.fill(child: AutoplayOverlay()),
                       ],
                     ],
                   ),

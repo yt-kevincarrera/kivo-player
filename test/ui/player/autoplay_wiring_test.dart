@@ -93,6 +93,13 @@ void main() {
     expect(pending!.playbackPath, '/v/ep2.mkv');
     expect(pending.index, 1);
 
+    // This test only asserts the pending-set behavior, not the overlay's own
+    // 3s countdown → advance flow (covered by autoplay_overlay_test.dart and
+    // the confirm-listener wiring below). Clear it before the drain pump so
+    // the AutoplayOverlay's ring doesn't fire mid-drain and kick off a second
+    // engine.open() cycle whose fresh track-stream timeouts would outlive
+    // this test.
+    c.read(autoplayPendingProvider.notifier).state = null;
     await tester.pump(const Duration(seconds: 4)); // drain periodic save timer
   });
 
