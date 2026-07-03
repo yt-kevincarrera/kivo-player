@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kivo_player/core/theme/kivo_theme.dart';
 import 'package:kivo_player/ui/settings/widgets/setting_tiles.dart';
-import 'package:kivo_player/ui/settings/widgets/color_picker_sheet.dart';
 
 void main() {
   testWidgets('SettingColor shows a swatch per preset and reports a preset tap', (t) async {
