@@ -8,6 +8,7 @@ import '../control/gesture_math.dart';
 import '../control/player_controller.dart';
 import '../engine/playback_provider.dart';
 import '../open/video_source.dart';
+import 'audio_only.dart';
 
 /// App-level coordinator: keeps the native media session fed while playback
 /// is relevant, reacts to notification/focus events, and owns the duck.
@@ -56,7 +57,19 @@ class BackgroundPlaybackCoordinator with WidgetsBindingObserver {
     _ref.listen(playingProvider, (_, next) {
       final p = next.value;
       if (p == null) return;
+      final was = _playing;
       _playing = p;
+      // Hold audio focus the whole time we're playing — foreground included,
+      // not just while a background session exists. Without this a phone call
+      // in the foreground never reaches our focus listener, so the video keeps
+      // playing (system-ducked and stuttering) instead of pausing. Release on a
+      // user-driven pause; KEEP it through a focus-driven pause so the GAIN that
+      // ends the call can auto-resume.
+      if (p && !was) {
+        _bridge.acquireAudioFocus();
+      } else if (!p && was && !_pausedByFocus && !_ducking) {
+        _bridge.releaseAudioFocus();
+      }
       _push(force: true);
     });
     _ref.listen(positionProvider, (_, next) {
@@ -101,6 +114,10 @@ class BackgroundPlaybackCoordinator with WidgetsBindingObserver {
     } else if (state == AppLifecycleState.resumed) {
       _inBackground = false;
       if (_sessionActive) _end();
+      // Ending the session abandons audio focus natively; if we're still
+      // playing in the foreground, take it straight back so a phone call after
+      // a background round-trip still pauses us instead of ducking.
+      if (_playing) _bridge.acquireAudioFocus();
     }
   }
 
@@ -174,10 +191,26 @@ class BackgroundPlaybackCoordinator with WidgetsBindingObserver {
 
   void _onDuckStart() {
     if (!_playing) return;
+    // Ducking — lower the volume but keep playing — only makes sense for
+    // audio-only, music-player-style listening. For video, a quiet track loses
+    // content just like a muted audiobook would, and a phone-call ring arrives
+    // as a CAN_DUCK loss, so pause instead and auto-resume when focus returns.
+    if (!_ref.read(audioOnlyProvider)) {
+      _pausedByFocus = true;
+      _ref.read(playbackEngineProvider).pause();
+      return;
+    }
     _ducking = true;
     _duckUserAdjusted = false;
     _ref.read(playbackEngineProvider).setVolume(_userPlayerVolume * 0.3);
   }
 
-  void _onDuckEnd() => _restoreDuckIfActive();
+  void _onDuckEnd() {
+    _restoreDuckIfActive();
+    // A video paused for a duck (see _onDuckStart) resumes when the duck ends.
+    if (_pausedByFocus) {
+      _ref.read(playbackEngineProvider).play();
+      _pausedByFocus = false;
+    }
+  }
 }

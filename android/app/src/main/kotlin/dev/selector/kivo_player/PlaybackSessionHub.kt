@@ -54,6 +54,14 @@ object PlaybackSessionHub {
         PlaybackSessionService.stop(context)
     }
 
+    // Focus lifecycle exposed to Dart so playback holds AUDIOFOCUS_GAIN in the
+    // foreground too (not only while a background service exists). A phone call
+    // then routes through [focusListener] and pauses Kivo instead of leaving it
+    // playing, system-ducked, underneath the call.
+    fun acquireFocus(context: Context) = requestFocus(context)
+
+    fun releaseFocus(context: Context) = abandonFocus(context)
+
     private val focusListener = AudioManager.OnAudioFocusChangeListener { change ->
         when (change) {
             AudioManager.AUDIOFOCUS_LOSS -> { focusHeld = false; invokeDart("focusLoss") }
@@ -80,6 +88,10 @@ object PlaybackSessionHub {
                         .build()
                 )
                 .setOnAudioFocusChangeListener(focusListener)
+                // Video/spoken content: don't let the OS auto-duck us. It sends
+                // the CAN_DUCK loss to our listener (which pauses for video) and
+                // never silently lowers the stream underneath a call.
+                .setWillPauseWhenDucked(true)
                 .build()
             focusRequest = req
             granted = am.requestAudioFocus(req)

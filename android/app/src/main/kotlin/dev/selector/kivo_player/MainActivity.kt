@@ -343,6 +343,14 @@ class MainActivity : FlutterActivity() {
                     PlaybackSessionHub.end(applicationContext)
                     result.success(null)
                 }
+                "acquireFocus" -> {
+                    PlaybackSessionHub.acquireFocus(applicationContext)
+                    result.success(null)
+                }
+                "releaseFocus" -> {
+                    PlaybackSessionHub.releaseFocus(applicationContext)
+                    result.success(null)
+                }
                 else -> result.notImplemented()
             }
         }

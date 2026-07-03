@@ -226,6 +226,8 @@ class FakeMediaSessionBridge implements MediaSessionBridge {
   final List<Map<String, Object>> updates = [];
   int endCount = 0;
   int permissionRequests = 0;
+  int focusAcquires = 0;
+  int focusReleases = 0;
 
   @override
   void setCallbacks(MediaSessionCallbacks cb) => callbacks = cb;
@@ -254,6 +256,12 @@ class FakeMediaSessionBridge implements MediaSessionBridge {
 
   @override
   Future<void> endSession() async => endCount++;
+
+  @override
+  Future<void> acquireAudioFocus() async => focusAcquires++;
+
+  @override
+  Future<void> releaseAudioFocus() async => focusReleases++;
 }
 
 class FakePipController implements PipController {

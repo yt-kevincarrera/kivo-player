@@ -46,4 +46,13 @@ abstract class MediaSessionBridge {
   });
 
   Future<void> endSession();
+
+  /// Acquire AUDIOFOCUS_GAIN for playback (foreground included). Idempotent.
+  /// Held so that a phone call or another app taking focus routes through the
+  /// focus callbacks and pauses Kivo instead of leaving it playing.
+  Future<void> acquireAudioFocus();
+
+  /// Abandon audio focus. Called on a user-driven pause — never on a
+  /// focus-driven one, which must keep focus so the later GAIN auto-resumes.
+  Future<void> releaseAudioFocus();
 }

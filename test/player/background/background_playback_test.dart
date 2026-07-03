@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/platform/media_session_provider.dart';
+import 'package:kivo_player/player/background/audio_only.dart';
 import 'package:kivo_player/player/background/background_playback.dart';
 import 'package:kivo_player/player/control/player_controller.dart';
 import 'package:kivo_player/player/engine/playback_provider.dart';
@@ -147,8 +148,9 @@ void main() {
     expect(engine.lastPlayingCommand, isNot(true));
   });
 
-  test('duck lowers player volume to 30% and restores on duck end', () async {
+  test('audio-only duck lowers player volume to 30% and restores on duck end', () async {
     await setUpAll_();
+    c.read(audioOnlyProvider.notifier).toggle(); // music-like: duck, don't pause
     c.read(volumePercentProvider.notifier).state = 100;
     engine.emitPlaying(true);
     await pump();
@@ -158,8 +160,9 @@ void main() {
     expect(engine.volume, 100);
   });
 
-  test('manual volume change during duck cancels the restore', () async {
+  test('manual volume change during an audio-only duck cancels the restore', () async {
     await setUpAll_();
+    c.read(audioOnlyProvider.notifier).toggle();
     c.read(volumePercentProvider.notifier).state = 100;
     engine.emitPlaying(true);
     await pump();
@@ -171,8 +174,9 @@ void main() {
     expect(engine.volume, 77); // duck end must not clobber the user's level
   });
 
-  test('a focus loss interrupting a duck restores the volume (no stuck 30%)', () async {
+  test('a focus loss interrupting an audio-only duck restores the volume (no stuck 30%)', () async {
     await setUpAll_();
+    c.read(audioOnlyProvider.notifier).toggle();
     c.read(volumePercentProvider.notifier).state = 100;
     engine.emitPlaying(true);
     await pump();
@@ -185,5 +189,43 @@ void main() {
     expect(engine.lastPlayingCommand, false); // and paused
     bridge.callbacks!.onFocusLoss();
     expect(engine.volume, 100);
+  });
+
+  test('playing acquires audio focus (foreground too); a user pause releases it', () async {
+    await setUpAll_();
+    engine.emitPlaying(true);
+    await pump();
+    expect(bridge.focusAcquires, greaterThan(0));
+    final acquiredThenReleased = bridge.focusReleases;
+    engine.emitPlaying(false); // user pause — no focus event preceded it
+    await pump();
+    expect(bridge.focusReleases, greaterThan(acquiredThenReleased));
+  });
+
+  test('resuming to the foreground while playing re-acquires audio focus', () async {
+    await setUpAll_();
+    engine.emitPlaying(true);
+    await pump();
+    coord.didChangeAppLifecycleState(AppLifecycleState.paused);
+    await pump();
+    final before = bridge.focusAcquires;
+    coord.didChangeAppLifecycleState(AppLifecycleState.resumed);
+    await pump();
+    expect(bridge.focusAcquires, greaterThan(before));
+  });
+
+  test('a call (CAN_DUCK) pauses video instead of lowering the volume, and resumes after', () async {
+    await setUpAll_();
+    c.read(volumePercentProvider.notifier).state = 100;
+    engine.emitPlaying(true);
+    await pump();
+    bridge.callbacks!.onDuckStart(); // ring arrives as a duck request
+    expect(engine.lastPlayingCommand, false); // paused…
+    expect(engine.volume, 100); // …not ducked
+    engine.emitPlaying(false); // engine reflects the pause
+    await pump();
+    expect(bridge.focusReleases, 0); // focus kept through the focus-driven pause
+    bridge.callbacks!.onDuckEnd(); // call ended → focus back
+    expect(engine.lastPlayingCommand, true); // resumed
   });
 }

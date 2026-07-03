@@ -69,4 +69,10 @@ class AndroidMediaSessionBridge implements MediaSessionBridge {
 
   @override
   Future<void> endSession() => _channel.invokeMethod('end');
+
+  @override
+  Future<void> acquireAudioFocus() => _channel.invokeMethod('acquireFocus');
+
+  @override
+  Future<void> releaseAudioFocus() => _channel.invokeMethod('releaseFocus');
 }
