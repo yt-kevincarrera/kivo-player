@@ -20,6 +20,9 @@ class BottomBar extends ConsumerWidget {
     final accent = Color(ref.watch(settingsProvider).accentColor);
     final rate = ref.watch(rateProvider);
     final mode = ref.watch(aspectModeProvider);
+    // In "Solo audio" there's no video, so aspect-ratio and rotation controls
+    // are meaningless — hide them (and the player is locked to portrait).
+    final audioOnly = ref.watch(audioOnlyProvider);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -53,49 +56,44 @@ class BottomBar extends ConsumerWidget {
                 ref.read(controlsVisibleProvider.notifier).hide();
               },
             ),
+            if (!audioOnly) ...[
+              IconButton(
+                color: Colors.white,
+                tooltip: 'Relación de aspecto',
+                icon: KivoIcon(aspectIconFor(mode), size: 24, color: Colors.white),
+                onPressed: () {
+                  ref.read(aspectModeProvider.notifier).cycle();
+                  ref.read(flashProvider.notifier).show(aspectLabelFor(ref.read(aspectModeProvider)));
+                },
+              ),
+              IconButton(
+                color: Colors.white,
+                tooltip: 'Rotar',
+                icon: KivoIcon(KivoIcons.rotate, size: 24, color: Colors.white),
+                onPressed: () => ref.read(orientationProvider.notifier).cycle(),
+              ),
+            ],
             IconButton(
-              color: Colors.white,
-              tooltip: 'Relación de aspecto',
-              icon: KivoIcon(aspectIconFor(mode), size: 24, color: Colors.white),
-              onPressed: () {
-                ref.read(aspectModeProvider.notifier).cycle();
-                ref.read(flashProvider.notifier).show(aspectLabelFor(ref.read(aspectModeProvider)));
-              },
-            ),
-            IconButton(
-              color: Colors.white,
-              tooltip: 'Rotar',
-              icon: KivoIcon(KivoIcons.rotate, size: 24, color: Colors.white),
-              onPressed: () => ref.read(orientationProvider.notifier).cycle(),
-            ),
-            Consumer(
-              builder: (context, ref, _) {
-                final audioOnly = ref.watch(audioOnlyProvider);
-                return IconButton(
-                  color: audioOnly ? accent : Colors.white,
-                  tooltip: audioOnly ? 'Ver video' : 'Solo audio',
-                  icon: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Icon(Icons.headphones_rounded,
-                          size: 24, color: audioOnly ? accent : Colors.white),
-                      if (audioOnly)
-                        Positioned(
-                          right: -1,
-                          bottom: -1,
-                          child: Container(
-                            width: 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                                color: accent, shape: BoxShape.circle),
-                          ),
-                        ),
-                    ],
-                  ),
-                  onPressed: () =>
-                      ref.read(audioOnlyProvider.notifier).toggle(),
-                );
-              },
+              color: audioOnly ? accent : Colors.white,
+              tooltip: audioOnly ? 'Ver video' : 'Solo audio',
+              icon: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  KivoIcon(KivoIcons.audioOnly,
+                      size: 24, color: audioOnly ? accent : Colors.white),
+                  if (audioOnly)
+                    Positioned(
+                      right: -1,
+                      bottom: -1,
+                      child: Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
+                      ),
+                    ),
+                ],
+              ),
+              onPressed: () => ref.read(audioOnlyProvider.notifier).toggle(),
             ),
           ],
         ),

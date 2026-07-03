@@ -369,6 +369,14 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     ref.listen(completedProvider, (_, next) {
       if (next.value == true) _onCompleted();
     });
+    ref.listen(audioOnlyProvider, (prev, on) {
+      // "Solo audio" has no video — lock to portrait (the rotate control is
+      // hidden while it's on, so this stays put until the user leaves the mode).
+      if (on) {
+        ref.read(orientationProvider.notifier).reset();
+        ref.read(orientationProvider.notifier).apply();
+      }
+    });
     ref.listen(autoplayConfirmProvider, (_, next) {
       final pending = ref.read(autoplayPendingProvider);
       if (next && pending != null) _advance(pending);

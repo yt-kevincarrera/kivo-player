@@ -100,6 +100,16 @@ class KivoIcons {
     '<circle cx="12" cy="12" r="2.6" fill="$_g"/>',
   );
 
+  // "Solo audio" mode toggle — headphones, duotone: band + left cup in
+  // currentColor, right cup in the accent. Distinct from [audio] (audio-track
+  // picker), whose earcups are both accent.
+  static final String audioOnly = _wrap(
+    '<path d="M4 13 V11 A8 8 0 0 1 20 11 V13" fill="none" stroke="currentColor" '
+    'stroke-width="2" stroke-linecap="round"/>'
+    '<rect x="3" y="12.5" width="4.5" height="7" rx="2.2" fill="none" stroke="currentColor" stroke-width="2"/>'
+    '<rect x="16.5" y="12.5" width="4.5" height="7" rx="2.2" fill="$_g"/>',
+  );
+
   // ---- bottom bar / settings ----
   static final String lock = _wrap(
     '<rect x="5" y="10.5" width="14" height="9.5" rx="2.2" fill="none" stroke="currentColor" stroke-width="2"/>'
