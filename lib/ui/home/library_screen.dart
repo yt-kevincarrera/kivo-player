@@ -77,7 +77,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   }
 
   void _open(VideoItem v, List<VideoItem> all) {
-    ref.read(currentVideoProvider.notifier).openInFolder(v, all);
+    ref.read(currentVideoProvider.notifier).openFromList(v, all);
     Navigator.of(context)
         .push(playerRoute())
         .then((_) {

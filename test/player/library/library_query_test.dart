@@ -15,9 +15,4 @@ void main() {
     expect(g['B']!.map((e) => e.name).toList(), ['z.mp4']);
   });
 
-  test('folderQueueFor returns same-folder siblings in natural order', () {
-    final items = [v('b.mp4', 'A'), v('a.mp4', 'A'), v('x.mp4', 'B')];
-    final q = folderQueueFor(items, items[0]); // b.mp4 in folder A
-    expect(q.map((e) => e.name).toList(), ['a.mp4', 'b.mp4']);
-  });
 }

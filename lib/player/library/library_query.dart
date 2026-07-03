@@ -11,9 +11,3 @@ Map<String, List<VideoItem>> groupByFolder(List<VideoItem> items) {
   }
   return map;
 }
-
-List<VideoItem> folderQueueFor(List<VideoItem> all, VideoItem current) {
-  final siblings = all.where((v) => v.folder == current.folder).toList()
-    ..sort((a, b) => naturalCompare(a.name, b.name));
-  return siblings;
-}

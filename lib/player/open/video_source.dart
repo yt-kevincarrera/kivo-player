@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/format.dart';
 import '../../platform/interfaces/media_indexer.dart';
-import '../../player/library/library_query.dart';
 import '../resume/resume_service.dart';
 import '../queue/folder_queue_scanner.dart';
 import '../queue/file_system_lister.dart';
@@ -50,17 +49,23 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
         playbackPath: path, displayName: name, queue: [path], index: 0);
   }
 
-  /// Library open: queue = the current video's folder, natural order.
-  void openInFolder(VideoItem current, List<VideoItem> all) {
-    final folder = folderQueueFor(all, current);
-    final idx = folder.indexWhere((v) => v.uri == current.uri);
+  /// Library open: the queue is exactly the list the user is looking at
+  /// ([shown]), in its displayed order — already sorted and filtered by the
+  /// active tab/sort/filter/search. Autoplay walks this order verbatim; it is
+  /// NOT re-sorted by name and NOT scoped to the current folder, so a tap in a
+  /// flat library view continues through every following video, crossing
+  /// folders, just as they appear on screen.
+  void openFromList(VideoItem current, List<VideoItem> shown) {
+    var idx = shown.indexWhere((v) => v.uri == current.uri);
+    final list = idx < 0 ? <VideoItem>[current] : shown;
+    if (idx < 0) idx = 0;
     state = VideoSession(
       playbackPath: current.uri,
       displayName: current.name,
-      queue: folder.map((v) => v.uri).toList(),
-      queueNames: folder.map((v) => v.name).toList(),
-      index: idx < 0 ? 0 : idx,
-      folder: current.folder,
+      queue: list.map((v) => v.uri).toList(),
+      queueNames: list.map((v) => v.name).toList(),
+      index: idx,
+      folder: current.folder, // still the tapped video's folder — for subtitle discovery
     );
   }
 

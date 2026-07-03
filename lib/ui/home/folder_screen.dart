@@ -21,7 +21,7 @@ class FolderScreen extends ConsumerWidget {
     List<VideoItem> all,
   ) {
     ref.read(resumePromptProvider.notifier).state = null;
-    ref.read(currentVideoProvider.notifier).openInFolder(current, all);
+    ref.read(currentVideoProvider.notifier).openFromList(current, all);
     Navigator.of(context)
         .push(playerRoute())
         .then((_) {
