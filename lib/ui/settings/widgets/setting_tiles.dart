@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'color_picker_sheet.dart';
+
 /// Rounded card that groups setting rows with hairline dividers between them.
 class SettingsCard extends StatelessWidget {
   final List<Widget> children;
@@ -241,4 +243,72 @@ Widget _titleBlock(BuildContext context, String title, String? subtitle) {
         ),
     ],
   );
+}
+
+const kAccentPresets = <int>[0xFFE8B84B, 0xFF5B9BE8, 0xFFE86B6B, 0xFF57C08A, 0xFFB77BE8];
+
+class SettingColor extends StatelessWidget {
+  final String title;
+  final int value;
+  final ValueChanged<int> onChanged;
+  const SettingColor({super.key, required this.title, required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final onPreset = kAccentPresets.contains(value);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(15, 12, 15, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: cs.onSurface)),
+          const SizedBox(height: 12),
+          Row(children: [
+            for (var i = 0; i < kAccentPresets.length; i++)
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: _dot(
+                  key: ValueKey('accent-preset-$i'),
+                  color: Color(kAccentPresets[i]),
+                  selected: value == kAccentPresets[i],
+                  ring: cs.onSurface,
+                  onTap: () => onChanged(kAccentPresets[i]),
+                ),
+              ),
+            // Custom: a color-wheel-ish gradient dot that opens the HSV sheet.
+            _dot(
+              key: const ValueKey('accent-custom'),
+              gradient: const SweepGradient(colors: [
+                Color(0xFFE86B6B), Color(0xFFE8B84B), Color(0xFF57C08A),
+                Color(0xFF5B9BE8), Color(0xFFB77BE8), Color(0xFFE86B6B),
+              ]),
+              selected: !onPreset,
+              ring: cs.onSurface,
+              onTap: () async {
+                final picked = await showColorPickerSheet(context, value);
+                if (picked != null) onChanged(picked);
+              },
+            ),
+          ]),
+        ],
+      ),
+    );
+  }
+
+  Widget _dot({Key? key, Color? color, Gradient? gradient, required bool selected,
+      required Color ring, required VoidCallback onTap}) {
+    return GestureDetector(
+      key: key,
+      onTap: onTap,
+      child: Container(
+        width: 30, height: 30,
+        decoration: BoxDecoration(
+          color: color, gradient: gradient, shape: BoxShape.circle,
+          border: Border.all(color: selected ? ring : Colors.transparent, width: 2.5),
+        ),
+      ),
+    );
+  }
 }
