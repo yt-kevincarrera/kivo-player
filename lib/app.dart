@@ -4,8 +4,7 @@ import 'core/navigation.dart';
 import 'core/settings/settings_provider.dart';
 import 'core/theme/kivo_theme.dart';
 import 'player/background/background_playback.dart';
-import 'ui/home/library_screen.dart';
-import 'ui/mini_player/mini_player_bar.dart';
+import 'ui/home/home_shell.dart';
 
 class KivoApp extends ConsumerWidget {
   const KivoApp({super.key});
@@ -21,13 +20,7 @@ class KivoApp extends ConsumerWidget {
       theme: KivoTheme.light(),
       darkTheme: KivoTheme.dark(),
       themeMode: themeModeFor(mode),
-      home: const LibraryScreen(),
-      builder: (context, child) => Stack(
-        children: [
-          if (child != null) child,
-          const Positioned(left: 0, right: 0, bottom: 0, child: MiniPlayerBar()),
-        ],
-      ),
+      home: const HomeShell(),
     );
   }
 }

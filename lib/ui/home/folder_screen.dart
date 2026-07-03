@@ -22,7 +22,7 @@ class FolderScreen extends ConsumerWidget {
   ) {
     ref.read(resumePromptProvider.notifier).state = null;
     ref.read(currentVideoProvider.notifier).openFromList(current, all);
-    Navigator.of(context)
+    Navigator.of(context, rootNavigator: true)
         .push(playerRoute())
         .then((_) {
       ref.invalidate(continueWatchingProvider);
