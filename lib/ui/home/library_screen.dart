@@ -17,6 +17,7 @@ import '../../player/library/played.dart';
 import '../../player/open/video_source.dart';
 import '../player/controls/resume_prompt.dart';
 import '../player/player_route.dart';
+import '../settings/settings_route.dart';
 import 'folder_screen.dart';
 import 'state/library_filter_state.dart';
 import 'widgets/folder_grid.dart';
@@ -177,6 +178,11 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           if (ref.watch(librarySearchActiveProvider) || _tab == 0)
             const _SortMenuButton(),
           if (!ref.watch(librarySearchActiveProvider)) ...[
+            IconButton(
+              tooltip: 'Ajustes',
+              icon: const Icon(Icons.settings_outlined),
+              onPressed: () => Navigator.of(context).push(settingsRoute()),
+            ),
             IconButton(
               tooltip: 'Cambiar densidad',
               icon: const Icon(Icons.grid_view),
