@@ -516,3 +516,19 @@ git commit -m "feat: queue thumbnail strip — tap-to-jump, current highlighted,
 1. Whole-branch review (opus): the strip's auto-scroll (`addPostFrameCallback` every build — cheap? does it fight user scrolling?), the jump path reusing `_advance(countAsAutoplay:false)` (no sleep decrement, no double-open, cached controller), the `queueJump` not stranding across opens, `queueIds`/`sessionAt` correctness, the ☰ toggle persistence, and that the strip stays hidden in PiP (via the controls overlay) and shows in audio-only.
 2. Fix Critical/Important; record Minors.
 3. Build + install release, report the device checklist from spec §3.
+
+---
+
+## REVISION (2026-07-03, after mockup): Task 2 redesigned to "Option A"
+
+Design change from the user: the strip is **always visible with the controls**
+(no ☰ toggle, no `queueStripVisible` setting — Task 1 dropped that field), and
+it's **integrated into the bottom control area**, orientation-aware:
+- **Landscape:** below the seek bar, a single Row — `Expanded(QueueStrip)` on the
+  left, the tool buttons clustered on the right (≈ half/half).
+- **Portrait:** below the seek bar, a compact full-width QueueStrip, then the
+  tool-buttons row below it.
+The strip lives INSIDE `BottomBar` (not mounted separately in ControlsOverlay).
+No `KivoIcons.queue`, no toggle button. Everything else (tap→queueJump, auto-scroll
+to current, PlayerScreen `_advance(countAsAutoplay:false)` jump wiring) stands.
+The authoritative Task-2 spec is `.superpowers/sdd/task-2-brief.md`.
