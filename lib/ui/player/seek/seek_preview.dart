@@ -15,6 +15,13 @@ final pendingSeekProvider = StateProvider<Duration?>((ref) => null);
 /// Latest preview frame bytes for the bubble (null = none/loading).
 final seekPreviewFrameProvider = StateProvider<Uint8List?>((ref) => null);
 
+/// In-progress horizontal-swipe seek: the [target] position and the [from]
+/// position the drag began at (for an exact delta label); null when no such
+/// gesture is active. Kept separate from [scrubProvider] (the seek bar's) so the
+/// centered gesture preview and the seek-bar bubble never render at once.
+final gestureSeekProvider =
+    StateProvider<({Duration target, Duration from})?>((ref) => null);
+
 final seekPreviewControllerProvider = Provider<SeekPreviewController>((ref) {
   return SeekPreviewController(
     extractor: ref.read(frameExtractorProvider),

@@ -10,6 +10,7 @@ import '../state/controls_visibility.dart';
 import '../state/dismiss_state.dart';
 import '../state/hud_state.dart';
 import '../state/lock_state.dart';
+import '../seek/seek_preview.dart';
 import 'ripple_state.dart';
 import '../speed/speed_ladder_overlay.dart';
 
@@ -69,13 +70,6 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures>
 
   void _haptic() {
     if (ref.read(settingsProvider).hapticsOnGestures) HapticFeedback.lightImpact();
-  }
-
-  String _fmt(Duration d) {
-    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    final h = d.inHours;
-    return h > 0 ? '$h:$m:$s' : '$m:$s';
   }
 
   void _onDoubleTap() {
@@ -200,12 +194,24 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures>
     final total = ref.read(durationProvider).value ?? Duration.zero;
     _seekAccum += (d.delta.dx / _width) * 90 * st.seekSensitivity;
     final target = clampSeek(_seekStart, Duration(seconds: _seekAccum.round()), total);
+    // Preview, don't live-seek: the video stays put while a centered card shows
+    // the target frame + delta; the seek lands on release (_onHorizontalEnd).
+    ref.read(gestureSeekProvider.notifier).state = (target: target, from: _seekStart);
+    ref.read(seekPreviewControllerProvider).request(target);
+  }
+
+  void _onHorizontalEnd(DragEndDetails d) {
+    final gesture = ref.read(gestureSeekProvider);
+    if (gesture == null) return; // gesture never engaged (dead zone / seek off)
+    final target = gesture.target;
     ref.read(playerControllerProvider).seekTo(target);
-    final delta = target - _seekStart;
-    final label = delta == Duration.zero
-        ? _fmt(target)
-        : '${_fmt(target)}  (${delta.isNegative ? '-' : '+'}${_fmt(delta.abs())})';
-    ref.read(hudProvider.notifier).show(HudKind.seek, delta.isNegative ? -1.0 : 1.0, label);
+    // Hold the seek bar (if visible) at the target until real position catches
+    // up, mirroring the bar's own release path.
+    ref.read(pendingSeekProvider.notifier).state = target;
+    ref.read(gestureSeekProvider.notifier).state = null; // hide the card
+    // Drop the last frame so the next swipe doesn't flash the previous target.
+    ref.read(seekPreviewFrameProvider.notifier).state = null;
+    _haptic();
   }
 
   void _onLongPressStart(LongPressStartDetails d) {
@@ -281,6 +287,7 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures>
           onVerticalDragEnd: _onVerticalEnd,
           onHorizontalDragStart: _onHorizontalStart,
           onHorizontalDragUpdate: _onHorizontalUpdate,
+          onHorizontalDragEnd: _onHorizontalEnd,
           onLongPressStart: _onLongPressStart,
           onLongPressMoveUpdate: _onLongPressMove,
           onLongPressEnd: _onLongPressEnd,
