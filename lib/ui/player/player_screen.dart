@@ -42,6 +42,7 @@ import 'state/hud_state.dart';
 import 'state/mini_player_state.dart';
 import 'state/orientation_state.dart';
 import 'state/pip_state.dart';
+import 'state/queue_strip_state.dart';
 
 class PlayerScreen extends ConsumerStatefulWidget {
   const PlayerScreen({super.key});
@@ -151,6 +152,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     // whatever the previous session was doing.
     ref.read(autoplayPendingProvider.notifier).state = null;
     ref.read(autoplayConfirmProvider.notifier).state = false;
+    ref.read(queueJumpProvider.notifier).state = null;
     await _openSession(session, expandingFromMini: expandingFromMini);
     _deviceControls.currentVolume().then((v) {
       if (mounted) ref.read(volumePercentProvider.notifier).state = (v * 100).clamp(0, 100);
@@ -228,11 +230,11 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     }
   }
 
-  Future<void> _advance(VideoSession next) async {
+  Future<void> _advance(VideoSession next, {bool countAsAutoplay = true}) async {
     _advancing = true;
     ref.read(autoplayPendingProvider.notifier).state = null;
     ref.read(autoplayConfirmProvider.notifier).state = false;
-    ref.read(sleepTimerProvider.notifier).onAutoplayAdvance();
+    if (countAsAutoplay) ref.read(sleepTimerProvider.notifier).onAutoplayAdvance();
     ref.read(currentVideoProvider.notifier).advanceTo(next);
     try {
       await _openSession(next, expandingFromMini: false);
@@ -368,6 +370,12 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     });
     ref.listen(completedProvider, (_, next) {
       if (next.value == true) _onCompleted();
+    });
+    ref.listen(queueJumpProvider, (_, index) {
+      if (index == null) return;
+      final s = ref.read(currentVideoProvider.notifier).sessionAt(index);
+      ref.read(queueJumpProvider.notifier).state = null;
+      if (s != null) _advance(s, countAsAutoplay: false);
     });
     ref.listen(audioOnlyProvider, (prev, on) {
       // "Solo audio" has no video — lock to portrait (the rotate control is
