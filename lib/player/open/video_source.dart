@@ -14,6 +14,7 @@ class VideoSession {
   final String displayName;  // file name — the stable resume key
   final List<String> queue;  // folder playbackPaths, natural order
   final List<String> queueNames; // folder display names, parallel to queue
+  final List<String> queueIds; // MediaStore ids, parallel to queue — for thumbnails
   final int index;
   final String? folder; // set only when opened from the library — enables external-subtitle discovery
   const VideoSession({
@@ -21,6 +22,7 @@ class VideoSession {
     required this.displayName,
     required this.queue,
     this.queueNames = const [],
+    this.queueIds = const [],
     required this.index,
     this.folder,
   });
@@ -64,27 +66,33 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
       displayName: current.name,
       queue: list.map((v) => v.uri).toList(),
       queueNames: list.map((v) => v.name).toList(),
+      queueIds: list.map((v) => v.id).toList(),
       index: idx,
       folder: current.folder, // still the tapped video's folder — for subtitle discovery
     );
   }
 
-  /// The next session in the folder queue, or null if there is none (single
-  /// queue or already the last item). Does not mutate state.
-  VideoSession? peekNext() {
+  /// Builds (without mutating) the session for any valid queue [index], or
+  /// null if out of range. Carries the full queue (uris/names/ids) and folder.
+  VideoSession? sessionAt(int index) {
     final s = state;
-    if (s == null) return null;
-    final next = s.index + 1;
-    if (next >= s.queue.length) return null;
-    final name = next < s.queueNames.length ? s.queueNames[next] : basenameOf(s.queue[next]);
+    if (s == null || index < 0 || index >= s.queue.length) return null;
+    final name = index < s.queueNames.length ? s.queueNames[index] : basenameOf(s.queue[index]);
     return VideoSession(
-      playbackPath: s.queue[next],
+      playbackPath: s.queue[index],
       displayName: name,
       queue: s.queue,
       queueNames: s.queueNames,
-      index: next,
+      queueIds: s.queueIds,
+      index: index,
       folder: s.folder,
     );
+  }
+
+  /// The next session in the queue, or null at the end.
+  VideoSession? peekNext() {
+    final s = state;
+    return s == null ? null : sessionAt(s.index + 1);
   }
 
   /// Advance the current session to [next] (used by autoplay). Observers
