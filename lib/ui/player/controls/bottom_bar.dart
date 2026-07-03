@@ -104,8 +104,11 @@ class BottomBar extends ConsumerWidget {
       controlsArea = Row(
         children: [
           const Expanded(child: QueueStrip()),
-          const SizedBox(width: 8),
+          const SizedBox(width: 16),
           ...tools,
+          // Pull the tool cluster a touch off the right edge (and give the
+          // strip slightly less width) so the row doesn't feel edge-crowded.
+          const SizedBox(width: 20),
         ],
       );
     } else if (hasQueue) {

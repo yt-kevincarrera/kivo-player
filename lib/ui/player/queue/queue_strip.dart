@@ -25,10 +25,17 @@ class _QueueStripState extends ConsumerState<QueueStrip> {
     super.dispose();
   }
 
-  void _centerOn(int index, double cardExtent, double viewportW) {
+  void _centerOn(int index, double cardExtent, double viewportW,
+      {required bool animate}) {
     if (!_scroll.hasClients) return;
-    final target = index * cardExtent - (viewportW - cardExtent) / 2;
-    _scroll.jumpTo(target.clamp(0.0, _scroll.position.maxScrollExtent));
+    final target = (index * cardExtent - (viewportW - cardExtent) / 2)
+        .clamp(0.0, _scroll.position.maxScrollExtent);
+    if (animate) {
+      _scroll.animateTo(target,
+          duration: const Duration(milliseconds: 340), curve: Curves.easeOutCubic);
+    } else {
+      _scroll.jumpTo(target);
+    }
   }
 
   @override
@@ -37,47 +44,60 @@ class _QueueStripState extends ConsumerState<QueueStrip> {
     if (session == null || session.queue.length <= 1) return const SizedBox.shrink();
 
     final landscape = MediaQuery.orientationOf(context) == Orientation.landscape;
-    final cardW = landscape ? 68.0 : 56.0;
-    final thumbH = landscape ? 38.0 : 32.0;
-    final stripH = thumbH + 18; // room for a 1-line name below
+    final cardW = landscape ? 104.0 : 84.0;
+    final thumbH = landscape ? 58.0 : 48.0;
+    final stripH = thumbH + 20; // room for a 1-line name below
     final index = session.index;
-
-    if (_centered != index) {
-      _centered = index;
-      final screenW = MediaQuery.sizeOf(context).width;
-      final viewportW = landscape ? screenW * 0.6 : screenW;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _centerOn(index, cardW + _gap, viewportW);
-      });
-    }
+    final cardExtent = cardW + _gap;
 
     return SizedBox(
       height: stripH,
-      child: ListView.builder(
-        controller: _scroll,
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 2),
-        itemCount: session.queue.length,
-        itemBuilder: (context, i) {
-          final active = i == index;
-          final id = i < session.queueIds.length ? session.queueIds[i] : '';
-          final name = i < session.queueNames.length ? session.queueNames[i] : '';
-          return Padding(
-            padding: EdgeInsets.only(right: i == session.queue.length - 1 ? 0 : _gap),
-            child: _QueueCard(
-              width: cardW,
-              thumbH: thumbH,
-              id: id,
-              name: name,
-              index: i,
-              active: active,
-              onTap: active
-                  ? null
-                  : () {
-                      ref.read(queueJumpProvider.notifier).state = i;
-                      ref.read(controlsVisibleProvider.notifier).show();
-                    },
-            ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Center on the current card only when the index changes — measured
+          // against the REAL viewport width (the Expanded slot in landscape is
+          // not a fixed fraction of the screen), so it never fights manual
+          // scrolling and lands the active card in the middle. First appearance
+          // jumps instantly; later changes (tap-jump, autoplay) glide.
+          if (_centered != index) {
+            final firstShow = _centered == null;
+            _centered = index;
+            final viewportW = constraints.maxWidth;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _centerOn(index, cardExtent, viewportW, animate: !firstShow);
+            });
+          }
+          return ListView.builder(
+            controller: _scroll,
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 2),
+            itemCount: session.queue.length,
+            itemBuilder: (context, i) {
+              final active = i == index;
+              final id = i < session.queueIds.length ? session.queueIds[i] : '';
+              final name = i < session.queueNames.length ? session.queueNames[i] : '';
+              return Padding(
+                // Keyed by the queue uri so the ListView never recycles a card
+                // element across a different video — without this the thumbnail
+                // AnimatedSwitcher can cross-fade a neighbour's frame onto a
+                // card, making the tapped preview look like a different video.
+                key: ValueKey(session.queue[i]),
+                padding: EdgeInsets.only(right: i == session.queue.length - 1 ? 0 : _gap),
+                child: _QueueCard(
+                  width: cardW,
+                  thumbH: thumbH,
+                  id: id,
+                  name: name,
+                  active: active,
+                  onTap: active
+                      ? null
+                      : () {
+                          ref.read(queueJumpProvider.notifier).state = i;
+                          ref.read(controlsVisibleProvider.notifier).show();
+                        },
+                ),
+              );
+            },
           );
         },
       ),
@@ -90,7 +110,6 @@ class _QueueCard extends StatelessWidget {
   final double thumbH;
   final String id;
   final String name;
-  final int index;
   final bool active;
   final VoidCallback? onTap;
   const _QueueCard({
@@ -98,7 +117,6 @@ class _QueueCard extends StatelessWidget {
     required this.thumbH,
     required this.id,
     required this.name,
-    required this.index,
     required this.active,
     required this.onTap,
   });
@@ -117,7 +135,7 @@ class _QueueCard extends StatelessWidget {
               height: thumbH,
               width: width,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(7),
+                borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: active ? KivoColors.gold : Colors.transparent,
                   width: 2,
@@ -134,20 +152,6 @@ class _QueueCard extends StatelessWidget {
                         ? const ColoredBox(color: Color(0xFF1C2A44))
                         : ThumbnailImage(id, fit: BoxFit.cover),
                   ),
-                  Positioned(
-                    top: 2,
-                    left: 3,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.55),
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                      child: Text('${index + 1}',
-                          style: const TextStyle(
-                              color: Colors.white, fontSize: 8, fontWeight: FontWeight.w800)),
-                    ),
-                  ),
                   if (active)
                     Positioned(
                       left: 0,
@@ -155,19 +159,19 @@ class _QueueCard extends StatelessWidget {
                       bottom: 0,
                       child: Container(
                         color: KivoColors.gold,
-                        padding: const EdgeInsets.symmetric(vertical: 1),
+                        padding: const EdgeInsets.symmetric(vertical: 1.5),
                         child: const Text('AHORA',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                                 color: Color(0xFF231705),
-                                fontSize: 7,
+                                fontSize: 8,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: 0.5)),
                       ),
                     )
                   else
                     const Center(
-                      child: Icon(Icons.play_arrow_rounded, color: Colors.white70, size: 18),
+                      child: Icon(Icons.play_arrow_rounded, color: Colors.white70, size: 22),
                     ),
                 ],
               ),
@@ -179,7 +183,7 @@ class _QueueCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: active ? KivoColors.gold : Colors.white.withValues(alpha: 0.6),
-                fontSize: 8.5,
+                fontSize: 10,
                 fontWeight: active ? FontWeight.w700 : FontWeight.w500,
               ),
             ),
