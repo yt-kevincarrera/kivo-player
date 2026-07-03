@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/kivo_theme.dart';
 import '../../../player/background/audio_only.dart';
 import '../../../player/open/video_source.dart';
+import '../state/lock_state.dart';
 
 /// "Solo audio" surface: black fill over the (disabled) video with an
 /// always-visible mini music-player center — waves, title, label and a
@@ -17,6 +18,11 @@ class AudioOnlyView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final on = ref.watch(audioOnlyProvider);
     if (!on) return const SizedBox.shrink();
+    // When locked, show only the black fill — the hold-to-unlock control owns
+    // the center, and the "Ver video" pill must not be tappable through the lock.
+    if (ref.watch(lockProvider)) {
+      return const IgnorePointer(child: ColoredBox(color: Colors.black));
+    }
     final title = ref.watch(currentVideoProvider)?.displayName ?? '';
     return Stack(
       children: [

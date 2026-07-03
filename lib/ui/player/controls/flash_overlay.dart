@@ -9,7 +9,10 @@ class FlashOverlay extends ConsumerWidget {
     final msg = ref.watch(flashProvider);
     if (msg == null) return const SizedBox.shrink();
     return IgnorePointer(
-      child: Center(
+      // Upper third, not centered — otherwise it collides with the play/skip
+      // controls (same placement as the seek/speed HUD chip).
+      child: Align(
+        alignment: const Alignment(0, -0.55),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           decoration: BoxDecoration(

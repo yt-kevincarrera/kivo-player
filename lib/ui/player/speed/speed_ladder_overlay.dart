@@ -29,10 +29,12 @@ class SpeedLadderOverlay extends ConsumerWidget {
     final st = ref.watch(settingsProvider);
     final accent = Color(st.accentColor);
 
-    // Hold-LEFT (fixed speed): a compact centered badge, no selector.
+    // Hold-LEFT (fixed speed): a compact badge in the upper third — NOT
+    // centered, or it sits right on top of the play/skip controls.
     if (!isLadder) {
       return IgnorePointer(
-        child: Center(
+        child: Align(
+          alignment: const Alignment(0, -0.55),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
             decoration: BoxDecoration(
@@ -82,7 +84,8 @@ class SpeedLadderOverlay extends ConsumerWidget {
     return IgnorePointer(
       child: Stack(children: [
         Align(
-          alignment: Alignment.center,
+          // Upper third, clear of the centered play/skip controls.
+          alignment: const Alignment(0, -0.55),
           child: Text('${_fmtSpeed(speed)}x',
               style: TextStyle(color: accent, fontSize: 48, fontWeight: FontWeight.bold)),
         ),
