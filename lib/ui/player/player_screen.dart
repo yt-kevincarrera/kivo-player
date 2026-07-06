@@ -264,6 +264,12 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   ({int width, int height}) get _pipSize => _engine.videoSize ?? (width: 16, height: 9);
 
   void _armPip() {
+    // PiP-auto-on-Home is user-configurable: when off, keep PiP disarmed so
+    // onUserLeaveHint (native) won't float the player when leaving to Home.
+    if (!ref.read(settingsProvider).pipAutoOnHome) {
+      _pip.disarm();
+      return;
+    }
     final playing = ref.read(playingProvider).value ?? false;
     _pip.arm(width: _pipSize.width, height: _pipSize.height, playing: playing);
   }

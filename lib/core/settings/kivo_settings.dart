@@ -38,6 +38,7 @@ class KivoSettings {
   final int subtitleBackgroundColor; // ARGB, default is transparent
   final int sleepTimerLastMinutes;
   final String iconStyle; // 'duotone' | 'flat'
+  final bool pipAutoOnHome;
 
   const KivoSettings({
     required this.doubleTapSkipLeft,
@@ -79,6 +80,7 @@ class KivoSettings {
     required this.subtitleBackgroundColor,
     required this.sleepTimerLastMinutes,
     required this.iconStyle,
+    required this.pipAutoOnHome,
   });
 
   factory KivoSettings.defaults() => const KivoSettings(
@@ -121,7 +123,10 @@ class KivoSettings {
         subtitleBackgroundColor: 0x00000000,
         sleepTimerLastMinutes: 30,
         iconStyle: 'duotone',
+        pipAutoOnHome: true,
       );
+
+  static const Object _unset = Object();
 
   KivoSettings copyWith({
     int? doubleTapSkipLeft,
@@ -156,13 +161,14 @@ class KivoSettings {
     String? librarySort,
     bool? subtitlesEnabledByDefault,
     bool? autoplayNext,
-    String? preferredSubtitleLanguage,
-    String? preferredAudioLanguage,
+    Object? preferredSubtitleLanguage = _unset,
+    Object? preferredAudioLanguage = _unset,
     double? subtitleFontSize,
     int? subtitleTextColor,
     int? subtitleBackgroundColor,
     int? sleepTimerLastMinutes,
     String? iconStyle,
+    bool? pipAutoOnHome,
   }) {
     return KivoSettings(
       doubleTapSkipLeft: doubleTapSkipLeft ?? this.doubleTapSkipLeft,
@@ -197,13 +203,18 @@ class KivoSettings {
       librarySort: librarySort ?? this.librarySort,
       subtitlesEnabledByDefault: subtitlesEnabledByDefault ?? this.subtitlesEnabledByDefault,
       autoplayNext: autoplayNext ?? this.autoplayNext,
-      preferredSubtitleLanguage: preferredSubtitleLanguage ?? this.preferredSubtitleLanguage,
-      preferredAudioLanguage: preferredAudioLanguage ?? this.preferredAudioLanguage,
+      preferredSubtitleLanguage: identical(preferredSubtitleLanguage, _unset)
+          ? this.preferredSubtitleLanguage
+          : preferredSubtitleLanguage as String?,
+      preferredAudioLanguage: identical(preferredAudioLanguage, _unset)
+          ? this.preferredAudioLanguage
+          : preferredAudioLanguage as String?,
       subtitleFontSize: subtitleFontSize ?? this.subtitleFontSize,
       subtitleTextColor: subtitleTextColor ?? this.subtitleTextColor,
       subtitleBackgroundColor: subtitleBackgroundColor ?? this.subtitleBackgroundColor,
       sleepTimerLastMinutes: sleepTimerLastMinutes ?? this.sleepTimerLastMinutes,
       iconStyle: iconStyle ?? this.iconStyle,
+      pipAutoOnHome: pipAutoOnHome ?? this.pipAutoOnHome,
     );
   }
 
@@ -247,6 +258,7 @@ class KivoSettings {
         'subtitleBackgroundColor': subtitleBackgroundColor,
         'sleepTimerLastMinutes': sleepTimerLastMinutes,
         'iconStyle': iconStyle,
+        'pipAutoOnHome': pipAutoOnHome,
       };
 
   factory KivoSettings.fromMap(Map<String, dynamic> m) {
@@ -291,6 +303,7 @@ class KivoSettings {
       subtitleBackgroundColor: m['subtitleBackgroundColor'] ?? d.subtitleBackgroundColor,
       sleepTimerLastMinutes: m['sleepTimerLastMinutes'] ?? d.sleepTimerLastMinutes,
       iconStyle: m['iconStyle'] ?? d.iconStyle,
+      pipAutoOnHome: m['pipAutoOnHome'] ?? d.pipAutoOnHome,
     );
   }
 }
