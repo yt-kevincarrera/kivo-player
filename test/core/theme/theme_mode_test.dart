@@ -15,7 +15,7 @@ void main() {
     expect(themeModeFor('auto'), ThemeMode.system);
   });
   test('themes expose brand colors', () {
-    expect(KivoTheme.light().colorScheme.primary, KivoColors.blue);
+    expect(KivoTheme.light().colorScheme.primary, KivoColors.gold);
     expect(KivoTheme.dark().colorScheme.secondary, KivoColors.gold);
   });
 }

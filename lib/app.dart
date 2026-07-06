@@ -13,12 +13,13 @@ class KivoApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(backgroundPlaybackProvider); // instantiate the coordinator once
     final mode = ref.watch(settingsProvider.select((s) => s.themeMode));
+    final accent = Color(ref.watch(settingsProvider.select((s) => s.accentColor)));
     return MaterialApp(
       navigatorKey: kivoNavigatorKey,
       title: 'Kivo',
       debugShowCheckedModeBanner: false,
-      theme: KivoTheme.light(),
-      darkTheme: KivoTheme.dark(),
+      theme: KivoTheme.light(accent: accent),
+      darkTheme: KivoTheme.dark(accent: accent),
       themeMode: themeModeFor(mode),
       home: const HomeShell(),
     );

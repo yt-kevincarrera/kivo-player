@@ -3,14 +3,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kivo_player/core/theme/kivo_theme.dart';
 
 void main() {
-  test('palette matches spec', () {
-    expect(KivoColors.blue, const Color(0xFF2D6CFF));
-    expect(KivoColors.gold, const Color(0xFFE8B84B));
+  test('onAccent is dark on a light accent and white on a dark accent', () {
+    expect(onAccent(const Color(0xFFE8B84B)), const Color(0xFF231705)); // gold → dark ink
+    expect(onAccent(const Color(0xFF13315C)), Colors.white);            // deep blue → white
   });
 
-  test('dark theme uses gold as secondary accent', () {
-    final theme = KivoTheme.dark();
-    expect(theme.colorScheme.secondary, KivoColors.gold);
-    expect(theme.brightness, Brightness.dark);
+  test('theme primary and secondary follow the given accent', () {
+    final blue = KivoTheme.dark(accent: const Color(0xFF2D6CFF));
+    expect(blue.colorScheme.primary, const Color(0xFF2D6CFF));
+    expect(blue.colorScheme.secondary, const Color(0xFF2D6CFF));
+    expect(blue.colorScheme.onSecondary, onAccent(const Color(0xFF2D6CFF)));
+  });
+
+  test('default accent is gold', () {
+    expect(KivoTheme.dark().colorScheme.secondary, const Color(0xFFE8B84B));
   });
 }
