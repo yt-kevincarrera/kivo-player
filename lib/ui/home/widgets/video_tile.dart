@@ -69,7 +69,7 @@ class _VideoTileState extends ConsumerState<VideoTile> {
                 child: AspectRatio(
                   aspectRatio: 16 / 9,
                   child: Stack(fit: StackFit.expand, children: [
-                    Hero(tag: 'libhero-${widget.video.uri}', child: ThumbnailImage(widget.video.id)),
+                    ThumbnailImage(widget.video.id),
                     Positioned(
                       top: 4,
                       right: 4,
@@ -148,7 +148,7 @@ class _VideoTileState extends ConsumerState<VideoTile> {
         child: AspectRatio(
           aspectRatio: 16 / 9,
           child: Stack(fit: StackFit.expand, children: [
-            Hero(tag: 'libhero-${widget.video.uri}', child: ThumbnailImage(widget.video.id)),
+            ThumbnailImage(widget.video.id),
             // Duration badge (top-right)
             Positioned(
               top: 6,

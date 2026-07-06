@@ -404,7 +404,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
         body: Consumer(
           builder: (context, ref, _) {
             final dismissProgress = ref.watch(dismissProvider);
-            final heroTag = 'libhero-${ref.watch(currentVideoProvider)?.playbackPath ?? ''}';
             final scale = 1.0 - dismissProgress * 0.06;
             final opacity = 1.0 - dismissProgress * 0.4;
             // Slide the whole player down by progress × screen height.
@@ -445,23 +444,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                   opacity: opacity.clamp(0.0, 1.0),
                   child: Stack(
                     children: [
-                      Positioned.fill(
-                        child: Hero(
-                          // Pairs with the library tile's Hero (tagged by uri)
-                          // for the OPEN flight. On CLOSE we minimize to the
-                          // mini-player, not back to a tile, so the pop flight
-                          // is suppressed (invisible shuttle) — the dismiss
-                          // drag + faded backdrop carry the close.
-                          tag: heroTag,
-                          flightShuttleBuilder: (_, __, direction, ___, toContext) {
-                            if (direction == HeroFlightDirection.pop) {
-                              return const SizedBox.shrink();
-                            }
-                            return (toContext.widget as Hero).child;
-                          },
-                          child: videoBox,
-                        ),
-                      ),
+                      Positioned.fill(child: videoBox),
                       if (!ref.watch(pipModeProvider)) ...[
                         const Positioned.fill(child: PlayerGestures(child: SizedBox.expand())),
                         // Above gestures: only its "Ver video" pill is
