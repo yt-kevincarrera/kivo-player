@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/navigation.dart';
 import 'core/settings/settings_provider.dart';
 import 'core/theme/kivo_theme.dart';
+import 'player/autoplay/autoplay_coordinator.dart';
 import 'player/background/background_playback.dart';
 import 'ui/home/home_shell.dart';
 
@@ -12,6 +13,7 @@ class KivoApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(backgroundPlaybackProvider); // instantiate the coordinator once
+    ref.watch(autoplayCoordinatorProvider); // advance the queue while minimized
     final mode = ref.watch(settingsProvider.select((s) => s.themeMode));
     final accent = Color(ref.watch(settingsProvider.select((s) => s.accentColor)));
     return MaterialApp(

@@ -8,6 +8,7 @@ import 'package:kivo_player/platform/interfaces/pip_controller.dart';
 import 'package:kivo_player/platform/interfaces/subtitle_finder.dart';
 import 'package:kivo_player/player/engine/playback_engine.dart';
 import 'package:kivo_player/player/queue/file_system_lister.dart';
+import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/player/resume/resume_store.dart';
 
 class InMemorySettingsStore implements SettingsStore {
@@ -298,6 +299,31 @@ class FakePipController implements PipController {
   void emitPlay() => _cb?.onPlay();
   void emitPause() => _cb?.onPause();
   void emitSkip(int s) => _cb?.onSkip(s);
+}
+
+class FakeResumeService implements ResumeService {
+  @override
+  int minSeconds = 5;
+  @override
+  double finishedTailFraction = 0.97;
+
+  final Map<String, Duration> positions = {};
+  final List<String> recordedKeys = [];
+
+  @override
+  Duration? positionFor(String key) => positions[key];
+
+  @override
+  Future<void> record(String key, Duration position, Duration total, int nowMs) async {
+    recordedKeys.add(key);
+    positions[key] = position;
+  }
+
+  @override
+  List<ResumeEntry> entries() => const [];
+
+  @override
+  Future<void> clear(String key) async => positions.remove(key);
 }
 
 class FakeSubtitleFinder implements SubtitleFinder {
