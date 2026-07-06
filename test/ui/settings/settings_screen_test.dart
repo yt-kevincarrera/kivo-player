@@ -63,4 +63,12 @@ void main() {
     await t.pumpAndSettle();
     expect(find.text('CONTROLES'), findsWidgets); // an uppercased group label on the section
   });
+
+  testWidgets('root lists Reproducción avanzada and navigates', (t) async {
+    await _pump(t);
+    expect(find.text('Reproducción avanzada'), findsOneWidget);
+    await t.tap(find.text('Reproducción avanzada'));
+    await t.pumpAndSettle();
+    expect(find.text('CONTINUAR VIENDO'), findsWidgets); // an uppercased group label
+  });
 }

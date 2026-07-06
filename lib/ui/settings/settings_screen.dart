@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/settings/kivo_settings.dart';
 import '../../core/settings/settings_provider.dart';
 import 'sections/about_section.dart';
+import 'sections/advanced_playback_section.dart';
 import 'sections/general_section.dart';
 import 'sections/interface_section.dart';
 import 'sections/playback_gestures_section.dart';
@@ -35,6 +36,12 @@ class SettingsScreen extends ConsumerWidget {
               subtitle: 'Controles, overlay, aspecto, columnas',
               onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const InterfaceSettingsSection()))),
+            SettingNavRow(
+              icon: Icons.play_circle_outline,
+              title: 'Reproducción avanzada',
+              subtitle: 'Continuar, autoplay, subtítulos, PiP',
+              onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const AdvancedPlaybackSection()))),
             SettingNavRow(
               icon: Icons.info_outline, title: 'Acerca de', subtitle: 'Versión $kAppVersion',
               onTap: () => Navigator.of(context).push(
