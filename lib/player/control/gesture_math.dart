@@ -76,13 +76,11 @@ int defaultHoldRightIndex(List<double> detents) {
 bool inLateralDeadZone(double localX, double width, double margin) =>
     localX < margin || localX > width - margin;
 
-/// True when a touch is in a swipe-to-dismiss zone: the top strip
-/// ([topInset] + [topMargin]) or either lateral strip ([lateralMargin]).
-/// The bottom strip is intentionally excluded (controls live there).
-bool inDismissZone(double localX, double localY, double width,
-        double topInset, double lateralMargin, double topMargin) =>
-    localY < topInset + topMargin ||
-    inLateralDeadZone(localX, width, lateralMargin);
+/// True when a touch starts in the top strip ([topInset] + [topMargin]),
+/// reserved for the swipe-down-to-rotate gesture. (Minimize now lives only on
+/// the lateral strips — see [inLateralDeadZone].)
+bool inTopRotateZone(double localY, double topInset, double topMargin) =>
+    localY < topInset + topMargin;
 
 ({double system01, double playerPercent}) volumeMapping(double percent, double boostMax) {
   final p = percent.clamp(0.0, boostMax);

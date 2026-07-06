@@ -98,12 +98,11 @@ void main() {
     expect(inLateralDeadZone(400, 800, 38), isFalse); // center
   });
 
-  test('inDismissZone: top strip and lateral strips true, center + bottom false', () {
-    // width 800, height 400, topInset 24, lateralMargin 38, topMargin 24
-    expect(inDismissZone(400, 10, 800, 24, 38, 24), isTrue);  // top strip (y<48)
-    expect(inDismissZone(5, 200, 800, 24, 38, 24), isTrue);   // left lateral
-    expect(inDismissZone(795, 200, 800, 24, 38, 24), isTrue); // right lateral
-    expect(inDismissZone(400, 200, 800, 24, 38, 24), isFalse);// center
-    expect(inDismissZone(400, 398, 800, 24, 38, 24), isFalse);// bottom (not a dismiss zone)
+  test('inTopRotateZone: only the top strip (topInset+topMargin) is true', () {
+    // topInset 24, topMargin 24 → strip is y < 48
+    expect(inTopRotateZone(10, 24, 24), isTrue);   // within the top strip
+    expect(inTopRotateZone(47, 24, 24), isTrue);   // just inside
+    expect(inTopRotateZone(48, 24, 24), isFalse);  // just below the strip
+    expect(inTopRotateZone(200, 24, 24), isFalse); // middle
   });
 }

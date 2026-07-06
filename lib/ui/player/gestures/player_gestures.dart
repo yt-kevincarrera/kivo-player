@@ -10,6 +10,8 @@ import '../state/controls_visibility.dart';
 import '../state/dismiss_state.dart';
 import '../state/hud_state.dart';
 import '../state/lock_state.dart';
+import '../state/orientation_state.dart';
+import '../../../player/background/audio_only.dart';
 import '../seek/seek_preview.dart';
 import 'ripple_state.dart';
 import '../speed/speed_ladder_overlay.dart';
@@ -40,11 +42,17 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures>
   bool _vDead = false;
   bool _hDead = false;
   bool _isDismiss = false; // true when the current vertical drag is a dismiss gesture
+  bool _isTopRotate = false; // true when the current vertical drag began in the top rotate strip
+  double _rotateDy = 0; // accumulated vertical travel of a top-strip drag
   bool _dismissHaptic = false; // fired the threshold-crossing tick once this drag
   double _topInset = 0;
   double _bottomInset = 0;
   static const _deadMargin = 24.0;
   static const _lateralMargin = 38.0;
+  // Top band reserved for swipe-down-to-rotate. Generous (not just the 24px
+  // dead margin) so the gesture still registers after the ~18px touch slop
+  // shifts the reported drag-start downward — and to match "from the top".
+  static const _topRotateMargin = 90.0;
 
   late final AnimationController _dismissAnim;
 
@@ -96,7 +104,15 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures>
   void _onVerticalStart(DragStartDetails d) {
     final dx = d.localPosition.dx;
     final dy = d.localPosition.dy;
-    _isDismiss = inDismissZone(dx, dy, _width, _topInset, _lateralMargin, _deadMargin);
+    // Top strip → swipe-down-to-rotate (discrete; fires on end). Checked first
+    // so the top corners rotate rather than minimize.
+    _isTopRotate = inTopRotateZone(dy, _topInset, _topRotateMargin);
+    if (_isTopRotate) {
+      _rotateDy = 0;
+      return;
+    }
+    // Minimize now lives only on the lateral edges (the top strip rotates).
+    _isDismiss = inLateralDeadZone(dx, _width, _lateralMargin);
     if (_isDismiss) {
       _dismissHaptic = false;
       _dismissAnim.stop();
@@ -119,6 +135,10 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures>
   }
 
   void _onVerticalUpdate(DragUpdateDetails d) {
+    if (_isTopRotate) {
+      _rotateDy += d.delta.dy; // accumulate; the rotate fires on end
+      return;
+    }
     if (_isDismiss) {
       // Drive dismiss progress live: clamp downward (0..1).
       final current = ref.read(dismissProvider);
@@ -149,6 +169,18 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures>
     // Always clear the volume-gesture flag so hardware-key events resume updating
     // Kivo's volume model (regardless of whether this was a volume or dismiss drag).
     ref.read(volumeGestureActiveProvider.notifier).state = false;
+    if (_isTopRotate) {
+      _isTopRotate = false;
+      final dy = _rotateDy;
+      _rotateDy = 0;
+      // A downward swipe past the threshold rotates — but not in Solo audio,
+      // which is locked to portrait (rotation disabled there).
+      if (dy >= 48 && !ref.read(audioOnlyProvider)) {
+        ref.read(orientationProvider.notifier).cycle();
+        _haptic();
+      }
+      return;
+    }
     if (!_isDismiss) return;
     _isDismiss = false;
     final progress = ref.read(dismissProvider);

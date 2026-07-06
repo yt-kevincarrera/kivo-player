@@ -7,6 +7,8 @@ import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/platform/device_controls_provider.dart';
 import 'package:kivo_player/platform/interfaces/device_controls.dart';
 import 'package:kivo_player/ui/player/state/controls_visibility.dart';
+import 'package:kivo_player/ui/player/state/orientation_state.dart';
+import 'package:kivo_player/player/background/audio_only.dart';
 import 'package:kivo_player/ui/player/gestures/player_gestures.dart';
 import '../../fakes/fakes.dart';
 
@@ -89,5 +91,52 @@ void main() {
     // Dispose container to cancel HUD/controls timers before framework cleanup.
     c.dispose();
     await tester.pump();
+  });
+
+  Future<ProviderContainer> pumpGestures(WidgetTester tester,
+      {bool audioOnly = false}) async {
+    final engine = FakePlaybackEngine();
+    addTearDown(engine.dispose);
+    final s = await SettingsService.load(InMemorySettingsStore());
+    final c = ProviderContainer(overrides: [
+      settingsServiceProvider.overrideWithValue(s),
+      playbackEngineProvider.overrideWithValue(engine),
+      deviceControlsProvider.overrideWithValue(NoopControls()),
+    ]);
+    addTearDown(c.dispose);
+    if (audioOnly) c.read(audioOnlyProvider.notifier).toggle();
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: c,
+      child: const MaterialApp(home: Scaffold(body: PlayerGestures(child: SizedBox.expand()))),
+    ));
+    await tester.pump();
+    return c;
+  }
+
+  testWidgets('swipe down from the top strip rotates (portrait→landscape)', (tester) async {
+    final c = await pumpGestures(tester);
+    expect(c.read(orientationProvider), DeviceOrientationLock.portrait);
+    final box = tester.getRect(find.byType(PlayerGestures));
+    await tester.dragFrom(Offset(box.center.dx, box.top + 6), const Offset(0, 140));
+    await tester.pump(const Duration(milliseconds: 400)); // drain the double-tap countdown
+    expect(c.read(orientationProvider), DeviceOrientationLock.landscape);
+  });
+
+  testWidgets('swipe down from the center does NOT rotate', (tester) async {
+    final c = await pumpGestures(tester);
+    final box = tester.getRect(find.byType(PlayerGestures));
+    await tester.dragFrom(box.center, const Offset(0, 140));
+    // Center drag adjusts brightness → shows the HUD (auto-hide timer); drain it
+    // plus the double-tap countdown before teardown checks for pending timers.
+    await tester.pump(const Duration(seconds: 4));
+    expect(c.read(orientationProvider), DeviceOrientationLock.portrait);
+  });
+
+  testWidgets('in Solo audio, the top swipe does NOT rotate', (tester) async {
+    final c = await pumpGestures(tester, audioOnly: true);
+    final box = tester.getRect(find.byType(PlayerGestures));
+    await tester.dragFrom(Offset(box.center.dx, box.top + 6), const Offset(0, 140));
+    await tester.pump(const Duration(milliseconds: 400)); // drain the double-tap countdown
+    expect(c.read(orientationProvider), DeviceOrientationLock.portrait);
   });
 }
