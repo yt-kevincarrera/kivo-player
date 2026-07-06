@@ -218,6 +218,13 @@ String _toHex(Color c) {
   return '#${rgb.toRadixString(16).padLeft(6, '0')}';
 }
 
+/// Resolves the base ("currentColor") of a [KivoIcon]: an explicit [color]
+/// always wins; otherwise the icon adopts the ambient [IconTheme] color (so it
+/// reads correctly on a light surface, e.g. an AppBar in light mode); white is
+/// the last-resort fallback when neither is set.
+Color resolveIconBaseColor(Color? explicit, Color? ambient) =>
+    explicit ?? ambient ?? const Color(0xFFFFFFFF);
+
 /// Renders a [KivoIcons] duotone SVG. [color] sets the `currentColor` base
 /// (the accent is substituted from [settingsProvider] at build time).
 /// [accent] overrides the configured accent for one-off use.
@@ -226,7 +233,10 @@ String _toHex(Color c) {
 class KivoIcon extends ConsumerWidget {
   final String icon;
   final double size;
-  final Color color;
+  /// Base ("currentColor") tint. When null the icon adopts the ambient
+  /// [IconTheme] color (so it adapts to light/dark surfaces); white is the
+  /// last-resort fallback. Player overlays pass an explicit color.
+  final Color? color;
   final Color? accent;
   final double opacity;
 
@@ -234,22 +244,23 @@ class KivoIcon extends ConsumerWidget {
     this.icon, {
     super.key,
     this.size = 24,
-    this.color = const Color(0xFFFFFFFF),
+    this.color,
     this.accent,
     this.opacity = 1.0,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final base = resolveIconBaseColor(color, IconTheme.of(context).color);
     final flat = ref.watch(settingsProvider.select((s) => s.iconStyle)) == 'flat';
-    final a = flat ? color : (accent ?? Color(ref.watch(settingsProvider).accentColor));
+    final a = flat ? base : (accent ?? Color(ref.watch(settingsProvider).accentColor));
     final hex = _toHex(a);
     final svg = icon.replaceAll('__ACCENT__', hex);
     final pic = SvgPicture.string(
       svg,
       width: size,
       height: size,
-      theme: SvgTheme(currentColor: color),
+      theme: SvgTheme(currentColor: base),
     );
     return opacity >= 1.0 ? pic : Opacity(opacity: opacity, child: pic);
   }
