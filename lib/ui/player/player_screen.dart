@@ -368,8 +368,11 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     // `mounted` (StateNotifier's, not State's) in case the ProviderContainer
     // itself was torn down first (e.g. test teardown disposing the container).
     final api = _dismissApi;
+    final self = api.state;
     scheduleMicrotask(() {
-      if (api.mounted) api.state = null;
+      // Identity-guard: only clear OUR published API. If a new PlayerScreen
+      // somehow published before this microtask runs, don't clobber its handle.
+      if (api.mounted && identical(api.state, self)) api.state = null;
     });
     super.dispose();
   }
