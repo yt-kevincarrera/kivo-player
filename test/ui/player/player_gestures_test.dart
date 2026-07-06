@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/player/engine/playback_provider.dart';
+import 'package:kivo_player/player/control/player_controller.dart';
 import 'package:kivo_player/platform/device_controls_provider.dart';
 import 'package:kivo_player/platform/interfaces/device_controls.dart';
 import 'package:kivo_player/ui/player/state/controls_visibility.dart';
@@ -138,5 +139,15 @@ void main() {
     await tester.dragFrom(Offset(box.center.dx, box.top + 6), const Offset(0, 140));
     await tester.pump(const Duration(milliseconds: 400)); // drain the double-tap countdown
     expect(c.read(orientationProvider), DeviceOrientationLock.portrait);
+  });
+
+  testWidgets('releasing a hold-to-speed restores the selected rate, not 1x', (tester) async {
+    final c = await pumpGestures(tester);
+    c.read(rateProvider.notifier).state = 1.5; // user's selected speed
+    final box = tester.getRect(find.byType(PlayerGestures));
+    // Long-press on the left half → hold-left accelerates; release restores.
+    await tester.longPressAt(Offset(box.left + box.width * 0.25, box.center.dy));
+    await tester.pump(const Duration(milliseconds: 500)); // drain gesture timers
+    expect(c.read(rateProvider), 1.5);
   });
 }

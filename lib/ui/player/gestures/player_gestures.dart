@@ -31,6 +31,7 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures>
   bool _holdLeft = false;
   bool _holding = false; // true while a hold-to-speed long-press is active
   double? _lastHoldSpeed;
+  double _preHoldRate = 1.0; // selected rate before a hold — restored on release
   double _holdStartY = 0;
   int _holdBaseIndex = 0;
   static const double _holdStepPx = 48.0;
@@ -251,6 +252,9 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures>
     final st = ref.read(settingsProvider);
     final ctrl = ref.read(playerControllerProvider);
     _holding = true;
+    // Remember the user's selected rate so releasing restores IT, not a
+    // hardcoded 1x (setRate below overwrites rateProvider with the hold speed).
+    _preHoldRate = ref.read(rateProvider);
     _holdLeft = d.localPosition.dx < _width / 2;
     if (_holdLeft) {
       ctrl.setRate(st.holdLeftSpeed);
@@ -284,7 +288,8 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures>
     if (!_holding) return;
     final st = ref.read(settingsProvider);
     if (_holdLeft || st.holdRightReleaseToNormal) {
-      ref.read(playerControllerProvider).setRate(1.0);
+      // Restore the rate that was selected before the hold (e.g. 1.5x), not 1x.
+      ref.read(playerControllerProvider).setRate(_preHoldRate);
     }
     ref.read(holdSpeedProvider.notifier).state = null;
     ref.read(holdSpeedIsLadderProvider.notifier).state = false;
