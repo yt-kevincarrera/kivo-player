@@ -36,6 +36,7 @@ class MainActivity : FlutterActivity() {
     // When true (player active), hardware volume keys are handled here and the
     // OS volume panel is suppressed; the library leaves this false.
     private var interceptVolume = false
+    private var volumeChannel: MethodChannel? = null
     private val audioManager by lazy {
         getSystemService(Context.AUDIO_SERVICE) as AudioManager
     }
@@ -312,15 +313,16 @@ class MainActivity : FlutterActivity() {
             }
 
         // ── kivo/volume ─────────────────────────────────────────────────────────
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "kivo/volume")
-            .setMethodCallHandler { call, result ->
-                if (call.method == "setKeyInterception") {
-                    interceptVolume = call.argument<Boolean>("on") ?: false
-                    result.success(null)
-                } else {
-                    result.notImplemented()
-                }
+        val volume = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "kivo/volume")
+        volumeChannel = volume
+        volume.setMethodCallHandler { call, result ->
+            if (call.method == "setKeyInterception") {
+                interceptVolume = call.argument<Boolean>("on") ?: false
+                result.success(null)
+            } else {
+                result.notImplemented()
             }
+        }
 
         // ── kivo/media_session ────────────────────────────────────────────────
         val sessionChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "kivo/media_session")
@@ -396,9 +398,13 @@ class MainActivity : FlutterActivity() {
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (interceptVolume && isVolumeKey(keyCode)) {
-            val dir = if (keyCode == KeyEvent.KEYCODE_VOLUME_UP)
-                AudioManager.ADJUST_RAISE else AudioManager.ADJUST_LOWER
-            audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, dir, 0)
+            // Forward the press to Dart, which owns the whole 0..boostMax range
+            // (system volume for 0..100, media_kit software gain above). We no
+            // longer adjust STREAM_MUSIC here: that capped at 100 and, once at
+            // the max, produced no volume-change event so Kivo's HUD never showed.
+            val dir = if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) 1 else -1
+            val maxIndex = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+            volumeChannel?.invokeMethod("volumeKey", mapOf("dir" to dir, "maxIndex" to maxIndex))
             return true
         }
         return super.onKeyDown(keyCode, event)

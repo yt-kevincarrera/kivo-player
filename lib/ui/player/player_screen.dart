@@ -6,6 +6,8 @@ import 'package:media_kit_video/media_kit_video.dart';
 import '../../core/settings/kivo_settings.dart';
 import '../../core/settings/settings_provider.dart';
 import '../../platform/device_controls_provider.dart';
+import '../../platform/volume_keys.dart';
+import '../../player/control/gesture_math.dart';
 import '../../platform/interfaces/device_controls.dart';
 import '../../platform/interfaces/pip_controller.dart';
 import '../../platform/pip_controller_provider.dart';
@@ -67,6 +69,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   late final StateController<Uint8List?> _miniThumb;
   late final PipController _pip;
   StreamSubscription<double>? _sysVolSub;
+  StreamSubscription<VolumeKeyEvent>? _volKeySub;
   Timer? _saveTimer;
 
   @override
@@ -108,8 +111,22 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _sysVolSub = _deviceControls.systemVolumeStream.listen((v) {
       if (!mounted) return;
       if (ref.read(volumeGestureActiveProvider)) return;
+      // Never let the echo of our own max-system volume (set while boosting past
+      // 100 via keys/gesture) knock the boosted value back down to 100.
+      if (v >= 1.0 && ref.read(volumePercentProvider) > 100) return;
       ref.read(volumePercentProvider.notifier).state = (v * 100).clamp(0.0, 100.0);
       ref.read(hudProvider.notifier).show(HudKind.volume, v, '${(v * 100).round()}%');
+    });
+    // Hardware volume keys are forwarded from native (while intercepting) and
+    // driven through the same setVolumePercent path the vertical drag uses, so
+    // they reach the >100% boost and always show the HUD — even at the system
+    // max, where the OS emits no volume-change event.
+    _volKeySub = ref.read(volumeKeyStreamProvider).listen((e) {
+      if (!mounted) return;
+      final boost = ref.read(settingsProvider).volumeBoostMax.toDouble();
+      final next = volumeKeyStep(ref.read(volumePercentProvider), e.dir, e.maxIndex, boost);
+      ref.read(playerControllerProvider).setVolumePercent(next);
+      ref.read(hudProvider.notifier).show(HudKind.volume, next / 100, '${next.round()}%');
     });
     _saveTimer = Timer.periodic(const Duration(seconds: 4), (_) => _saveProgress());
   }
@@ -324,6 +341,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   void dispose() {
     _saveTimer?.cancel();
     _sysVolSub?.cancel();
+    _volKeySub?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _saveProgress(); // best-effort for in-app pop
     _engine.pause(); // stop audio when leaving the player (engine is a singleton)

@@ -98,3 +98,13 @@ double dragVolumePercent(double currentPct, double dyPixels, double regionPixels
   final next = currentPct - (dyPixels / regionPixels) * 100 * sensitivity;
   return next.clamp(0.0, capMax);
 }
+
+/// Next volume percent for a hardware volume-key press. [dir] is +1 (up) or
+/// -1 (down); one press moves one system step (100/[maxIndex], the device's
+/// STREAM_MUSIC granularity). The result spans 0..[boostMax] so the keys reach
+/// the software boost above 100 the same way the vertical drag does — instead
+/// of capping at the system max of 100.
+double volumeKeyStep(double currentPct, int dir, int maxIndex, double boostMax) {
+  final step = maxIndex > 0 ? 100.0 / maxIndex : 100.0 / 15;
+  return (currentPct + dir * step).clamp(0.0, boostMax);
+}
