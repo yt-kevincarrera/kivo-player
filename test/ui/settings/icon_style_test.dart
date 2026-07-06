@@ -1,10 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kivo_player/core/icons/kivo_icons.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
-import 'package:kivo_player/core/theme/kivo_theme.dart';
 import '../../fakes/fakes.dart';
 
 Future<ProviderContainer> _c(String iconStyle) async {
