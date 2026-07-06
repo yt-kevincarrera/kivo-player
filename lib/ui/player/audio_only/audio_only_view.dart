@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/theme/kivo_theme.dart';
+import '../../../core/settings/settings_provider.dart';
 import '../../../player/background/audio_only.dart';
 import '../../../player/open/video_source.dart';
 import '../state/lock_state.dart';
@@ -24,6 +24,7 @@ class AudioOnlyView extends ConsumerWidget {
       return const IgnorePointer(child: ColoredBox(color: Colors.black));
     }
     final title = ref.watch(currentVideoProvider)?.displayName ?? '';
+    final accent = Color(ref.watch(settingsProvider).accentColor);
     return Stack(
       children: [
         Positioned.fill(
@@ -47,7 +48,7 @@ class AudioOnlyView extends ConsumerWidget {
                             height: h,
                             margin: const EdgeInsets.only(right: 4),
                             decoration: BoxDecoration(
-                              color: KivoColors.gold
+                              color: accent
                                   .withValues(alpha: 0.5 + 0.5 * (h / 34.0)),
                               borderRadius: BorderRadius.circular(3),
                             ),
@@ -87,21 +88,21 @@ class AudioOnlyView extends ConsumerWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                   decoration: BoxDecoration(
-                    color: KivoColors.gold.withValues(alpha: 0.08),
+                    color: accent.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(100),
                     border: Border.all(
-                        color: KivoColors.gold.withValues(alpha: 0.5)),
+                        color: accent.withValues(alpha: 0.5)),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.videocam_outlined,
-                          size: 13, color: KivoColors.gold),
-                      SizedBox(width: 6),
+                          size: 13, color: accent),
+                      const SizedBox(width: 6),
                       Text(
                         'Ver video',
                         style: TextStyle(
-                          color: KivoColors.gold,
+                          color: accent,
                           fontSize: 11.5,
                           fontWeight: FontWeight.w800,
                         ),

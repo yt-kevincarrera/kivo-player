@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kivo_player/core/settings/settings_provider.dart';
+import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/ui/player/autoplay/autoplay_overlay.dart';
 import 'package:kivo_player/ui/player/state/autoplay_state.dart';
+import '../../fakes/fakes.dart';
 
 void main() {
   const pending = VideoSession(
@@ -15,7 +18,10 @@ void main() {
   );
 
   Future<ProviderContainer> pumpOverlay(WidgetTester tester) async {
-    final c = ProviderContainer();
+    final s = await SettingsService.load(InMemorySettingsStore());
+    final c = ProviderContainer(overrides: [
+      settingsServiceProvider.overrideWithValue(s),
+    ]);
     addTearDown(c.dispose);
     await tester.pumpWidget(UncontrolledProviderScope(
       container: c,

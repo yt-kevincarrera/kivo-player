@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/theme/kivo_theme.dart';
+import '../../../core/settings/settings_provider.dart';
 import '../../../player/engine/playback_provider.dart';
 import '../../../player/loop/ab_loop.dart';
 
-/// Gold A-B range band + markers painted behind the seek bar's Slider.
+/// Accent-colored A-B range band + markers painted behind the seek bar's Slider.
 /// Purely decorative: IgnorePointer so the Slider's gestures are untouched.
 class AbRangeLayer extends ConsumerWidget {
   const AbRangeLayer({super.key});
@@ -20,10 +20,11 @@ class AbRangeLayer extends ConsumerWidget {
     final aFrac = (loop.a!.inMilliseconds / totalMs).clamp(0.0, 1.0);
     final bFrac =
         loop.b == null ? null : (loop.b!.inMilliseconds / totalMs).clamp(0.0, 1.0);
+    final accent = Color(ref.watch(settingsProvider).accentColor);
     return IgnorePointer(
       child: CustomPaint(
         key: const ValueKey('ab-range-paint'),
-        painter: _AbRangePainter(aFrac: aFrac, bFrac: bFrac, color: KivoColors.gold),
+        painter: _AbRangePainter(aFrac: aFrac, bFrac: bFrac, color: accent),
         size: Size.infinite,
       ),
     );

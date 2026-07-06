@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/format.dart';
-import '../../../core/theme/kivo_theme.dart';
+import '../../../core/settings/settings_provider.dart';
 import '../../../player/loop/ab_loop.dart';
 
 /// Floating pill: tap cycles mark A → mark B → loop on → off. Long-press
@@ -25,6 +25,7 @@ class _AbLoopChipState extends ConsumerState<AbLoopChip> {
     }
     final n = ref.read(abLoopProvider.notifier);
     final active = loop.phase == AbLoopPhase.active;
+    final accent = Color(ref.watch(settingsProvider).accentColor);
 
     return TapRegion(
       onTapOutside: (_) {
@@ -40,6 +41,7 @@ class _AbLoopChipState extends ConsumerState<AbLoopChip> {
               b: loop.b!,
               onNudgeA: n.nudgeA,
               onNudgeB: n.nudgeB,
+              accent: accent,
             ),
             const SizedBox(height: 8),
           ],
@@ -55,19 +57,19 @@ class _AbLoopChipState extends ConsumerState<AbLoopChip> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
               decoration: BoxDecoration(
-                color: active ? KivoColors.gold.withValues(alpha: 0.16) : Colors.black.withValues(alpha: 0.55),
+                color: active ? accent.withValues(alpha: 0.16) : Colors.black.withValues(alpha: 0.55),
                 borderRadius: BorderRadius.circular(100),
                 border: Border.all(
                   color: active
-                      ? KivoColors.gold
-                      : KivoColors.gold.withValues(alpha: 0.5),
+                      ? accent
+                      : accent.withValues(alpha: 0.5),
                 ),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.repeat_rounded,
-                      size: 13, color: active ? KivoColors.gold : Colors.white),
+                      size: 13, color: active ? accent : Colors.white),
                   const SizedBox(width: 6),
                   Text(
                     switch (loop.phase) {
@@ -77,7 +79,7 @@ class _AbLoopChipState extends ConsumerState<AbLoopChip> {
                         '${fmtDuration(loop.a!)}–${fmtDuration(loop.b!)}',
                     },
                     style: TextStyle(
-                      color: active ? KivoColors.gold : Colors.white,
+                      color: active ? accent : Colors.white,
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
                       fontFeatures: const [FontFeature.tabularFigures()],
@@ -110,11 +112,13 @@ class _AdjustPopover extends StatelessWidget {
   final Duration b;
   final void Function(int seconds) onNudgeA;
   final void Function(int seconds) onNudgeB;
+  final Color accent;
   const _AdjustPopover({
     required this.a,
     required this.b,
     required this.onNudgeA,
     required this.onNudgeB,
+    required this.accent,
   });
 
   @override
@@ -145,13 +149,13 @@ class _AdjustPopover extends StatelessWidget {
           width: 20,
           height: 20,
           decoration: BoxDecoration(
-            color: KivoColors.gold.withValues(alpha: 0.16),
+            color: accent.withValues(alpha: 0.16),
             borderRadius: BorderRadius.circular(7),
           ),
           alignment: Alignment.center,
           child: Text(label,
-              style: const TextStyle(
-                  color: KivoColors.gold, fontSize: 10, fontWeight: FontWeight.w800)),
+              style: TextStyle(
+                  color: accent, fontSize: 10, fontWeight: FontWeight.w800)),
         ),
         const SizedBox(width: 8),
         _StepBtn(label: '−1s', onTap: () => onNudge(-1)),
@@ -159,11 +163,11 @@ class _AdjustPopover extends StatelessWidget {
           child: Text(
             fmtDuration(ts),
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: KivoColors.gold,
+            style: TextStyle(
+              color: accent,
               fontSize: 12.5,
               fontWeight: FontWeight.w800,
-              fontFeatures: [FontFeature.tabularFigures()],
+              fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
 import '../../../player/open/video_source.dart';
 import '../../home/widgets/thumbnail_image.dart';
@@ -43,6 +44,7 @@ class _QueueStripState extends ConsumerState<QueueStrip> {
     final session = ref.watch(currentVideoProvider);
     if (session == null || session.queue.length <= 1) return const SizedBox.shrink();
 
+    final accent = Color(ref.watch(settingsProvider).accentColor);
     final landscape = MediaQuery.orientationOf(context) == Orientation.landscape;
     final cardW = landscape ? 104.0 : 84.0;
     final thumbH = landscape ? 58.0 : 48.0;
@@ -89,6 +91,7 @@ class _QueueStripState extends ConsumerState<QueueStrip> {
                   id: id,
                   name: name,
                   active: active,
+                  accent: accent,
                   onTap: active
                       ? null
                       : () {
@@ -111,6 +114,7 @@ class _QueueCard extends StatelessWidget {
   final String id;
   final String name;
   final bool active;
+  final Color accent;
   final VoidCallback? onTap;
   const _QueueCard({
     required this.width,
@@ -118,6 +122,7 @@ class _QueueCard extends StatelessWidget {
     required this.id,
     required this.name,
     required this.active,
+    required this.accent,
     required this.onTap,
   });
 
@@ -137,7 +142,7 @@ class _QueueCard extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: active ? KivoColors.gold : Colors.transparent,
+                  color: active ? accent : Colors.transparent,
                   width: 2,
                 ),
                 color: const Color(0xFF0C1120),
@@ -158,12 +163,12 @@ class _QueueCard extends StatelessWidget {
                       right: 0,
                       bottom: 0,
                       child: Container(
-                        color: KivoColors.gold,
+                        color: accent,
                         padding: const EdgeInsets.symmetric(vertical: 1.5),
-                        child: const Text('AHORA',
+                        child: Text('AHORA',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                                color: Color(0xFF231705),
+                                color: onAccent(accent),
                                 fontSize: 8,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: 0.5)),
@@ -182,7 +187,7 @@ class _QueueCard extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: active ? KivoColors.gold : Colors.white.withValues(alpha: 0.6),
+                color: active ? accent : Colors.white.withValues(alpha: 0.6),
                 fontSize: 10,
                 fontWeight: active ? FontWeight.w700 : FontWeight.w500,
               ),

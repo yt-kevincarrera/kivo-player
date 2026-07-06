@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
 import '../state/autoplay_state.dart';
 
@@ -56,6 +57,7 @@ class _AutoplayOverlayState extends ConsumerState<AutoplayOverlay>
       if (_ring.status != AnimationStatus.dismissed) _ring.reset();
       return const SizedBox.shrink();
     }
+    final accent = Color(ref.watch(settingsProvider).accentColor);
 
     return Align(
       alignment: Alignment.bottomRight,
@@ -81,19 +83,19 @@ class _AutoplayOverlayState extends ConsumerState<AutoplayOverlay>
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: KivoColors.gold.withValues(alpha: 0.5)),
+                      border: Border.all(color: accent.withValues(alpha: 0.5)),
                     ),
-                    child: const Icon(Icons.play_arrow_rounded, color: KivoColors.gold, size: 22),
+                    child: Icon(Icons.play_arrow_rounded, color: accent, size: 22),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'PRÓXIMO',
                           style: TextStyle(
-                            color: KivoColors.gold,
+                            color: accent,
                             fontSize: 10.5,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 1.1,
@@ -131,13 +133,13 @@ class _AutoplayOverlayState extends ConsumerState<AutoplayOverlay>
                                 value: 1 - _ring.value,
                                 strokeWidth: 3,
                                 backgroundColor: Colors.white.withValues(alpha: 0.14),
-                                valueColor: const AlwaysStoppedAnimation(KivoColors.gold),
+                                valueColor: AlwaysStoppedAnimation(accent),
                               ),
                             ),
                             Text(
                               '$secondsLeft',
-                              style: const TextStyle(
-                                color: KivoColors.gold,
+                              style: TextStyle(
+                                color: accent,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w800,
                               ),
@@ -172,8 +174,8 @@ class _AutoplayOverlayState extends ConsumerState<AutoplayOverlay>
                   Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: KivoColors.gold,
-                        foregroundColor: const Color(0xFF231705),
+                        backgroundColor: accent,
+                        foregroundColor: onAccent(accent),
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         elevation: 0,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
