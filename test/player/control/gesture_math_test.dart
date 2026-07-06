@@ -105,4 +105,25 @@ void main() {
     expect(inTopRotateZone(48, 24, 24), isFalse);  // just below the strip
     expect(inTopRotateZone(200, 24, 24), isFalse); // middle
   });
+
+  test('horizontalSeekTarget: full width = whole video, ms precision, sensitivity scales', () {
+    const total = Duration(minutes: 10); // 600000 ms
+    const start = Duration(minutes: 2);
+    // full-width drag (accum == width) at sensitivity 1.0 → +total → clamps at total
+    expect(horizontalSeekTarget(start: start, accumPx: 400, widthPx: 400, total: total, sensitivity: 1.0), total);
+    // half width → +5:00 → 7:00
+    expect(horizontalSeekTarget(start: start, accumPx: 200, widthPx: 400, total: total, sensitivity: 1.0),
+        const Duration(minutes: 7));
+    // sub-second precision: 1px on 400px of a 600000ms video = 1500ms
+    expect(horizontalSeekTarget(start: Duration.zero, accumPx: 1, widthPx: 400, total: total, sensitivity: 1.0),
+        const Duration(milliseconds: 1500));
+    // backward drag clamps at 0
+    expect(horizontalSeekTarget(start: start, accumPx: -400, widthPx: 400, total: total, sensitivity: 1.0),
+        Duration.zero);
+    // sensitivity scales the reach: half width × 0.5 = 0.25 of total = +2:30 → 4:30
+    expect(horizontalSeekTarget(start: start, accumPx: 200, widthPx: 400, total: total, sensitivity: 0.5),
+        const Duration(minutes: 4, seconds: 30));
+    // width 0 → returns start (no crash)
+    expect(horizontalSeekTarget(start: start, accumPx: 100, widthPx: 0, total: total, sensitivity: 1.0), start);
+  });
 }

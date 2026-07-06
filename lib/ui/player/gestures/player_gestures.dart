@@ -225,8 +225,13 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures>
     final st = ref.read(settingsProvider);
     if (!st.horizontalSeek) return;
     final total = ref.read(durationProvider).value ?? Duration.zero;
-    _seekAccum += (d.delta.dx / _width) * 90 * st.seekSensitivity;
-    final target = clampSeek(_seekStart, Duration(seconds: _seekAccum.round()), total);
+    // Bar-like absolute mapping: accumulate raw horizontal travel and scale a
+    // full-width drag to the whole video at ms precision (× sensitivity) —
+    // instead of a fixed 90s-per-screen nudge rounded to whole seconds.
+    _seekAccum += d.delta.dx;
+    final target = horizontalSeekTarget(
+        start: _seekStart, accumPx: _seekAccum, widthPx: _width,
+        total: total, sensitivity: st.seekSensitivity);
     // Preview, don't live-seek: the video stays put while a centered card shows
     // the target frame + delta; the seek lands on release (_onHorizontalEnd).
     ref.read(gestureSeekProvider.notifier).state = (target: target, from: _seekStart);

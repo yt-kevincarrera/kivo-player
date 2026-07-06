@@ -51,6 +51,22 @@ bool inVerticalDeadZone(double localY, double height, double topInset,
 
 double round2(double value) => (value * 100).round() / 100;
 
+/// Target for the horizontal swipe-seek, scaled like the seek bar: dragging a
+/// full viewport width (× [sensitivity]) traverses the WHOLE video, at
+/// millisecond precision — instead of a fixed seconds-per-screen nudge. [accumPx]
+/// is the accumulated horizontal travel since the drag began at [start].
+Duration horizontalSeekTarget({
+  required Duration start,
+  required double accumPx,
+  required double widthPx,
+  required Duration total,
+  required double sensitivity,
+}) {
+  if (widthPx <= 0) return start;
+  final deltaMs = (accumPx / widthPx) * total.inMilliseconds * sensitivity;
+  return clampSeek(start, Duration(milliseconds: deltaMs.round()), total);
+}
+
 /// Detent index for a finger-anchored hold-right drag: starts at [baseIndex]
 /// and moves one detent per [stepPx] of vertical travel (up = faster).
 /// Independent of viewport height.
