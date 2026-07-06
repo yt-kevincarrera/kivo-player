@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/theme/kivo_theme.dart';
+import '../../../core/settings/settings_provider.dart';
 import '../../../platform/interfaces/media_indexer.dart';
 import '../../../player/library/library_query.dart';
 import '../../widgets/press_bounce.dart';
@@ -21,6 +21,7 @@ class FolderGrid extends ConsumerWidget {
     final groups = groupByFolder(videos);
     final folders = groups.keys.toList()..sort();
     final cs = Theme.of(context).colorScheme;
+    final accent = Color(ref.watch(settingsProvider).accentColor);
 
     if (folders.isEmpty) {
       return Center(
@@ -45,7 +46,7 @@ class FolderGrid extends ConsumerWidget {
         final items = groups[name]!;
         return PressBounce(
           onTap: () => onOpenFolder(name, items),
-          child: _FolderCard(name: name, items: items),
+          child: _FolderCard(name: name, items: items, accent: accent),
         );
       },
     );
@@ -55,8 +56,9 @@ class FolderGrid extends ConsumerWidget {
 class _FolderCard extends StatelessWidget {
   final String name;
   final List<VideoItem> items;
+  final Color accent;
 
-  const _FolderCard({required this.name, required this.items});
+  const _FolderCard({required this.name, required this.items, required this.accent});
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +101,7 @@ class _FolderCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 6),
-                  _CountPill(items.length),
+                  _CountPill(items.length, accent),
                 ],
               ),
             ),
@@ -112,21 +114,22 @@ class _FolderCard extends StatelessWidget {
 
 class _CountPill extends StatelessWidget {
   final int count;
-  const _CountPill(this.count);
+  final Color accent;
+  const _CountPill(this.count, this.accent);
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: KivoColors.gold.withValues(alpha: 0.18),
+        color: accent.withValues(alpha: 0.18),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: KivoColors.gold.withValues(alpha: 0.55), width: 0.8),
+        border: Border.all(color: accent.withValues(alpha: 0.55), width: 0.8),
       ),
       child: Text(
         '$count vids',
-        style: const TextStyle(
-          color: KivoColors.gold,
+        style: TextStyle(
+          color: accent,
           fontSize: 9,
           fontWeight: FontWeight.w700,
         ),

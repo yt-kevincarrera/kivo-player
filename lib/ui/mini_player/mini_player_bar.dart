@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/navigation.dart';
-import '../../core/theme/kivo_theme.dart';
+import '../../core/settings/settings_provider.dart';
 import '../../player/control/player_controller.dart';
 import '../../player/engine/playback_provider.dart';
 import '../../player/library/continue_watching.dart';
@@ -130,6 +130,7 @@ class _MiniPlayerContent extends ConsumerWidget {
         ? (position.inMilliseconds / duration.inMilliseconds).clamp(0.0, 1.0)
         : 0.0;
     final cs = Theme.of(context).colorScheme;
+    final accent = Color(ref.watch(settingsProvider).accentColor);
 
     return Material(
       color: cs.surfaceContainerHighest,
@@ -144,7 +145,7 @@ class _MiniPlayerContent extends ConsumerWidget {
             child: FractionallySizedBox(
               alignment: Alignment.centerLeft,
               widthFactor: fraction,
-              child: Container(color: KivoColors.gold),
+              child: Container(color: accent),
             ),
           ),
           InkWell(

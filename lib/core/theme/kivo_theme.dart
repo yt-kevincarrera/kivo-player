@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class KivoColors {
-  static const blue = Color(0xFF2D6CFF);
   static const gold = Color(0xFFE8B84B); // default accent preset
   // Legacy player surfaces (fixed, not brand colors).
   static const ink = Color(0xFF0A0E1A);

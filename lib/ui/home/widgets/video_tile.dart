@@ -61,7 +61,7 @@ class VideoTile extends ConsumerWidget {
                       Positioned(
                         top: 4,
                         left: 4,
-                        child: _newBadge(),
+                        child: _newBadge(accent),
                       ),
                     if (progress != null)
                       Positioned(
@@ -141,7 +141,7 @@ class VideoTile extends ConsumerWidget {
               Positioned(
                 top: 6,
                 left: 6,
-                child: _newBadge(),
+                child: _newBadge(accent),
               ),
             // Title gradient + text (on-thumbnail text stays white over the dark gradient)
             Positioned(
@@ -197,16 +197,16 @@ class VideoTile extends ConsumerWidget {
         ),
       ));
 
-  Widget _newBadge() => Container(
+  Widget _newBadge(Color accent) => Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: KivoColors.blue,
+        color: accent,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: const Text(
+      child: Text(
         'Nuevo',
         style: TextStyle(
-          color: Colors.white,
+          color: onAccent(accent),
           fontSize: 10,
           fontWeight: FontWeight.w700,
         ),

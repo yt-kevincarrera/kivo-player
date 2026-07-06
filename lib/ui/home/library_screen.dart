@@ -388,41 +388,45 @@ class _FilterChips extends StatelessWidget {
   }
 
   Widget _chip(BuildContext context, ColorScheme cs, String label, int i) {
-    final active = selected == i;
-    return GestureDetector(
-      onTap: () => onChanged(i),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOut,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        decoration: BoxDecoration(
-          color: active ? KivoColors.blue : cs.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: active ? Colors.white : cs.onSurfaceVariant,
-            fontSize: 13,
-            fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+    return Consumer(builder: (context, ref, _) {
+      final accent = Color(ref.watch(settingsProvider).accentColor);
+      final active = selected == i;
+      return GestureDetector(
+        onTap: () => onChanged(i),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          decoration: BoxDecoration(
+            color: active ? accent : cs.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: active ? onAccent(accent) : cs.onSurfaceVariant,
+              fontSize: 13,
+              fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+            ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 }
 
 // ---------------------------------------------------------------------------
 // "No vistos" toggle — a filter, not a tab (visually distinct from _chip).
 // ---------------------------------------------------------------------------
-class _UnwatchedChip extends StatelessWidget {
+class _UnwatchedChip extends ConsumerWidget {
   final bool active;
   final VoidCallback onTap;
   const _UnwatchedChip({required this.active, required this.onTap});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
+    final accent = Color(ref.watch(settingsProvider).accentColor);
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -430,7 +434,7 @@ class _UnwatchedChip extends StatelessWidget {
         curve: Curves.easeOut,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: active ? KivoColors.blue : cs.surfaceContainerHighest,
+          color: active ? accent : cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
@@ -439,13 +443,13 @@ class _UnwatchedChip extends StatelessWidget {
             Icon(
               Icons.visibility_off_outlined,
               size: 14,
-              color: active ? Colors.white : cs.onSurfaceVariant,
+              color: active ? onAccent(accent) : cs.onSurfaceVariant,
             ),
             const SizedBox(width: 4),
             Text(
               'No vistos',
               style: TextStyle(
-                color: active ? Colors.white : cs.onSurfaceVariant,
+                color: active ? onAccent(accent) : cs.onSurfaceVariant,
                 fontSize: 13,
                 fontWeight: active ? FontWeight.w600 : FontWeight.w500,
               ),
