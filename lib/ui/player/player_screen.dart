@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit_video/media_kit_video.dart';
-import '../../core/settings/kivo_settings.dart';
 import '../../core/settings/settings_provider.dart';
 import '../../platform/device_controls_provider.dart';
 import '../../platform/volume_keys.dart';
@@ -25,7 +24,7 @@ import '../../player/open/video_source.dart';
 import '../../player/resume/resume_plan.dart';
 import '../../player/resume/resume_service.dart';
 import '../../player/sleep/sleep_timer.dart';
-import '../../player/tracks/track_selection.dart';
+import '../../player/tracks/apply_default_tracks.dart';
 import 'audio_only/audio_only_view.dart';
 import 'autoplay/autoplay_overlay.dart';
 import 'controls/controls_overlay.dart';
@@ -205,7 +204,11 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       textColorArgb: settings.subtitleTextColor,
       backgroundColorArgb: settings.subtitleBackgroundColor,
     );
-    if (!expandingFromMini) _applyDefaultTracks(engine, settings, session);
+    if (!expandingFromMini) {
+      applyDefaultTracks(
+          engine: engine, settings: settings, session: session,
+          subtitleFinder: ref.read(subtitleFinderProvider));
+    }
     _frames.prepare(session.playbackPath);
     _armPip();
   }
@@ -272,53 +275,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     }
     final playing = ref.read(playingProvider).value ?? false;
     _pip.arm(width: _pipSize.width, height: _pipSize.height, playing: playing);
-  }
-
-  void _applyDefaultTracks(PlaybackEngine engine, KivoSettings settings, VideoSession session) {
-    () async {
-      final audioTracks = await engine.audioTracksStream.first.timeout(
-        const Duration(seconds: 2),
-        onTimeout: () => const <MediaTrack>[],
-      );
-      final audioPick = selectAudioTrack(
-        tracks: audioTracks,
-        preferredLanguage: settings.preferredAudioLanguage,
-      );
-      if (audioPick != null) await engine.setAudioTrack(audioPick.id);
-
-      final subtitleTracks = await engine.subtitleTracksStream.first.timeout(
-        const Duration(seconds: 2),
-        onTimeout: () => const <MediaTrack>[],
-      );
-      final subtitlePick = selectSubtitleTrack(
-        tracks: subtitleTracks,
-        enabledByDefault: settings.subtitlesEnabledByDefault,
-        preferredLanguage: settings.preferredSubtitleLanguage,
-      );
-      if (subtitlePick != null) {
-        await engine.setSubtitleTrack(subtitlePick.id);
-      } else if (settings.subtitlesEnabledByDefault &&
-          settings.preferredSubtitleLanguage != null &&
-          session.folder != null) {
-        // No embedded track matched — fall back to an external subtitle file
-        // sitting next to the video whose filename encodes the preferred
-        // language (e.g. "Pelicula.es.srt").
-        try {
-          final finder = ref.read(subtitleFinderProvider);
-          final externals = await finder.findNear(session.folder!);
-          for (final ext in externals) {
-            if (languageFromFilename(ext.displayName) ==
-                settings.preferredSubtitleLanguage) {
-              await engine.setExternalSubtitle(ext.uri, title: ext.displayName);
-              break;
-            }
-          }
-        } catch (_) {
-          // Best-effort — native channel errors or an empty/unreadable
-          // folder must never break playback start.
-        }
-      }
-    }();
   }
 
   Future<void> _saveProgress() async {
