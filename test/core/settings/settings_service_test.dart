@@ -37,4 +37,15 @@ void main() {
     final m = d.copyWith(libraryColumns: 3).toMap();
     expect(KivoSettings.fromMap(m).libraryColumns, 3);
   });
+
+  test('iconStyle defaults to duotone and round-trips', () async {
+    expect(KivoSettings.defaults().iconStyle, 'duotone');
+
+    final store = InMemorySettingsStore();
+    final service = await SettingsService.load(store);
+    await service.update(service.current.copyWith(iconStyle: 'flat'));
+
+    final reloaded = await SettingsService.load(store);
+    expect(reloaded.current.iconStyle, 'flat');
+  });
 }

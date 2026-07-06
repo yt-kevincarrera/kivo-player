@@ -241,7 +241,8 @@ class KivoIcon extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final a = accent ?? Color(ref.watch(settingsProvider).accentColor);
+    final flat = ref.watch(settingsProvider.select((s) => s.iconStyle)) == 'flat';
+    final a = flat ? color : (accent ?? Color(ref.watch(settingsProvider).accentColor));
     final hex = _toHex(a);
     final svg = icon.replaceAll('__ACCENT__', hex);
     final pic = SvgPicture.string(

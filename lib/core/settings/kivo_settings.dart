@@ -37,6 +37,7 @@ class KivoSettings {
   final int subtitleTextColor;
   final int subtitleBackgroundColor; // ARGB, default is transparent
   final int sleepTimerLastMinutes;
+  final String iconStyle; // 'duotone' | 'flat'
 
   const KivoSettings({
     required this.doubleTapSkipLeft,
@@ -77,6 +78,7 @@ class KivoSettings {
     required this.subtitleTextColor,
     required this.subtitleBackgroundColor,
     required this.sleepTimerLastMinutes,
+    required this.iconStyle,
   });
 
   factory KivoSettings.defaults() => const KivoSettings(
@@ -118,6 +120,7 @@ class KivoSettings {
         subtitleTextColor: 0xFFFFFFFF,
         subtitleBackgroundColor: 0x00000000,
         sleepTimerLastMinutes: 30,
+        iconStyle: 'duotone',
       );
 
   KivoSettings copyWith({
@@ -159,6 +162,7 @@ class KivoSettings {
     int? subtitleTextColor,
     int? subtitleBackgroundColor,
     int? sleepTimerLastMinutes,
+    String? iconStyle,
   }) {
     return KivoSettings(
       doubleTapSkipLeft: doubleTapSkipLeft ?? this.doubleTapSkipLeft,
@@ -199,6 +203,7 @@ class KivoSettings {
       subtitleTextColor: subtitleTextColor ?? this.subtitleTextColor,
       subtitleBackgroundColor: subtitleBackgroundColor ?? this.subtitleBackgroundColor,
       sleepTimerLastMinutes: sleepTimerLastMinutes ?? this.sleepTimerLastMinutes,
+      iconStyle: iconStyle ?? this.iconStyle,
     );
   }
 
@@ -241,6 +246,7 @@ class KivoSettings {
         'subtitleTextColor': subtitleTextColor,
         'subtitleBackgroundColor': subtitleBackgroundColor,
         'sleepTimerLastMinutes': sleepTimerLastMinutes,
+        'iconStyle': iconStyle,
       };
 
   factory KivoSettings.fromMap(Map<String, dynamic> m) {
@@ -284,6 +290,7 @@ class KivoSettings {
       subtitleTextColor: m['subtitleTextColor'] ?? d.subtitleTextColor,
       subtitleBackgroundColor: m['subtitleBackgroundColor'] ?? d.subtitleBackgroundColor,
       sleepTimerLastMinutes: m['sleepTimerLastMinutes'] ?? d.sleepTimerLastMinutes,
+      iconStyle: m['iconStyle'] ?? d.iconStyle,
     );
   }
 }

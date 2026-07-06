@@ -29,6 +29,13 @@ class GeneralSettingsSection extends ConsumerWidget {
               value: s.accentColor,
               onChanged: (v) => n.set(s.copyWith(accentColor: v)),
             ),
+            SettingSegmented<String>(
+              title: 'Iconos',
+              subtitle: 'Duotono o plano (blanco)',
+              options: const [('duotone', 'Duotono'), ('flat', 'Plano')],
+              value: s.iconStyle,
+              onChanged: (v) => n.set(s.copyWith(iconStyle: v)),
+            ),
           ]),
           const SizedBox(height: 16),
           _label(context, 'Interacción'),
