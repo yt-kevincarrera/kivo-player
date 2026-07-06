@@ -44,7 +44,6 @@ class _SkipButtonState extends ConsumerState<_SkipButton>
   Widget build(BuildContext context) {
     final ctrl = ref.read(playerControllerProvider);
     final skip = ref.watch(settingsProvider).centerSkipSeconds;
-    final accent = Color(ref.watch(settingsProvider).accentColor);
     final dir = widget.forward ? 1.0 : -1.0;
     return PressBounce(
       child: IconButton(
@@ -67,8 +66,12 @@ class _SkipButtonState extends ConsumerState<_SkipButton>
             ),
             const SizedBox(height: 1),
             Text('${skip}s',
-                style: TextStyle(
-                    color: accent, fontSize: 11, fontWeight: FontWeight.w700, height: 1.0)),
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    height: 1.0,
+                    shadows: [Shadow(color: Colors.black87, blurRadius: 4)])),
           ],
         ),
         onPressed: () {
@@ -92,7 +95,6 @@ class CenterControls extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final playing = ref.watch(playingProvider).value ?? false;
     final ctrl = ref.read(playerControllerProvider);
-    final accent = Color(ref.watch(settingsProvider).accentColor);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -105,7 +107,7 @@ class CenterControls extends ConsumerWidget {
             color: Colors.white,
             padding: const EdgeInsets.all(16),
             style: IconButton.styleFrom(
-              shape: CircleBorder(side: BorderSide(color: accent, width: 2)),
+              shape: const CircleBorder(side: BorderSide(color: Colors.white, width: 3)),
             ),
             tooltip: playing ? 'Pausar' : 'Reproducir',
             icon: AnimatedSwitcher(

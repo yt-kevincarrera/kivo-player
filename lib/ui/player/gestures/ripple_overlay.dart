@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/icons/kivo_icons.dart';
-import '../../../core/settings/settings_provider.dart';
 import 'ripple_state.dart';
 
 /// Expanding wave + chevrons + accumulated seconds on the tapped half, on
@@ -43,7 +42,6 @@ class _RippleOverlayState extends ConsumerState<RippleOverlay>
 
     final e = _event;
     if (e == null) return const SizedBox.shrink();
-    final accent = Color(ref.watch(settingsProvider).accentColor);
 
     return IgnorePointer(
       child: AnimatedBuilder(
@@ -80,10 +78,11 @@ class _RippleOverlayState extends ConsumerState<RippleOverlay>
                             size: 34, color: Colors.white),
                         const SizedBox(height: 2),
                         Text('${e.seconds}s',
-                            style: TextStyle(
-                                color: accent,
+                            style: const TextStyle(
+                                color: Colors.white,
                                 fontSize: 14,
-                                fontWeight: FontWeight.w700)),
+                                fontWeight: FontWeight.w700,
+                                shadows: [Shadow(color: Colors.black87, blurRadius: 6)])),
                       ],
                     ),
                   ),
