@@ -106,23 +106,27 @@ void main() {
     expect(inTopRotateZone(200, 24, 24), isFalse); // middle
   });
 
-  test('horizontalSeekTarget: full width = whole video, ms precision, sensitivity scales', () {
-    const total = Duration(minutes: 10); // 600000 ms
+  test('horizontalSeekTarget: fixed ~60s per full screen, ms precision, sensitivity + clamp', () {
+    const total = Duration(minutes: 10);
     const start = Duration(minutes: 2);
-    // full-width drag (accum == width) at sensitivity 1.0 → +total → clamps at total
-    expect(horizontalSeekTarget(start: start, accumPx: 400, widthPx: 400, total: total, sensitivity: 1.0), total);
-    // half width → +5:00 → 7:00
+    // full-width drag at sensitivity 1.0 → +60s → 3:00 (fixed span, NOT the whole video)
+    expect(horizontalSeekTarget(start: start, accumPx: 400, widthPx: 400, total: total, sensitivity: 1.0),
+        const Duration(minutes: 3));
+    // half width → +30s → 2:30
     expect(horizontalSeekTarget(start: start, accumPx: 200, widthPx: 400, total: total, sensitivity: 1.0),
-        const Duration(minutes: 7));
-    // sub-second precision: 1px on 400px of a 600000ms video = 1500ms
+        const Duration(minutes: 2, seconds: 30));
+    // sub-second precision: 1px on 400px → (1/400)*60000 = 150ms
     expect(horizontalSeekTarget(start: Duration.zero, accumPx: 1, widthPx: 400, total: total, sensitivity: 1.0),
-        const Duration(milliseconds: 1500));
-    // backward drag clamps at 0
-    expect(horizontalSeekTarget(start: start, accumPx: -400, widthPx: 400, total: total, sensitivity: 1.0),
-        Duration.zero);
-    // sensitivity scales the reach: half width × 0.5 = 0.25 of total = +2:30 → 4:30
+        const Duration(milliseconds: 150));
+    // backward drag: -30s → 1:30
+    expect(horizontalSeekTarget(start: start, accumPx: -200, widthPx: 400, total: total, sensitivity: 1.0),
+        const Duration(minutes: 1, seconds: 30));
+    // sensitivity scales the span: half width × 0.5 = +15s → 2:15
     expect(horizontalSeekTarget(start: start, accumPx: 200, widthPx: 400, total: total, sensitivity: 0.5),
-        const Duration(minutes: 4, seconds: 30));
+        const Duration(minutes: 2, seconds: 15));
+    // clamps to [0, total]: near the end, a forward full-width drag stops at total
+    expect(horizontalSeekTarget(start: const Duration(minutes: 9, seconds: 59), accumPx: 400, widthPx: 400,
+        total: total, sensitivity: 1.0), total);
     // width 0 → returns start (no crash)
     expect(horizontalSeekTarget(start: start, accumPx: 100, widthPx: 0, total: total, sensitivity: 1.0), start);
   });

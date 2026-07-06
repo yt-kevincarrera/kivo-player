@@ -51,10 +51,15 @@ bool inVerticalDeadZone(double localY, double height, double topInset,
 
 double round2(double value) => (value * 100).round() / 100;
 
-/// Target for the horizontal swipe-seek, scaled like the seek bar: dragging a
-/// full viewport width (× [sensitivity]) traverses the WHOLE video, at
-/// millisecond precision — instead of a fixed seconds-per-screen nudge. [accumPx]
-/// is the accumulated horizontal travel since the drag began at [start].
+/// A full viewport-width horizontal swipe covers this many ms of video (at
+/// sensitivity 1.0). A gentle FIXED span — not proportional to duration, which
+/// made a small swipe jump minutes on a long video — so small swipes nudge a
+/// few seconds regardless of length. The seek bar remains for big jumps.
+const double kHorizontalSeekSpanMs = 60000; // ~1 min per full screen
+
+/// Target for the horizontal swipe-seek: a full-width drag (× [sensitivity])
+/// moves [kHorizontalSeekSpanMs] at millisecond precision, clamped to the video.
+/// [accumPx] is the accumulated horizontal travel since the drag began at [start].
 Duration horizontalSeekTarget({
   required Duration start,
   required double accumPx,
@@ -63,7 +68,7 @@ Duration horizontalSeekTarget({
   required double sensitivity,
 }) {
   if (widthPx <= 0) return start;
-  final deltaMs = (accumPx / widthPx) * total.inMilliseconds * sensitivity;
+  final deltaMs = (accumPx / widthPx) * kHorizontalSeekSpanMs * sensitivity;
   return clampSeek(start, Duration(milliseconds: deltaMs.round()), total);
 }
 
