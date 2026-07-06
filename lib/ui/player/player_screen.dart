@@ -44,6 +44,7 @@ import 'state/hud_state.dart';
 import 'state/mini_player_state.dart';
 import 'state/orientation_state.dart';
 import 'state/pip_state.dart';
+import 'state/player_dismiss_state.dart';
 import 'state/queue_strip_state.dart';
 
 class PlayerScreen extends ConsumerStatefulWidget {
@@ -53,7 +54,7 @@ class PlayerScreen extends ConsumerStatefulWidget {
 }
 
 class _PlayerScreenState extends ConsumerState<PlayerScreen>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   VideoController? _controller;
   Duration _lastPosition = Duration.zero;
   bool _previewCaptured = false; // guards one-shot eager mini-preview per drag
@@ -66,10 +67,13 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   late final FrameExtractor _frames;
   late final AudioOnlyNotifier _audioOnly;
   late final StateController<Uint8List?> _miniThumb;
+  late final StateController<PlayerDismissApi?> _dismissApi;
   late final PipController _pip;
   StreamSubscription<double>? _sysVolSub;
   StreamSubscription<VolumeKeyEvent>? _volKeySub;
   Timer? _saveTimer;
+  late final AnimationController _dismissCtl;
+  bool _dismissing = false; // guards complete() against re-entry (swipe + back)
 
   @override
   void initState() {
@@ -80,6 +84,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _frames = ref.read(frameExtractorProvider);
     _audioOnly = ref.read(audioOnlyProvider.notifier);
     _miniThumb = ref.read(miniPlayerThumbnailProvider.notifier);
+    _dismissApi = ref.read(playerDismissProvider.notifier);
     _pip = ref.read(pipControllerProvider);
     _pip.setCallbacks(PipCallbacks(
       onModeChanged: (inPip) {
@@ -128,6 +133,17 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       ref.read(hudProvider.notifier).show(HudKind.volume, next / 100, '${next.round()}%');
     });
     _saveTimer = Timer.periodic(const Duration(seconds: 4), (_) => _saveProgress());
+    _dismissCtl = AnimationController(vsync: this, duration: const Duration(milliseconds: 240))
+      ..addListener(() {
+        ref.read(dismissProvider.notifier).state = _dismissCtl.value;
+      });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _dismissApi.state = PlayerDismissApi(
+        complete: _completeDismiss,
+        cancel: _cancelDismiss,
+      );
+    });
   }
 
   @override
@@ -156,6 +172,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     // previous player route: a stranded dismiss progress, or a resume toast
     // still on screen when the user jumped to another video.
     ref.read(dismissProvider.notifier).state = 0;
+    _dismissing = false;
     ref.read(resumePromptProvider.notifier).state = null;
     ref.read(restartRequestProvider.notifier).state = 0;
     ref.read(playerMinimizedProvider.notifier).state = false;
@@ -304,6 +321,28 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     }
   }
 
+  void _completeDismiss() {
+    if (_dismissing) return;
+    _dismissing = true;
+    if (!_previewCaptured) _captureMiniPreview();
+    _dismissCtl.value = ref.read(dismissProvider);
+    _dismissCtl
+        .animateTo(1.0, duration: Duration(milliseconds: dismissDurationMs(_dismissCtl.value)))
+        .then((_) {
+      if (!mounted) return;
+      _engine.pause();
+      _saveProgress();
+      ref.read(minimizedSessionKeyProvider.notifier).state = _resumeKey;
+      ref.read(playerMinimizedProvider.notifier).state = true;
+      Navigator.of(context).pop(); // unconditional pop — does not re-enter PopScope
+    });
+  }
+
+  void _cancelDismiss() {
+    _dismissCtl.value = ref.read(dismissProvider);
+    _dismissCtl.animateBack(0.0);
+  }
+
   @override
   void dispose() {
     _saveTimer?.cancel();
@@ -320,6 +359,18 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _deviceControls.setImmersive(false);
     _deviceControls.resetBrightness();
     _deviceControls.setVolumeKeyInterception(false);
+    _dismissCtl.dispose();
+    // Deferred: writing to a provider synchronously inside dispose() can hit
+    // "Tried to modify a provider while the widget tree was building" when
+    // this dispose runs as part of the same frame's tree finalization (e.g.
+    // right after Navigator.pop() during the route's own exit-transition
+    // teardown). A microtask runs after that frame settles; guard with
+    // `mounted` (StateNotifier's, not State's) in case the ProviderContainer
+    // itself was torn down first (e.g. test teardown disposing the container).
+    final api = _dismissApi;
+    scheduleMicrotask(() {
+      if (api.mounted) api.state = null;
+    });
     super.dispose();
   }
 
@@ -380,21 +431,19 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        // Synchronous so the pop is immediate — no await delay before the
-        // route leaves. The mini-player preview was already captured during
-        // the drag (see the dismissProvider listener in build); progress is
-        // saved fire-and-forget here and again in dispose().
-        _engine.pause();
-        _saveProgress();
-        // A swipe-dismiss already captured the preview eagerly during the
-        // drag; a back-button / programmatic pop hasn't, so capture now —
-        // fire-and-forget (the frame extractor's native call is queued before
-        // dispose()'s release, so it still completes and sets the thumbnail
-        // via the cached notifier).
-        if (!_previewCaptured) _captureMiniPreview();
-        ref.read(minimizedSessionKeyProvider.notifier).state = _resumeKey;
-        ref.read(playerMinimizedProvider.notifier).state = true;
-        Navigator.of(context).pop();
+        final api = ref.read(playerDismissProvider);
+        if (api != null) {
+          api.complete();
+        } else {
+          // 1-frame window before the API is registered: fall back to the
+          // previous immediate minimize+pop.
+          _engine.pause();
+          _saveProgress();
+          if (!_previewCaptured) _captureMiniPreview();
+          ref.read(minimizedSessionKeyProvider.notifier).state = _resumeKey;
+          ref.read(playerMinimizedProvider.notifier).state = true;
+          Navigator.of(context).pop();
+        }
       },
       // Transparent so the (non-opaque) player route lets the library paint
       // behind it; the black backdrop below fades in/out with the dismiss so

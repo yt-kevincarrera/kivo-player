@@ -129,13 +129,17 @@ void main() {
     // funnel through Navigator.maybePop()).
     final playerElement = tester.element(find.byType(PlayerScreen));
     Navigator.of(playerElement).maybePop();
-    // PopScope's onPopInvokedWithResult awaits _saveProgress() before the
-    // actual pop happens; pump to let that microtask/await chain complete,
-    // then pump the pop's exit transition to completion.
+    // PopScope's onPopInvokedWithResult now routes through
+    // PlayerDismissApi.complete(), which plays the 240ms shrink animation
+    // BEFORE calling Navigator.pop() — which then runs its own ~300ms route
+    // exit transition. Pump enough wall-clock time to cover both stages
+    // sequentially (pumpAndSettle can't be used: the periodic 4s save timer
+    // keeps scheduling frames forever).
     await tester.pump();
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-    await tester.pump(const Duration(milliseconds: 300));
+    for (var i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 150));
+    }
 
     // The player route is gone...
     expect(find.byType(PlayerScreen), findsNothing);
@@ -200,10 +204,13 @@ void main() {
 
     final playerElement = tester.element(find.byType(PlayerScreen));
     Navigator.of(playerElement).maybePop();
+    // See the timing note in the "saves progress" test above: the dismiss
+    // animation (240ms) now runs before the route's own exit transition.
     await tester.pump();
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-    await tester.pump(const Duration(milliseconds: 300));
+    for (var i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 150));
+    }
 
     expect(find.byType(PlayerScreen), findsNothing);
     expect(c.read(playerMinimizedProvider), true);
@@ -297,10 +304,13 @@ void main() {
     // Minimize (simulating a pop from any exit path).
     final playerElement = tester.element(find.byType(PlayerScreen));
     Navigator.of(playerElement).maybePop();
+    // See the timing note in the "saves progress" test above: the dismiss
+    // animation (240ms) now runs before the route's own exit transition.
     await tester.pump();
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-    await tester.pump(const Duration(milliseconds: 300));
+    for (var i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 150));
+    }
     expect(find.byType(PlayerScreen), findsNothing);
     expect(c.read(playerMinimizedProvider), true);
 
