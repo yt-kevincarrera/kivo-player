@@ -214,6 +214,11 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   }
 
   void _onCompleted() {
+    // Once minimized, the app-level AutoplayCoordinator owns completion. This
+    // guard makes the two mutually exclusive even during the minimize→dispose
+    // window (playerMinimized flips true a few frames before this listener is
+    // torn down), so a completion landing mid-minimize can't double-advance.
+    if (ref.read(playerMinimizedProvider)) return;
     // Re-entrancy guard: completedStream can emit `true` more than once, and
     // an advance-in-flight (or a pending countdown) must not be reprocessed —
     // otherwise a stray second event would peekNext() off the ALREADY-advanced
