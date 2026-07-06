@@ -76,10 +76,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     _push();
   }
 
-  void _open(VideoItem v, List<VideoItem> all) {
+  void _open(VideoItem v, List<VideoItem> all, Rect? origin) {
     ref.read(currentVideoProvider.notifier).openFromList(v, all);
     Navigator.of(context, rootNavigator: true)
-        .push(playerRoute())
+        .push(playerRoute(originRect: origin))
         .then((_) {
       ref.invalidate(continueWatchingProvider);
       ref.invalidate(playedKeysProvider);
@@ -287,7 +287,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           child: query.trim().isEmpty || filtered.isNotEmpty
               ? VideoDensityFeed(
                   videos: filtered,
-                  onOpen: (v, all) => _open(v, all),
+                  onOpen: (v, all, origin) => _open(v, all, origin),
                   groupByDate: sort == LibrarySort.recent,
                   showContinueRow: false,
                 )
@@ -314,7 +314,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     );
     return VideoDensityFeed(
       videos: filtered,
-      onOpen: (v, all) => _open(v, all),
+      onOpen: (v, all, origin) => _open(v, all, origin),
       groupByDate: sort == LibrarySort.recent,
       showContinueRow: true,
     );

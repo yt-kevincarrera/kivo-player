@@ -7,11 +7,11 @@ import '../../../platform/interfaces/media_indexer.dart';
 import '../../widgets/press_bounce.dart';
 import 'thumbnail_image.dart';
 
-class VideoTile extends ConsumerWidget {
+class VideoTile extends ConsumerStatefulWidget {
   final VideoItem video;
   final double? progress; // 0..1 watched, or null
   final bool listRow;     // true = 1-col list row; false = cover-grid tile
-  final VoidCallback onTap;
+  final void Function(Rect? origin) onTap;
   final String? sizeLabel; // e.g. "49 MB" — shown in list-row meta line
   final bool isNew;
   final VoidCallback? onOptions;
@@ -28,9 +28,26 @@ class VideoTile extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<VideoTile> createState() => _VideoTileState();
+}
+
+class _VideoTileState extends ConsumerState<VideoTile> {
+  final GlobalKey _thumbKey = GlobalKey();
+
+  void _handleTap() {
+    final box = _thumbKey.currentContext?.findRenderObject() as RenderBox?;
+    Rect? origin;
+    if (box != null && box.hasSize) {
+      final topLeft = box.localToGlobal(Offset.zero);
+      origin = topLeft & box.size;
+    }
+    widget.onTap(origin);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final accent = Color(ref.watch(settingsProvider).accentColor);
-    return listRow
+    return widget.listRow
         ? _buildListRow(context, accent)
         : _buildCover(context, accent);
   }
@@ -38,7 +55,7 @@ class VideoTile extends ConsumerWidget {
   Widget _buildListRow(BuildContext context, Color accent) {
     final cs = Theme.of(context).colorScheme;
     return PressBounce(
-      onTap: onTap,
+      onTap: _handleTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
@@ -47,28 +64,29 @@ class VideoTile extends ConsumerWidget {
             SizedBox(
               width: 168,
               child: ClipRRect(
+                key: _thumbKey,
                 borderRadius: BorderRadius.circular(8),
                 child: AspectRatio(
                   aspectRatio: 16 / 9,
                   child: Stack(fit: StackFit.expand, children: [
-                    Hero(tag: 'libhero-${video.uri}', child: ThumbnailImage(video.id)),
+                    Hero(tag: 'libhero-${widget.video.uri}', child: ThumbnailImage(widget.video.id)),
                     Positioned(
                       top: 4,
                       right: 4,
-                      child: _badge(fmtDuration(Duration(milliseconds: video.durationMs))),
+                      child: _badge(fmtDuration(Duration(milliseconds: widget.video.durationMs))),
                     ),
-                    if (isNew)
+                    if (widget.isNew)
                       Positioned(
                         top: 4,
                         left: 4,
                         child: _newBadge(accent),
                       ),
-                    if (progress != null)
+                    if (widget.progress != null)
                       Positioned(
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        child: _SegmentedProgress(progress!, accent, cs),
+                        child: _SegmentedProgress(widget.progress!, accent, cs),
                       ),
                   ]),
                 ),
@@ -82,7 +100,7 @@ class VideoTile extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    video.name,
+                    widget.video.name,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -91,10 +109,10 @@ class VideoTile extends ConsumerWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  if (sizeLabel != null) ...[
+                  if (widget.sizeLabel != null) ...[
                     const SizedBox(height: 2),
                     Text(
-                      sizeLabel!,
+                      widget.sizeLabel!,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -109,7 +127,7 @@ class VideoTile extends ConsumerWidget {
             // Far right: options menu icon — has its own onPressed, does not trigger row onTap
             IconButton(
               icon: Icon(Icons.more_vert, size: 20, color: cs.onSurfaceVariant),
-              onPressed: onOptions ?? () {},
+              onPressed: widget.onOptions ?? () {},
               visualDensity: VisualDensity.compact,
               padding: const EdgeInsets.all(4),
               constraints: const BoxConstraints(),
@@ -123,21 +141,22 @@ class VideoTile extends ConsumerWidget {
   Widget _buildCover(BuildContext context, Color accent) {
     final cs = Theme.of(context).colorScheme;
     return PressBounce(
-      onTap: onTap,
+      onTap: _handleTap,
       child: ClipRRect(
+        key: _thumbKey,
         borderRadius: BorderRadius.circular(12),
         child: AspectRatio(
           aspectRatio: 16 / 9,
           child: Stack(fit: StackFit.expand, children: [
-            Hero(tag: 'libhero-${video.uri}', child: ThumbnailImage(video.id)),
+            Hero(tag: 'libhero-${widget.video.uri}', child: ThumbnailImage(widget.video.id)),
             // Duration badge (top-right)
             Positioned(
               top: 6,
               right: 6,
-              child: _badge(fmtDuration(Duration(milliseconds: video.durationMs))),
+              child: _badge(fmtDuration(Duration(milliseconds: widget.video.durationMs))),
             ),
             // Nuevo badge (top-left)
-            if (isNew)
+            if (widget.isNew)
               Positioned(
                 top: 6,
                 left: 6,
@@ -149,7 +168,7 @@ class VideoTile extends ConsumerWidget {
               right: 0,
               bottom: 0,
               child: Container(
-                padding: EdgeInsets.fromLTRB(8, 16, 8, progress != null ? 8 : 6),
+                padding: EdgeInsets.fromLTRB(8, 16, 8, widget.progress != null ? 8 : 6),
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.bottomCenter,
@@ -158,7 +177,7 @@ class VideoTile extends ConsumerWidget {
                   ),
                 ),
                 child: Text(
-                  video.name,
+                  widget.video.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -169,12 +188,12 @@ class VideoTile extends ConsumerWidget {
                 ),
               ),
             ),
-            if (progress != null)
+            if (widget.progress != null)
               Positioned(
                 left: 0,
                 right: 0,
                 bottom: 0,
-                child: _SegmentedProgress(progress!, accent, cs),
+                child: _SegmentedProgress(widget.progress!, accent, cs),
               ),
           ]),
         ),

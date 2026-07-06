@@ -20,7 +20,7 @@ import 'video_tile.dart';
 /// exactly like the main library.
 class VideoDensityFeed extends ConsumerStatefulWidget {
   final List<VideoItem> videos;
-  final void Function(VideoItem current, List<VideoItem> all) onOpen;
+  final void Function(VideoItem current, List<VideoItem> all, Rect? origin) onOpen;
   final bool groupByDate;
   final bool showContinueRow;
 
@@ -147,7 +147,7 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
           if (widget.showContinueRow)
             SliverToBoxAdapter(
               child: ContinueRow(
-                onOpen: (v) => widget.onOpen(v, widget.videos),
+                onOpen: (v, origin) => widget.onOpen(v, widget.videos, origin),
               ),
             ),
           for (final s in sections) ...[
@@ -195,7 +195,7 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
                                   progress: continueItems[v.name]?.fraction,
                                   isNew: !played.contains(v.name),
                                   onOptions: null,
-                                  onTap: () => widget.onOpen(v, widget.videos),
+                                  onTap: (origin) => widget.onOpen(v, widget.videos, origin),
                                 ),
                               ),
                             ),
@@ -224,7 +224,7 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
                                 progress: continueItems[v.name]?.fraction,
                                 isNew: !played.contains(v.name),
                                 onOptions: null,
-                                onTap: () => widget.onOpen(v, widget.videos),
+                                onTap: (origin) => widget.onOpen(v, widget.videos, origin),
                               ),
                             ),
                           );

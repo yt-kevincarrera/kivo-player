@@ -51,7 +51,7 @@ Future<void> _pump(
   WidgetTester tester, {
   required bool groupByDate,
   required bool showContinueRow,
-  void Function(VideoItem current, List<VideoItem> all)? onOpen,
+  void Function(VideoItem current, List<VideoItem> all, Rect? origin)? onOpen,
 }) async {
   final settingsService = await SettingsService.load(InMemorySettingsStore());
   await tester.pumpWidget(
@@ -71,7 +71,7 @@ Future<void> _pump(
         home: Scaffold(
           body: VideoDensityFeed(
             videos: _videos,
-            onOpen: onOpen ?? (_, __) {},
+            onOpen: onOpen ?? (_, __, ___) {},
             groupByDate: groupByDate,
             showContinueRow: showContinueRow,
           ),
@@ -120,7 +120,7 @@ void main() {
       tester,
       groupByDate: false,
       showContinueRow: false,
-      onOpen: (current, list) {
+      onOpen: (current, list, origin) {
         opened = current;
         all = list;
       },

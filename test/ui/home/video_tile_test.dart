@@ -44,7 +44,7 @@ void main() {
         listRow: true,
         sizeLabel: '49.00 MB',
         progress: 0.5,
-        onTap: () => tapped = true,
+        onTap: (_) => tapped = true,
       ),
     );
 
@@ -66,7 +66,7 @@ void main() {
         video: _video,
         listRow: false,
         progress: 0.5,
-        onTap: () => tapped = true,
+        onTap: (_) => tapped = true,
       ),
     );
 
@@ -85,7 +85,7 @@ void main() {
         video: _video,
         listRow: false,
         sizeLabel: '49.00 MB',
-        onTap: () {},
+        onTap: (_) {},
       ),
     );
 
@@ -100,7 +100,7 @@ void main() {
         video: _video,
         listRow: true,
         isNew: true,
-        onTap: () {},
+        onTap: (_) {},
       ),
     );
 
@@ -113,7 +113,7 @@ void main() {
       VideoTile(
         video: _video,
         listRow: true,
-        onTap: () {},
+        onTap: (_) {},
       ),
     );
 
@@ -127,7 +127,7 @@ void main() {
       VideoTile(
         video: _video,
         listRow: true,
-        onTap: () => tapped = true,
+        onTap: (_) => tapped = true,
       ),
     );
 
@@ -144,7 +144,7 @@ void main() {
       VideoTile(
         video: _video,
         listRow: true,
-        onTap: () => tapped = true,
+        onTap: (_) => tapped = true,
         onOptions: () => optionsTapped = true,
       ),
     );

@@ -19,11 +19,12 @@ class FolderScreen extends ConsumerWidget {
     WidgetRef ref,
     VideoItem current,
     List<VideoItem> all,
+    Rect? origin,
   ) {
     ref.read(resumePromptProvider.notifier).state = null;
     ref.read(currentVideoProvider.notifier).openFromList(current, all);
     Navigator.of(context, rootNavigator: true)
-        .push(playerRoute())
+        .push(playerRoute(originRect: origin))
         .then((_) {
       ref.invalidate(continueWatchingProvider);
       ref.invalidate(playedKeysProvider);
@@ -41,7 +42,7 @@ class FolderScreen extends ConsumerWidget {
       ),
       body: VideoDensityFeed(
         videos: videos,
-        onOpen: (v, all) => _open(context, ref, v, all),
+        onOpen: (v, all, origin) => _open(context, ref, v, all, origin),
         groupByDate: false,
         showContinueRow: false,
       ),

@@ -5,7 +5,7 @@ import '../../../player/library/continue_watching.dart';
 import 'video_tile.dart';
 
 class ContinueRow extends ConsumerWidget {
-  final void Function(VideoItem) onOpen;
+  final void Function(VideoItem video, Rect? origin) onOpen;
   const ContinueRow({super.key, required this.onOpen});
 
   @override
@@ -39,7 +39,7 @@ class ContinueRow extends ConsumerWidget {
               video: items[i].video,
               progress: items[i].fraction,
               listRow: false,
-              onTap: () => onOpen(items[i].video),
+              onTap: (origin) => onOpen(items[i].video, origin),
             ),
           ),
         ),
