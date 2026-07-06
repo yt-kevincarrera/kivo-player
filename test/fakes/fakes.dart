@@ -29,6 +29,7 @@ class FakePlaybackEngine implements PlaybackEngine {
   final _subtitleTracks = StreamController<List<MediaTrack>>.broadcast();
   final _currentAudio = StreamController<MediaTrack?>.broadcast();
   final _currentSubtitle = StreamController<MediaTrack?>.broadcast();
+  final _frame = StreamController<bool>.broadcast();
   String? currentAudioTrackId;
   String? currentSubtitleTrackId; // null = off
   String? externalSubtitleUri;
@@ -55,11 +56,14 @@ class FakePlaybackEngine implements PlaybackEngine {
   Stream<bool> get bufferingStream => _buffering.stream;
   @override
   Stream<bool> get completedStream => _completed.stream;
+  @override
+  Stream<bool> get hasVideoFrameStream => _frame.stream;
 
   void emitPosition(Duration d) => _pos.add(d);
   void emitDuration(Duration d) => _dur.add(d);
   void emitPlaying(bool v) => _playing.add(v);
   void emitCompleted(bool v) => _completed.add(v);
+  void emitVideoFrame(bool v) => _frame.add(v);
 
   @override
   Future<void> open(String path, {Duration startAt = Duration.zero}) async {
@@ -101,6 +105,7 @@ class FakePlaybackEngine implements PlaybackEngine {
     _subtitleTracks.close();
     _currentAudio.close();
     _currentSubtitle.close();
+    _frame.close();
   }
 
   @override

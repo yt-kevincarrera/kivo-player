@@ -38,6 +38,10 @@ class MediaKitEngine implements PlaybackEngine {
   Stream<bool> get completedStream => _player.stream.completed;
 
   @override
+  Stream<bool> get hasVideoFrameStream =>
+      _player.stream.width.map((w) => (w ?? 0) > 0);
+
+  @override
   Future<void> open(String path, {Duration startAt = Duration.zero}) async {
     await _player.open(Media(path, start: startAt), play: true);
   }

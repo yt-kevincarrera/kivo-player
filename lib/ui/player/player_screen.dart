@@ -45,6 +45,7 @@ import 'state/mini_player_state.dart';
 import 'state/orientation_state.dart';
 import 'state/pip_state.dart';
 import 'state/player_dismiss_state.dart';
+import 'state/video_ready_state.dart';
 import 'state/queue_strip_state.dart';
 
 class PlayerScreen extends ConsumerStatefulWidget {
@@ -70,6 +71,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   late final StateController<PlayerDismissApi?> _dismissApi;
   late final PipController _pip;
   StreamSubscription<double>? _sysVolSub;
+  StreamSubscription<bool>? _frameSub; // engine's first-frame signal → videoFrameReadyProvider
   StreamSubscription<VolumeKeyEvent>? _volKeySub;
   Timer? _saveTimer;
   late final AnimationController _dismissCtl;
@@ -80,6 +82,12 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     super.initState();
     _deviceControls = ref.read(deviceControlsProvider);
     _engine = ref.read(playbackEngineProvider);
+    // Drive the stale-frame cover: media_kit's texture is a singleton that keeps
+    // showing the previous video's last frame until the newly-opened media
+    // decodes. width→null on open, real width on first frame (see engine).
+    _frameSub = _engine.hasVideoFrameStream.listen((has) {
+      if (mounted) ref.read(videoFrameReadyProvider.notifier).state = has;
+    });
     _resume = ref.read(resumeServiceProvider);
     _frames = ref.read(frameExtractorProvider);
     _audioOnly = ref.read(audioOnlyProvider.notifier);
@@ -201,6 +209,11 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     final engine = ref.read(playbackEngineProvider);
     _resumeKey = session.resumeKey;
     ref.read(playedStoreProvider).markPlayed(_resumeKey!);
+    // Seed the stale-frame cover BEFORE the Video widget is revealed: a fresh
+    // open must cover until the new first frame (below); expanding the same
+    // session shows its already-correct frame immediately. The frame stream
+    // then flips it as the media decodes.
+    ref.read(videoFrameReadyProvider.notifier).state = expandingFromMini;
     final c = engine.createVideoController();
     if (c is VideoController) {
       _controller = c;
@@ -359,6 +372,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _deviceControls.setImmersive(false);
     _deviceControls.resetBrightness();
     _deviceControls.setVolumeKeyInterception(false);
+    _frameSub?.cancel();
     _dismissCtl.dispose();
     // Deferred: writing to a provider synchronously inside dispose() can hit
     // "Tried to modify a provider while the widget tree was building" when
@@ -461,19 +475,29 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
             // Slide the whole player down by progress × screen height.
             final screenHeight = MediaQuery.sizeOf(context).height;
             final offsetY = dismissProgress * screenHeight;
+            final videoReady = ref.watch(videoFrameReadyProvider);
             final videoBox = Container(
               color: Colors.black,
               alignment: Alignment.center,
               child: _controller == null
                   ? const CircularProgressIndicator()
-                  : Video(
-                      controller: _controller!,
-                      controls: NoVideoControls, // Kivo draws its own controls; this also kills media_kit's buffering spinner
-                      fit: boxFitFor(ref.watch(aspectModeProvider)),
-                      // 3e: the widget's own lifecycle handler pauses on
-                      // app-background by default, silently defeating
-                      // background playback.
-                      pauseUponEnteringBackgroundMode: false,
+                  : Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Video(
+                          controller: _controller!,
+                          controls: NoVideoControls, // Kivo draws its own controls; this also kills media_kit's buffering spinner
+                          fit: boxFitFor(ref.watch(aspectModeProvider)),
+                          // 3e: the widget's own lifecycle handler pauses on
+                          // app-background by default, silently defeating
+                          // background playback.
+                          pauseUponEnteringBackgroundMode: false,
+                        ),
+                        // Cover the singleton texture's stale last-frame (the
+                        // previous video) until the freshly-opened media decodes
+                        // its first frame — otherwise it flashes during the open.
+                        if (!videoReady) const ColoredBox(color: Colors.black),
+                      ],
                     ),
             );
             return Stack(

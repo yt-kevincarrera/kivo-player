@@ -26,6 +26,13 @@ abstract class PlaybackEngine {
   Stream<bool> get bufferingStream;
   Stream<bool> get completedStream;
 
+  /// Emits true once the currently-open media has a decoded video frame, and
+  /// false while a (re)open is in flight (no frame yet). Backed by the video
+  /// width: media_kit resets it to null on every open and sets it when the
+  /// first frame's params are known. The UI uses this to cover the shared
+  /// texture's stale last-frame across an open. Stays false for audio-only.
+  Stream<bool> get hasVideoFrameStream;
+
   /// Returns a platform video controller (e.g. [VideoController] from
   /// package:media_kit_video) or null if no video surface is available.
   /// The return type is [Object?] so the UI layer can do `is VideoController`
