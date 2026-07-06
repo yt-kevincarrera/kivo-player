@@ -4,6 +4,7 @@ import '../../core/settings/kivo_settings.dart';
 import '../../core/settings/settings_provider.dart';
 import 'sections/about_section.dart';
 import 'sections/general_section.dart';
+import 'sections/interface_section.dart';
 import 'sections/playback_gestures_section.dart';
 import 'widgets/setting_tiles.dart';
 
@@ -28,6 +29,12 @@ class SettingsScreen extends ConsumerWidget {
               subtitle: 'Saltos, sensibilidades, velocidad',
               onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const PlaybackGesturesSection()))),
+            SettingNavRow(
+              icon: Icons.dashboard_customize_outlined,
+              title: 'Interfaz',
+              subtitle: 'Controles, overlay, aspecto, columnas',
+              onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const InterfaceSettingsSection()))),
             SettingNavRow(
               icon: Icons.info_outline, title: 'Acerca de', subtitle: 'Versión $kAppVersion',
               onTap: () => Navigator.of(context).push(

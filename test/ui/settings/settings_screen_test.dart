@@ -55,4 +55,12 @@ void main() {
     await t.pumpAndSettle();
     expect(find.text('DOBLE TOQUE'), findsWidgets); // a group label on the section (rendered upper-case)
   });
+
+  testWidgets('root lists Interfaz and navigates', (t) async {
+    await _pump(t);
+    expect(find.text('Interfaz'), findsOneWidget);
+    await t.tap(find.text('Interfaz'));
+    await t.pumpAndSettle();
+    expect(find.text('CONTROLES'), findsWidgets); // an uppercased group label on the section
+  });
 }
