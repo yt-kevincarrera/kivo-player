@@ -47,4 +47,12 @@ void main() {
     await t.pumpAndSettle();
     expect(c.read(settingsProvider).accentColor, KivoSettings.defaults().accentColor);
   });
+
+  testWidgets('root lists Reproducción y gestos and navigates', (t) async {
+    await _pump(t); // existing helper in that file
+    expect(find.text('Reproducción y gestos'), findsOneWidget);
+    await t.tap(find.text('Reproducción y gestos'));
+    await t.pumpAndSettle();
+    expect(find.text('DOBLE TOQUE'), findsWidgets); // a group label on the section (rendered upper-case)
+  });
 }

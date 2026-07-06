@@ -4,6 +4,7 @@ import '../../core/settings/kivo_settings.dart';
 import '../../core/settings/settings_provider.dart';
 import 'sections/about_section.dart';
 import 'sections/general_section.dart';
+import 'sections/playback_gestures_section.dart';
 import 'widgets/setting_tiles.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -21,6 +22,12 @@ class SettingsScreen extends ConsumerWidget {
               icon: Icons.tune, title: 'General', subtitle: 'Tema, color de acento, háptica',
               onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const GeneralSettingsSection()))),
+            SettingNavRow(
+              icon: Icons.videogame_asset_outlined,
+              title: 'Reproducción y gestos',
+              subtitle: 'Saltos, sensibilidades, velocidad',
+              onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const PlaybackGesturesSection()))),
             SettingNavRow(
               icon: Icons.info_outline, title: 'Acerca de', subtitle: 'Versión $kAppVersion',
               onTap: () => Navigator.of(context).push(
