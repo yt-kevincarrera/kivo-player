@@ -190,7 +190,7 @@ class PlaybackSessionService : Service() {
         // tick works but spams ActivityManager warnings once per second.
         if (playing) {
             if (!_foregrounded) {
-                startForeground(NOTIFICATION_ID, notification)
+                if (!safeStartForeground(notification)) return
                 _foregrounded = true
             } else {
                 val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -199,7 +199,7 @@ class PlaybackSessionService : Service() {
         } else {
             if (!_foregrounded) {
                 // Satisfy the pending startForegroundService before detaching.
-                startForeground(NOTIFICATION_ID, notification)
+                if (!safeStartForeground(notification)) return
             }
             // Paused: detach so the notification stays but can be swiped away.
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -210,6 +210,22 @@ class PlaybackSessionService : Service() {
             _foregrounded = false
             val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             nm.notify(NOTIFICATION_ID, notification)
+        }
+    }
+
+    // Android 12+ forbids startForeground() when the app isn't in an allowed
+    // state (screen-off/backgrounded, or after a START_NOT_STICKY kill+restart);
+    // it throws ForegroundServiceStartNotAllowedException. Never crash the
+    // process for a missed background notification — swallow it, drop the
+    // service, and let the next foreground resume reconcile the session.
+    private fun safeStartForeground(notification: Notification): Boolean {
+        return try {
+            startForeground(NOTIFICATION_ID, notification)
+            true
+        } catch (e: Exception) {
+            _foregrounded = false
+            try { stopSelf() } catch (_: Exception) {}
+            false
         }
     }
 
