@@ -127,3 +127,8 @@ double volumeKeyStep(double currentPct, int dir, int maxIndex, double boostMax) 
   final step = maxIndex > 0 ? 100.0 / maxIndex : 100.0 / 15;
   return (currentPct + dir * step).clamp(0.0, boostMax);
 }
+
+/// True when a vertical dismiss drag should commit (minimize) on release:
+/// either dragged at least 25% down, or flung down faster than 700 px/s.
+bool dismissCommit(double progress, double velocityY) =>
+    progress >= 0.25 || velocityY > 700;

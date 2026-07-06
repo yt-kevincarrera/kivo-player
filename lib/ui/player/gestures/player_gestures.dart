@@ -11,6 +11,7 @@ import '../state/dismiss_state.dart';
 import '../state/hud_state.dart';
 import '../state/lock_state.dart';
 import '../state/orientation_state.dart';
+import '../state/player_dismiss_state.dart';
 import '../../../player/background/audio_only.dart';
 import '../seek/seek_preview.dart';
 import 'ripple_state.dart';
@@ -23,8 +24,7 @@ class PlayerGestures extends ConsumerStatefulWidget {
   ConsumerState<PlayerGestures> createState() => _PlayerGesturesState();
 }
 
-class _PlayerGesturesState extends ConsumerState<PlayerGestures>
-    with SingleTickerProviderStateMixin {
+class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   double _lastTapDx = 0;
   double _width = 1, _height = 1;
   bool _leftSide = true;
@@ -54,25 +54,6 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures>
   // dead margin) so the gesture still registers after the ~18px touch slop
   // shifts the reported drag-start downward — and to match "from the top".
   static const _topRotateMargin = 90.0;
-
-  late final AnimationController _dismissAnim;
-
-  @override
-  void initState() {
-    super.initState();
-    _dismissAnim = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    )..addListener(() {
-        ref.read(dismissProvider.notifier).state = _dismissAnim.value;
-      });
-  }
-
-  @override
-  void dispose() {
-    _dismissAnim.dispose();
-    super.dispose();
-  }
 
   bool _dead(double dy) =>
       inVerticalDeadZone(dy, _height, _topInset, _bottomInset, _deadMargin);
@@ -116,7 +97,6 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures>
     _isDismiss = inLateralDeadZone(dx, _width, _lateralMargin);
     if (_isDismiss) {
       _dismissHaptic = false;
-      _dismissAnim.stop();
       return;
     }
     _vDead = _dead(dy);
@@ -186,25 +166,17 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures>
     _isDismiss = false;
     final progress = ref.read(dismissProvider);
     final velocityY = d.primaryVelocity ?? 0;
-    final commit = progress >= 0.25 || velocityY > 700;
-    if (commit) {
-      // Animate the slide-down to completion, then minimize. We deliberately
-      // do NOT reset dismissProgress to 0 here: maybePop()'s work is async
-      // (pause → save → freeze-frame capture → pop), so resetting now would
-      // snap the player back to fullscreen — showing the paused frame — for
-      // the whole capture before the route actually pops. Leaving it at 1.0
-      // keeps the player off-screen through the capture; the next open resets
-      // dismissProgress in PlayerScreen._start(). (PlayerScreen is never the
-      // root route, so the pop always succeeds — no stranded-off-screen case.)
-      _dismissAnim.value = progress;
-      _dismissAnim.animateTo(1.0).then((_) {
-        if (!mounted) return;
+    final api = ref.read(playerDismissProvider);
+    if (dismissCommit(progress, velocityY)) {
+      if (api != null) {
+        api.complete();
+      } else {
+        // Defensive fallback if no PlayerScreen published the API.
+        ref.read(dismissProvider.notifier).state = 0;
         Navigator.of(context).maybePop();
-      });
+      }
     } else {
-      // Snap back to 0.
-      _dismissAnim.value = progress;
-      _dismissAnim.animateBack(0.0);
+      api?.cancel();
     }
   }
 

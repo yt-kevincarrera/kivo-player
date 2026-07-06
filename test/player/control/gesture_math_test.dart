@@ -130,4 +130,11 @@ void main() {
     // width 0 → returns start (no crash)
     expect(horizontalSeekTarget(start: start, accumPx: 100, widthPx: 0, total: total, sensitivity: 1.0), start);
   });
+
+  test('dismissCommit: commits past 25% progress or on a fast fling', () {
+    expect(dismissCommit(0.30, 0), isTrue);   // dragged far enough
+    expect(dismissCommit(0.10, 800), isTrue); // fast downward fling
+    expect(dismissCommit(0.10, 0), isFalse);  // small, slow → snap back
+    expect(dismissCommit(0.25, 0), isTrue);   // exactly at threshold
+  });
 }
