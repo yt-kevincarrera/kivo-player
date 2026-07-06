@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/format.dart';
+import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
 import '../../../player/sleep/sleep_timer.dart';
 
@@ -24,6 +25,7 @@ class _SleepWarningToastState extends ConsumerState<SleepWarningToast> {
     }
     final n = ref.read(sleepTimerProvider.notifier);
     final secondsLeft = st.remaining.inSeconds.clamp(0, 10);
+    final accent = Color(ref.watch(settingsProvider).accentColor);
 
     return Align(
       alignment: Alignment.bottomCenter,
@@ -47,10 +49,10 @@ class _SleepWarningToastState extends ConsumerState<SleepWarningToast> {
                     width: 26,
                     height: 26,
                     decoration: BoxDecoration(
-                      color: KivoColors.gold.withValues(alpha: 0.16),
+                      color: accent.withValues(alpha: 0.16),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.bedtime_outlined, size: 14, color: KivoColors.gold),
+                    child: Icon(Icons.bedtime_outlined, size: 14, color: accent),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -62,10 +64,10 @@ class _SleepWarningToastState extends ConsumerState<SleepWarningToast> {
                         children: [
                           TextSpan(
                             text: fmtDuration(st.remaining),
-                            style: const TextStyle(
-                              color: KivoColors.gold,
+                            style: TextStyle(
+                              color: accent,
                               fontWeight: FontWeight.w800,
-                              fontFeatures: [FontFeature.tabularFigures()],
+                              fontFeatures: const [FontFeature.tabularFigures()],
                             ),
                           ),
                         ],
@@ -94,7 +96,7 @@ class _SleepWarningToastState extends ConsumerState<SleepWarningToast> {
                             height: 4,
                             decoration: BoxDecoration(
                               color: i < secondsLeft
-                                  ? KivoColors.gold
+                                  ? accent
                                   : Colors.white.withValues(alpha: 0.14),
                               borderRadius: BorderRadius.circular(2),
                             ),
@@ -126,12 +128,12 @@ class _SleepWarningToastState extends ConsumerState<SleepWarningToast> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                       decoration: BoxDecoration(
-                        color: KivoColors.gold,
+                        color: accent,
                         borderRadius: BorderRadius.circular(9),
                       ),
-                      child: const Text('Extender',
+                      child: Text('Extender',
                           style: TextStyle(
-                              color: Color(0xFF231705),
+                              color: onAccent(accent),
                               fontWeight: FontWeight.w800,
                               fontSize: 12.5)),
                     ),

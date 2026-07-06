@@ -56,6 +56,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
   @override
   Widget build(BuildContext context) {
     final active = ref.watch(sleepTimerProvider);
+    final accent = Color(ref.watch(settingsProvider).accentColor);
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
@@ -114,14 +115,14 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
               ],
             ),
             const SizedBox(height: 10),
-            if (active == null) ..._selectorChildren() else ..._activeChildren(active),
+            if (active == null) ..._selectorChildren(accent) else ..._activeChildren(active, accent),
           ],
         ),
       ),
     );
   }
 
-  List<Widget> _selectorChildren() {
+  List<Widget> _selectorChildren(Color accent) {
     final durationActive = !_episodeSelected && !_episodesSelected;
     return [
       const _Eyebrow('Duración'),
@@ -137,7 +138,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text('$_minutes min',
                 style: TextStyle(
-                  color: durationActive ? KivoColors.gold : Colors.white38,
+                  color: durationActive ? accent : Colors.white38,
                   fontSize: 34,
                   fontWeight: FontWeight.w800,
                   fontFeatures: const [FontFeature.tabularFigures()],
@@ -153,6 +154,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
       const SizedBox(height: 8),
       _SegmentMeter(
         litFraction: durationActive ? _minutes / 120 : 0,
+        accent: accent,
         onSegmentTap: (i) => setState(() {
           _minutes = (i + 1) * 15;
           _episodeSelected = false;
@@ -162,6 +164,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
       const _Eyebrow('O bien'),
       _EpisodeCard(
         selected: _episodeSelected,
+        accent: accent,
         onTap: () => setState(() {
           _episodeSelected = !_episodeSelected;
           _episodesSelected = false;
@@ -171,6 +174,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
       _EpisodesCountCard(
         selected: _episodesSelected,
         episodes: _episodes,
+        accent: accent,
         onTap: () => setState(() {
           _episodesSelected = !_episodesSelected;
           _episodeSelected = false;
@@ -193,12 +197,13 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
             : _episodeSelected
                 ? 'Iniciar · Al terminar el episodio'
                 : 'Iniciar · $_minutes min',
+        accent: accent,
         onTap: _start,
       ),
     ];
   }
 
-  List<Widget> _activeChildren(SleepTimerState st) {
+  List<Widget> _activeChildren(SleepTimerState st, Color accent) {
     final total = st.original.inMilliseconds;
     final frac = total == 0 ? 0.0 : (st.remaining.inMilliseconds / total).clamp(0.0, 1.0);
     return [
@@ -206,18 +211,18 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
       Center(
         child: st.mode == SleepTimerMode.episodes
             ? Text('${st.episodesLeft}',
-                style: const TextStyle(
-                  color: KivoColors.gold,
+                style: TextStyle(
+                  color: accent,
                   fontSize: 34,
                   fontWeight: FontWeight.w800,
-                  fontFeatures: [FontFeature.tabularFigures()],
+                  fontFeatures: const [FontFeature.tabularFigures()],
                 ))
             : Text(fmtDuration(st.remaining),
-                style: const TextStyle(
-                  color: KivoColors.gold,
+                style: TextStyle(
+                  color: accent,
                   fontSize: 34,
                   fontWeight: FontWeight.w800,
-                  fontFeatures: [FontFeature.tabularFigures()],
+                  fontFeatures: const [FontFeature.tabularFigures()],
                 )),
       ),
       Center(
@@ -238,7 +243,8 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
           ),
         ),
       ),
-      if (st.mode != SleepTimerMode.episodes) _SegmentMeter(litFraction: frac, onSegmentTap: null),
+      if (st.mode != SleepTimerMode.episodes)
+        _SegmentMeter(litFraction: frac, accent: accent, onSegmentTap: null),
       const SizedBox(height: 14),
       if (st.mode == SleepTimerMode.fixed)
         Row(
@@ -248,6 +254,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
             Expanded(
               child: _PrimaryButton(
                 label: 'Extender +${st.original.inMinutes}',
+                accent: accent,
                 onTap: () => ref.read(sleepTimerProvider.notifier).extend(),
               ),
             ),
@@ -302,8 +309,9 @@ class _StepButton extends StatelessWidget {
 /// read-only draining variant used while the timer runs.
 class _SegmentMeter extends StatelessWidget {
   final double litFraction; // 0..1
+  final Color accent;
   final ValueChanged<int>? onSegmentTap;
-  const _SegmentMeter({required this.litFraction, required this.onSegmentTap});
+  const _SegmentMeter({required this.litFraction, required this.accent, required this.onSegmentTap});
 
   @override
   Widget build(BuildContext context) {
@@ -321,7 +329,7 @@ class _SegmentMeter extends StatelessWidget {
                       height: 22,
                       decoration: BoxDecoration(
                         color: (i + 1) / 8 <= litFraction + 0.001
-                            ? KivoColors.gold
+                            ? accent
                             : Colors.white.withValues(alpha: 0.14),
                         borderRadius: BorderRadius.circular(5),
                       ),
@@ -356,8 +364,9 @@ class _SegmentMeter extends StatelessWidget {
 
 class _EpisodeCard extends StatelessWidget {
   final bool selected;
+  final Color accent;
   final VoidCallback onTap;
-  const _EpisodeCard({required this.selected, required this.onTap});
+  const _EpisodeCard({required this.selected, required this.accent, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -367,10 +376,10 @@ class _EpisodeCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: selected ? KivoColors.gold.withValues(alpha: 0.16) : const Color(0xFF182036),
+          color: selected ? accent.withValues(alpha: 0.16) : const Color(0xFF182036),
           borderRadius: BorderRadius.circular(13),
           border: Border.all(
-              color: selected ? KivoColors.gold.withValues(alpha: 0.5) : Colors.transparent),
+              color: selected ? accent.withValues(alpha: 0.5) : Colors.transparent),
         ),
         child: Row(
           children: [
@@ -379,12 +388,12 @@ class _EpisodeCard extends StatelessWidget {
               height: 30,
               decoration: BoxDecoration(
                 color: selected
-                    ? KivoColors.gold.withValues(alpha: 0.16)
+                    ? accent.withValues(alpha: 0.16)
                     : Colors.white.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(9),
               ),
               child: Icon(Icons.movie_outlined,
-                  size: 16, color: selected ? KivoColors.gold : Colors.white70),
+                  size: 16, color: selected ? accent : Colors.white70),
             ),
             const SizedBox(width: 11),
             Expanded(
@@ -394,7 +403,7 @@ class _EpisodeCard extends StatelessWidget {
                 children: [
                   Text('Al terminar el episodio',
                       style: TextStyle(
-                        color: selected ? KivoColors.gold : Colors.white,
+                        color: selected ? accent : Colors.white,
                         fontSize: 13,
                         fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                       )),
@@ -404,7 +413,7 @@ class _EpisodeCard extends StatelessWidget {
                 ],
               ),
             ),
-            if (selected) const Icon(Icons.check_rounded, size: 18, color: KivoColors.gold),
+            if (selected) Icon(Icons.check_rounded, size: 18, color: accent),
           ],
         ),
       ),
@@ -415,12 +424,14 @@ class _EpisodeCard extends StatelessWidget {
 class _EpisodesCountCard extends StatelessWidget {
   final bool selected;
   final int episodes;
+  final Color accent;
   final VoidCallback onTap;
   final VoidCallback onDecrement;
   final VoidCallback onIncrement;
   const _EpisodesCountCard({
     required this.selected,
     required this.episodes,
+    required this.accent,
     required this.onTap,
     required this.onDecrement,
     required this.onIncrement,
@@ -434,10 +445,10 @@ class _EpisodesCountCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: selected ? KivoColors.gold.withValues(alpha: 0.16) : const Color(0xFF182036),
+          color: selected ? accent.withValues(alpha: 0.16) : const Color(0xFF182036),
           borderRadius: BorderRadius.circular(13),
           border: Border.all(
-              color: selected ? KivoColors.gold.withValues(alpha: 0.5) : Colors.transparent),
+              color: selected ? accent.withValues(alpha: 0.5) : Colors.transparent),
         ),
         child: Row(
           children: [
@@ -446,12 +457,12 @@ class _EpisodesCountCard extends StatelessWidget {
               height: 30,
               decoration: BoxDecoration(
                 color: selected
-                    ? KivoColors.gold.withValues(alpha: 0.16)
+                    ? accent.withValues(alpha: 0.16)
                     : Colors.white.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(9),
               ),
               child: Icon(Icons.playlist_play_rounded,
-                  size: 16, color: selected ? KivoColors.gold : Colors.white70),
+                  size: 16, color: selected ? accent : Colors.white70),
             ),
             const SizedBox(width: 11),
             Expanded(
@@ -461,7 +472,7 @@ class _EpisodesCountCard extends StatelessWidget {
                 children: [
                   Text('Tras N episodios',
                       style: TextStyle(
-                        color: selected ? KivoColors.gold : Colors.white,
+                        color: selected ? accent : Colors.white,
                         fontSize: 13,
                         fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                       )),
@@ -477,7 +488,7 @@ class _EpisodesCountCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Text('$episodes',
                   style: TextStyle(
-                    color: selected ? KivoColors.gold : Colors.white,
+                    color: selected ? accent : Colors.white,
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
                     fontFeatures: const [FontFeature.tabularFigures()],
@@ -493,8 +504,9 @@ class _EpisodesCountCard extends StatelessWidget {
 
 class _PrimaryButton extends StatelessWidget {
   final String label;
+  final Color accent;
   final VoidCallback onTap;
-  const _PrimaryButton({required this.label, required this.onTap});
+  const _PrimaryButton({required this.label, required this.accent, required this.onTap});
   @override
   Widget build(BuildContext context) => InkWell(
         borderRadius: BorderRadius.circular(12),
@@ -502,13 +514,13 @@ class _PrimaryButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: KivoColors.gold,
+            color: accent,
             borderRadius: BorderRadius.circular(12),
           ),
           alignment: Alignment.center,
           child: Text(label,
-              style: const TextStyle(
-                  color: Color(0xFF231705), fontWeight: FontWeight.w800, fontSize: 13.5)),
+              style: TextStyle(
+                  color: onAccent(accent), fontWeight: FontWeight.w800, fontSize: 13.5)),
         ),
       );
 }

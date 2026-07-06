@@ -32,6 +32,7 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
   Widget build(BuildContext context) {
     final rate = ref.watch(rateProvider);
     final st = ref.watch(settingsProvider);
+    final accent = Color(st.accentColor);
     final ctrl = ref.read(playerControllerProvider);
     final detents = [...st.speedPresets, 3.0, 4.0];
 
@@ -61,7 +62,7 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
               onStep: () => ctrl.setRate(round2(rate - st.speedFineStep)),
             ),
             Text('${rate.toStringAsFixed(2)}x',
-                style: const TextStyle(color: KivoColors.gold, fontSize: 40, fontWeight: FontWeight.bold)),
+                style: TextStyle(color: accent, fontSize: 40, fontWeight: FontWeight.bold)),
             _RepeatButton(
               icon: KivoIcon(KivoIcons.plus, size: 24, color: Colors.white),
               onStep: () => ctrl.setRate(round2(rate + st.speedFineStep)),
@@ -72,7 +73,7 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
           min: 0.25,
           max: st.holdRightMax,
           value: clampRate(rate, 0.25, st.holdRightMax),
-          activeColor: KivoColors.gold,
+          activeColor: accent,
           onChanged: (v) => ctrl.setRate(snapToDetent(v, detents, 0.04)),
         ),
         Wrap(
@@ -87,16 +88,16 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
                     color: (p - rate).abs() < 0.001
-                        ? KivoColors.gold.withValues(alpha: 0.22)
+                        ? accent.withValues(alpha: 0.22)
                         : Colors.white.withValues(alpha: 0.06),
                     border: Border.all(
-                      color: (p - rate).abs() < 0.001 ? KivoColors.gold : Colors.white24,
+                      color: (p - rate).abs() < 0.001 ? accent : Colors.white24,
                     ),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text('${p}x',
                       style: TextStyle(
-                        color: (p - rate).abs() < 0.001 ? KivoColors.gold : Colors.white70,
+                        color: (p - rate).abs() < 0.001 ? accent : Colors.white70,
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
                       )),
@@ -111,14 +112,14 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    border: Border.all(color: KivoColors.gold),
+                    border: Border.all(color: accent),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    KivoIcon(KivoIcons.plus, size: 16, color: KivoColors.gold),
+                    KivoIcon(KivoIcons.plus, size: 16, color: accent),
                     const SizedBox(width: 4),
                     Text('Guardar ${round2(rate)}x',
-                        style: const TextStyle(color: KivoColors.gold, fontWeight: FontWeight.w600, fontSize: 13)),
+                        style: TextStyle(color: accent, fontWeight: FontWeight.w600, fontSize: 13)),
                   ]),
                 ),
               ),
@@ -127,7 +128,7 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
         const SizedBox(height: 12),
         Center(
           child: TextButton(
-            style: TextButton.styleFrom(foregroundColor: KivoColors.gold),
+            style: TextButton.styleFrom(foregroundColor: accent),
             onPressed: () => ctrl.setRate(1.0),
             child: const Text('Restablecer (1x)'),
           ),

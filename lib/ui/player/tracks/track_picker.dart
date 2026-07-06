@@ -52,6 +52,7 @@ class _TrackPickerSheetState extends ConsumerState<_TrackPickerSheet> {
     final engine = ref.read(playbackEngineProvider);
     final session = ref.watch(currentVideoProvider);
     final showStyle = widget.isSubtitles && _styleTab;
+    final accent = Color(ref.watch(settingsProvider).accentColor);
 
     final header = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -62,6 +63,7 @@ class _TrackPickerSheetState extends ConsumerState<_TrackPickerSheet> {
           const SizedBox(height: 4),
           _TabBar(
             value: _styleTab,
+            accent: accent,
             onChanged: (v) => setState(() => _styleTab = v),
           ),
           const SizedBox(height: 4),
@@ -177,8 +179,9 @@ class _SheetHeader extends StatelessWidget {
 /// gold-filled active chip used elsewhere (e.g. SpeedPanel's presets).
 class _TabBar extends StatelessWidget {
   final bool value; // false = Pistas, true = Estilo
+  final Color accent;
   final ValueChanged<bool> onChanged;
-  const _TabBar({required this.value, required this.onChanged});
+  const _TabBar({required this.value, required this.accent, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -190,9 +193,13 @@ class _TabBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Expanded(child: _TabLabel(label: 'Pistas', active: !value, onTap: () => onChanged(false))),
+          Expanded(
+              child: _TabLabel(
+                  label: 'Pistas', active: !value, accent: accent, onTap: () => onChanged(false))),
           const SizedBox(width: 4),
-          Expanded(child: _TabLabel(label: 'Estilo', active: value, onTap: () => onChanged(true))),
+          Expanded(
+              child: _TabLabel(
+                  label: 'Estilo', active: value, accent: accent, onTap: () => onChanged(true))),
         ],
       ),
     );
@@ -202,8 +209,9 @@ class _TabBar extends StatelessWidget {
 class _TabLabel extends StatelessWidget {
   final String label;
   final bool active;
+  final Color accent;
   final VoidCallback onTap;
-  const _TabLabel({required this.label, required this.active, required this.onTap});
+  const _TabLabel({required this.label, required this.active, required this.accent, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -214,7 +222,7 @@ class _TabLabel extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: active ? KivoColors.gold : Colors.transparent,
+          color: active ? accent : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
         alignment: Alignment.center,
@@ -223,7 +231,7 @@ class _TabLabel extends StatelessWidget {
           style: TextStyle(
             fontSize: 12.5,
             fontWeight: FontWeight.w700,
-            color: active ? const Color(0xFF231705) : Colors.white70,
+            color: active ? onAccent(accent) : Colors.white70,
           ),
         ),
       ),
@@ -314,7 +322,9 @@ class _TracksSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final subsOn = ref.watch(settingsProvider).subtitlesEnabledByDefault;
+    final s = ref.watch(settingsProvider);
+    final subsOn = s.subtitlesEnabledByDefault;
+    final accent = Color(s.accentColor);
 
     return FutureBuilder<List<ExternalSubtitle>>(
       future: (isSubtitles && session?.folder != null)
@@ -341,7 +351,7 @@ class _TracksSection extends ConsumerWidget {
                     ),
                     Switch(
                       value: subsOn,
-                      activeThumbColor: KivoColors.gold,
+                      activeThumbColor: accent,
                       onChanged: (v) => v ? _turnOn(ref) : _turnOff(ref),
                     ),
                   ],
@@ -356,6 +366,7 @@ class _TracksSection extends ConsumerWidget {
                   label: t.title ?? t.language ?? t.id,
                   sublabel: t.isDefault ? 'Pista incrustada · predeterminada' : 'Pista incrustada',
                   active: current?.id == t.id,
+                  accent: accent,
                   onTap: () => _pickTrack(context, ref, t),
                 ),
             ],
@@ -367,6 +378,7 @@ class _TracksSection extends ConsumerWidget {
                   label: e.displayName,
                   sublabel: 'Archivo local',
                   active: current?.id == e.uri,
+                  accent: accent,
                   onTap: () => _pickExternal(context, ref, e),
                 ),
             ],
@@ -390,6 +402,7 @@ class _TrackCard extends StatelessWidget {
   final String label;
   final String sublabel;
   final bool active;
+  final Color accent;
   final VoidCallback onTap;
 
   const _TrackCard({
@@ -397,6 +410,7 @@ class _TrackCard extends StatelessWidget {
     required this.label,
     required this.sublabel,
     required this.active,
+    required this.accent,
     required this.onTap,
   });
 
@@ -410,9 +424,9 @@ class _TrackCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: active ? KivoColors.gold.withValues(alpha: 0.16) : const Color(0xFF182036),
+            color: active ? accent.withValues(alpha: 0.16) : const Color(0xFF182036),
             borderRadius: BorderRadius.circular(13),
-            border: Border.all(color: active ? KivoColors.gold.withValues(alpha: 0.5) : Colors.transparent),
+            border: Border.all(color: active ? accent.withValues(alpha: 0.5) : Colors.transparent),
           ),
           child: Row(
             children: [
@@ -420,10 +434,10 @@ class _TrackCard extends StatelessWidget {
                 width: 30,
                 height: 30,
                 decoration: BoxDecoration(
-                  color: active ? KivoColors.gold.withValues(alpha: 0.16) : Colors.white.withValues(alpha: 0.06),
+                  color: active ? accent.withValues(alpha: 0.16) : Colors.white.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(9),
                 ),
-                child: Icon(icon, size: 16, color: active ? KivoColors.gold : Colors.white70),
+                child: Icon(icon, size: 16, color: active ? accent : Colors.white70),
               ),
               const SizedBox(width: 11),
               Expanded(
@@ -436,7 +450,7 @@ class _TrackCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: active ? KivoColors.gold : Colors.white,
+                        color: active ? accent : Colors.white,
                         fontSize: 13,
                         fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                       ),
@@ -446,7 +460,7 @@ class _TrackCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (active) const Icon(Icons.check_rounded, size: 18, color: KivoColors.gold),
+              if (active) Icon(Icons.check_rounded, size: 18, color: accent),
             ],
           ),
         ),
@@ -499,6 +513,7 @@ class _StyleSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(settingsProvider);
+    final accent = Color(s.accentColor);
     final fontSize = s.subtitleFontSize.clamp(16, 48);
 
     return Column(
@@ -551,10 +566,10 @@ class _StyleSection extends ConsumerWidget {
             Expanded(
               child: SliderTheme(
                 data: SliderTheme.of(context).copyWith(
-                  activeTrackColor: KivoColors.gold,
+                  activeTrackColor: accent,
                   inactiveTrackColor: Colors.white.withValues(alpha: 0.14),
-                  thumbColor: KivoColors.gold,
-                  overlayColor: KivoColors.gold.withValues(alpha: 0.15),
+                  thumbColor: accent,
+                  overlayColor: accent.withValues(alpha: 0.15),
                 ),
                 child: Slider(
                   min: 16,
@@ -574,7 +589,7 @@ class _StyleSection extends ConsumerWidget {
               child: Text(
                 fontSize.round().toString(),
                 textAlign: TextAlign.right,
-                style: const TextStyle(color: KivoColors.gold, fontSize: 13, fontWeight: FontWeight.w800),
+                style: TextStyle(color: accent, fontSize: 13, fontWeight: FontWeight.w800),
               ),
             ),
           ],
@@ -588,6 +603,7 @@ class _StyleSection extends ConsumerWidget {
                 child: _ColorSquare(
                   color: c,
                   active: s.subtitleTextColor == c,
+                  accent: accent,
                   onTap: () => _apply(ref, KivoSettingsPatch(textColor: c)),
                 ),
               ),
@@ -605,6 +621,7 @@ class _StyleSection extends ConsumerWidget {
                     label: bg.label,
                     textColor: s.subtitleTextColor,
                     active: s.subtitleBackgroundColor == bg.value,
+                    accent: accent,
                     onTap: () => _apply(ref, KivoSettingsPatch(backgroundColor: bg.value)),
                   ),
                 ),
@@ -614,7 +631,7 @@ class _StyleSection extends ConsumerWidget {
         const SizedBox(height: 18),
         Center(
           child: TextButton.icon(
-            style: TextButton.styleFrom(foregroundColor: KivoColors.gold),
+            style: TextButton.styleFrom(foregroundColor: accent),
             onPressed: () => _reset(ref),
             icon: const Icon(Icons.restart_alt_rounded, size: 17),
             label: const Text('Restablecer estilo'),
@@ -654,12 +671,12 @@ class _StepButton extends StatelessWidget {
 class _ColorSquare extends StatelessWidget {
   final int color;
   final bool active;
+  final Color accent;
   final VoidCallback onTap;
-  const _ColorSquare({required this.color, required this.active, required this.onTap});
+  const _ColorSquare({required this.color, required this.active, required this.accent, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final isLight = Color(color).computeLuminance() > 0.5;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -670,13 +687,11 @@ class _ColorSquare extends StatelessWidget {
           borderRadius: BorderRadius.circular(9),
           border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
           boxShadow: active
-              ? [BoxShadow(color: KivoColors.gold.withValues(alpha: 0.6), blurRadius: 0, spreadRadius: 2)]
+              ? [BoxShadow(color: accent.withValues(alpha: 0.6), blurRadius: 0, spreadRadius: 2)]
               : null,
         ),
         alignment: Alignment.center,
-        child: active
-            ? Icon(Icons.check_rounded, size: 15, color: isLight ? Colors.black87 : Colors.white)
-            : null,
+        child: active ? Icon(Icons.check_rounded, size: 15, color: onAccent(Color(color))) : null,
       ),
     );
   }
@@ -687,6 +702,7 @@ class _BackgroundChip extends StatelessWidget {
   final String label;
   final int textColor;
   final bool active;
+  final Color accent;
   final VoidCallback onTap;
 
   const _BackgroundChip({
@@ -694,6 +710,7 @@ class _BackgroundChip extends StatelessWidget {
     required this.label,
     required this.textColor,
     required this.active,
+    required this.accent,
     required this.onTap,
   });
 
@@ -705,7 +722,7 @@ class _BackgroundChip extends StatelessWidget {
         height: 46,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(11),
-          border: Border.all(color: active ? KivoColors.gold : Colors.transparent, width: 2),
+          border: Border.all(color: active ? accent : Colors.transparent, width: 2),
           gradient: const LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
