@@ -12,6 +12,7 @@ import android.content.IntentFilter
 import android.content.pm.ActivityInfo
 import android.graphics.drawable.Icon
 import android.os.Build
+import android.os.Environment
 import android.graphics.Bitmap
 import android.media.AudioManager
 import android.media.MediaMetadataRetriever
@@ -346,6 +347,12 @@ class MainActivity : FlutterActivity() {
                         if (pendingFileOpResult != null) { result.success("error"); return@setMethodCallHandler }
                         val u = Uri.parse(uri)
                         try {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+                                Environment.isExternalStorageManager()) {
+                                contentResolver.delete(u, null, null)
+                                result.success("ok")
+                                return@setMethodCallHandler
+                            }
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                                 val pi = MediaStore.createDeleteRequest(contentResolver, listOf(u))
                                 pendingFileOpResult = result
@@ -381,6 +388,15 @@ class MainActivity : FlutterActivity() {
                         val ext = if (dot > 0) currentName.substring(dot) else ""
                         val finalName = base + ext
                         try {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+                                Environment.isExternalStorageManager()) {
+                                val values = android.content.ContentValues().apply {
+                                    put(MediaStore.Video.Media.DISPLAY_NAME, finalName)
+                                }
+                                contentResolver.update(u, values, null, null)
+                                result.success(mapOf("status" to "ok", "newName" to finalName))
+                                return@setMethodCallHandler
+                            }
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                                 val pi = MediaStore.createWriteRequest(contentResolver, listOf(u))
                                 pendingFileOpResult = result
