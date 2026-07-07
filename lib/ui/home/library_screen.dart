@@ -268,6 +268,13 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             _FilterChips(
               selected: _tab,
               onChanged: (i) {
+                // Selection is only meaningful in the videos list (tab 0):
+                // switching sub-tabs away from it would otherwise leave the
+                // selection set non-empty while SelectionAppBar is no longer
+                // shown, orphaning it (and PopScope would swallow back).
+                if (i != _tab) {
+                  ref.read(librarySelectionProvider.notifier).clear();
+                }
                 setState(() => _tab = i);
                 _pageController.animateToPage(
                   i,

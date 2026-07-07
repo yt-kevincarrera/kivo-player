@@ -26,9 +26,10 @@ class FolderScreen extends ConsumerWidget {
   ) {
     ref.read(resumePromptProvider.notifier).state = null;
     ref.read(currentVideoProvider.notifier).openFromList(current, all);
-    Navigator.of(context, rootNavigator: true)
-        .push(playerRoute(originRect: origin))
-        .then((_) {
+    Navigator.of(
+      context,
+      rootNavigator: true,
+    ).push(playerRoute(originRect: origin)).then((_) {
       ref.invalidate(continueWatchingProvider);
       ref.invalidate(playedKeysProvider);
     });
@@ -41,8 +42,9 @@ class FolderScreen extends ConsumerWidget {
     // ⋮ menu) is reflected immediately. Fall back to the constructor
     // snapshot only while the index is still loading.
     final live = ref.watch(mediaIndexProvider).valueOrNull;
-    final vids =
-        live == null ? videos : live.where((v) => v.folder == folder).toList();
+    final vids = live == null
+        ? videos
+        : live.where((v) => v.folder == folder).toList();
     final selecting = ref.watch(librarySelectionProvider).isNotEmpty;
     return PopScope(
       canPop: !selecting,
@@ -55,7 +57,10 @@ class FolderScreen extends ConsumerWidget {
             : AppBar(
                 title: Text(
                   folder,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
         body: VideoDensityFeed(

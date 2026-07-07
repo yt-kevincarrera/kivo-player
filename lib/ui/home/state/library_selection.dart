@@ -36,13 +36,17 @@ class LibrarySelectionNotifier extends StateNotifier<Set<String>> {
 
 final librarySelectionProvider =
     StateNotifierProvider<LibrarySelectionNotifier, Set<String>>(
-        (ref) => LibrarySelectionNotifier());
+      (ref) => LibrarySelectionNotifier(),
+    );
 
 enum GroupCheckState { none, some, all }
 
 /// Tri-state for a day header's checkbox given the group's URIs and the
 /// current selection.
-GroupCheckState groupCheckState(Iterable<String> groupUris, Set<String> selected) {
+GroupCheckState groupCheckState(
+  Iterable<String> groupUris,
+  Set<String> selected,
+) {
   final group = groupUris.toSet();
   if (group.isEmpty) return GroupCheckState.none;
   final n = group.where(selected.contains).length;

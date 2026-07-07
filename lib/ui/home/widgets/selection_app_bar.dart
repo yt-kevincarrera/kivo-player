@@ -24,47 +24,79 @@ class SelectionAppBar extends ConsumerWidget implements PreferredSizeWidget {
     final messenger = ScaffoldMessenger.of(context);
 
     return AppBar(
-      leading: IconButton(icon: const Icon(Icons.close), tooltip: 'Cancelar', onPressed: sel.clear),
-      title: Text('${selected.length} seleccionado${selected.length == 1 ? '' : 's'}'),
+      leading: IconButton(
+        icon: const Icon(Icons.close),
+        tooltip: 'Cancelar',
+        onPressed: sel.clear,
+      ),
+      title: Text(
+        '${chosen.length} seleccionado${chosen.length == 1 ? '' : 's'}',
+      ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.select_all), tooltip: 'Seleccionar todo',
+          icon: const Icon(Icons.select_all),
+          tooltip: 'Seleccionar todo',
           onPressed: () => sel.selectAll(allVisible.map((v) => v.uri)),
         ),
         IconButton(
-          icon: const Icon(Icons.share), tooltip: 'Compartir',
-          onPressed: chosen.isEmpty ? null : () async {
-            await ref.read(videoActionsProvider).shareMany(chosen);
-            sel.clear();
-          },
+          icon: const Icon(Icons.share),
+          tooltip: 'Compartir',
+          onPressed: chosen.isEmpty
+              ? null
+              : () async {
+                  await ref.read(videoActionsProvider).shareMany(chosen);
+                  sel.clear();
+                },
         ),
         IconButton(
-          icon: Icon(Icons.delete, color: cs.error), tooltip: 'Borrar',
-          onPressed: chosen.isEmpty ? null : () async {
-            final ok = await showDialog<bool>(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                title: const Text('Borrar videos'),
-                content: Text('¿Borrar ${chosen.length} videos? Esta acción no se puede deshacer.'),
-                actions: [
-                  TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
-                  TextButton(
-                    onPressed: () => Navigator.pop(ctx, true),
-                    child: Text('Borrar', style: TextStyle(color: Theme.of(ctx).colorScheme.error))),
-                ],
-              ),
-            );
-            if (ok != true || !context.mounted) return;
-            await maybeOfferAllFilesAccess(context, ref);
-            if (!context.mounted) return;
-            final status = await ref.read(videoActionsProvider).deleteMany(chosen);
-            if (status == FileOpStatus.ok) {
-              messenger.showSnackBar(SnackBar(content: Text('${chosen.length} videos borrados')));
-              sel.clear();
-            } else if (status == FileOpStatus.error) {
-              messenger.showSnackBar(const SnackBar(content: Text('No se pudieron borrar')));
-            }
-          },
+          icon: Icon(Icons.delete, color: cs.error),
+          tooltip: 'Borrar',
+          onPressed: chosen.isEmpty
+              ? null
+              : () async {
+                  final ok = await showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('Borrar videos'),
+                      content: Text(
+                        '¿Borrar ${chosen.length} videos? Esta acción no se puede deshacer.',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, false),
+                          child: const Text('Cancelar'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, true),
+                          child: Text(
+                            'Borrar',
+                            style: TextStyle(
+                              color: Theme.of(ctx).colorScheme.error,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (ok != true || !context.mounted) return;
+                  await maybeOfferAllFilesAccess(context, ref);
+                  if (!context.mounted) return;
+                  final status = await ref
+                      .read(videoActionsProvider)
+                      .deleteMany(chosen);
+                  if (status == FileOpStatus.ok) {
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text('${chosen.length} videos borrados'),
+                      ),
+                    );
+                    sel.clear();
+                  } else if (status == FileOpStatus.error) {
+                    messenger.showSnackBar(
+                      const SnackBar(content: Text('No se pudieron borrar')),
+                    );
+                  }
+                },
         ),
       ],
     );

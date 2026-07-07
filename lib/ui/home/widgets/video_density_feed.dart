@@ -23,7 +23,8 @@ import 'video_tile.dart';
 /// exactly like the main library.
 class VideoDensityFeed extends ConsumerStatefulWidget {
   final List<VideoItem> videos;
-  final void Function(VideoItem current, List<VideoItem> all, Rect? origin) onOpen;
+  final void Function(VideoItem current, List<VideoItem> all, Rect? origin)
+  onOpen;
   final bool groupByDate;
   final bool showContinueRow;
 
@@ -119,8 +120,10 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
   @override
   Widget build(BuildContext context) {
     // Any column change (pinch OR the density icon) triggers the reflow.
-    ref.listen<int>(settingsProvider.select((s) => s.libraryColumns),
-        (prev, next) {
+    ref.listen<int>(settingsProvider.select((s) => s.libraryColumns), (
+      prev,
+      next,
+    ) {
       if (prev != null && prev != next) {
         _reflowCtrl.forward(from: 0);
       }
@@ -160,89 +163,64 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
             if (s.label.isNotEmpty)
               SliverToBoxAdapter(
                 child: Padding(
-                  padding:
-                      const EdgeInsets.fromLTRB(_sectionPad, 18, _sectionPad, 8),
-                  child: Row(children: [
-                    if (selecting) ...[
-                      _DayCheckbox(
-                        state: groupCheckState(s.items.map((v) => v.uri), selected),
-                        accent: accentColor,
-                        onTap: () => sel.toggleAll(s.items.map((v) => v.uri)),
+                  padding: const EdgeInsets.fromLTRB(
+                    _sectionPad,
+                    18,
+                    _sectionPad,
+                    8,
+                  ),
+                  child: Row(
+                    children: [
+                      if (selecting) ...[
+                        _DayCheckbox(
+                          state: groupCheckState(
+                            s.items.map((v) => v.uri),
+                            selected,
+                          ),
+                          accent: accentColor,
+                          onTap: () => sel.toggleAll(s.items.map((v) => v.uri)),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      Container(width: 3, height: 13, color: accentColor),
+                      const SizedBox(width: 7),
+                      Text(
+                        s.label,
+                        style: TextStyle(
+                          color: cs.onSurfaceVariant,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                      const SizedBox(width: 8),
                     ],
-                    Container(width: 3, height: 13, color: accentColor),
-                    const SizedBox(width: 7),
-                    Text(
-                      s.label,
-                      style: TextStyle(
-                        color: cs.onSurfaceVariant,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ]),
+                  ),
                 ),
               ),
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: _sectionPad),
               sliver: cols == 1
                   ? SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (_, i) {
-                          final v = s.items[i];
-                          // Keyed by uri so reordering (sort/filter changes)
-                          // reuses the existing Element for a still-visible
-                          // video instead of rebuilding it at a new index —
-                          // otherwise its ThumbnailImage loses its provider
-                          // watcher and re-fetches, causing an avoidable
-                          // placeholder->image flash.
-                          return KeyedSubtree(
-                            key: ValueKey(v.uri),
-                            child: Padding(
-                              padding: const EdgeInsets.only(bottom: 7),
-                              child: _reflowTile(
-                                child: VideoTile(
-                                  video: v,
-                                  listRow: true,
-                                  sizeLabel: fmtSize(v.sizeBytes),
-                                  progress: continueItems[v.name]?.fraction,
-                                  isNew: !played.contains(v.name),
-                                  onOptions: () => showVideoOptions(context, ref, v),
-                                  selected: selected.contains(v.uri),
-                                  selecting: selecting,
-                                  onLongPress: () => sel.toggle(v.uri),
-                                  onTap: (origin) => selecting
-                                      ? sel.toggle(v.uri)
-                                      : widget.onOpen(v, widget.videos, origin),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                        childCount: s.items.length,
-                      ),
-                    )
-                  : SliverGrid(
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: cols,
-                        childAspectRatio: 16 / 9,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                      ),
-                      delegate: SliverChildBuilderDelegate(
-                        (_, i) {
-                          final v = s.items[i];
-                          return KeyedSubtree(
-                            key: ValueKey(v.uri),
+                      delegate: SliverChildBuilderDelegate((_, i) {
+                        final v = s.items[i];
+                        // Keyed by uri so reordering (sort/filter changes)
+                        // reuses the existing Element for a still-visible
+                        // video instead of rebuilding it at a new index —
+                        // otherwise its ThumbnailImage loses its provider
+                        // watcher and re-fetches, causing an avoidable
+                        // placeholder->image flash.
+                        return KeyedSubtree(
+                          key: ValueKey(v.uri),
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 7),
                             child: _reflowTile(
                               child: VideoTile(
                                 video: v,
-                                listRow: false,
-                                sizeLabel: null,
+                                listRow: true,
+                                sizeLabel: fmtSize(v.sizeBytes),
                                 progress: continueItems[v.name]?.fraction,
                                 isNew: !played.contains(v.name),
-                                onOptions: () => showVideoOptions(context, ref, v),
+                                onOptions: () =>
+                                    showVideoOptions(context, ref, v),
                                 selected: selected.contains(v.uri),
                                 selecting: selecting,
                                 onLongPress: () => sel.toggle(v.uri),
@@ -251,10 +229,40 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
                                     : widget.onOpen(v, widget.videos, origin),
                               ),
                             ),
-                          );
-                        },
-                        childCount: s.items.length,
+                          ),
+                        );
+                      }, childCount: s.items.length),
+                    )
+                  : SliverGrid(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: cols,
+                        childAspectRatio: 16 / 9,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
                       ),
+                      delegate: SliverChildBuilderDelegate((_, i) {
+                        final v = s.items[i];
+                        return KeyedSubtree(
+                          key: ValueKey(v.uri),
+                          child: _reflowTile(
+                            child: VideoTile(
+                              video: v,
+                              listRow: false,
+                              sizeLabel: null,
+                              progress: continueItems[v.name]?.fraction,
+                              isNew: !played.contains(v.name),
+                              onOptions: () =>
+                                  showVideoOptions(context, ref, v),
+                              selected: selected.contains(v.uri),
+                              selecting: selecting,
+                              onLongPress: () => sel.toggle(v.uri),
+                              onTap: (origin) => selecting
+                                  ? sel.toggle(v.uri)
+                                  : widget.onOpen(v, widget.videos, origin),
+                            ),
+                          ),
+                        );
+                      }, childCount: s.items.length),
                     ),
             ),
           ],
@@ -269,7 +277,11 @@ class _DayCheckbox extends StatelessWidget {
   final GroupCheckState state;
   final Color accent;
   final VoidCallback onTap;
-  const _DayCheckbox({required this.state, required this.accent, required this.onTap});
+  const _DayCheckbox({
+    required this.state,
+    required this.accent,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -279,19 +291,21 @@ class _DayCheckbox extends StatelessWidget {
     return InkResponse(
       onTap: onTap,
       child: Container(
-        width: 20, height: 20,
+        width: 20,
+        height: 20,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: filled || partial ? accent : Colors.transparent,
           border: Border.all(
             color: filled || partial ? accent : cs.onSurfaceVariant,
-            width: 2),
+            width: 2,
+          ),
         ),
         child: filled
             ? Icon(Icons.check, size: 13, color: onAccent(accent))
             : partial
-                ? Icon(Icons.remove, size: 13, color: onAccent(accent))
-                : null,
+            ? Icon(Icons.remove, size: 13, color: onAccent(accent))
+            : null,
       ),
     );
   }
