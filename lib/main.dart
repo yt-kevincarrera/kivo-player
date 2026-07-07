@@ -13,6 +13,8 @@ import 'player/resume/resume_store.dart';
 import 'player/resume/resume_service.dart';
 import 'player/library/played.dart';
 import 'player/open/video_source.dart';
+import 'platform/all_files_access_provider.dart';
+import 'platform/android/android_all_files_access.dart';
 import 'platform/android/android_frame_extractor.dart';
 import 'platform/android/android_media_file_ops.dart';
 import 'platform/android/android_media_indexer.dart';
@@ -58,6 +60,7 @@ Future<void> main() async {
       subtitleFinderProvider.overrideWithValue(AndroidSubtitleFinder()),
       mediaSessionProvider.overrideWithValue(AndroidMediaSessionBridge()),
       pipControllerProvider.overrideWithValue(AndroidPipController()),
+      allFilesAccessProvider.overrideWithValue(AndroidAllFilesAccess()),
     ],
     child: const KivoApp(),
   ));
