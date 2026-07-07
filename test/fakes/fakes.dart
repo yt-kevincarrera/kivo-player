@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'package:kivo_player/core/settings/settings_store.dart';
 import 'package:kivo_player/platform/interfaces/frame_extractor.dart';
+import 'package:kivo_player/platform/interfaces/media_file_ops.dart';
 import 'package:kivo_player/platform/interfaces/media_indexer.dart';
 import 'package:kivo_player/platform/interfaces/media_session.dart';
 import 'package:kivo_player/platform/interfaces/pip_controller.dart';
@@ -347,4 +348,27 @@ class FakeSubtitleFinder implements SubtitleFinder {
     requestedFolders.add(folder);
     return byFolder[folder] ?? const [];
   }
+}
+
+class FakeMediaFileOps implements MediaFileOps {
+  final List<String> deletedUris = [];
+  final List<(String, String)> renamed = []; // (uri, baseName)
+  final List<String> sharedUris = [];
+  FileOpStatus deleteResult = FileOpStatus.ok;
+  RenameOutcome renameOutcome = const RenameOutcome(FileOpStatus.ok, newName: 'renamed.mp4');
+
+  @override
+  Future<FileOpStatus> delete(String uri) async {
+    deletedUris.add(uri);
+    return deleteResult;
+  }
+
+  @override
+  Future<RenameOutcome> rename(String uri, String newBaseName) async {
+    renamed.add((uri, newBaseName));
+    return renameOutcome;
+  }
+
+  @override
+  Future<void> share(String uri) async => sharedUris.add(uri);
 }
