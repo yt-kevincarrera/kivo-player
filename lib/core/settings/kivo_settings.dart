@@ -39,6 +39,7 @@ class KivoSettings {
   final int sleepTimerLastMinutes;
   final String iconStyle; // 'duotone' | 'flat'
   final bool pipAutoOnHome;
+  final bool offeredAllFilesAccess;
 
   const KivoSettings({
     required this.doubleTapSkipLeft,
@@ -81,6 +82,7 @@ class KivoSettings {
     required this.sleepTimerLastMinutes,
     required this.iconStyle,
     required this.pipAutoOnHome,
+    required this.offeredAllFilesAccess,
   });
 
   factory KivoSettings.defaults() => const KivoSettings(
@@ -124,6 +126,7 @@ class KivoSettings {
         sleepTimerLastMinutes: 30,
         iconStyle: 'duotone',
         pipAutoOnHome: true,
+        offeredAllFilesAccess: false,
       );
 
   static const Object _unset = Object();
@@ -169,6 +172,7 @@ class KivoSettings {
     int? sleepTimerLastMinutes,
     String? iconStyle,
     bool? pipAutoOnHome,
+    bool? offeredAllFilesAccess,
   }) {
     return KivoSettings(
       doubleTapSkipLeft: doubleTapSkipLeft ?? this.doubleTapSkipLeft,
@@ -215,6 +219,7 @@ class KivoSettings {
       sleepTimerLastMinutes: sleepTimerLastMinutes ?? this.sleepTimerLastMinutes,
       iconStyle: iconStyle ?? this.iconStyle,
       pipAutoOnHome: pipAutoOnHome ?? this.pipAutoOnHome,
+      offeredAllFilesAccess: offeredAllFilesAccess ?? this.offeredAllFilesAccess,
     );
   }
 
@@ -259,6 +264,7 @@ class KivoSettings {
         'sleepTimerLastMinutes': sleepTimerLastMinutes,
         'iconStyle': iconStyle,
         'pipAutoOnHome': pipAutoOnHome,
+        'offeredAllFilesAccess': offeredAllFilesAccess,
       };
 
   factory KivoSettings.fromMap(Map<String, dynamic> m) {
@@ -304,6 +310,7 @@ class KivoSettings {
       sleepTimerLastMinutes: m['sleepTimerLastMinutes'] ?? d.sleepTimerLastMinutes,
       iconStyle: m['iconStyle'] ?? d.iconStyle,
       pipAutoOnHome: m['pipAutoOnHome'] ?? d.pipAutoOnHome,
+      offeredAllFilesAccess: m['offeredAllFilesAccess'] ?? d.offeredAllFilesAccess,
     );
   }
 }
