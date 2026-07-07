@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
+import '../../../platform/all_files_access_provider.dart';
 import '../widgets/setting_tiles.dart';
 import '../widgets/setting_choice.dart';
 
@@ -59,6 +60,24 @@ class AdvancedPlaybackSection extends ConsumerWidget {
               subtitle: 'Se fija al elegir una pista; aquí puedes volver a Automático',
               value: s.preferredAudioLanguage, options: langOptions(s.preferredAudioLanguage),
               onChanged: (v) => n.set(s.copyWith(preferredAudioLanguage: v))),
+          ]),
+          const SizedBox(height: 16),
+          _label(context, 'Almacenamiento'),
+          SettingsCard(children: [
+            Builder(builder: (context) {
+              final granted = ref.watch(allFilesAccessGrantedProvider).valueOrNull ?? false;
+              return SettingNavRow(
+                icon: Icons.folder_open_outlined,
+                title: 'Acceso a todos los archivos',
+                subtitle: granted
+                    ? 'Concedido'
+                    : 'Toca para borrar y renombrar sin confirmación',
+                onTap: () async {
+                  await ref.read(allFilesAccessProvider).request();
+                  ref.invalidate(allFilesAccessGrantedProvider);
+                },
+              );
+            }),
           ]),
         ],
       ),
