@@ -9,6 +9,7 @@ import '../../../player/library/continue_watching.dart';
 import '../../../player/library/library_grouping.dart';
 import '../../../player/library/played.dart';
 import 'continue_row.dart';
+import 'video_options_sheet.dart';
 import 'video_tile.dart';
 
 /// A reusable density-aware video feed: pinch-to-resize (1↔3 columns),
@@ -194,7 +195,7 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
                                   sizeLabel: fmtSize(v.sizeBytes),
                                   progress: continueItems[v.name]?.fraction,
                                   isNew: !played.contains(v.name),
-                                  onOptions: null,
+                                  onOptions: () => showVideoOptions(context, ref, v),
                                   onTap: (origin) => widget.onOpen(v, widget.videos, origin),
                                 ),
                               ),
@@ -223,7 +224,7 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
                                 sizeLabel: null,
                                 progress: continueItems[v.name]?.fraction,
                                 isNew: !played.contains(v.name),
-                                onOptions: null,
+                                onOptions: () => showVideoOptions(context, ref, v),
                                 onTap: (origin) => widget.onOpen(v, widget.videos, origin),
                               ),
                             ),
