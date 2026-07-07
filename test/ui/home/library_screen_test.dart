@@ -14,6 +14,8 @@ import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/platform/frame_extractor_provider.dart';
 import 'package:kivo_player/ui/home/library_screen.dart';
+import 'package:kivo_player/ui/home/state/library_selection.dart';
+import 'package:kivo_player/ui/home/widgets/video_tile.dart';
 import '../../fakes/fakes.dart';
 
 class _GrantedPerm implements MediaPermission {
@@ -47,13 +49,13 @@ final _videos = [
   ),
 ];
 
-Future<ProviderScope> _buildApp(WidgetTester tester) async {
+Future<ProviderContainer> _buildApp(WidgetTester tester) async {
   final settingsService = await SettingsService.load(InMemorySettingsStore());
   final fake = FakeMediaIndexer(_videos);
   final resumeStore = InMemoryResumeStore();
   final engine = FakePlaybackEngine();
 
-  final scope = ProviderScope(
+  final container = ProviderContainer(
     overrides: [
       settingsServiceProvider.overrideWithValue(settingsService),
       mediaPermissionImplProvider.overrideWithValue(_GrantedPerm()),
@@ -63,14 +65,15 @@ Future<ProviderScope> _buildApp(WidgetTester tester) async {
       frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
       playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
     ],
-    child: MaterialApp(
-      theme: KivoTheme.light(),
-      home: const LibraryScreen(),
+  );
+  await tester.pumpWidget(
+    UncontrolledProviderScope(
+      container: container,
+      child: MaterialApp(theme: KivoTheme.light(), home: const LibraryScreen()),
     ),
   );
-  await tester.pumpWidget(scope);
   await tester.pumpAndSettle();
-  return scope;
+  return container;
 }
 
 void main() {
@@ -86,8 +89,9 @@ void main() {
     expect(find.text('Todo'), findsOneWidget);
   });
 
-  testWidgets('Todo tab shows known video name under a date section header',
-      (tester) async {
+  testWidgets('Todo tab shows known video name under a date section header', (
+    tester,
+  ) async {
     await _buildApp(tester);
 
     // The default tab is Todo (index 0). At least one video name must appear.
@@ -107,16 +111,18 @@ void main() {
     expect(find.text('Downloads'), findsOneWidget);
   });
 
-  testWidgets('Todo tab is shown by default (video names visible)',
-      (tester) async {
+  testWidgets('Todo tab is shown by default (video names visible)', (
+    tester,
+  ) async {
     await _buildApp(tester);
 
     // In Todo tab the video names should be visible.
     expect(find.text('Inception.mp4'), findsOneWidget);
   });
 
-  testWidgets('Switching back from Carpetas to Todo restores video list',
-      (tester) async {
+  testWidgets('Switching back from Carpetas to Todo restores video list', (
+    tester,
+  ) async {
     await _buildApp(tester);
 
     await tester.tap(find.text('Carpetas'));
@@ -128,8 +134,9 @@ void main() {
     expect(find.text('Inception.mp4'), findsOneWidget);
   });
 
-  testWidgets('tapping search shows a text field and hides the title',
-      (tester) async {
+  testWidgets('tapping search shows a text field and hides the title', (
+    tester,
+  ) async {
     await _buildApp(tester);
     expect(find.text('Kivo'), findsOneWidget);
 
@@ -164,8 +171,9 @@ void main() {
     expect(find.text('Inception.mp4'), findsNothing);
   });
 
-  testWidgets('closing search restores the title and clears the query',
-      (tester) async {
+  testWidgets('closing search restores the title and clears the query', (
+    tester,
+  ) async {
     await _buildApp(tester);
     await tester.tap(find.byIcon(Icons.search));
     await tester.pumpAndSettle();
@@ -188,7 +196,10 @@ void main() {
     await tester.enterText(find.byType(TextField), 'zzz-no-match');
     await tester.pump();
 
-    expect(find.text('No se encontraron videos para "zzz-no-match"'), findsOneWidget);
+    expect(
+      find.text('No se encontraron videos para "zzz-no-match"'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('sort menu changes order to alphabetical', (tester) async {
@@ -212,4 +223,28 @@ void main() {
 
     expect(find.text('No vistos'), findsNothing);
   });
+
+  testWidgets(
+    'switching to Carpetas while a video is selected clears the selection',
+    (tester) async {
+      final container = await _buildApp(tester);
+      addTearDown(container.dispose);
+
+      // Enter selection mode via long-press on a video tile.
+      await tester.longPress(find.byType(VideoTile).first);
+      await tester.pumpAndSettle();
+      expect(container.read(librarySelectionProvider), isNotEmpty);
+      expect(find.byIcon(Icons.select_all), findsOneWidget);
+
+      // Switch to the Carpetas sub-tab: the orphaned selection must be
+      // cleared, otherwise SelectionAppBar reverts to the normal AppBar
+      // while the selection provider stays non-empty (invisible + PopScope
+      // then swallows the next back press).
+      await tester.tap(find.text('Carpetas'));
+      await tester.pumpAndSettle();
+
+      expect(container.read(librarySelectionProvider), isEmpty);
+      expect(find.byIcon(Icons.select_all), findsNothing);
+    },
+  );
 }

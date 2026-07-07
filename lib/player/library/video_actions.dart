@@ -40,6 +40,23 @@ class VideoActionsController {
     return outcome;
   }
 
+  Future<FileOpStatus> deleteMany(List<VideoItem> videos) async {
+    final status = await _ref.read(mediaFileOpsProvider).deleteMany(
+        videos.map((v) => v.uri).toList());
+    if (status != FileOpStatus.ok) return status;
+    final resume = _ref.read(resumeServiceProvider);
+    final played = _ref.read(playedStoreProvider);
+    for (final v in videos) {
+      await resume.clear(v.name);
+      await played.remove(v.name);
+    }
+    await _refreshLibrary();
+    return status;
+  }
+
+  Future<void> shareMany(List<VideoItem> videos) =>
+      _ref.read(mediaFileOpsProvider).shareMany(videos.map((v) => v.uri).toList());
+
   Future<void> _refreshLibrary() async {
     await _ref.read(mediaIndexProvider.notifier).refresh();
     _ref.invalidate(continueWatchingProvider);

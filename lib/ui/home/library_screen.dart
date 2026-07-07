@@ -19,7 +19,9 @@ import '../player/controls/resume_prompt.dart';
 import '../player/player_route.dart';
 import 'folder_screen.dart';
 import 'state/library_filter_state.dart';
+import 'state/library_selection.dart';
 import 'widgets/folder_grid.dart';
+import 'widgets/selection_app_bar.dart';
 import 'widgets/video_density_feed.dart';
 
 class LibraryScreen extends ConsumerStatefulWidget {
@@ -44,7 +46,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         if (!mounted) return;
         if (files.isNotEmpty) _openPath(files.first.path);
       });
-      _shareSub = ReceiveSharingIntent.instance.getMediaStream().listen((files) {
+      _shareSub = ReceiveSharingIntent.instance.getMediaStream().listen((
+        files,
+      ) {
         if (files.isNotEmpty) _openPath(files.first.path);
       });
     } catch (_) {
@@ -62,9 +66,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
   void _push() {
     ref.read(resumePromptProvider.notifier).state = null;
-    Navigator.of(context, rootNavigator: true)
-        .push(playerRoute())
-        .then((_) {
+    Navigator.of(context, rootNavigator: true).push(playerRoute()).then((_) {
       ref.invalidate(continueWatchingProvider);
       ref.invalidate(playedKeysProvider);
     });
@@ -78,9 +80,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
   void _open(VideoItem v, List<VideoItem> all, Rect? origin) {
     ref.read(currentVideoProvider.notifier).openFromList(v, all);
-    Navigator.of(context, rootNavigator: true)
-        .push(playerRoute(originRect: origin))
-        .then((_) {
+    Navigator.of(
+      context,
+      rootNavigator: true,
+    ).push(playerRoute(originRect: origin)).then((_) {
       ref.invalidate(continueWatchingProvider);
       ref.invalidate(playedKeysProvider);
     });
@@ -115,87 +118,132 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     _searchController.clear();
   }
 
+  /// The video list currently fed to [VideoDensityFeed] — used both by the
+  /// feed itself and by [SelectionAppBar] ("select all" + resolving selected
+  /// URIs to [VideoItem]s for batch ops). Mirrors the filtering done in
+  /// `_videosTab`/`_searchResults`: same source list, sort, and unwatched
+  /// filter; search additionally applies the query. Only meaningful while a
+  /// video list (not the Carpetas grid) is showing, which is the only place
+  /// selection can be entered from (long-press on a [VideoTile]).
+  List<VideoItem> _currentVisibleVideos() {
+    final index = ref.watch(mediaIndexProvider).valueOrNull;
+    if (index == null) return const [];
+    final sort = librarySortFor(ref.watch(settingsProvider).librarySort);
+    final unwatchedOnly = ref.watch(libraryUnwatchedOnlyProvider);
+    final played = ref.watch(playedKeysProvider);
+    final searching = ref.watch(librarySearchActiveProvider);
+    return applyLibraryFilters(
+      index,
+      query: searching ? ref.watch(librarySearchQueryProvider) : '',
+      sort: sort,
+      unwatchedOnly: unwatchedOnly,
+      playedKeys: played,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final perm = ref.watch(mediaPermissionProvider);
-    return Scaffold(
-      appBar: AppBar(
-        titleSpacing: 12,
-        title: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
-          // Default AnimatedSwitcher alignment is center — "Kivo" (narrow)
-          // and the search TextField (fills the slot) then anchor
-          // differently, so the text visibly jumps sideways as it
-          // crossfades. Anchoring both to the left (matching the AppBar's
-          // normal title position) keeps them in place; only opacity animates.
-          layoutBuilder: (currentChild, previousChildren) => Stack(
-            alignment: Alignment.centerLeft,
-            children: [...previousChildren, if (currentChild != null) currentChild],
-          ),
-          child: ref.watch(librarySearchActiveProvider)
-              ? TextField(
-                  key: const ValueKey('search-field'),
-                  controller: _searchController,
-                  autofocus: true,
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                  decoration: const InputDecoration(
-                    hintText: 'Buscar videos o carpetas',
-                    border: InputBorder.none,
-                  ),
-                  onChanged: (q) =>
-                      ref.read(librarySearchQueryProvider.notifier).state = q,
-                )
-              : Text(
-                  'Kivo',
-                  key: const ValueKey('title'),
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+    final selecting = ref.watch(librarySelectionProvider).isNotEmpty;
+    // Selection only applies to the video list (Todo tab / search results),
+    // never the Carpetas grid — but it's safe to compute unconditionally
+    // since it's only ever non-empty when a video list was showing.
+    final showingVideos = _tab == 0 || ref.watch(librarySearchActiveProvider);
+    final scaffold = Scaffold(
+      appBar: selecting && showingVideos
+          ? SelectionAppBar(allVisible: _currentVisibleVideos())
+          : AppBar(
+              titleSpacing: 12,
+              title: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                // Default AnimatedSwitcher alignment is center — "Kivo" (narrow)
+                // and the search TextField (fills the slot) then anchor
+                // differently, so the text visibly jumps sideways as it
+                // crossfades. Anchoring both to the left (matching the AppBar's
+                // normal title position) keeps them in place; only opacity animates.
+                layoutBuilder: (currentChild, previousChildren) => Stack(
+                  alignment: Alignment.centerLeft,
+                  children: [
+                    ...previousChildren,
+                    if (currentChild != null) currentChild,
+                  ],
                 ),
-        ),
-        actions: [
-          // Distinct keys force Flutter to treat search/close as genuinely
-          // different widgets rather than reusing the same IconButton
-          // Element with a swapped icon — without this, an in-flight tap
-          // ripple can visibly carry over onto the new icon.
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            child: ref.watch(librarySearchActiveProvider)
-                ? IconButton(
-                    key: const ValueKey('close'),
-                    tooltip: 'Cerrar búsqueda',
-                    icon: const Icon(Icons.close),
-                    onPressed: _closeSearch,
-                  )
-                : IconButton(
-                    key: const ValueKey('search'),
-                    tooltip: 'Buscar',
-                    icon: const Icon(Icons.search),
-                    onPressed: _openSearch,
+                child: ref.watch(librarySearchActiveProvider)
+                    ? TextField(
+                        key: const ValueKey('search-field'),
+                        controller: _searchController,
+                        autofocus: true,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        decoration: const InputDecoration(
+                          hintText: 'Buscar videos o carpetas',
+                          border: InputBorder.none,
+                        ),
+                        onChanged: (q) =>
+                            ref
+                                    .read(librarySearchQueryProvider.notifier)
+                                    .state =
+                                q,
+                      )
+                    : Text(
+                        'Kivo',
+                        key: const ValueKey('title'),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+              ),
+              actions: [
+                // Distinct keys force Flutter to treat search/close as genuinely
+                // different widgets rather than reusing the same IconButton
+                // Element with a swapped icon — without this, an in-flight tap
+                // ripple can visibly carry over onto the new icon.
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  child: ref.watch(librarySearchActiveProvider)
+                      ? IconButton(
+                          key: const ValueKey('close'),
+                          tooltip: 'Cerrar búsqueda',
+                          icon: const Icon(Icons.close),
+                          onPressed: _closeSearch,
+                        )
+                      : IconButton(
+                          key: const ValueKey('search'),
+                          tooltip: 'Buscar',
+                          icon: const Icon(Icons.search),
+                          onPressed: _openSearch,
+                        ),
+                ),
+                if (ref.watch(librarySearchActiveProvider) || _tab == 0)
+                  const _SortMenuButton(),
+                if (!ref.watch(librarySearchActiveProvider)) ...[
+                  IconButton(
+                    tooltip: 'Cambiar densidad',
+                    icon: const Icon(Icons.grid_view),
+                    onPressed: _cycleDensity,
                   ),
-          ),
-          if (ref.watch(librarySearchActiveProvider) || _tab == 0)
-            const _SortMenuButton(),
-          if (!ref.watch(librarySearchActiveProvider)) ...[
-            IconButton(
-              tooltip: 'Cambiar densidad',
-              icon: const Icon(Icons.grid_view),
-              onPressed: _cycleDensity,
+                  IconButton(
+                    tooltip: 'Abrir archivo',
+                    icon: KivoIcon(KivoIcons.folderOpen, size: 22),
+                    onPressed: _pick,
+                  ),
+                ],
+              ],
             ),
-            IconButton(
-              tooltip: 'Abrir archivo',
-              icon: KivoIcon(KivoIcons.folderOpen, size: 22),
-              onPressed: _pick,
-            ),
-          ],
-        ],
-      ),
       body: perm.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, __) => _accessPrompt(),
         data: (access) =>
             access == MediaAccess.denied ? _accessPrompt() : _body(),
       ),
+    );
+    return PopScope(
+      canPop: !selecting,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) ref.read(librarySelectionProvider.notifier).clear();
+      },
+      child: scaffold,
     );
   }
 
@@ -220,6 +268,13 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             _FilterChips(
               selected: _tab,
               onChanged: (i) {
+                // Selection is only meaningful in the videos list (tab 0):
+                // switching sub-tabs away from it would otherwise leave the
+                // selection set non-empty while SelectionAppBar is no longer
+                // shown, orphaning it (and PopScope would swallow back).
+                if (i != _tab) {
+                  ref.read(librarySelectionProvider.notifier).clear();
+                }
                 setState(() => _tab = i);
                 _pageController.animateToPage(
                   i,
@@ -230,7 +285,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
               showUnwatchedToggle: _tab == 0,
               unwatchedOnly: ref.watch(libraryUnwatchedOnlyProvider),
               onToggleUnwatched: () {
-                final notifier = ref.read(libraryUnwatchedOnlyProvider.notifier);
+                final notifier = ref.read(
+                  libraryUnwatchedOnlyProvider.notifier,
+                );
                 notifier.state = !notifier.state;
               },
             ),
@@ -243,9 +300,13 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   _KeepAlivePage(
-                      key: const ValueKey(0), child: _videosTab(videos)),
+                    key: const ValueKey(0),
+                    child: _videosTab(videos),
+                  ),
                   _KeepAlivePage(
-                      key: const ValueKey(1), child: _foldersTab(videos)),
+                    key: const ValueKey(1),
+                    child: _foldersTab(videos),
+                  ),
                 ],
               ),
             ),
@@ -276,9 +337,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             children: [
               _UnwatchedChip(
                 active: unwatchedOnly,
-                onTap: () => ref
-                    .read(libraryUnwatchedOnlyProvider.notifier)
-                    .state = !unwatchedOnly,
+                onTap: () =>
+                    ref.read(libraryUnwatchedOnlyProvider.notifier).state =
+                        !unwatchedOnly,
               ),
             ],
           ),
@@ -321,33 +382,32 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   }
 
   Widget _foldersTab(List<VideoItem> videos) => FolderGrid(
-        videos: videos,
-        onOpenFolder: (folder, items) => Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => FolderScreen(folder: folder, videos: items),
-          ),
-        ),
-      );
+    videos: videos,
+    onOpenFolder: (folder, items) => Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => FolderScreen(folder: folder, videos: items),
+      ),
+    ),
+  );
 
   Widget _accessPrompt() => Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Da acceso a tus videos para verlos aquí',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 12),
-            FilledButton(
-              onPressed: () =>
-                  ref.read(mediaPermissionProvider.notifier).request(),
-              child: const Text('Dar acceso'),
-            ),
-          ],
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'Da acceso a tus videos para verlos aquí',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
-      );
+        const SizedBox(height: 12),
+        FilledButton(
+          onPressed: () => ref.read(mediaPermissionProvider.notifier).request(),
+          child: const Text('Dar acceso'),
+        ),
+      ],
+    ),
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -388,30 +448,32 @@ class _FilterChips extends StatelessWidget {
   }
 
   Widget _chip(BuildContext context, ColorScheme cs, String label, int i) {
-    return Consumer(builder: (context, ref, _) {
-      final accent = Color(ref.watch(settingsProvider).accentColor);
-      final active = selected == i;
-      return GestureDetector(
-        onTap: () => onChanged(i),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.easeOut,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-          decoration: BoxDecoration(
-            color: active ? accent : cs.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              color: active ? onAccent(accent) : cs.onSurfaceVariant,
-              fontSize: 13,
-              fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+    return Consumer(
+      builder: (context, ref, _) {
+        final accent = Color(ref.watch(settingsProvider).accentColor);
+        final active = selected == i;
+        return GestureDetector(
+          onTap: () => onChanged(i),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            curve: Curves.easeOut,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            decoration: BoxDecoration(
+              color: active ? accent : cs.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              label,
+              style: TextStyle(
+                color: active ? onAccent(accent) : cs.onSurfaceVariant,
+                fontSize: 13,
+                fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+              ),
             ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
@@ -485,7 +547,9 @@ class _SortMenuButton extends ConsumerWidget {
       icon: const Icon(Icons.sort),
       onSelected: (sort) {
         final s = ref.read(settingsProvider);
-        ref.read(settingsProvider.notifier).set(s.copyWith(librarySort: sort.name));
+        ref
+            .read(settingsProvider.notifier)
+            .set(s.copyWith(librarySort: sort.name));
       },
       itemBuilder: (context) => _labels.entries.map((e) {
         return PopupMenuItem<LibrarySort>(
@@ -494,7 +558,9 @@ class _SortMenuButton extends ConsumerWidget {
             children: [
               SizedBox(
                 width: 20,
-                child: e.key == current ? const Icon(Icons.check, size: 18) : null,
+                child: e.key == current
+                    ? const Icon(Icons.check, size: 18)
+                    : null,
               ),
               const SizedBox(width: 6),
               Flexible(child: Text(e.value)),
