@@ -17,6 +17,9 @@ class AndroidMediaIndexer implements MediaIndexer {
         durationMs: (m['durationMs'] as num?)?.toInt() ?? 0,
         sizeBytes: (m['sizeBytes'] as num?)?.toInt() ?? 0,
         dateAddedMs: (m['dateAddedMs'] as num?)?.toInt() ?? 0,
+        width: (m['width'] as num?)?.toInt() ?? 0,
+        height: (m['height'] as num?)?.toInt() ?? 0,
+        path: (m['path'] as String?) ?? '',
       );
     }).toList();
   }

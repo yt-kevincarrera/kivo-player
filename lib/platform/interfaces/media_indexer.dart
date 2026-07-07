@@ -8,6 +8,9 @@ class VideoItem {
   final int durationMs;
   final int sizeBytes;
   final int dateAddedMs;
+  final int width;   // px, 0 if unknown
+  final int height;  // px, 0 if unknown
+  final String path; // MediaStore RELATIVE_PATH, '' if unknown
   const VideoItem({
     required this.id,
     required this.uri,
@@ -16,6 +19,9 @@ class VideoItem {
     required this.durationMs,
     required this.sizeBytes,
     required this.dateAddedMs,
+    this.width = 0,
+    this.height = 0,
+    this.path = '',
   });
 }
 

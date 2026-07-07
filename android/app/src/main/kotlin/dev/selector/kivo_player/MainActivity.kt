@@ -214,6 +214,9 @@ class MainActivity : FlutterActivity() {
                                     MediaStore.Video.Media.SIZE,
                                     MediaStore.Video.Media.DATE_ADDED,
                                     MediaStore.Video.Media.DATA,
+                                    MediaStore.Video.Media.WIDTH,
+                                    MediaStore.Video.Media.HEIGHT,
+                                    MediaStore.Video.Media.RELATIVE_PATH,
                                 )
                                 contentResolver.query(col, proj, null, null,
                                     "${MediaStore.Video.Media.DATE_ADDED} DESC")?.use { c ->
@@ -224,6 +227,9 @@ class MainActivity : FlutterActivity() {
                                     val sizeC = c.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)
                                     val dateC = c.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED)
                                     val dataC = c.getColumnIndex(MediaStore.Video.Media.DATA)
+                                    val widthC = c.getColumnIndex(MediaStore.Video.Media.WIDTH)
+                                    val heightC = c.getColumnIndex(MediaStore.Video.Media.HEIGHT)
+                                    val relPathC = c.getColumnIndex(MediaStore.Video.Media.RELATIVE_PATH)
                                     while (c.moveToNext()) {
                                         val id = c.getLong(idC)
                                         val uri = ContentUris.withAppendedId(col, id).toString()
@@ -239,6 +245,9 @@ class MainActivity : FlutterActivity() {
                                             "durationMs" to c.getLong(durC),
                                             "sizeBytes" to c.getLong(sizeC),
                                             "dateAddedMs" to c.getLong(dateC) * 1000L, // DATE_ADDED is seconds
+                                            "width" to (if (widthC >= 0) c.getInt(widthC) else 0),
+                                            "height" to (if (heightC >= 0) c.getInt(heightC) else 0),
+                                            "path" to (if (relPathC >= 0) (c.getString(relPathC) ?: "") else ""),
                                         ))
                                     }
                                 }
