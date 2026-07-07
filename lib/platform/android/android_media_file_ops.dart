@@ -38,4 +38,21 @@ class AndroidMediaFileOps implements MediaFileOps {
       await _channel.invokeMethod<void>('share', {'uri': uri});
     } catch (_) {/* fire-and-forget */}
   }
+
+  @override
+  Future<FileOpStatus> deleteMany(List<String> uris) async {
+    try {
+      final s = await _channel.invokeMethod<String>('deleteMany', {'uris': uris});
+      return _status(s);
+    } catch (_) {
+      return FileOpStatus.error;
+    }
+  }
+
+  @override
+  Future<void> shareMany(List<String> uris) async {
+    try {
+      await _channel.invokeMethod<void>('shareMany', {'uris': uris});
+    } catch (_) {/* fire-and-forget */}
+  }
 }

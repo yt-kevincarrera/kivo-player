@@ -372,6 +372,19 @@ class FakeMediaFileOps implements MediaFileOps {
 
   @override
   Future<void> share(String uri) async => sharedUris.add(uri);
+
+  final List<List<String>> deletedManyUris = [];
+  final List<List<String>> sharedManyUris = [];
+  FileOpStatus deleteManyResult = FileOpStatus.ok;
+
+  @override
+  Future<FileOpStatus> deleteMany(List<String> uris) async {
+    deletedManyUris.add(List.of(uris));
+    return deleteManyResult;
+  }
+
+  @override
+  Future<void> shareMany(List<String> uris) async => sharedManyUris.add(List.of(uris));
 }
 
 class FakeAllFilesAccess implements AllFilesAccess {

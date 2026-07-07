@@ -21,4 +21,11 @@ abstract class MediaFileOps {
   /// Shares the file via ACTION_SEND (fire-and-forget; the OS chooser handles
   /// the rest).
   Future<void> share(String uri);
+
+  /// Deletes several files. On Android 11+ without all-files-access, the SYSTEM
+  /// shows ONE consent dialog for the whole batch. Returns cancelled if declined.
+  Future<FileOpStatus> deleteMany(List<String> uris);
+
+  /// Shares several files at once (ACTION_SEND_MULTIPLE).
+  Future<void> shareMany(List<String> uris);
 }

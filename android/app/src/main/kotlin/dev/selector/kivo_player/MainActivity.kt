@@ -417,6 +417,47 @@ class MainActivity : FlutterActivity() {
                             result.success(mapOf("status" to "error"))
                         }
                     }
+                    "shareMany" -> {
+                        val uris = call.argument<List<String>>("uris")
+                        if (uris == null) { result.error("INVALID_ARG", "uris required", null); return@setMethodCallHandler }
+                        try {
+                            val list = ArrayList<Uri>(uris.map { Uri.parse(it) })
+                            val send = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+                                type = "video/*"
+                                putParcelableArrayListExtra(Intent.EXTRA_STREAM, list)
+                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            }
+                            startActivity(Intent.createChooser(send, null))
+                            result.success(null)
+                        } catch (e: Exception) {
+                            result.error("SHARE_FAILED", e.message, null)
+                        }
+                    }
+                    "deleteMany" -> {
+                        val uris = call.argument<List<String>>("uris")
+                        if (uris == null) { result.error("INVALID_ARG", "uris required", null); return@setMethodCallHandler }
+                        if (pendingFileOpResult != null) { result.success("error"); return@setMethodCallHandler }
+                        val us = uris.map { Uri.parse(it) }
+                        try {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+                                Environment.isExternalStorageManager()) {
+                                for (u in us) contentResolver.delete(u, null, null)
+                                result.success("ok")
+                                return@setMethodCallHandler
+                            }
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                val pi = MediaStore.createDeleteRequest(contentResolver, us)
+                                pendingFileOpResult = result
+                                startIntentSenderForResult(pi.intentSender, REQ_DELETE, null, 0, 0, 0)
+                            } else {
+                                for (u in us) contentResolver.delete(u, null, null)
+                                result.success("ok")
+                            }
+                        } catch (e: Exception) {
+                            pendingFileOpResult = null
+                            result.success("error")
+                        }
+                    }
                     else -> result.notImplemented()
                 }
             }
