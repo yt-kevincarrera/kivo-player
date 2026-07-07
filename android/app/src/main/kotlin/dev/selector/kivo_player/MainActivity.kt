@@ -2,6 +2,7 @@ package dev.selector.kivo_player
 
 import android.app.PendingIntent
 import android.app.PictureInPictureParams
+import android.app.RecoverableSecurityException
 import android.app.RemoteAction
 import android.content.BroadcastReceiver
 import android.content.ContentUris
@@ -52,9 +53,16 @@ class MainActivity : FlutterActivity() {
         get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
             packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_PICTURE_IN_PICTURE)
 
+    // --- kivo/media file ops (delete/rename consent) ---
+    private var pendingFileOpResult: MethodChannel.Result? = null
+    private var pendingRenameUri: android.net.Uri? = null
+    private var pendingRenameFinalName: String? = null
+
     companion object {
         private const val PIP_ACTION = "dev.selector.kivo_player.PIP_ACTION"
         private const val PIP_EXTRA = "action"
+        private const val REQ_DELETE = 4011
+        private const val REQ_RENAME = 4012
     }
 
     private val pipReceiver = object : BroadcastReceiver() {
@@ -317,6 +325,82 @@ class MainActivity : FlutterActivity() {
                             }
                         }
                     }
+                    "share" -> {
+                        val uri = call.argument<String>("uri")
+                        if (uri == null) { result.error("INVALID_ARG", "uri required", null); return@setMethodCallHandler }
+                        try {
+                            val send = Intent(Intent.ACTION_SEND).apply {
+                                type = "video/*"
+                                putExtra(Intent.EXTRA_STREAM, Uri.parse(uri))
+                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            }
+                            startActivity(Intent.createChooser(send, null))
+                            result.success(null)
+                        } catch (e: Exception) {
+                            result.error("SHARE_FAILED", e.message, null)
+                        }
+                    }
+                    "delete" -> {
+                        val uri = call.argument<String>("uri")
+                        if (uri == null) { result.error("INVALID_ARG", "uri required", null); return@setMethodCallHandler }
+                        if (pendingFileOpResult != null) { result.success("error"); return@setMethodCallHandler }
+                        val u = Uri.parse(uri)
+                        try {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                val pi = MediaStore.createDeleteRequest(contentResolver, listOf(u))
+                                pendingFileOpResult = result
+                                startIntentSenderForResult(pi.intentSender, REQ_DELETE, null, 0, 0, 0)
+                            } else {
+                                try {
+                                    contentResolver.delete(u, null, null)
+                                    result.success("ok")
+                                } catch (e: RecoverableSecurityException) {
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                        pendingFileOpResult = result
+                                        startIntentSenderForResult(
+                                            e.userAction.actionIntent.intentSender, REQ_DELETE, null, 0, 0, 0)
+                                    } else {
+                                        result.success("error")
+                                    }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            pendingFileOpResult = null
+                            result.success("error")
+                        }
+                    }
+                    "rename" -> {
+                        val uri = call.argument<String>("uri")
+                        val base = call.argument<String>("name")
+                        if (uri == null || base == null) { result.error("INVALID_ARG", "uri+name required", null); return@setMethodCallHandler }
+                        if (pendingFileOpResult != null) { result.success(mapOf("status" to "error")); return@setMethodCallHandler }
+                        val u = Uri.parse(uri)
+                        // Preserve the current extension.
+                        val currentName = queryDisplayName(u) ?: ""
+                        val dot = currentName.lastIndexOf('.')
+                        val ext = if (dot > 0) currentName.substring(dot) else ""
+                        val finalName = base + ext
+                        try {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                val pi = MediaStore.createWriteRequest(contentResolver, listOf(u))
+                                pendingFileOpResult = result
+                                pendingRenameUri = u
+                                pendingRenameFinalName = finalName
+                                startIntentSenderForResult(pi.intentSender, REQ_RENAME, null, 0, 0, 0)
+                            } else {
+                                val values = android.content.ContentValues().apply {
+                                    put(MediaStore.Video.Media.DISPLAY_NAME, finalName)
+                                }
+                                contentResolver.update(u, values, null, null)
+                                result.success(mapOf("status" to "ok", "newName" to finalName))
+                            }
+                        } catch (e: Exception) {
+                            pendingFileOpResult = null
+                            pendingRenameUri = null
+                            pendingRenameFinalName = null
+                            result.success(mapOf("status" to "error"))
+                        }
+                    }
                     else -> result.notImplemented()
                 }
             }
@@ -442,6 +526,46 @@ class MainActivity : FlutterActivity() {
             pipReceiverRegistered = false
         }
         super.onDestroy()
+    }
+
+    private fun queryDisplayName(uri: android.net.Uri): String? {
+        return try {
+            contentResolver.query(uri, arrayOf(MediaStore.Video.Media.DISPLAY_NAME), null, null, null)?.use { c ->
+                if (c.moveToFirst()) c.getString(0) else null
+            }
+        } catch (_: Exception) { null }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            REQ_DELETE -> {
+                val r = pendingFileOpResult
+                pendingFileOpResult = null
+                r?.success(if (resultCode == RESULT_OK) "ok" else "cancelled")
+            }
+            REQ_RENAME -> {
+                val r = pendingFileOpResult
+                val u = pendingRenameUri
+                val finalName = pendingRenameFinalName
+                pendingFileOpResult = null
+                pendingRenameUri = null
+                pendingRenameFinalName = null
+                if (resultCode != RESULT_OK || u == null || finalName == null) {
+                    r?.success(mapOf("status" to "cancelled"))
+                    return
+                }
+                try {
+                    val values = android.content.ContentValues().apply {
+                        put(MediaStore.Video.Media.DISPLAY_NAME, finalName)
+                    }
+                    contentResolver.update(u, values, null, null)
+                    r?.success(mapOf("status" to "ok", "newName" to finalName))
+                } catch (e: Exception) {
+                    r?.success(mapOf("status" to "error"))
+                }
+            }
+        }
     }
 
     private fun remoteAction(iconRes: Int, title: String, action: String, requestCode: Int): RemoteAction {
