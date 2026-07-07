@@ -61,10 +61,12 @@ class _VideoTileState extends ConsumerState<VideoTile> {
   Widget _buildListRow(BuildContext context, Color accent) {
     final cs = Theme.of(context).colorScheme;
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onLongPress: widget.onLongPress,
       child: PressBounce(
         onTap: _handleTap,
-        child: Padding(
+        child: Container(
+          color: Colors.transparent,
           padding: const EdgeInsets.symmetric(vertical: 4),
           child: Row(
             children: [

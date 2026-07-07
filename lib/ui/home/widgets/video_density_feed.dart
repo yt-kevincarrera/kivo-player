@@ -8,6 +8,8 @@ import '../../../platform/interfaces/media_indexer.dart';
 import '../../../player/library/continue_watching.dart';
 import '../../../player/library/library_grouping.dart';
 import '../../../player/library/played.dart';
+import '../../../core/theme/kivo_theme.dart';
+import '../state/library_selection.dart';
 import 'continue_row.dart';
 import 'video_options_sheet.dart';
 import 'video_tile.dart';
@@ -134,6 +136,9 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
     final played = ref.watch(playedKeysProvider);
     final cs = Theme.of(context).colorScheme;
     final accentColor = Color(ref.watch(settingsProvider).accentColor);
+    final selected = ref.watch(librarySelectionProvider);
+    final selecting = selected.isNotEmpty;
+    final sel = ref.read(librarySelectionProvider.notifier);
 
     return GestureDetector(
       onScaleStart: (_) {
@@ -158,6 +163,14 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
                   padding:
                       const EdgeInsets.fromLTRB(_sectionPad, 18, _sectionPad, 8),
                   child: Row(children: [
+                    if (selecting) ...[
+                      _DayCheckbox(
+                        state: groupCheckState(s.items.map((v) => v.uri), selected),
+                        accent: accentColor,
+                        onTap: () => sel.toggleAll(s.items.map((v) => v.uri)),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
                     Container(width: 3, height: 13, color: accentColor),
                     const SizedBox(width: 7),
                     Text(
@@ -196,7 +209,12 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
                                   progress: continueItems[v.name]?.fraction,
                                   isNew: !played.contains(v.name),
                                   onOptions: () => showVideoOptions(context, ref, v),
-                                  onTap: (origin) => widget.onOpen(v, widget.videos, origin),
+                                  selected: selected.contains(v.uri),
+                                  selecting: selecting,
+                                  onLongPress: () => sel.toggle(v.uri),
+                                  onTap: (origin) => selecting
+                                      ? sel.toggle(v.uri)
+                                      : widget.onOpen(v, widget.videos, origin),
                                 ),
                               ),
                             ),
@@ -225,7 +243,12 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
                                 progress: continueItems[v.name]?.fraction,
                                 isNew: !played.contains(v.name),
                                 onOptions: () => showVideoOptions(context, ref, v),
-                                onTap: (origin) => widget.onOpen(v, widget.videos, origin),
+                                selected: selected.contains(v.uri),
+                                selecting: selecting,
+                                onLongPress: () => sel.toggle(v.uri),
+                                onTap: (origin) => selecting
+                                    ? sel.toggle(v.uri)
+                                    : widget.onOpen(v, widget.videos, origin),
                               ),
                             ),
                           );
@@ -237,6 +260,38 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
           ],
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
+      ),
+    );
+  }
+}
+
+class _DayCheckbox extends StatelessWidget {
+  final GroupCheckState state;
+  final Color accent;
+  final VoidCallback onTap;
+  const _DayCheckbox({required this.state, required this.accent, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final filled = state == GroupCheckState.all;
+    final partial = state == GroupCheckState.some;
+    return InkResponse(
+      onTap: onTap,
+      child: Container(
+        width: 20, height: 20,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: filled || partial ? accent : Colors.transparent,
+          border: Border.all(
+            color: filled || partial ? accent : cs.onSurfaceVariant,
+            width: 2),
+        ),
+        child: filled
+            ? Icon(Icons.check, size: 13, color: onAccent(accent))
+            : partial
+                ? Icon(Icons.remove, size: 13, color: onAccent(accent))
+                : null,
       ),
     );
   }
