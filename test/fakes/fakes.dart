@@ -329,6 +329,14 @@ class FakeResumeService implements ResumeService {
 
   @override
   Future<void> clear(String key) async => positions.remove(key);
+
+  @override
+  Future<void> rename(String from, String to) async {
+    final pos = positions.remove(from);
+    if (pos != null) {
+      positions[to] = pos;
+    }
+  }
 }
 
 class FakeSubtitleFinder implements SubtitleFinder {

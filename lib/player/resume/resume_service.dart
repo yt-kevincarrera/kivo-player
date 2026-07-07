@@ -25,4 +25,17 @@ class ResumeService {
   List<ResumeEntry> entries() => _store.entries();
 
   Future<void> clear(String key) => _store.remove(key);
+
+  /// Moves a resume entry from [from] to [to], preserving its recorded seconds
+  /// and original timestamp (so a renamed video keeps its place in "continue
+  /// watching" instead of jumping to the top). No-op if [from] has no entry.
+  Future<void> rename(String from, String to) async {
+    ResumeEntry? found;
+    for (final e in _store.entries()) {
+      if (e.key == from) { found = e; break; }
+    }
+    if (found == null) return;
+    await _store.put(to, found.seconds, found.updatedAtMs);
+    await _store.remove(from);
+  }
 }

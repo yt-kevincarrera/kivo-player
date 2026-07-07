@@ -4,6 +4,7 @@ import 'package:hive/hive.dart';
 abstract class PlayedStore {
   bool isPlayed(String key);
   Future<void> markPlayed(String key);
+  Future<void> remove(String key);
   Set<String> keys();
 }
 
@@ -15,6 +16,8 @@ class HivePlayedStore implements PlayedStore {
   @override
   Future<void> markPlayed(String key) => box.put(key, true);
   @override
+  Future<void> remove(String key) => box.delete(key);
+  @override
   Set<String> keys() => box.keys.map((k) => k.toString()).toSet();
 }
 
@@ -24,6 +27,8 @@ class InMemoryPlayedStore implements PlayedStore {
   bool isPlayed(String key) => _s.contains(key);
   @override
   Future<void> markPlayed(String key) async => _s.add(key);
+  @override
+  Future<void> remove(String key) async => _s.remove(key);
   @override
   Set<String> keys() => Set.of(_s);
 }
