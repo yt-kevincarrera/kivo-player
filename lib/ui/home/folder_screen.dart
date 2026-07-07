@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../platform/interfaces/media_indexer.dart';
 import '../../player/library/continue_watching.dart';
+import '../../player/library/media_index.dart';
 import '../../player/library/played.dart';
 import '../../player/open/video_source.dart';
 import '../player/controls/resume_prompt.dart';
@@ -33,6 +34,13 @@ class FolderScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Derive the folder's contents LIVE from the index so a delete/rename
+    // performed from inside this screen (via the shared VideoDensityFeed's
+    // ⋮ menu) is reflected immediately. Fall back to the constructor
+    // snapshot only while the index is still loading.
+    final live = ref.watch(mediaIndexProvider).valueOrNull;
+    final vids =
+        live == null ? videos : live.where((v) => v.folder == folder).toList();
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -41,7 +49,7 @@ class FolderScreen extends ConsumerWidget {
         ),
       ),
       body: VideoDensityFeed(
-        videos: videos,
+        videos: vids,
         onOpen: (v, all, origin) => _open(context, ref, v, all, origin),
         groupByDate: false,
         showContinueRow: false,

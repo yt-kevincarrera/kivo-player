@@ -84,6 +84,7 @@ Future<void> showVideoOptions(BuildContext context, WidgetRef ref, VideoItem v) 
         Navigator.pop(sheetContext);
         final base = await showRenameDialog(context, v);
         if (base == null) return;
+        if (!context.mounted) return;
         final r = await ref.read(videoActionsProvider).rename(v, base);
         if (r.status == FileOpStatus.error) {
           messenger.showSnackBar(const SnackBar(content: Text('No se pudo renombrar')));
@@ -106,6 +107,7 @@ Future<void> showVideoOptions(BuildContext context, WidgetRef ref, VideoItem v) 
           ),
         );
         if (confirmed != true) return;
+        if (!context.mounted) return;
         final status = await ref.read(videoActionsProvider).delete(v);
         if (status == FileOpStatus.ok) {
           messenger.showSnackBar(const SnackBar(content: Text('Video borrado')));
