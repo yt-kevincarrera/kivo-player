@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -79,5 +81,44 @@ void main() {
     }
     await tester.pumpAndSettle();
     expect(find.text('VAULT-CONTENT'), findsOneWidget);
+  });
+
+  testWidgets('PinPad is hidden while biometric is in flight, shown after it resolves negatively', (tester) async {
+    final gate = Completer<bool>();
+    final bio = FakeBiometricAuth(available: true, gate: gate);
+    final c = await _container(biometricEnabled: true, bio: bio);
+    addTearDown(c.dispose);
+    await tester.pumpWidget(_app(c));
+    await tester.pump(); // let postFrame callback run and kick off the biometric attempt
+    await tester.pump();
+
+    // Biometric attempt is in flight: PinPad must not be shown yet.
+    expect(find.byKey(const Key('pin-key-1')), findsNothing);
+
+    // Resolve negatively (failure/cancel).
+    gate.complete(false);
+    await tester.pumpAndSettle();
+
+    expect(find.text('VAULT-CONTENT'), findsNothing);
+    expect(find.byKey(const Key('pin-key-1')), findsOneWidget);
+  });
+
+  testWidgets('resuming from background re-attempts biometric', (tester) async {
+    final bio = FakeBiometricAuth(available: true, willSucceed: false);
+    final c = await _container(biometricEnabled: true, bio: bio);
+    addTearDown(c.dispose);
+    await tester.pumpWidget(_app(c));
+    await tester.pumpAndSettle();
+
+    expect(bio.authCalls, 1);
+    expect(find.byKey(const Key('pin-key-1')), findsOneWidget);
+
+    // Simulate the app going to background and coming back.
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump();
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+
+    expect(bio.authCalls, 2);
   });
 }

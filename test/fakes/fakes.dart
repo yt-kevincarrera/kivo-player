@@ -473,12 +473,18 @@ class FakeBiometricAuth implements BiometricAuth {
   bool available;
   bool willSucceed;
   int authCalls = 0;
-  FakeBiometricAuth({this.available = true, this.willSucceed = true});
+  /// Optional gate: when set, [authenticate] awaits this completer instead of
+  /// returning immediately, so tests can observe the "in flight" state before
+  /// resolving it with `gate.complete(result)`. Defaults to null, preserving
+  /// the immediate-return behavior for existing callers.
+  Completer<bool>? gate;
+  FakeBiometricAuth({this.available = true, this.willSucceed = true, this.gate});
   @override
   Future<bool> isAvailable() async => available;
   @override
   Future<bool> authenticate(String reason) async {
     authCalls++;
+    if (gate != null) return gate!.future;
     return willSucceed;
   }
 }
