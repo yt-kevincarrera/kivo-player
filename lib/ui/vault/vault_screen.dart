@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/settings/settings_provider.dart';
 import '../../player/open/video_source.dart';
 import '../player/player_route.dart';
 import '../../vault/vault_entry.dart';
@@ -48,6 +49,7 @@ class _VaultContent extends ConsumerWidget {
         leading: selecting
             ? IconButton(icon: const Icon(Icons.close), onPressed: sel.clear)
             : null,
+        actions: selecting ? null : const [_VaultMenu()],
       ),
       bottomNavigationBar: selecting ? const VaultBottomBar() : null,
       body: entries.isEmpty
@@ -97,6 +99,36 @@ class _VaultContent extends ConsumerWidget {
                 );
               },
             ),
+    );
+  }
+}
+
+class _VaultMenu extends ConsumerWidget {
+  const _VaultMenu();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+    final messenger = ScaffoldMessenger.of(context);
+    return PopupMenuButton<String>(
+      onSelected: (v) async {
+        final notifier = ref.read(settingsProvider.notifier);
+        if (v == 'hide') {
+          await notifier.set(settings.copyWith(vaultEntranceHidden: !settings.vaultEntranceHidden));
+          messenger.showSnackBar(SnackBar(
+              content: Text(settings.vaultEntranceHidden
+                  ? 'Entrada visible en Ajustes'
+                  : 'Entrada oculta. Mantén pulsado el título de Videos para entrar.')));
+        } else if (v == 'bio') {
+          await notifier.set(settings.copyWith(vaultBiometricEnabled: !settings.vaultBiometricEnabled));
+        }
+      },
+      itemBuilder: (context) => [
+        CheckedPopupMenuItem(
+            value: 'hide', checked: settings.vaultEntranceHidden, child: const Text('Ocultar entrada')),
+        CheckedPopupMenuItem(
+            value: 'bio', checked: settings.vaultBiometricEnabled, child: const Text('Usar biometría')),
+      ],
     );
   }
 }
