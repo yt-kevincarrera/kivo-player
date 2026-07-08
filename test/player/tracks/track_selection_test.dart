@@ -98,4 +98,61 @@ void main() {
       expect(languageFromFilename('My.Movie.2024.srt'), isNull);
     });
   });
+
+  group('looksForced', () {
+    test('matches forced/forzado in title or language', () {
+      expect(looksForced(_MediaTrack(id: '1', title: 'Forzado')), true);
+      expect(looksForced(_MediaTrack(id: '2', title: 'Forced (SDH)')), true);
+      expect(looksForced(_MediaTrack(id: '3', language: 'spa', title: 'Español')), false);
+      expect(looksForced(_MediaTrack(id: '4', title: 'English')), false);
+    });
+  });
+
+  group('forced subtitle handling', () {
+    test('selectSubtitleTrack skips a forced default in favor of a full track', () {
+      final tracks = [
+        _MediaTrack(id: 'f', title: 'forzado', language: 'spa', isDefault: true),
+        _MediaTrack(id: 's', title: 'Español', language: 'spa'),
+        _MediaTrack(id: 'e', title: 'English', language: 'eng'),
+      ];
+      final pick = selectSubtitleTrack(
+          tracks: tracks, enabledByDefault: true, preferredLanguage: null);
+      expect(pick?.id, 's');
+    });
+
+    test('preferredLanguage is honored, preferring non-forced within it', () {
+      final tracks = [
+        _MediaTrack(id: 'ef', title: 'English Forced', language: 'eng'),
+        _MediaTrack(id: 'e', title: 'English', language: 'eng'),
+        _MediaTrack(id: 's', title: 'Español', language: 'spa'),
+      ];
+      final pick = selectSubtitleTrack(
+          tracks: tracks, enabledByDefault: true, preferredLanguage: 'eng');
+      expect(pick?.id, 'e');
+    });
+
+    test('all-forced falls back to the first track (better than nothing)', () {
+      final tracks = [
+        _MediaTrack(id: 'f1', title: 'forzado'),
+        _MediaTrack(id: 'f2', title: 'forced'),
+      ];
+      final pick = selectSubtitleTrack(
+          tracks: tracks, enabledByDefault: true, preferredLanguage: null);
+      expect(pick?.id, 'f1');
+    });
+  });
 }
+
+/// Helper to create MediaTrack with fewer required args for testing
+MediaTrack _MediaTrack({
+  required String id,
+  String? title,
+  String? language,
+  bool isDefault = false,
+}) =>
+    MediaTrack(
+      id: id,
+      title: title,
+      language: language,
+      isDefault: isDefault,
+    );

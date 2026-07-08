@@ -1,8 +1,17 @@
 import '../engine/playback_engine.dart';
 
+/// Heuristic: media_kit doesn't expose mpv's `forced` flag, so treat a track as
+/// forced when its title or language says so. Forced subtitle tracks only show
+/// forced-narrative lines (often nothing), so they're a poor auto-default.
+bool looksForced(MediaTrack t) {
+  final s = '${t.title ?? ''} ${t.language ?? ''}'.toLowerCase();
+  return s.contains('forced') || s.contains('forzad');
+}
+
 /// Picks which subtitle track (if any) should be active when a video opens.
 /// Returns null for "no subtitle" — either because [enabledByDefault] is
 /// false (the user's last explicit choice), or the video has no tracks.
+/// Prefers non-forced tracks; falls back to any track if all are forced.
 MediaTrack? selectSubtitleTrack({
   required List<MediaTrack> tracks,
   required bool enabledByDefault,
@@ -11,14 +20,21 @@ MediaTrack? selectSubtitleTrack({
   if (!enabledByDefault) return null;
   if (tracks.isEmpty) return null;
   if (preferredLanguage != null) {
-    for (final t in tracks) {
-      if (t.language == preferredLanguage) return t;
-    }
+    final byLang = tracks.where((t) => t.language == preferredLanguage).toList();
+    if (byLang.isNotEmpty) return _preferNonForced(byLang);
   }
-  for (final t in tracks) {
+  return _preferNonForced(tracks);
+}
+
+/// Prefer non-forced tracks; within the chosen pool, a `default`-flagged track,
+/// else the first. Falls back to the full list if every track looks forced.
+MediaTrack _preferNonForced(List<MediaTrack> tracks) {
+  final nonForced = tracks.where((t) => !looksForced(t)).toList();
+  final pool = nonForced.isNotEmpty ? nonForced : tracks;
+  for (final t in pool) {
     if (t.isDefault) return t;
   }
-  return tracks.first;
+  return pool.first;
 }
 
 /// Picks which audio track should be active. Unlike subtitles, audio has no
