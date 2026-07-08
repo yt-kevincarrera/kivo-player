@@ -39,6 +39,7 @@ class VideoTile extends ConsumerStatefulWidget {
 
 class _VideoTileState extends ConsumerState<VideoTile> {
   final GlobalKey _thumbKey = GlobalKey();
+  bool _pressing = false;
 
   void _handleTap() {
     final box = _thumbKey.currentContext?.findRenderObject() as RenderBox?;
@@ -63,111 +64,124 @@ class _VideoTileState extends ConsumerState<VideoTile> {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onLongPress: widget.onLongPress,
-      child: PressBounce(
-        onTap: _handleTap,
-        child: Container(
-          color: Colors.transparent,
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Row(
-            children: [
-              // Left: 168px-wide 16:9 thumbnail with badge + progress
-              SizedBox(
-                width: 168,
-                child: ClipRRect(
-                  key: _thumbKey,
-                  borderRadius: BorderRadius.circular(8),
-                  child: AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        ThumbnailImage(widget.video.id),
-                        Positioned(
-                          top: 4,
-                          right: 4,
-                          child: _badge(
-                            fmtDuration(
-                              Duration(milliseconds: widget.video.durationMs),
-                            ),
-                          ),
-                        ),
-                        if (widget.isNew)
-                          Positioned(top: 4, left: 4, child: _newBadge(accent)),
-                        if (widget.progress != null)
+      onLongPressDown: (_) => setState(() => _pressing = true),
+      onLongPressCancel: () => setState(() => _pressing = false),
+      onLongPressUp: () => setState(() => _pressing = false),
+      child: AnimatedScale(
+        key: const Key('tile-press-scale'),
+        scale: _pressing ? 0.95 : 1.0,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+        child: PressBounce(
+          onTap: _handleTap,
+          child: Container(
+            color: Colors.transparent,
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              children: [
+                // Left: 168px-wide 16:9 thumbnail with badge + progress
+                SizedBox(
+                  width: 168,
+                  child: ClipRRect(
+                    key: _thumbKey,
+                    borderRadius: BorderRadius.circular(8),
+                    child: AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          ThumbnailImage(widget.video.id),
                           Positioned(
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            child: _SegmentedProgress(
-                              widget.progress!,
-                              accent,
-                              cs,
-                            ),
-                          ),
-                        if (widget.selected)
-                          Positioned.fill(
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                color: accent.withValues(alpha: 0.28),
+                            top: 4,
+                            right: 4,
+                            child: _badge(
+                              fmtDuration(
+                                Duration(milliseconds: widget.video.durationMs),
                               ),
                             ),
                           ),
-                        if (widget.selecting)
-                          Positioned(
-                            top: 6,
-                            right: 6,
-                            child: _selectionBadge(accent, widget.selected),
-                          ),
-                      ],
+                          if (widget.isNew)
+                            Positioned(
+                              top: 4,
+                              left: 4,
+                              child: _newBadge(accent),
+                            ),
+                          if (widget.progress != null)
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              child: _SegmentedProgress(
+                                widget.progress!,
+                                accent,
+                                cs,
+                              ),
+                            ),
+                          if (widget.selected)
+                            Positioned.fill(
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: accent.withValues(alpha: 0.28),
+                                ),
+                              ),
+                            ),
+                          if (widget.selecting)
+                            Positioned(
+                              top: 6,
+                              right: 6,
+                              child: _selectionBadge(accent, widget.selected),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              // Right: title + size label
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      widget.video.name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: cs.onSurface,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    if (widget.sizeLabel != null) ...[
-                      const SizedBox(height: 2),
+                const SizedBox(width: 10),
+                // Right: title + size label
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
                       Text(
-                        widget.sizeLabel!,
-                        maxLines: 1,
+                        widget.video.name,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: cs.onSurfaceVariant,
-                          fontSize: 14,
+                          color: cs.onSurface,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
+                      if (widget.sizeLabel != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          widget.sizeLabel!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: cs.onSurfaceVariant,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-              // Far right: options menu icon — has its own onPressed, does not trigger row onTap
-              IconButton(
-                icon: Icon(
-                  Icons.more_vert,
-                  size: 20,
-                  color: cs.onSurfaceVariant,
+                // Far right: options menu icon — has its own onPressed, does not trigger row onTap
+                IconButton(
+                  icon: Icon(
+                    Icons.more_vert,
+                    size: 20,
+                    color: cs.onSurfaceVariant,
+                  ),
+                  onPressed: widget.onOptions ?? () {},
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.all(4),
+                  constraints: const BoxConstraints(),
                 ),
-                onPressed: widget.onOptions ?? () {},
-                visualDensity: VisualDensity.compact,
-                padding: const EdgeInsets.all(4),
-                constraints: const BoxConstraints(),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -178,83 +192,92 @@ class _VideoTileState extends ConsumerState<VideoTile> {
     final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       onLongPress: widget.onLongPress,
-      child: PressBounce(
-        onTap: _handleTap,
-        child: ClipRRect(
-          key: _thumbKey,
-          borderRadius: BorderRadius.circular(12),
-          child: AspectRatio(
-            aspectRatio: 16 / 9,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                ThumbnailImage(widget.video.id),
-                // Duration badge (top-right)
-                Positioned(
-                  top: 6,
-                  right: 6,
-                  child: _badge(
-                    fmtDuration(
-                      Duration(milliseconds: widget.video.durationMs),
-                    ),
-                  ),
-                ),
-                // Nuevo badge (top-left)
-                if (widget.isNew)
-                  Positioned(top: 6, left: 6, child: _newBadge(accent)),
-                // Title gradient + text (on-thumbnail text stays white over the dark gradient)
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: Container(
-                    padding: EdgeInsets.fromLTRB(
-                      8,
-                      16,
-                      8,
-                      widget.progress != null ? 8 : 6,
-                    ),
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.bottomCenter,
-                        end: Alignment.topCenter,
-                        colors: [Colors.black87, Colors.transparent],
-                      ),
-                    ),
-                    child: Text(
-                      widget.video.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
+      onLongPressDown: (_) => setState(() => _pressing = true),
+      onLongPressCancel: () => setState(() => _pressing = false),
+      onLongPressUp: () => setState(() => _pressing = false),
+      child: AnimatedScale(
+        key: const Key('tile-press-scale'),
+        scale: _pressing ? 0.95 : 1.0,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+        child: PressBounce(
+          onTap: _handleTap,
+          child: ClipRRect(
+            key: _thumbKey,
+            borderRadius: BorderRadius.circular(12),
+            child: AspectRatio(
+              aspectRatio: 16 / 9,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  ThumbnailImage(widget.video.id),
+                  // Duration badge (top-right)
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: _badge(
+                      fmtDuration(
+                        Duration(milliseconds: widget.video.durationMs),
                       ),
                     ),
                   ),
-                ),
-                if (widget.progress != null)
+                  // Nuevo badge (top-left)
+                  if (widget.isNew)
+                    Positioned(top: 6, left: 6, child: _newBadge(accent)),
+                  // Title gradient + text (on-thumbnail text stays white over the dark gradient)
                   Positioned(
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    child: _SegmentedProgress(widget.progress!, accent, cs),
-                  ),
-                if (widget.selected)
-                  Positioned.fill(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: accent.withValues(alpha: 0.28),
+                    child: Container(
+                      padding: EdgeInsets.fromLTRB(
+                        8,
+                        16,
+                        8,
+                        widget.progress != null ? 8 : 6,
+                      ),
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                          colors: [Colors.black87, Colors.transparent],
+                        ),
+                      ),
+                      child: Text(
+                        widget.video.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
-                if (widget.selecting)
-                  Positioned(
-                    top: 6,
-                    right: 6,
-                    child: _selectionBadge(accent, widget.selected),
-                  ),
-              ],
+                  if (widget.progress != null)
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: _SegmentedProgress(widget.progress!, accent, cs),
+                    ),
+                  if (widget.selected)
+                    Positioned.fill(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: accent.withValues(alpha: 0.28),
+                        ),
+                      ),
+                    ),
+                  if (widget.selecting)
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: _selectionBadge(accent, widget.selected),
+                    ),
+                ],
+              ),
             ),
           ),
         ),

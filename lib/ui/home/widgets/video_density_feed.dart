@@ -178,7 +178,10 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
                             selected,
                           ),
                           accent: accentColor,
-                          onTap: () => sel.toggleAll(s.items.map((v) => v.uri)),
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            sel.toggleAll(s.items.map((v) => v.uri));
+                          },
                         ),
                         const SizedBox(width: 8),
                       ],
@@ -223,9 +226,15 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
                                     showVideoOptions(context, ref, v),
                                 selected: selected.contains(v.uri),
                                 selecting: selecting,
-                                onLongPress: () => sel.toggle(v.uri),
+                                onLongPress: () {
+                                  HapticFeedback.selectionClick();
+                                  sel.toggle(v.uri);
+                                },
                                 onTap: (origin) => selecting
-                                    ? sel.toggle(v.uri)
+                                    ? (() {
+                                        HapticFeedback.selectionClick();
+                                        sel.toggle(v.uri);
+                                      })()
                                     : widget.onOpen(v, widget.videos, origin),
                               ),
                             ),
@@ -255,9 +264,15 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
                                   showVideoOptions(context, ref, v),
                               selected: selected.contains(v.uri),
                               selecting: selecting,
-                              onLongPress: () => sel.toggle(v.uri),
+                              onLongPress: () {
+                                HapticFeedback.selectionClick();
+                                sel.toggle(v.uri);
+                              },
                               onTap: (origin) => selecting
-                                  ? sel.toggle(v.uri)
+                                  ? (() {
+                                      HapticFeedback.selectionClick();
+                                      sel.toggle(v.uri);
+                                    })()
                                   : widget.onOpen(v, widget.videos, origin),
                             ),
                           ),
