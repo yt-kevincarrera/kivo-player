@@ -10,6 +10,17 @@ import '../engine/playback_provider.dart';
 import '../open/video_source.dart';
 import 'audio_only.dart';
 
+/// Whether a foreground media session should exist right now. It must exist
+/// while a video is loaded and we're backgrounded (playing OR paused) so the
+/// process stays foreground-protected and Android can't partially reclaim it —
+/// except in PiP, where the floating window owns the controls.
+bool shouldHaveMediaSession({
+  required bool inBackground,
+  required bool hasVideo,
+  required bool inPip,
+}) =>
+    inBackground && hasVideo && !inPip;
+
 /// App-level coordinator: keeps the native media session fed while playback
 /// is relevant, reacts to notification/focus events, and owns the duck.
 /// Instantiate by watching [backgroundPlaybackProvider] once (KivoApp does).
@@ -122,13 +133,17 @@ class BackgroundPlaybackCoordinator with WidgetsBindingObserver {
   }
 
   void _push({bool force = false}) {
-    final relevant = _playing || _sessionActive;
-    if (!relevant) return;
+    final shouldHaveSession = shouldHaveMediaSession(
+      inBackground: _inBackground,
+      hasVideo: _ref.read(currentVideoProvider) != null,
+      inPip: _ref.read(pipModeProvider),
+    );
+    // Relevant when a session exists/should-exist, or we're playing in the
+    // foreground (audio focus is held there too). Otherwise nothing to do.
+    if (!shouldHaveSession && !_sessionActive && !_playing) return;
     final second = _position.inSeconds;
     if (!force && second == _lastSentSecond) return;
-    // Only feed the channel when a session exists or should start — in the
-    // foreground with no session there is nothing to keep updated.
-    final shouldHaveSession = _inBackground && _playing && !_ref.read(pipModeProvider);
+    // In the foreground with no session there is nothing to keep updated.
     if (!shouldHaveSession && !_sessionActive) return;
     _lastSentSecond = second;
     if (shouldHaveSession && !_sessionActive) {
