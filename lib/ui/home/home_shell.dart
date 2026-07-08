@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../mini_player/mini_player_bar.dart';
 import '../settings/settings_screen.dart';
 import 'library_screen.dart';
+import 'state/library_selection.dart';
+import 'widgets/selection_bottom_bar.dart';
 
 /// App root: two bottom tabs (Videos / Ajustes), each with its own navigation
 /// history (nested Navigator) so drilling into a folder or a settings section
 /// keeps the tab bar. The full-screen player is pushed on the ROOT navigator
 /// (see the `rootNavigator: true` pushes in the library/folder screens) so it
 /// covers this bar during playback. The mini-player floats just above the bar.
-class HomeShell extends StatefulWidget {
+class HomeShell extends ConsumerStatefulWidget {
   const HomeShell({super.key});
   @override
-  State<HomeShell> createState() => _HomeShellState();
+  ConsumerState<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends State<HomeShell> {
+class _HomeShellState extends ConsumerState<HomeShell> {
   int _index = 0;
   final _navKeys = [GlobalKey<NavigatorState>(), GlobalKey<NavigatorState>()];
 
@@ -36,6 +39,7 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
+    final selecting = ref.watch(librarySelectionProvider).isNotEmpty;
     return PopScope(
       // Back should first unwind the active tab's own stack; only when it can't
       // do we let the system handle it (leave the app).
@@ -61,10 +65,12 @@ class _HomeShellState extends State<HomeShell> {
                 ],
               ),
             ),
-            const MiniPlayerBar(),
+            if (!selecting) const MiniPlayerBar(),
           ],
         ),
-        bottomNavigationBar: _BottomTabBar(index: _index, onTap: _select),
+        bottomNavigationBar: selecting
+            ? const SelectionBottomBar()
+            : _BottomTabBar(index: _index, onTap: _select),
       ),
     );
   }
