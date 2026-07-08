@@ -57,8 +57,10 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         final nav = _activeNav.currentState;
         if (nav != null && nav.canPop()) {
           nav.pop();
+        } else if (_index != 0) {
+          setState(() => _index = 0); // from a non-Videos tab, back returns to Videos
         } else {
-          Navigator.of(context).pop(); // root: leave the app
+          Navigator.of(context).pop(); // Videos tab root: leave the app
         }
       },
       child: Scaffold(

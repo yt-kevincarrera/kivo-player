@@ -87,4 +87,38 @@ void main() {
     expect(find.byType(HomeShell), findsOneWidget); // shell still there (no black screen)
     expect(find.byType(SelectionBottomBar), findsNothing);
   });
+
+  testWidgets('system back on the Ajustes tab returns to Videos instead of leaving the app', (tester) async {
+    final s = await SettingsService.load(InMemorySettingsStore());
+    final c = ProviderContainer(overrides: [
+      settingsServiceProvider.overrideWithValue(s),
+      mediaFileOpsProvider.overrideWithValue(FakeMediaFileOps()),
+      mediaIndexerProvider.overrideWithValue(FakeMediaIndexer([_a])),
+      mediaPermissionImplProvider.overrideWithValue(_Perm()),
+      resumeServiceProvider.overrideWithValue(ResumeService(InMemoryResumeStore())),
+      playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
+    ]);
+    addTearDown(c.dispose);
+    await c.read(mediaIndexProvider.future);
+
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: c,
+      child: MaterialApp(theme: KivoTheme.dark(), home: const HomeShell()),
+    ));
+    await tester.pump();
+
+    // Switch to the Ajustes tab.
+    await tester.tap(find.text('Ajustes'));
+    await tester.pump();
+    expect(find.text('Ajustes'), findsWidgets);
+
+    // System back from a non-Videos tab returns to Videos, doesn't leave the app.
+    final handled = await tester.binding.handlePopRoute();
+    await tester.pump();
+
+    expect(handled, true);
+    expect(find.byType(HomeShell), findsOneWidget); // still in the app
+    // Videos tab active again: the bottom bar shows the active Videos item.
+    expect(find.text('Videos'), findsOneWidget);
+  });
 }
