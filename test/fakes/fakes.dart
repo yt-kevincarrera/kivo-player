@@ -435,17 +435,20 @@ class FakeVaultOps implements VaultOps {
     hiddenUris.addAll(uris);
     if (hideResult != null) return hideResult!(uris);
     return uris
-        .map((u) => {
-              'id': u,
-              'privatePath': '/vault/$u.mp4',
-              'displayName': '$u.mp4',
-              'originalRelativePath': 'Movies/',
-              'durationMs': 0,
-              'sizeBytes': 0,
-              'dateAddedMs': 0,
-              'width': 0,
-              'height': 0,
-            })
+        .map((u) {
+          final id = u.split('/').last;
+          return {
+            'id': id,
+            'privatePath': '/vault/$id.mp4',
+            'displayName': '$id.mp4',
+            'originalRelativePath': 'Movies/',
+            'durationMs': 0,
+            'sizeBytes': 0,
+            'dateAddedMs': 0,
+            'width': 0,
+            'height': 0,
+          };
+        })
         .toList();
   }
 
