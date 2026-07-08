@@ -76,12 +76,14 @@ class _TrackPickerSheetState extends ConsumerState<_TrackPickerSheet> {
         ? const _StyleSection()
         : StreamBuilder<List<MediaTrack>>(
             stream: widget.isSubtitles ? engine.subtitleTracksStream : engine.audioTracksStream,
+            initialData: widget.isSubtitles ? engine.currentSubtitleTracks : engine.currentAudioTracks,
             builder: (context, tracksSnap) {
               final tracks = tracksSnap.data ?? const <MediaTrack>[];
               return StreamBuilder<MediaTrack?>(
                 stream: widget.isSubtitles
                     ? engine.currentSubtitleTrackStream
                     : engine.currentAudioTrackStream,
+                initialData: widget.isSubtitles ? engine.currentSubtitleTrack : engine.currentAudioTrack,
                 builder: (context, currentSnap) {
                   final current = currentSnap.data;
                   return _TracksSection(
