@@ -20,14 +20,14 @@ import android.net.Uri
 import android.provider.MediaStore
 import android.util.Rational
 import android.view.KeyEvent
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.concurrent.Executors
 
-class MainActivity : FlutterActivity() {
+class MainActivity : FlutterFragmentActivity() {
     // --- kivo/frames ---
     private val frameExecutor = Executors.newSingleThreadExecutor()
     // --- kivo/media ---
@@ -456,6 +456,132 @@ class MainActivity : FlutterActivity() {
                         } catch (e: Exception) {
                             pendingFileOpResult = null
                             result.success("error")
+                        }
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+
+        // ── kivo/vault ────────────────────────────────────────────────────────
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "kivo/vault")
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "hide" -> {
+                        val uris = call.argument<List<String>>("uris")
+                        if (uris == null) { result.error("INVALID_ARG", "uris required", null); return@setMethodCallHandler }
+                        ioExecutor.execute {
+                            val out = ArrayList<HashMap<String, Any>>()
+                            val vaultDir = File(getExternalFilesDir(null), "vault").apply { mkdirs() }
+                            for (uriStr in uris) {
+                                try {
+                                    val u = Uri.parse(uriStr)
+                                    val proj = arrayOf(
+                                        MediaStore.Video.Media._ID,
+                                        MediaStore.Video.Media.DISPLAY_NAME,
+                                        MediaStore.Video.Media.DATA,
+                                        MediaStore.Video.Media.RELATIVE_PATH,
+                                        MediaStore.Video.Media.DURATION,
+                                        MediaStore.Video.Media.SIZE,
+                                        MediaStore.Video.Media.DATE_ADDED,
+                                        MediaStore.Video.Media.WIDTH,
+                                        MediaStore.Video.Media.HEIGHT,
+                                    )
+                                    contentResolver.query(u, proj, null, null, null)?.use { c ->
+                                        if (!c.moveToFirst()) return@use
+                                        val id = c.getString(c.getColumnIndexOrThrow(MediaStore.Video.Media._ID))
+                                        val name = c.getString(c.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)) ?: "$id"
+                                        val data = c.getColumnIndex(MediaStore.Video.Media.DATA).let { if (it >= 0) c.getString(it) else null }
+                                        val rel = c.getColumnIndex(MediaStore.Video.Media.RELATIVE_PATH).let { if (it >= 0) (c.getString(it) ?: "") else "" }
+                                        val dur = c.getLong(c.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION))
+                                        val size = c.getLong(c.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE))
+                                        val date = c.getLong(c.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED)) * 1000L
+                                        val w = c.getColumnIndex(MediaStore.Video.Media.WIDTH).let { if (it >= 0) c.getInt(it) else 0 }
+                                        val h = c.getColumnIndex(MediaStore.Video.Media.HEIGHT).let { if (it >= 0) c.getInt(it) else 0 }
+                                        val ext = name.substringAfterLast('.', "mp4")
+                                        val dest = File(vaultDir, "$id.$ext")
+                                        var moved = false
+                                        if (data != null) {
+                                            val src = File(data)
+                                            moved = src.renameTo(dest) || run {
+                                                src.copyTo(dest, overwrite = true); src.delete()
+                                            }
+                                        }
+                                        if (!moved && data == null) {
+                                            // no filesystem path (rare): stream-copy then delete row
+                                            contentResolver.openInputStream(u)?.use { input ->
+                                                dest.outputStream().use { input.copyTo(it) }
+                                            }
+                                            moved = dest.exists()
+                                        }
+                                        if (moved) {
+                                            try { contentResolver.delete(u, null, null) } catch (_: Exception) {}
+                                            out.add(hashMapOf(
+                                                "id" to id, "privatePath" to dest.absolutePath,
+                                                "displayName" to name, "originalRelativePath" to rel,
+                                                "durationMs" to dur, "sizeBytes" to size, "dateAddedMs" to date,
+                                                "width" to w, "height" to h,
+                                            ))
+                                        }
+                                    }
+                                } catch (_: Exception) { /* skip this uri */ }
+                            }
+                            runOnUiThread { result.success(out) }
+                        }
+                    }
+                    "unhide" -> {
+                        val paths = call.argument<List<String>>("paths")
+                        if (paths == null) { result.error("INVALID_ARG", "paths required", null); return@setMethodCallHandler }
+                        ioExecutor.execute {
+                            var allOk = true
+                            for (p in paths) {
+                                try {
+                                    val src = File(p)
+                                    if (!src.exists()) { allOk = false; continue }
+                                    val values = android.content.ContentValues().apply {
+                                        put(MediaStore.Video.Media.DISPLAY_NAME, src.name)
+                                        put(MediaStore.Video.Media.MIME_TYPE, "video/*")
+                                        put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/")
+                                        put(MediaStore.Video.Media.IS_PENDING, 1)
+                                    }
+                                    val col = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                                    val dest = contentResolver.insert(col, values)
+                                    if (dest == null) { allOk = false; continue }
+                                    contentResolver.openOutputStream(dest)?.use { out -> src.inputStream().use { it.copyTo(out) } }
+                                    values.clear(); values.put(MediaStore.Video.Media.IS_PENDING, 0)
+                                    contentResolver.update(dest, values, null, null)
+                                    src.delete()
+                                } catch (_: Exception) { allOk = false }
+                            }
+                            runOnUiThread { result.success(if (allOk) "ok" else "error") }
+                        }
+                    }
+                    "deleteForever" -> {
+                        val paths = call.argument<List<String>>("paths")
+                        if (paths == null) { result.error("INVALID_ARG", "paths required", null); return@setMethodCallHandler }
+                        ioExecutor.execute {
+                            var allOk = true
+                            for (p in paths) { try { if (!File(p).delete()) allOk = false } catch (_: Exception) { allOk = false } }
+                            runOnUiThread { result.success(if (allOk) "ok" else "error") }
+                        }
+                    }
+                    "thumbnail" -> {
+                        val path = call.argument<String>("path")
+                        if (path == null) { result.error("INVALID_ARG", "path required", null); return@setMethodCallHandler }
+                        ioExecutor.execute {
+                            var bytes: ByteArray? = null
+                            try {
+                                val mmr = android.media.MediaMetadataRetriever()
+                                mmr.setDataSource(path)
+                                val bmp = mmr.getFrameAtTime(1_000_000, android.media.MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                                mmr.release()
+                                if (bmp != null) {
+                                    val scaled = Bitmap.createScaledBitmap(bmp, 320, (320.0 * bmp.height / bmp.width).toInt().coerceAtLeast(1), true)
+                                    val bos = java.io.ByteArrayOutputStream()
+                                    scaled.compress(Bitmap.CompressFormat.JPEG, 80, bos)
+                                    bytes = bos.toByteArray()
+                                }
+                            } catch (_: Exception) {}
+                            runOnUiThread { result.success(bytes) }
                         }
                     }
                     else -> result.notImplemented()

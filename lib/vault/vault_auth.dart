@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:crypto/crypto.dart';
+import 'package:hive/hive.dart';
 
 /// Stores the vault PIN as a salted hash. Never holds the PIN in clear.
 abstract class VaultCredentialStore {
@@ -58,4 +59,23 @@ class VaultAuth {
   }
 
   Future<void> clear() => _store.clear();
+}
+
+class HiveVaultCredentialStore implements VaultCredentialStore {
+  final Box box;
+  HiveVaultCredentialStore(this.box);
+  @override
+  String? get hash => box.get('hash') as String?;
+  @override
+  String? get salt => box.get('salt') as String?;
+  @override
+  Future<void> save(String hash, String salt) async {
+    await box.put('hash', hash);
+    await box.put('salt', salt);
+  }
+  @override
+  Future<void> clear() async {
+    await box.delete('hash');
+    await box.delete('salt');
+  }
 }

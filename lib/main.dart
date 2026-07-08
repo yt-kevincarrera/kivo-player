@@ -29,6 +29,11 @@ import 'platform/media_permission_provider.dart';
 import 'platform/media_session_provider.dart';
 import 'platform/pip_controller_provider.dart';
 import 'platform/subtitle_finder_provider.dart';
+import 'platform/vault_ops_provider.dart';
+import 'platform/android/android_vault_ops.dart';
+import 'vault/vault_store.dart';
+import 'vault/vault_auth.dart';
+import 'vault/vault_providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,6 +44,8 @@ Future<void> main() async {
   final settingsBox = await Hive.openBox('settings');
   final resumeBox = await Hive.openBox('resume');
   final playedBox = await Hive.openBox('played');
+  final vaultBox = await Hive.openBox('vault');
+  final vaultCredsBox = await Hive.openBox('vaultCreds');
 
   final settingsService = await SettingsService.load(HiveSettingsStore(settingsBox));
   final resumeService = ResumeService(
@@ -61,6 +68,9 @@ Future<void> main() async {
       mediaSessionProvider.overrideWithValue(AndroidMediaSessionBridge()),
       pipControllerProvider.overrideWithValue(AndroidPipController()),
       allFilesAccessProvider.overrideWithValue(AndroidAllFilesAccess()),
+      vaultOpsProvider.overrideWithValue(AndroidVaultOps()),
+      vaultStoreProvider.overrideWithValue(HiveVaultStore(vaultBox)),
+      vaultCredentialStoreProvider.overrideWithValue(HiveVaultCredentialStore(vaultCredsBox)),
     ],
     child: const KivoApp(),
   ));
