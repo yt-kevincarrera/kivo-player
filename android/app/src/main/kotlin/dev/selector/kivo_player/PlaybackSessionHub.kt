@@ -43,7 +43,7 @@ object PlaybackSessionHub {
         this.durationMs = durationMs
         this.playing = playing
         if (playing) requestFocus(context)
-        if (inBackground && playing) {
+        if (inBackground) {
             PlaybackSessionService.start(context)
         }
         PlaybackSessionService.refresh()

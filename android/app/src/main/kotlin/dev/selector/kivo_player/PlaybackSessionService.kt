@@ -183,31 +183,14 @@ class PlaybackSessionService : Service() {
                 .build()
         )
         val notification = buildNotification(playing)
-        // Every startForegroundService MUST be matched by one startForeground
-        // (Android kills the process after ~5s otherwise), even if a pause
-        // arrived before onStartCommand ran. After that first call, updates
-        // go through notify() — re-calling startForeground on every position
-        // tick works but spams ActivityManager warnings once per second.
-        if (playing) {
-            if (!_foregrounded) {
-                if (!safeStartForeground(notification)) return
-                _foregrounded = true
-            } else {
-                val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                nm.notify(NOTIFICATION_ID, notification)
-            }
+        // A session only exists while a video is open in the background (Dart's
+        // shouldHaveMediaSession gate). Stay foreground-protected the whole time
+        // — playing OR paused — so Android's cached-app freezer can't freeze the
+        // process and desync the native mpv Player from the Dart isolate (bug 2).
+        if (!_foregrounded) {
+            if (!safeStartForeground(notification)) return
+            _foregrounded = true
         } else {
-            if (!_foregrounded) {
-                // Satisfy the pending startForegroundService before detaching.
-                if (!safeStartForeground(notification)) return
-            }
-            // Paused: detach so the notification stays but can be swiped away.
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                stopForeground(STOP_FOREGROUND_DETACH)
-            } else {
-                @Suppress("DEPRECATION") stopForeground(false)
-            }
-            _foregrounded = false
             val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             nm.notify(NOTIFICATION_ID, notification)
         }
@@ -243,7 +226,7 @@ class PlaybackSessionService : Service() {
             .setContentText(if (playing) "Reproduciendo" else "En pausa")
             .setContentIntent(contentIntent)
             .setDeleteIntent(deleteIntent)
-            .setOngoing(playing)
+            .setOngoing(true)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .addAction(
                 android.R.drawable.ic_media_rew, "-10s",

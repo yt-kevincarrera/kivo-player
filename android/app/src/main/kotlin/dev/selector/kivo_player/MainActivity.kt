@@ -565,6 +565,14 @@ class MainActivity : FlutterActivity() {
         return super.onKeyUp(keyCode, event)
     }
 
+    override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
+        // PlaybackSessionHub.channel is set in configureFlutterEngine and never
+        // cleared otherwise; a late audio-focus callback could invokeMethod on
+        // a dead engine's channel. Null it here before the engine goes away.
+        PlaybackSessionHub.channel = null
+        super.cleanUpFlutterEngine(flutterEngine)
+    }
+
     override fun onDestroy() {
         // Release on the executor thread so it can't race an in-flight frameAt;
         // shutdown() still lets this already-submitted task run to completion.
