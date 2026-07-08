@@ -40,6 +40,9 @@ class KivoSettings {
   final String iconStyle; // 'duotone' | 'flat'
   final bool pipAutoOnHome;
   final bool offeredAllFilesAccess;
+  final bool vaultEntranceHidden;
+  final bool vaultBiometricEnabled;
+  final bool vaultUninstallWarningShown;
 
   const KivoSettings({
     required this.doubleTapSkipLeft,
@@ -83,6 +86,9 @@ class KivoSettings {
     required this.iconStyle,
     required this.pipAutoOnHome,
     required this.offeredAllFilesAccess,
+    required this.vaultEntranceHidden,
+    required this.vaultBiometricEnabled,
+    required this.vaultUninstallWarningShown,
   });
 
   factory KivoSettings.defaults() => const KivoSettings(
@@ -127,6 +133,9 @@ class KivoSettings {
         iconStyle: 'duotone',
         pipAutoOnHome: true,
         offeredAllFilesAccess: false,
+        vaultEntranceHidden: false,
+        vaultBiometricEnabled: false,
+        vaultUninstallWarningShown: false,
       );
 
   static const Object _unset = Object();
@@ -173,6 +182,9 @@ class KivoSettings {
     String? iconStyle,
     bool? pipAutoOnHome,
     bool? offeredAllFilesAccess,
+    bool? vaultEntranceHidden,
+    bool? vaultBiometricEnabled,
+    bool? vaultUninstallWarningShown,
   }) {
     return KivoSettings(
       doubleTapSkipLeft: doubleTapSkipLeft ?? this.doubleTapSkipLeft,
@@ -220,6 +232,9 @@ class KivoSettings {
       iconStyle: iconStyle ?? this.iconStyle,
       pipAutoOnHome: pipAutoOnHome ?? this.pipAutoOnHome,
       offeredAllFilesAccess: offeredAllFilesAccess ?? this.offeredAllFilesAccess,
+      vaultEntranceHidden: vaultEntranceHidden ?? this.vaultEntranceHidden,
+      vaultBiometricEnabled: vaultBiometricEnabled ?? this.vaultBiometricEnabled,
+      vaultUninstallWarningShown: vaultUninstallWarningShown ?? this.vaultUninstallWarningShown,
     );
   }
 
@@ -265,6 +280,9 @@ class KivoSettings {
         'iconStyle': iconStyle,
         'pipAutoOnHome': pipAutoOnHome,
         'offeredAllFilesAccess': offeredAllFilesAccess,
+        'vaultEntranceHidden': vaultEntranceHidden,
+        'vaultBiometricEnabled': vaultBiometricEnabled,
+        'vaultUninstallWarningShown': vaultUninstallWarningShown,
       };
 
   factory KivoSettings.fromMap(Map<String, dynamic> m) {
@@ -311,6 +329,9 @@ class KivoSettings {
       iconStyle: m['iconStyle'] ?? d.iconStyle,
       pipAutoOnHome: m['pipAutoOnHome'] ?? d.pipAutoOnHome,
       offeredAllFilesAccess: m['offeredAllFilesAccess'] ?? d.offeredAllFilesAccess,
+      vaultEntranceHidden: m['vaultEntranceHidden'] ?? d.vaultEntranceHidden,
+      vaultBiometricEnabled: m['vaultBiometricEnabled'] ?? d.vaultBiometricEnabled,
+      vaultUninstallWarningShown: m['vaultUninstallWarningShown'] ?? d.vaultUninstallWarningShown,
     );
   }
 }
