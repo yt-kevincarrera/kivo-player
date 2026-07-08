@@ -8,6 +8,7 @@ import 'package:kivo_player/platform/interfaces/media_indexer.dart';
 import 'package:kivo_player/platform/interfaces/media_session.dart';
 import 'package:kivo_player/platform/interfaces/pip_controller.dart';
 import 'package:kivo_player/platform/interfaces/subtitle_finder.dart';
+import 'package:kivo_player/platform/interfaces/vault_ops.dart';
 import 'package:kivo_player/player/engine/playback_engine.dart';
 import 'package:kivo_player/player/queue/file_system_lister.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
@@ -416,4 +417,50 @@ class FakeAllFilesAccess implements AllFilesAccess {
     granted = grantOnRequest;
     return granted;
   }
+}
+
+class FakeVaultOps implements VaultOps {
+  final List<String> hiddenUris = [];
+  final List<String> unhidden = [];
+  final List<String> deleted = [];
+  bool unhideResult = true;
+  bool deleteResult = true;
+
+  /// Maps each uri -> the metadata map hide() should return. Defaults to a
+  /// synthesized entry so callers can just pass uris.
+  List<Map<String, dynamic>> Function(List<String> uris)? hideResult;
+
+  @override
+  Future<List<Map<String, dynamic>>> hide(List<String> uris) async {
+    hiddenUris.addAll(uris);
+    if (hideResult != null) return hideResult!(uris);
+    return uris
+        .map((u) => {
+              'id': u,
+              'privatePath': '/vault/$u.mp4',
+              'displayName': '$u.mp4',
+              'originalRelativePath': 'Movies/',
+              'durationMs': 0,
+              'sizeBytes': 0,
+              'dateAddedMs': 0,
+              'width': 0,
+              'height': 0,
+            })
+        .toList();
+  }
+
+  @override
+  Future<bool> unhide(List<String> privatePaths) async {
+    unhidden.addAll(privatePaths);
+    return unhideResult;
+  }
+
+  @override
+  Future<bool> deleteForever(List<String> privatePaths) async {
+    deleted.addAll(privatePaths);
+    return deleteResult;
+  }
+
+  @override
+  Future<Uint8List?> thumbnail(String privatePath) async => null;
 }
