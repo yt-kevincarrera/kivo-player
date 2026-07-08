@@ -54,4 +54,37 @@ void main() {
 
     expect(find.byType(SelectionBottomBar), findsOneWidget);
   });
+
+  testWidgets('system back during selection clears it instead of popping the shell', (tester) async {
+    final s = await SettingsService.load(InMemorySettingsStore());
+    final c = ProviderContainer(overrides: [
+      settingsServiceProvider.overrideWithValue(s),
+      mediaFileOpsProvider.overrideWithValue(FakeMediaFileOps()),
+      mediaIndexerProvider.overrideWithValue(FakeMediaIndexer([_a])),
+      mediaPermissionImplProvider.overrideWithValue(_Perm()),
+      resumeServiceProvider.overrideWithValue(ResumeService(InMemoryResumeStore())),
+      playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
+    ]);
+    addTearDown(c.dispose);
+    await c.read(mediaIndexProvider.future);
+
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: c,
+      child: MaterialApp(theme: KivoTheme.dark(), home: const HomeShell()),
+    ));
+    await tester.pump();
+
+    c.read(librarySelectionProvider.notifier).selectAll(['u1']);
+    await tester.pump();
+    expect(c.read(librarySelectionProvider), isNotEmpty);
+
+    // Simulate the system back gesture (reaches the root PopScope).
+    final handled = await tester.binding.handlePopRoute();
+    await tester.pump();
+
+    expect(handled, true); // consumed, not propagated to the OS (no shell pop)
+    expect(c.read(librarySelectionProvider), isEmpty); // selection cleared
+    expect(find.byType(HomeShell), findsOneWidget); // shell still there (no black screen)
+    expect(find.byType(SelectionBottomBar), findsNothing);
+  });
 }

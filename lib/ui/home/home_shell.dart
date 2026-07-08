@@ -46,6 +46,14 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
+        // The system back gesture reaches THIS root PopScope before the nested
+        // screens' PopScope, so selection-mode back must be handled here — else
+        // the fallback below pops the root route (black screen) instead of just
+        // clearing the selection.
+        if (ref.read(librarySelectionProvider).isNotEmpty) {
+          ref.read(librarySelectionProvider.notifier).clear();
+          return;
+        }
         final nav = _activeNav.currentState;
         if (nav != null && nav.canPop()) {
           nav.pop();
