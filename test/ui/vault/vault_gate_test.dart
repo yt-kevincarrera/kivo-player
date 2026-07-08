@@ -121,4 +121,41 @@ void main() {
 
     expect(bio.authCalls, 2);
   });
+
+  testWidgets('resume while biometric prompt is still pending does not fire a concurrent authenticate() call', (tester) async {
+    final gate = Completer<bool>();
+    final bio = FakeBiometricAuth(available: true, gate: gate);
+    final c = await _container(biometricEnabled: true, bio: bio);
+    addTearDown(c.dispose);
+    await tester.pumpWidget(_app(c));
+    await tester.pump(); // let postFrame callback run and kick off the biometric attempt
+    await tester.pump();
+
+    expect(bio.authCalls, 1);
+    expect(find.byKey(const Key('pin-key-1')), findsNothing);
+
+    // Simulate stickyAuth's inactive/paused/resumed dance around the OS
+    // biometric sheet WHILE the original authenticate() call is still
+    // pending (gate not yet completed).
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    await tester.pump();
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump();
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    await tester.pump();
+
+    // The resume must NOT have started a second, concurrent authenticate().
+    expect(bio.authCalls, 1);
+    expect(find.byKey(const Key('pin-key-1')), findsNothing);
+
+    // Now resolve the original (still-pending) call and confirm normal
+    // resolution proceeds as if nothing else happened.
+    gate.complete(true);
+    await tester.pumpAndSettle();
+
+    expect(bio.authCalls, 1);
+    expect(find.text('VAULT-CONTENT'), findsOneWidget);
+    expect(c.read(vaultUnlockedProvider), true);
+  });
 }

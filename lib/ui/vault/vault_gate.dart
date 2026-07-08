@@ -20,11 +20,21 @@ class _VaultGateState extends ConsumerState<VaultGate> with WidgetsBindingObserv
   String? _error;
   String? _firstPin; // set-PIN flow: holds the first entry
   bool _biometricTried = false;
+  // True from the moment _maybeBiometric() commits to calling
+  // bio.authenticate(...) until that call resolves (success, failure, or any
+  // early-return path taken after it was set). Independent of _biometricTried
+  // so it also protects against a `resumed` re-attempt firing a second,
+  // concurrent authenticate() call while the OS biometric sheet from the
+  // first attempt is still up (stickyAuth delivers inactive/paused/resumed
+  // around the sheet while the original await is still pending).
+  bool _biometricInFlight = false;
   // While true, a biometric attempt is either about to start or in flight,
   // so the OS biometric sheet owns the screen and PinPad stays hidden
   // underneath a simple placeholder. False shows PinPad immediately (no
   // biometric applicable, or the attempt already resolved/was bailed out of).
-  bool _showPinPad = true;
+  // Computed synchronously here (not just in the post-frame callback) so a
+  // biometric-eligible gate never paints PinPad on the very first frame.
+  late bool _showPinPad = !_willAttemptBiometric();
 
   @override
   void initState() {
@@ -36,7 +46,7 @@ class _VaultGateState extends ConsumerState<VaultGate> with WidgetsBindingObserv
       // writing provider state during build throws, and ref in dispose is a
       // known footgun in this codebase.
       ref.read(vaultUnlockedProvider.notifier).state = false;
-      setState(() => _showPinPad = !_willAttemptBiometric());
+      if (mounted) setState(() => _showPinPad = !_willAttemptBiometric());
       _maybeBiometric();
     });
   }
@@ -58,6 +68,11 @@ class _VaultGateState extends ConsumerState<VaultGate> with WidgetsBindingObserv
       if (!unlocked && auth.isConfigured) {
         // User backgrounded mid-vault and came back: don't silently
         // downgrade to PIN-only, give them another shot at biometric.
+        // NOTE: if a biometric attempt is still in flight (e.g. this resume
+        // is the OS biometric sheet resolving while the original
+        // authenticate() await from _maybeBiometric() hasn't returned yet),
+        // _biometricInFlight guards _maybeBiometric() below from starting a
+        // second, concurrent authenticate() call.
         _biometricTried = false;
         setState(() => _showPinPad = !_willAttemptBiometric());
         _maybeBiometric();
@@ -75,6 +90,13 @@ class _VaultGateState extends ConsumerState<VaultGate> with WidgetsBindingObserv
   }
 
   Future<void> _maybeBiometric() async {
+    // A genuine concurrent-re-entry guard: independent of _biometricTried
+    // because `resumed` deliberately resets _biometricTried to false so a
+    // fresh background/foreground cycle gets another shot at biometric — but
+    // if we're resuming WHILE the original authenticate() call is still
+    // pending (stickyAuth's inactive/paused/resumed dance around the OS
+    // biometric sheet), that pending call must be left alone, not raced.
+    if (_biometricInFlight) return;
     if (_biometricTried) return;
     _biometricTried = true;
     final auth = ref.read(vaultAuthProvider);
@@ -86,11 +108,16 @@ class _VaultGateState extends ConsumerState<VaultGate> with WidgetsBindingObserv
       if (mounted) setState(() => _showPinPad = true);
       return;
     }
-    final ok = await bio.authenticate('Desbloquea el Vault');
-    if (ok && mounted) {
-      ref.read(vaultUnlockedProvider.notifier).state = true;
-    } else if (mounted) {
-      setState(() => _showPinPad = true);
+    _biometricInFlight = true;
+    try {
+      final ok = await bio.authenticate('Desbloquea el Vault');
+      if (ok && mounted) {
+        ref.read(vaultUnlockedProvider.notifier).state = true;
+      } else if (mounted) {
+        setState(() => _showPinPad = true);
+      }
+    } finally {
+      _biometricInFlight = false;
     }
   }
 
