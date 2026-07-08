@@ -19,12 +19,13 @@ void main() {
           onRename: () => fired.add('rename'),
           onDetails: () => fired.add('details'),
           onDelete: () => fired.add('delete'),
+          onMoveToVault: () => fired.add('vault'),
         ),
       ),
     ));
 
     expect(find.text('clip.mp4'), findsOneWidget);
-    for (final label in ['Compartir', 'Renombrar', 'Detalles', 'Borrar']) {
+    for (final label in ['Compartir', 'Renombrar', 'Detalles', 'Mover al Vault', 'Borrar']) {
       expect(find.text(label), findsOneWidget);
     }
 

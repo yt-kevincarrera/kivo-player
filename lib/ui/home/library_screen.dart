@@ -17,6 +17,7 @@ import '../../player/library/played.dart';
 import '../../player/open/video_source.dart';
 import '../player/controls/resume_prompt.dart';
 import '../player/player_route.dart';
+import '../vault/vault_entry_actions.dart';
 import 'folder_screen.dart';
 import 'state/library_filter_state.dart';
 import 'state/library_selection.dart';
@@ -186,11 +187,18 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                                     .state =
                                 q,
                       )
-                    : Text(
-                        'Kivo',
+                    : GestureDetector(
                         key: const ValueKey('title'),
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
+                        behavior: HitTestBehavior.opaque,
+                        onLongPress: () {
+                          HapticFeedback.selectionClick();
+                          openVault(context);
+                        },
+                        child: Text(
+                          'Kivo',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
                       ),
               ),

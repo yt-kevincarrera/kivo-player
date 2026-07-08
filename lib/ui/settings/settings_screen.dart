@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/settings/kivo_settings.dart';
 import '../../core/settings/settings_provider.dart';
+import '../vault/vault_entry_actions.dart';
 import 'sections/about_section.dart';
 import 'sections/advanced_playback_section.dart';
 import 'sections/general_section.dart';
@@ -46,6 +47,10 @@ class SettingsScreen extends ConsumerWidget {
               icon: Icons.info_outline, title: 'Acerca de', subtitle: 'Versión $kAppVersion',
               onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const AboutSection()))),
+            if (!ref.watch(settingsProvider).vaultEntranceHidden)
+              SettingNavRow(
+                icon: Icons.lock_outline, title: 'Vault', subtitle: 'Videos ocultos',
+                onTap: () => openVault(context)),
           ]),
           const SizedBox(height: 18),
           _ResetTile(

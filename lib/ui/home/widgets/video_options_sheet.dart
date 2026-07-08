@@ -6,6 +6,7 @@ import '../../../platform/interfaces/all_files_access.dart';
 import '../../../platform/interfaces/media_file_ops.dart';
 import '../../../platform/interfaces/media_indexer.dart';
 import '../../../player/library/video_actions.dart';
+import '../../vault/vault_entry_actions.dart';
 import 'rename_dialog.dart';
 import 'video_details_sheet.dart';
 
@@ -16,6 +17,7 @@ class VideoOptionsSheet extends StatelessWidget {
   final VoidCallback onRename;
   final VoidCallback onDetails;
   final VoidCallback onDelete;
+  final VoidCallback onMoveToVault;
   const VideoOptionsSheet({
     super.key,
     required this.video,
@@ -23,6 +25,7 @@ class VideoOptionsSheet extends StatelessWidget {
     required this.onRename,
     required this.onDetails,
     required this.onDelete,
+    required this.onMoveToVault,
   });
 
   @override
@@ -44,6 +47,7 @@ class VideoOptionsSheet extends StatelessWidget {
           _row(context, Icons.share_outlined, 'Compartir', cs.onSurface, onShare),
           _row(context, Icons.drive_file_rename_outline, 'Renombrar', cs.onSurface, onRename),
           _row(context, Icons.info_outline, 'Detalles', cs.onSurface, onDetails),
+          _row(context, Icons.lock_outline, 'Mover al Vault', cs.onSurface, onMoveToVault),
           _row(context, Icons.delete_outline, 'Borrar', cs.error, onDelete),
           const SizedBox(height: 8),
         ],
@@ -110,6 +114,10 @@ Future<void> showVideoOptions(BuildContext context, WidgetRef ref, VideoItem v) 
       onDetails: () {
         Navigator.pop(sheetContext);
         showVideoDetails(context, v);
+      },
+      onMoveToVault: () async {
+        Navigator.pop(sheetContext);
+        await moveToVault(context, ref, [v]);
       },
       onRename: () async {
         Navigator.pop(sheetContext);

@@ -4,6 +4,7 @@ import '../../../platform/interfaces/media_file_ops.dart';
 import '../../../platform/interfaces/media_indexer.dart';
 import '../../../player/library/media_index.dart';
 import '../../../player/library/video_actions.dart';
+import '../../vault/vault_entry_actions.dart';
 import '../state/library_selection.dart';
 import 'video_options_sheet.dart'; // maybeOfferAllFilesAccess
 
@@ -35,6 +36,10 @@ class SelectionBottomBar extends ConsumerWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
+              _action(cs.onSurface, Icons.lock_outline, 'Al Vault', enabled ? () async {
+                await moveToVault(context, ref, chosen);
+                sel.clear();
+              } : null),
               _action(cs.onSurface, Icons.share_outlined, 'Compartir', enabled ? () async {
                 await ref.read(videoActionsProvider).shareMany(chosen);
                 sel.clear();
