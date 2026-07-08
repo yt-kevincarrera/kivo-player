@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'package:kivo_player/core/settings/settings_store.dart';
 import 'package:kivo_player/platform/interfaces/all_files_access.dart';
+import 'package:kivo_player/platform/interfaces/biometric_auth.dart';
 import 'package:kivo_player/platform/interfaces/frame_extractor.dart';
 import 'package:kivo_player/platform/interfaces/media_file_ops.dart';
 import 'package:kivo_player/platform/interfaces/media_indexer.dart';
@@ -466,4 +467,18 @@ class FakeVaultOps implements VaultOps {
 
   @override
   Future<Uint8List?> thumbnail(String privatePath) async => null;
+}
+
+class FakeBiometricAuth implements BiometricAuth {
+  bool available;
+  bool willSucceed;
+  int authCalls = 0;
+  FakeBiometricAuth({this.available = true, this.willSucceed = true});
+  @override
+  Future<bool> isAvailable() async => available;
+  @override
+  Future<bool> authenticate(String reason) async {
+    authCalls++;
+    return willSucceed;
+  }
 }

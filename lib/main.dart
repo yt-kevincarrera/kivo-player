@@ -21,7 +21,9 @@ import 'platform/android/android_media_indexer.dart';
 import 'platform/android/android_media_session.dart';
 import 'platform/android/android_pip_controller.dart';
 import 'platform/android/android_subtitle_finder.dart';
+import 'platform/android/local_auth_biometric.dart';
 import 'platform/android/permission_handler_media_permission.dart';
+import 'platform/biometric_auth_provider.dart';
 import 'platform/frame_extractor_provider.dart';
 import 'platform/media_file_ops_provider.dart';
 import 'platform/media_indexer_provider.dart';
@@ -71,6 +73,7 @@ Future<void> main() async {
       vaultOpsProvider.overrideWithValue(AndroidVaultOps()),
       vaultStoreProvider.overrideWithValue(HiveVaultStore(vaultBox)),
       vaultCredentialStoreProvider.overrideWithValue(HiveVaultCredentialStore(vaultCredsBox)),
+      biometricAuthProvider.overrideWithValue(LocalAuthBiometric()),
     ],
     child: const KivoApp(),
   ));
