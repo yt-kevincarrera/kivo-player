@@ -52,6 +52,14 @@ abstract class PlaybackEngine {
   Stream<MediaTrack?> get currentAudioTrackStream;
   Stream<MediaTrack?> get currentSubtitleTrackStream; // null = off
 
+  /// Current track snapshots (what `_player.state` holds right now), used as
+  /// `initialData` for the picker so it never shows empty when the underlying
+  /// broadcast stream already emitted before the panel subscribed.
+  List<MediaTrack> get currentSubtitleTracks;
+  List<MediaTrack> get currentAudioTracks;
+  MediaTrack? get currentSubtitleTrack; // null = off
+  MediaTrack? get currentAudioTrack;
+
   Future<void> setAudioTrack(String id);
   Future<void> setSubtitleTrack(String? id); // null = turn off
   Future<void> setExternalSubtitle(String uri, {String? title});

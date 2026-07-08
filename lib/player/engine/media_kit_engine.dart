@@ -99,6 +99,24 @@ class MediaKitEngine implements PlaybackEngine {
       _player.stream.track.map((t) => _subtitleToMedia(t.subtitle));
 
   @override
+  List<MediaTrack> get currentAudioTracks => _player.state.tracks.audio
+      .where((a) => a.id != 'auto' && a.id != 'no')
+      .map(_audioToMedia)
+      .toList();
+
+  @override
+  List<MediaTrack> get currentSubtitleTracks => _player.state.tracks.subtitle
+      .map(_subtitleToMedia)
+      .whereType<MediaTrack>()
+      .toList();
+
+  @override
+  MediaTrack? get currentAudioTrack => _audioToMedia(_player.state.track.audio);
+
+  @override
+  MediaTrack? get currentSubtitleTrack => _subtitleToMedia(_player.state.track.subtitle);
+
+  @override
   Future<void> setAudioTrack(String id) async {
     final track = _player.state.tracks.audio.firstWhere(
       (t) => t.id == id,

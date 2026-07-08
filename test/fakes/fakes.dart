@@ -124,6 +124,20 @@ class FakePlaybackEngine implements PlaybackEngine {
   void emitCurrentAudio(MediaTrack? t) => _currentAudio.add(t);
   void emitCurrentSubtitle(MediaTrack? t) => _currentSubtitle.add(t);
 
+  List<MediaTrack> subtitleTracksValue = [];
+  List<MediaTrack> audioTracksValue = [];
+  MediaTrack? currentSubtitleTrackValue;
+  MediaTrack? currentAudioTrackValue;
+
+  @override
+  List<MediaTrack> get currentSubtitleTracks => subtitleTracksValue;
+  @override
+  List<MediaTrack> get currentAudioTracks => audioTracksValue;
+  @override
+  MediaTrack? get currentSubtitleTrack => currentSubtitleTrackValue;
+  @override
+  MediaTrack? get currentAudioTrack => currentAudioTrackValue;
+
   @override
   Future<void> setAudioTrack(String id) async {
     currentAudioTrackId = id;
