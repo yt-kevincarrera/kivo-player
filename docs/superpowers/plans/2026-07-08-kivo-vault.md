@@ -396,19 +396,20 @@ class FakeVaultOps implements VaultOps {
   Future<List<Map<String, dynamic>>> hide(List<String> uris) async {
     hiddenUris.addAll(uris);
     if (hideResult != null) return hideResult!(uris);
-    return uris
-        .map((u) => {
-              'id': u,
-              'privatePath': '/vault/$u.mp4',
-              'displayName': '$u.mp4',
+    return uris.map((u) {
+      final id = u.split('/').last; // bare id from a content://.../<id> uri
+      return {
+              'id': id,
+              'privatePath': '/vault/$id.mp4',
+              'displayName': '$id.mp4',
               'originalRelativePath': 'Movies/',
               'durationMs': 0,
               'sizeBytes': 0,
               'dateAddedMs': 0,
               'width': 0,
               'height': 0,
-            })
-        .toList();
+      };
+    }).toList();
   }
 
   @override
