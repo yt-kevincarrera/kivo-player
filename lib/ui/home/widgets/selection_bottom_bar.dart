@@ -10,11 +10,8 @@ import 'video_options_sheet.dart'; // maybeOfferAllFilesAccess
 /// Bottom action bar shown during selection (thumb-reachable). Resolves the
 /// chosen videos from the media index ∩ selected uris, so it works in both the
 /// library and a folder without needing the visible list.
-class SelectionBottomBar extends ConsumerWidget implements PreferredSizeWidget {
+class SelectionBottomBar extends ConsumerWidget {
   const SelectionBottomBar({super.key});
-
-  @override
-  Size get preferredSize => const Size.fromHeight(64);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -38,7 +35,7 @@ class SelectionBottomBar extends ConsumerWidget implements PreferredSizeWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _action(cs.onSurface, Icons.share, 'Compartir', enabled ? () async {
+              _action(cs.onSurface, Icons.share_outlined, 'Compartir', enabled ? () async {
                 await ref.read(videoActionsProvider).shareMany(chosen);
                 sel.clear();
               } : null),

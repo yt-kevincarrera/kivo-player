@@ -47,7 +47,7 @@ void main() {
     ));
     await tester.pump();
 
-    await tester.tap(find.byIcon(Icons.share));
+    await tester.tap(find.byIcon(Icons.share_outlined));
     await tester.pump();
     expect(ops.sharedManyUris.single, ['u1']);
   });
