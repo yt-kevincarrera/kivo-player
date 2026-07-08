@@ -24,6 +24,11 @@ void main() {
 
     expect(find.text('1 seleccionado'), findsOneWidget);
 
+    // Batch actions (share/delete) moved to SelectionBottomBar; the app bar
+    // is context-only now.
+    expect(find.byIcon(Icons.share), findsNothing);
+    expect(find.byIcon(Icons.delete), findsNothing);
+
     await tester.tap(find.byIcon(Icons.select_all));
     await tester.pump();
     expect(c.read(librarySelectionProvider), {'u1', 'u2'});
