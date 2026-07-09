@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:local_auth/local_auth.dart';
 import '../interfaces/biometric_auth.dart';
 
@@ -7,7 +8,10 @@ class LocalAuthBiometric implements BiometricAuth {
   Future<bool> isAvailable() async {
     try {
       return await _auth.isDeviceSupported() && await _auth.canCheckBiometrics;
-    } catch (_) {
+    } catch (e) {
+      // Falling back to PIN is intended, but a thrown check hides real
+      // misconfiguration (e.g. a non-AppCompat host theme) — surface it.
+      debugPrint('LocalAuthBiometric.isAvailable failed: $e');
       return false;
     }
   }
@@ -18,7 +22,10 @@ class LocalAuthBiometric implements BiometricAuth {
         localizedReason: reason,
         options: const AuthenticationOptions(stickyAuth: true, biometricOnly: true),
       );
-    } catch (_) {
+    } catch (e) {
+      // Same rationale: a swallowed exception here silently degrades every
+      // biometric unlock to PIN with no signal. Log so it's diagnosable.
+      debugPrint('LocalAuthBiometric.authenticate failed: $e');
       return false;
     }
   }

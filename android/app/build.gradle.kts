@@ -45,4 +45,8 @@ flutter {
 
 dependencies {
     implementation("androidx.media:media:1.7.0")
+    // Required so MainActivity's theme descends from Theme.AppCompat, which
+    // androidx.biometric's BiometricPrompt (used by local_auth) demands at
+    // runtime — otherwise biometric unlock throws and silently falls back.
+    implementation("androidx.appcompat:appcompat:1.7.0")
 }
