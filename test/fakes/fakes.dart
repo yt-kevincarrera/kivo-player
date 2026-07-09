@@ -427,6 +427,13 @@ class FakeVaultOps implements VaultOps {
   bool unhideResult = true;
   bool deleteResult = true;
 
+  /// Paths that should be reported as FAILED (omitted from the returned
+  /// list) even though they are still recorded into [unhidden]/[deleted],
+  /// simulating a partial-batch native failure. Empty by default (all
+  /// succeed), subject to the [unhideResult]/[deleteResult] all-or-nothing
+  /// flags below.
+  Set<String> failPaths = {};
+
   /// Maps each uri -> the metadata map hide() should return. Defaults to a
   /// synthesized entry so callers can just pass uris.
   List<Map<String, dynamic>> Function(List<String> uris)? hideResult;
@@ -454,15 +461,17 @@ class FakeVaultOps implements VaultOps {
   }
 
   @override
-  Future<bool> unhide(List<String> privatePaths) async {
+  Future<List<String>> unhide(List<String> privatePaths) async {
     unhidden.addAll(privatePaths);
-    return unhideResult;
+    if (!unhideResult) return const <String>[];
+    return privatePaths.where((p) => !failPaths.contains(p)).toList();
   }
 
   @override
-  Future<bool> deleteForever(List<String> privatePaths) async {
+  Future<List<String>> deleteForever(List<String> privatePaths) async {
     deleted.addAll(privatePaths);
-    return deleteResult;
+    if (!deleteResult) return const <String>[];
+    return privatePaths.where((p) => !failPaths.contains(p)).toList();
   }
 
   @override

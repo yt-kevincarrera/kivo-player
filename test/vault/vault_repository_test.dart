@@ -66,6 +66,19 @@ void main() {
     expect(repo.entries.map((e) => e.id), ['2']); // unchanged
   });
 
+  test('unhide with a partial-batch failure removes only the succeeded entry', () async {
+    final store = InMemoryVaultStore();
+    final ops = FakeVaultOps();
+    final repo = VaultRepository(store, ops);
+    final added = await repo.hide([_v('1'), _v('2')]);
+
+    ops.failPaths = {'/vault/1.mp4'};
+    final ok = await repo.unhide(added);
+
+    expect(ok, false);
+    expect(repo.entries.map((e) => e.privatePath), ['/vault/1.mp4']);
+  });
+
   test('deleteForever removes entries on success', () async {
     final store = InMemoryVaultStore();
     final ops = FakeVaultOps();

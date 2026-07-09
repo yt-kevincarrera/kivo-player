@@ -29,19 +29,20 @@ class VaultRepository {
   }
 
   Future<bool> unhide(List<VaultEntry> entries) async {
-    final ok = await _ops.unhide(entries.map((e) => e.privatePath).toList());
-    if (ok) await _remove(entries);
-    return ok;
+    final succeeded =
+        (await _ops.unhide(entries.map((e) => e.privatePath).toList())).toSet();
+    await _removeByPaths(succeeded);
+    return succeeded.length == entries.length;
   }
 
   Future<bool> deleteForever(List<VaultEntry> entries) async {
-    final ok = await _ops.deleteForever(entries.map((e) => e.privatePath).toList());
-    if (ok) await _remove(entries);
-    return ok;
+    final succeeded =
+        (await _ops.deleteForever(entries.map((e) => e.privatePath).toList())).toSet();
+    await _removeByPaths(succeeded);
+    return succeeded.length == entries.length;
   }
 
-  Future<void> _remove(List<VaultEntry> gone) async {
-    final paths = gone.map((e) => e.privatePath).toSet();
+  Future<void> _removeByPaths(Set<String> paths) async {
     _entries = _entries.where((e) => !paths.contains(e.privatePath)).toList();
     await _store.writeAll(_entries);
   }

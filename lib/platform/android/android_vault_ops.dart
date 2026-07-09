@@ -15,22 +15,22 @@ class AndroidVaultOps implements VaultOps {
   }
 
   @override
-  Future<bool> unhide(List<String> privatePaths) async {
+  Future<List<String>> unhide(List<String> privatePaths) async {
     try {
-      final s = await _channel.invokeMethod<String>('unhide', {'paths': privatePaths});
-      return s == 'ok';
+      final raw = await _channel.invokeMethod<List<dynamic>>('unhide', {'paths': privatePaths}) ?? const [];
+      return raw.cast<String>();
     } catch (_) {
-      return false;
+      return const <String>[];
     }
   }
 
   @override
-  Future<bool> deleteForever(List<String> privatePaths) async {
+  Future<List<String>> deleteForever(List<String> privatePaths) async {
     try {
-      final s = await _channel.invokeMethod<String>('deleteForever', {'paths': privatePaths});
-      return s == 'ok';
+      final raw = await _channel.invokeMethod<List<dynamic>>('deleteForever', {'paths': privatePaths}) ?? const [];
+      return raw.cast<String>();
     } catch (_) {
-      return false;
+      return const <String>[];
     }
   }
 

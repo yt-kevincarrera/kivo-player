@@ -41,7 +41,9 @@ class VaultEntriesNotifier extends AsyncNotifier<List<VaultEntry>> {
   Future<bool> unhide(List<VaultEntry> entries) async {
     final ok = await _repo.unhide(entries);
     state = AsyncData(_repo.entries);
-    if (ok) ref.invalidate(mediaIndexProvider);
+    // Invalidate unconditionally: even a partial success moved some files
+    // back into shared storage, which changes what the gallery should show.
+    ref.invalidate(mediaIndexProvider);
     return ok;
   }
 

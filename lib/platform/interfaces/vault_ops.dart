@@ -10,10 +10,15 @@ abstract class VaultOps {
   Future<List<Map<String, dynamic>>> hide(List<String> uris);
 
   /// Moves each private file back to shared storage + re-inserts MediaStore.
-  Future<bool> unhide(List<String> privatePaths);
+  /// Returns the subset of [privatePaths] that were SUCCESSFULLY moved back;
+  /// failures are omitted so callers never orphan a vault entry whose file
+  /// was actually moved.
+  Future<List<String>> unhide(List<String> privatePaths);
 
-  /// Permanently deletes each private file.
-  Future<bool> deleteForever(List<String> privatePaths);
+  /// Permanently deletes each private file. Returns the subset of
+  /// [privatePaths] that were SUCCESSFULLY deleted; failures are omitted so
+  /// callers never orphan a vault entry whose file was actually deleted.
+  Future<List<String>> deleteForever(List<String> privatePaths);
 
   /// JPEG thumbnail for a private file, or null.
   Future<Uint8List?> thumbnail(String privatePath);

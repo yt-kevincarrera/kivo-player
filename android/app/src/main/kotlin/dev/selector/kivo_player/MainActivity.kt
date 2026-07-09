@@ -512,6 +512,15 @@ class MainActivity : FlutterFragmentActivity() {
                                                 dest.outputStream().use { input.copyTo(it) }
                                             }
                                             moved = dest.exists()
+                                            // Guard against a truncated/failed copy: compare the
+                                            // copied file's length to the MediaStore SIZE already
+                                            // read for this row. A mismatch means the stream copy
+                                            // did not fully complete — do not delete the MediaStore
+                                            // row or report this uri as hidden.
+                                            if (moved && dest.length() != size) {
+                                                dest.delete()
+                                                moved = false
+                                            }
                                         }
                                         if (moved) {
                                             try { contentResolver.delete(u, null, null) } catch (_: Exception) {}
@@ -532,11 +541,11 @@ class MainActivity : FlutterFragmentActivity() {
                         val paths = call.argument<List<String>>("paths")
                         if (paths == null) { result.error("INVALID_ARG", "paths required", null); return@setMethodCallHandler }
                         ioExecutor.execute {
-                            var allOk = true
+                            val succeeded = ArrayList<String>()
                             for (p in paths) {
                                 try {
                                     val src = File(p)
-                                    if (!src.exists()) { allOk = false; continue }
+                                    if (!src.exists()) continue
                                     val values = android.content.ContentValues().apply {
                                         put(MediaStore.Video.Media.DISPLAY_NAME, src.name)
                                         put(MediaStore.Video.Media.MIME_TYPE, "video/*")
@@ -545,23 +554,30 @@ class MainActivity : FlutterFragmentActivity() {
                                     }
                                     val col = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
                                     val dest = contentResolver.insert(col, values)
-                                    if (dest == null) { allOk = false; continue }
+                                    if (dest == null) continue
                                     contentResolver.openOutputStream(dest)?.use { out -> src.inputStream().use { it.copyTo(out) } }
                                     values.clear(); values.put(MediaStore.Video.Media.IS_PENDING, 0)
                                     contentResolver.update(dest, values, null, null)
                                     src.delete()
-                                } catch (_: Exception) { allOk = false }
+                                    succeeded.add(p)
+                                } catch (_: Exception) { /* skip this path */ }
                             }
-                            runOnUiThread { result.success(if (allOk) "ok" else "error") }
+                            runOnUiThread { result.success(succeeded) }
                         }
                     }
                     "deleteForever" -> {
                         val paths = call.argument<List<String>>("paths")
                         if (paths == null) { result.error("INVALID_ARG", "paths required", null); return@setMethodCallHandler }
                         ioExecutor.execute {
-                            var allOk = true
-                            for (p in paths) { try { if (!File(p).delete()) allOk = false } catch (_: Exception) { allOk = false } }
-                            runOnUiThread { result.success(if (allOk) "ok" else "error") }
+                            val succeeded = ArrayList<String>()
+                            for (p in paths) {
+                                try {
+                                    val f = File(p)
+                                    f.delete()
+                                    if (!f.exists()) succeeded.add(p)
+                                } catch (_: Exception) { /* skip this path */ }
+                            }
+                            runOnUiThread { result.success(succeeded) }
                         }
                     }
                     "thumbnail" -> {
