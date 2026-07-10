@@ -15,9 +15,9 @@ class AndroidVaultOps implements VaultOps {
   }
 
   @override
-  Future<List<String>> unhide(List<String> privatePaths) async {
+  Future<List<String>> unhide(List<Map<String, dynamic>> entries) async {
     try {
-      final raw = await _channel.invokeMethod<List<dynamic>>('unhide', {'paths': privatePaths}) ?? const [];
+      final raw = await _channel.invokeMethod<List<dynamic>>('unhide', {'entries': entries}) ?? const [];
       return raw.cast<String>();
     } catch (_) {
       return const <String>[];

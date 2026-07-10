@@ -461,10 +461,11 @@ class FakeVaultOps implements VaultOps {
   }
 
   @override
-  Future<List<String>> unhide(List<String> privatePaths) async {
-    unhidden.addAll(privatePaths);
+  Future<List<String>> unhide(List<Map<String, dynamic>> entries) async {
+    final paths = entries.map((e) => e['privatePath'] as String).toList();
+    unhidden.addAll(paths);
     if (!unhideResult) return const <String>[];
-    return privatePaths.where((p) => !failPaths.contains(p)).toList();
+    return paths.where((p) => !failPaths.contains(p)).toList();
   }
 
   @override

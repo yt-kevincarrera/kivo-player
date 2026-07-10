@@ -29,8 +29,15 @@ class VaultRepository {
   }
 
   Future<bool> unhide(List<VaultEntry> entries) async {
-    final succeeded =
-        (await _ops.unhide(entries.map((e) => e.privatePath).toList())).toSet();
+    final succeeded = (await _ops.unhide(entries
+            .map((e) => {
+                  'privatePath': e.privatePath,
+                  'displayName': e.displayName,
+                  'relativePath': e.originalRelativePath,
+                  'dateAddedMs': e.dateAddedMs,
+                })
+            .toList()))
+        .toSet();
     await _removeByPaths(succeeded);
     return succeeded.length == entries.length;
   }

@@ -538,29 +538,60 @@ class MainActivity : FlutterFragmentActivity() {
                         }
                     }
                     "unhide" -> {
-                        val paths = call.argument<List<String>>("paths")
-                        if (paths == null) { result.error("INVALID_ARG", "paths required", null); return@setMethodCallHandler }
+                        val entries = call.argument<List<Map<String, Any?>>>("entries")
+                        if (entries == null) { result.error("INVALID_ARG", "entries required", null); return@setMethodCallHandler }
                         ioExecutor.execute {
                             val succeeded = ArrayList<String>()
-                            for (p in paths) {
+                            for (m in entries) {
+                                val privatePath = m["privatePath"] as? String ?: continue
                                 try {
-                                    val src = File(p)
+                                    val src = File(privatePath)
                                     if (!src.exists()) continue
-                                    val values = android.content.ContentValues().apply {
-                                        put(MediaStore.Video.Media.DISPLAY_NAME, src.name)
-                                        put(MediaStore.Video.Media.MIME_TYPE, "video/*")
-                                        put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/")
-                                        put(MediaStore.Video.Media.IS_PENDING, 1)
+                                    val displayName = (m["displayName"] as? String)?.takeIf { it.isNotBlank() } ?: src.name
+                                    val relPath = (m["relativePath"] as? String)?.trim('/')?.takeIf { it.isNotBlank() } ?: "Movies"
+                                    val dateAddedMs = (m["dateAddedMs"] as? Number)?.toLong() ?: 0L
+
+                                    // Move (rename, same-volume => instant) back into shared storage,
+                                    // into the ORIGINAL folder, with a collision-safe name.
+                                    val destDir = File(Environment.getExternalStorageDirectory(), relPath).apply { mkdirs() }
+                                    var dest = File(destDir, displayName)
+                                    if (dest.exists()) {
+                                        val base = displayName.substringBeforeLast('.', displayName)
+                                        val ext = displayName.substringAfterLast('.', "")
+                                        var i = 1
+                                        while (dest.exists()) {
+                                            dest = File(destDir, if (ext.isEmpty()) "$base ($i)" else "$base ($i).$ext")
+                                            i++
+                                        }
                                     }
-                                    val col = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-                                    val dest = contentResolver.insert(col, values)
-                                    if (dest == null) continue
-                                    contentResolver.openOutputStream(dest)?.use { out -> src.inputStream().use { it.copyTo(out) } }
-                                    values.clear(); values.put(MediaStore.Video.Media.IS_PENDING, 0)
-                                    contentResolver.update(dest, values, null, null)
-                                    src.delete()
-                                    succeeded.add(p)
-                                } catch (_: Exception) { /* skip this path */ }
+                                    val moved = src.renameTo(dest) || run {
+                                        src.copyTo(dest, overwrite = false); src.delete(); dest.exists()
+                                    }
+                                    if (!moved) { android.util.Log.w("kivo/vault", "unhide: move failed for $privatePath"); continue }
+
+                                    // Restore the file's timestamp so it doesn't read as brand-new,
+                                    // then index it in MediaStore and best-effort restore DATE_ADDED
+                                    // (read-only on some OS versions — the move already succeeded).
+                                    if (dateAddedMs > 0) dest.setLastModified(dateAddedMs)
+                                    try {
+                                        android.media.MediaScannerConnection.scanFile(
+                                            applicationContext, arrayOf(dest.absolutePath), arrayOf("video/*")
+                                        ) { _, uri ->
+                                            if (uri != null && dateAddedMs > 0) {
+                                                try {
+                                                    val cv = android.content.ContentValues().apply {
+                                                        put(MediaStore.Video.Media.DATE_ADDED, dateAddedMs / 1000)
+                                                        put(MediaStore.Video.Media.DATE_MODIFIED, dateAddedMs / 1000)
+                                                    }
+                                                    contentResolver.update(uri, cv, null, null)
+                                                } catch (_: Exception) {}
+                                            }
+                                        }
+                                    } catch (_: Exception) {}
+                                    succeeded.add(privatePath)
+                                } catch (e: Exception) {
+                                    android.util.Log.w("kivo/vault", "unhide failed for $privatePath: ${e.message}")
+                                }
                             }
                             runOnUiThread { result.success(succeeded) }
                         }

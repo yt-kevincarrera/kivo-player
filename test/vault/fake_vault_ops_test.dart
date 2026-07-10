@@ -12,7 +12,7 @@ void main() {
 
   test('FakeVaultOps records unhide/delete and honors result flags', () async {
     final ops = FakeVaultOps()..deleteResult = false;
-    expect(await ops.unhide(['/vault/a.mp4']), ['/vault/a.mp4']);
+    expect(await ops.unhide([{'privatePath': '/vault/a.mp4'}]), ['/vault/a.mp4']);
     expect(await ops.deleteForever(['/vault/b.mp4']), isEmpty);
     expect(ops.unhidden, ['/vault/a.mp4']);
     expect(ops.deleted, ['/vault/b.mp4']);

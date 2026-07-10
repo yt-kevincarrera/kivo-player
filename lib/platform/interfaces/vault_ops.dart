@@ -9,11 +9,15 @@ abstract class VaultOps {
   /// sizeBytes, dateAddedMs, width, height). Failures are omitted.
   Future<List<Map<String, dynamic>>> hide(List<String> uris);
 
-  /// Moves each private file back to shared storage + re-inserts MediaStore.
-  /// Returns the subset of [privatePaths] that were SUCCESSFULLY moved back;
-  /// failures are omitted so callers never orphan a vault entry whose file
-  /// was actually moved.
-  Future<List<String>> unhide(List<String> privatePaths);
+  /// Moves each entry's private file back to shared storage (a same-volume
+  /// rename, not a byte copy) and re-indexes it in MediaStore, restoring its
+  /// original folder and — best effort — its original date so it doesn't
+  /// resurface as "just added". Each map carries: `privatePath`, `displayName`,
+  /// `relativePath` (MediaStore RELATIVE_PATH to restore into, '' → Movies/),
+  /// `dateAddedMs`. Returns the subset of `privatePath`s that were SUCCESSFULLY
+  /// moved back; failures are omitted so callers never orphan an entry whose
+  /// file was actually moved.
+  Future<List<String>> unhide(List<Map<String, dynamic>> entries);
 
   /// Permanently deletes each private file. Returns the subset of
   /// [privatePaths] that were SUCCESSFULLY deleted; failures are omitted so
