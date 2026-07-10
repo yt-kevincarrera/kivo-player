@@ -42,4 +42,14 @@ class AndroidVaultOps implements VaultOps {
       return null;
     }
   }
+
+  @override
+  Future<List<Map<String, dynamic>>> migrate() async {
+    try {
+      final raw = await _channel.invokeMethod<List<dynamic>>('migrate') ?? const [];
+      return raw.map((e) => (e as Map).cast<String, dynamic>()).toList();
+    } catch (_) {
+      return const [];
+    }
+  }
 }

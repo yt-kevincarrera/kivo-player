@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/settings/settings_provider.dart';
 import '../../platform/biometric_auth_provider.dart';
-import '../../vault/vault_auth.dart';
 import '../../vault/vault_providers.dart';
 import 'pin_pad.dart';
 

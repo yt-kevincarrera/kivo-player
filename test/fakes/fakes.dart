@@ -477,6 +477,9 @@ class FakeVaultOps implements VaultOps {
 
   @override
   Future<Uint8List?> thumbnail(String privatePath) async => null;
+
+  @override
+  Future<List<Map<String, dynamic>>> migrate() async => const [];
 }
 
 class FakeBiometricAuth implements BiometricAuth {

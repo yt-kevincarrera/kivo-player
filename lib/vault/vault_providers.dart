@@ -30,7 +30,10 @@ class VaultEntriesNotifier extends AsyncNotifier<List<VaultEntry>> {
   VaultRepository get _repo => ref.read(vaultRepositoryProvider);
 
   @override
-  Future<List<VaultEntry>> build() async => _repo.entries;
+  Future<List<VaultEntry>> build() async {
+    await _repo.migrateStorage(); // one-time: legacy Android/data files → shared vault dir
+    return _repo.entries;
+  }
 
   Future<void> hide(List<VideoItem> videos) async {
     await _repo.hide(videos);

@@ -471,7 +471,7 @@ class MainActivity : FlutterFragmentActivity() {
                         if (uris == null) { result.error("INVALID_ARG", "uris required", null); return@setMethodCallHandler }
                         ioExecutor.execute {
                             val out = ArrayList<HashMap<String, Any>>()
-                            val vaultDir = File(getExternalFilesDir(null), "vault").apply { mkdirs() }
+                            val vaultDir = vaultDir()
                             for (uriStr in uris) {
                                 try {
                                     val u = Uri.parse(uriStr)
@@ -631,6 +631,30 @@ class MainActivity : FlutterFragmentActivity() {
                             runOnUiThread { result.success(bytes) }
                         }
                     }
+                    "migrate" -> {
+                        // One-time move of any legacy vault files out of the app-private
+                        // Android/data dir (where moves are slow byte-copies) into the
+                        // shared hidden folder (same-volume => instant renames). Returns
+                        // [{old, new}] so Dart can rewrite the persisted privatePaths.
+                        ioExecutor.execute {
+                            val out = ArrayList<HashMap<String, String>>()
+                            try {
+                                val oldDir = File(getExternalFilesDir(null), "vault")
+                                if (oldDir.isDirectory) {
+                                    val newDir = vaultDir()
+                                    oldDir.listFiles()?.forEach { f ->
+                                        if (!f.isFile) return@forEach
+                                        val dest = File(newDir, f.name)
+                                        val moved = f.renameTo(dest) || run {
+                                            f.copyTo(dest, overwrite = true); f.delete(); dest.exists()
+                                        }
+                                        if (moved) out.add(hashMapOf("old" to f.absolutePath, "new" to dest.absolutePath))
+                                    }
+                                }
+                            } catch (_: Exception) {}
+                            runOnUiThread { result.success(out) }
+                        }
+                    }
                     else -> result.notImplemented()
                 }
             }
@@ -772,6 +796,15 @@ class MainActivity : FlutterFragmentActivity() {
                 if (c.moveToFirst()) c.getString(0) else null
             }
         } catch (_: Exception) { null }
+    }
+
+    /// The vault directory: a hidden folder in shared storage (same volume as the
+    /// user's media, so moves are instant renames, not byte copies). A .nomedia
+    /// keeps it out of galleries. Created on first use.
+    private fun vaultDir(): File = File(Environment.getExternalStorageDirectory(), ".KivoVault").apply {
+        mkdirs()
+        val noMedia = File(this, ".nomedia")
+        if (!noMedia.exists()) try { noMedia.createNewFile() } catch (_: Exception) {}
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

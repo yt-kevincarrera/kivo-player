@@ -37,8 +37,11 @@ class SelectionBottomBar extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _action(cs.onSurface, Icons.lock_outline, 'Al Vault', enabled ? () async {
-                await moveToVault(context, ref, chosen);
+                // Clear the selection FIRST so this bar disappears immediately —
+                // otherwise a slow op invites repeat taps that re-fire the move.
+                final items = chosen;
                 sel.clear();
+                await moveToVault(context, ref, items);
               } : null),
               _action(cs.onSurface, Icons.share_outlined, 'Compartir', enabled ? () async {
                 await ref.read(videoActionsProvider).shareMany(chosen);

@@ -26,4 +26,10 @@ abstract class VaultOps {
 
   /// JPEG thumbnail for a private file, or null.
   Future<Uint8List?> thumbnail(String privatePath);
+
+  /// One-time migration of legacy vault files from the old app-private dir into
+  /// the current (shared, same-volume) vault dir. Returns `{old, new}` path
+  /// pairs so the caller can rewrite persisted `privatePath`s. No-op (empty)
+  /// when there is nothing to migrate.
+  Future<List<Map<String, dynamic>>> migrate();
 }
