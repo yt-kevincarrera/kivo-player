@@ -77,6 +77,16 @@ class MainActivity : FlutterFragmentActivity() {
         }
     }
 
+    // Reuse the process-lifetime engine warmed up in KivoApplication instead of
+    // creating a per-Activity one, and keep it alive when this Activity is torn
+    // down. This pins the Dart isolate (and mpv's FFI callback) to the process
+    // lifetime — see KivoApplication for the crash this prevents.
+    override fun provideFlutterEngine(context: Context): FlutterEngine? =
+        io.flutter.embedding.engine.FlutterEngineCache.getInstance().get(KivoApplication.ENGINE_ID)
+            ?: super.provideFlutterEngine(context)
+
+    override fun shouldDestroyEngineWithHost(): Boolean = false
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
@@ -762,13 +772,13 @@ class MainActivity : FlutterFragmentActivity() {
         return super.onKeyUp(keyCode, event)
     }
 
-    override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
-        // PlaybackSessionHub.channel is set in configureFlutterEngine and never
-        // cleared otherwise; a late audio-focus callback could invokeMethod on
-        // a dead engine's channel. Null it here before the engine goes away.
-        PlaybackSessionHub.channel = null
-        super.cleanUpFlutterEngine(flutterEngine)
-    }
+    // NOTE: we intentionally do NOT override cleanUpFlutterEngine to null
+    // PlaybackSessionHub.channel anymore. The engine is now process-lifetime
+    // (KivoApplication + shouldDestroyEngineWithHost=false), so it outlives this
+    // Activity: nulling the channel on Activity teardown would break background
+    // media controls, and the "late callback on a dead engine" it guarded
+    // against can no longer happen (the engine never dies with the Activity).
+    // configureFlutterEngine re-points the channel on each re-attach.
 
     override fun onDestroy() {
         // Release on the executor thread so it can't race an in-flight frameAt;
