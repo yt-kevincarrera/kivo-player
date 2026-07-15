@@ -43,6 +43,9 @@ class KivoSettings {
   final bool vaultEntranceHidden;
   final bool vaultBiometricEnabled;
   final bool vaultUninstallWarningShown;
+  final bool autoCheckUpdates;
+  final int lastUpdateCheckMs;
+  final String? skippedUpdateVersion;
 
   const KivoSettings({
     required this.doubleTapSkipLeft,
@@ -89,6 +92,9 @@ class KivoSettings {
     required this.vaultEntranceHidden,
     required this.vaultBiometricEnabled,
     required this.vaultUninstallWarningShown,
+    required this.autoCheckUpdates,
+    required this.lastUpdateCheckMs,
+    required this.skippedUpdateVersion,
   });
 
   factory KivoSettings.defaults() => const KivoSettings(
@@ -136,6 +142,9 @@ class KivoSettings {
         vaultEntranceHidden: false,
         vaultBiometricEnabled: false,
         vaultUninstallWarningShown: false,
+        autoCheckUpdates: true,
+        lastUpdateCheckMs: 0,
+        skippedUpdateVersion: null,
       );
 
   static const Object _unset = Object();
@@ -185,6 +194,9 @@ class KivoSettings {
     bool? vaultEntranceHidden,
     bool? vaultBiometricEnabled,
     bool? vaultUninstallWarningShown,
+    bool? autoCheckUpdates,
+    int? lastUpdateCheckMs,
+    Object? skippedUpdateVersion = _unset,
   }) {
     return KivoSettings(
       doubleTapSkipLeft: doubleTapSkipLeft ?? this.doubleTapSkipLeft,
@@ -235,6 +247,11 @@ class KivoSettings {
       vaultEntranceHidden: vaultEntranceHidden ?? this.vaultEntranceHidden,
       vaultBiometricEnabled: vaultBiometricEnabled ?? this.vaultBiometricEnabled,
       vaultUninstallWarningShown: vaultUninstallWarningShown ?? this.vaultUninstallWarningShown,
+      autoCheckUpdates: autoCheckUpdates ?? this.autoCheckUpdates,
+      lastUpdateCheckMs: lastUpdateCheckMs ?? this.lastUpdateCheckMs,
+      skippedUpdateVersion: identical(skippedUpdateVersion, _unset)
+          ? this.skippedUpdateVersion
+          : skippedUpdateVersion as String?,
     );
   }
 
@@ -283,6 +300,9 @@ class KivoSettings {
         'vaultEntranceHidden': vaultEntranceHidden,
         'vaultBiometricEnabled': vaultBiometricEnabled,
         'vaultUninstallWarningShown': vaultUninstallWarningShown,
+        'autoCheckUpdates': autoCheckUpdates,
+        'lastUpdateCheckMs': lastUpdateCheckMs,
+        'skippedUpdateVersion': skippedUpdateVersion,
       };
 
   factory KivoSettings.fromMap(Map<String, dynamic> m) {
@@ -332,6 +352,9 @@ class KivoSettings {
       vaultEntranceHidden: m['vaultEntranceHidden'] ?? d.vaultEntranceHidden,
       vaultBiometricEnabled: m['vaultBiometricEnabled'] ?? d.vaultBiometricEnabled,
       vaultUninstallWarningShown: m['vaultUninstallWarningShown'] ?? d.vaultUninstallWarningShown,
+      autoCheckUpdates: m['autoCheckUpdates'] ?? d.autoCheckUpdates,
+      lastUpdateCheckMs: m['lastUpdateCheckMs'] ?? d.lastUpdateCheckMs,
+      skippedUpdateVersion: m['skippedUpdateVersion'] ?? d.skippedUpdateVersion,
     );
   }
 }
