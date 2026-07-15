@@ -15,6 +15,7 @@ import 'player/library/played.dart';
 import 'player/open/video_source.dart';
 import 'platform/all_files_access_provider.dart';
 import 'platform/android/android_all_files_access.dart';
+import 'platform/android/android_app_installer.dart';
 import 'platform/android/android_frame_extractor.dart';
 import 'platform/android/android_media_file_ops.dart';
 import 'platform/android/android_media_indexer.dart';
@@ -23,6 +24,7 @@ import 'platform/android/android_pip_controller.dart';
 import 'platform/android/android_subtitle_finder.dart';
 import 'platform/android/local_auth_biometric.dart';
 import 'platform/android/permission_handler_media_permission.dart';
+import 'platform/app_installer_provider.dart';
 import 'platform/biometric_auth_provider.dart';
 import 'platform/frame_extractor_provider.dart';
 import 'platform/media_file_ops_provider.dart';
@@ -70,6 +72,7 @@ Future<void> main() async {
       mediaSessionProvider.overrideWithValue(AndroidMediaSessionBridge()),
       pipControllerProvider.overrideWithValue(AndroidPipController()),
       allFilesAccessProvider.overrideWithValue(AndroidAllFilesAccess()),
+      appInstallerProvider.overrideWithValue(AndroidAppInstaller()),
       vaultOpsProvider.overrideWithValue(AndroidVaultOps()),
       vaultStoreProvider.overrideWithValue(HiveVaultStore(vaultBox)),
       vaultCredentialStoreProvider.overrideWithValue(HiveVaultCredentialStore(vaultCredsBox)),

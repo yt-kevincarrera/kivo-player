@@ -1,5 +1,6 @@
 package dev.selector.kivo_player
 
+import android.app.DownloadManager
 import android.app.PendingIntent
 import android.app.PictureInPictureParams
 import android.app.RecoverableSecurityException
@@ -59,6 +60,35 @@ class MainActivity : FlutterFragmentActivity() {
     private var pendingRenameUri: android.net.Uri? = null
     private var pendingRenameFinalName: String? = null
 
+    // --- kivo/update ---
+    private var updateDownloadId = -1L
+
+    private val downloadReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L) ?: -1L
+            if (id != updateDownloadId || id == -1L) return
+            val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            val uri = dm.getUriForDownloadedFile(id) ?: return
+            val install = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/vnd.android.package-archive")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            try { startActivity(install) } catch (_: Exception) {}
+        }
+    }
+
+    private fun startApkDownload(url: String, fileName: String) {
+        val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        // Download into app external files (no extra storage permission needed).
+        val dest = File(getExternalFilesDir(null), fileName).apply { if (exists()) delete() }
+        val req = DownloadManager.Request(Uri.parse(url))
+            .setTitle("Kivo $fileName")
+            .setMimeType("application/vnd.android.package-archive")
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            .setDestinationUri(Uri.fromFile(dest))
+        updateDownloadId = dm.enqueue(req)
+    }
+
     companion object {
         private const val PIP_ACTION = "dev.selector.kivo_player.PIP_ACTION"
         private const val PIP_EXTRA = "action"
@@ -86,6 +116,17 @@ class MainActivity : FlutterFragmentActivity() {
             ?: super.provideFlutterEngine(context)
 
     override fun shouldDestroyEngineWithHost(): Boolean = false
+
+    override fun onCreate(savedInstanceState: android.os.Bundle?) {
+        super.onCreate(savedInstanceState)
+        val filter = IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(downloadReceiver, filter, Context.RECEIVER_EXPORTED)
+        } else {
+            @Suppress("UnspecifiedRegisterReceiverFlag")
+            registerReceiver(downloadReceiver, filter)
+        }
+    }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -742,6 +783,44 @@ class MainActivity : FlutterFragmentActivity() {
                 else -> result.notImplemented()
             }
         }
+
+        // ── kivo/update ───────────────────────────────────────────────────────
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "kivo/update")
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "getAppVersion" -> result.success(
+                        try { packageManager.getPackageInfo(packageName, 0).versionName } catch (_: Exception) { "" })
+                    "primaryAbi" -> result.success(Build.SUPPORTED_ABIS.firstOrNull() ?: "arm64-v8a")
+                    "openUrl" -> {
+                        val url = call.argument<String>("url")
+                        try {
+                            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                            result.success(null)
+                        } catch (e: Exception) { result.error("OPEN_FAILED", e.message, null) }
+                    }
+                    "downloadAndInstall" -> {
+                        val url = call.argument<String>("url")
+                        val fileName = call.argument<String>("fileName") ?: "update.apk"
+                        if (url == null) { result.error("INVALID_ARG", "url required", null); return@setMethodCallHandler }
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !packageManager.canRequestPackageInstalls()) {
+                            // Route the user to enable "install unknown apps" for Kivo, then they retry.
+                            try {
+                                startActivity(Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                                    Uri.parse("package:$packageName")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                            } catch (_: Exception) {}
+                            result.success("needsPermission")
+                            return@setMethodCallHandler
+                        }
+                        try {
+                            startApkDownload(url, fileName)
+                            result.success("started")
+                        } catch (e: Exception) {
+                            result.success("failed")
+                        }
+                    }
+                    else -> result.notImplemented()
+                }
+            }
     }
 
     // While the player is active, swallow the hardware volume keys and adjust
@@ -781,6 +860,7 @@ class MainActivity : FlutterFragmentActivity() {
     // configureFlutterEngine re-points the channel on each re-attach.
 
     override fun onDestroy() {
+        try { unregisterReceiver(downloadReceiver) } catch (_: Exception) {}
         // Release on the executor thread so it can't race an in-flight frameAt;
         // shutdown() still lets this already-submitted task run to completion.
         frameExecutor.submit {
