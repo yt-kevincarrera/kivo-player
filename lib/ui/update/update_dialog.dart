@@ -33,7 +33,7 @@ Future<void> showUpdateDialog(BuildContext context, WidgetRef ref, UpdateInfo in
                 ? () { controller.openInBrowser(info); Navigator.pop(ctx); }
                 : () async {
                     final outcome = await controller.startUpdate(info);
-                    Navigator.pop(ctx);
+                    if (ctx.mounted) Navigator.pop(ctx);
                     switch (outcome) {
                       case InstallOutcome.started:
                         messenger.showSnackBar(const SnackBar(content: Text('Descargando actualización…')));
