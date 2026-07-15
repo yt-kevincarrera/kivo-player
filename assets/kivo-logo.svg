@@ -1,0 +1,5 @@
+<svg width="240" height="240" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Kivo logo">
+  <rect width="240" height="240" rx="56" fill="#141310"/>
+  <rect x="6" y="6" width="228" height="228" rx="52" fill="none" stroke="#E8B84B" stroke-width="4" opacity="0.35"/>
+  <path d="M97 72 L172 120 L97 168 Z" fill="#E8B84B" stroke="#E8B84B" stroke-width="12" stroke-linejoin="round"/>
+</svg>

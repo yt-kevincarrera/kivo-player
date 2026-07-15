@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" width="96" alt="Kivo logo" />
+<img src="assets/kivo-logo.svg" width="110" alt="Kivo logo" />
 
 # Kivo
 
