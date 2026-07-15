@@ -76,7 +76,13 @@ Requirements: **Flutter 3.41+** (Dart 3.11+), Android SDK, JDK 17.
 
 > Tip: run in `--release` — debug builds are noticeably janky for video.
 
-Releases are published automatically: pushing a `v*` tag builds the split APKs and creates a GitHub Release via CI (`.github/workflows/release.yml`).
+### Releasing a new version
+
+1. Bump `version:` in `pubspec.yaml` (semver, e.g. `1.0.1+2`).
+2. Commit, then tag and push: `git tag v1.0.1 && git push origin master --tags`.
+3. CI (`.github/workflows/release.yml`) builds the split APKs and publishes the GitHub Release automatically.
+
+In-app, users on an older version get an update prompt — automatically on launch (at most once a day, toggleable) or on demand via **Settings › Acerca de → "Buscar actualizaciones"**. The version shown there is the real build version, so it always matches the tag.
 
 ## 🧱 Tech & architecture
 
