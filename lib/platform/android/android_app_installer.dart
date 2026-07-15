@@ -5,12 +5,22 @@ class AndroidAppInstaller implements AppInstaller {
   static const MethodChannel _channel = MethodChannel('kivo/update');
 
   @override
-  Future<String> appVersion() async =>
-      (await _channel.invokeMethod<String>('getAppVersion')) ?? '';
+  Future<String> appVersion() async {
+    try {
+      return (await _channel.invokeMethod<String>('getAppVersion')) ?? '';
+    } catch (_) {
+      return '';
+    }
+  }
 
   @override
-  Future<String> primaryAbi() async =>
-      (await _channel.invokeMethod<String>('primaryAbi')) ?? 'arm64-v8a';
+  Future<String> primaryAbi() async {
+    try {
+      return (await _channel.invokeMethod<String>('primaryAbi')) ?? 'arm64-v8a';
+    } catch (_) {
+      return 'arm64-v8a';
+    }
+  }
 
   @override
   Future<InstallOutcome> downloadAndInstall(String url, String fileName) async {

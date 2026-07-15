@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/core/update/update_info.dart';
-import 'package:kivo_player/core/update/update_checker.dart';
 import 'package:kivo_player/core/update/update_providers.dart';
 import 'package:kivo_player/platform/app_installer_provider.dart';
 import '../../fakes/fakes.dart';

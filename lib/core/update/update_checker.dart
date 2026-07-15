@@ -24,7 +24,8 @@ class GithubUpdateChecker implements UpdateChecker {
       req.headers.set(HttpHeaders.userAgentHeader, 'kivo-player');
       final resp = await req.close().timeout(const Duration(seconds: 10));
       if (resp.statusCode != 200) return null;
-      final body = await resp.transform(utf8.decoder).join();
+      final body =
+          await resp.transform(utf8.decoder).join().timeout(const Duration(seconds: 10));
       final json = jsonDecode(body) as Map<String, dynamic>;
       final tag = (json['tag_name'] as String?) ?? '';
       if (tag.isEmpty) return null;

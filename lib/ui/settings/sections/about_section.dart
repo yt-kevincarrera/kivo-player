@@ -14,21 +14,31 @@ class AboutSection extends ConsumerStatefulWidget {
 
 class _AboutSectionState extends ConsumerState<AboutSection> {
   bool _checking = false;
+  late final Future<String> _versionFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _versionFuture = ref.read(appInstallerProvider).appVersion();
+  }
 
   Future<void> _check() async {
     if (_checking) return;
     setState(() => _checking = true);
-    final result = await ref.read(updateControllerProvider).check(manual: true);
-    if (!mounted) return;
-    setState(() => _checking = false);
-    final messenger = ScaffoldMessenger.of(context);
-    switch (result.status) {
-      case UpdateStatus.available:
-        showUpdateDialog(context, ref, result.info!);
-      case UpdateStatus.upToDate:
-        messenger.showSnackBar(const SnackBar(content: Text('Estás al día ✓')));
-      case UpdateStatus.error:
-        messenger.showSnackBar(const SnackBar(content: Text('No se pudo comprobar')));
+    try {
+      final result = await ref.read(updateControllerProvider).check(manual: true);
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      switch (result.status) {
+        case UpdateStatus.available:
+          showUpdateDialog(context, ref, result.info!);
+        case UpdateStatus.upToDate:
+          messenger.showSnackBar(const SnackBar(content: Text('Estás al día ✓')));
+        case UpdateStatus.error:
+          messenger.showSnackBar(const SnackBar(content: Text('No se pudo comprobar')));
+      }
+    } finally {
+      if (mounted) setState(() => _checking = false);
     }
   }
 
@@ -46,7 +56,7 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
               Text('Kivo', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: cs.onSurface)),
               const SizedBox(height: 6),
               FutureBuilder<String>(
-                future: ref.read(appInstallerProvider).appVersion(),
+                future: _versionFuture,
                 builder: (_, snap) => Text('Versión ${snap.data ?? '…'}',
                     style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant)),
               ),

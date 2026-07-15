@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kivo_player/platform/interfaces/media_indexer.dart';
-import 'package:kivo_player/vault/vault_entry.dart';
 import 'package:kivo_player/vault/vault_store.dart';
 import 'package:kivo_player/vault/vault_repository.dart';
 import '../fakes/fakes.dart';

@@ -28,7 +28,9 @@ class _KivoAppState extends ConsumerState<KivoApp> {
       enabled: s.autoCheckUpdates,
       nowMs: DateTime.now().millisecondsSinceEpoch,
       lastMs: s.lastUpdateCheckMs,
-    )) return;
+    )) {
+      return;
+    }
     final result = await ref.read(updateControllerProvider).check();
     if (result.status != UpdateStatus.available) return;
     final ctx = kivoNavigatorKey.currentContext;

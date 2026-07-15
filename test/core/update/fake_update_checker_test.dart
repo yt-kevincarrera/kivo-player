@@ -4,7 +4,7 @@ import '../../fakes/fakes.dart';
 
 void main() {
   test('FakeUpdateChecker returns its result and counts calls', () async {
-    final info = const UpdateInfo(
+    const info = UpdateInfo(
         version: '1.0.1', tagName: 'v1.0.1', apkUrl: 'u', releaseUrl: 'r', notes: 'n');
     final c = FakeUpdateChecker(result: info);
     expect(await c.fetchLatest(), info);

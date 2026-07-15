@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
-import 'package:kivo_player/core/update/update_checker.dart';
 import 'package:kivo_player/core/update/update_providers.dart';
 import 'package:kivo_player/platform/app_installer_provider.dart';
 import 'package:kivo_player/ui/settings/sections/about_section.dart';

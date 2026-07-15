@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kivo_player/vault/vault_selection.dart';
 import 'package:kivo_player/platform/vault_ops_provider.dart';
-import 'package:kivo_player/player/library/media_index.dart';
 import 'package:kivo_player/platform/media_indexer_provider.dart';
 import 'package:kivo_player/platform/media_permission_provider.dart';
 import 'package:kivo_player/platform/interfaces/media_permission.dart';
