@@ -21,6 +21,22 @@ bool shouldHaveMediaSession({
 }) =>
     inBackground && hasVideo && !inPip;
 
+/// Whether to release mpv's video output when going to the background. mpv
+/// otherwise keeps the (about-to-be-destroyed) Android surface bound to its
+/// video-output thread; when Android tears that surface down under a live vo,
+/// mpv's core wedges and the next SYNCHRONOUS mpv call from the UI thread
+/// deadlocks the app (confirmed ANR: main thread stuck in
+/// `mpv_set_property_string`→`pthread_cond_wait`). Releasing the output while
+/// mpv is still healthy — and reattaching on resume — keeps the surface from
+/// being yanked out from under a live vo. Skip in PiP (video is shown there)
+/// and in audio-only (vid is already off, owned by [audioOnlyProvider]).
+bool shouldReleaseVideoForBackground({
+  required bool hasVideo,
+  required bool inPip,
+  required bool audioOnly,
+}) =>
+    hasVideo && !inPip && !audioOnly;
+
 /// App-level coordinator: keeps the native media session fed while playback
 /// is relevant, reacts to notification/focus events, and owns the duck.
 /// Instantiate by watching [backgroundPlaybackProvider] once (KivoApp does).
@@ -41,6 +57,7 @@ class BackgroundPlaybackCoordinator with WidgetsBindingObserver {
   Duration _duration = Duration.zero;
   int _lastSentSecond = -1;
   bool _sessionActive = false;
+  bool _videoReleasedForBackground = false;
 
   bool _pausedByFocus = false;
   bool _ducking = false;
@@ -110,6 +127,13 @@ class BackgroundPlaybackCoordinator with WidgetsBindingObserver {
       // session before `pipMode` flipped, `_push`'s gate can't undo it — this
       // does.
       if (inPip && _sessionActive) _end();
+      // Race guard: if `paused` won and released the video output before
+      // `pipMode` flipped, PiP would show black. Reattach now that PiP is
+      // confirmed (PiP shows video).
+      if (inPip && _videoReleasedForBackground) {
+        _ref.read(playbackEngineProvider).setVideoTrackEnabled(true);
+        _videoReleasedForBackground = false;
+      }
     });
   }
 
@@ -121,9 +145,25 @@ class BackgroundPlaybackCoordinator with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused) {
       _inBackground = true;
+      // Release the video output BEFORE the surface is torn down (mpv is still
+      // healthy here), so a live vo isn't left holding a dying surface — the
+      // confirmed cause of the background→foreground deadlock. Reattached on
+      // resume (or on PiP-confirm above).
+      if (shouldReleaseVideoForBackground(
+        hasVideo: _ref.read(currentVideoProvider) != null,
+        inPip: _ref.read(pipModeProvider),
+        audioOnly: _ref.read(audioOnlyProvider),
+      )) {
+        _ref.read(playbackEngineProvider).setVideoTrackEnabled(false);
+        _videoReleasedForBackground = true;
+      }
       _push(force: true);
     } else if (state == AppLifecycleState.resumed) {
       _inBackground = false;
+      if (_videoReleasedForBackground) {
+        _ref.read(playbackEngineProvider).setVideoTrackEnabled(true);
+        _videoReleasedForBackground = false;
+      }
       if (_sessionActive) _end();
       // Ending the session abandons audio focus natively; if we're still
       // playing in the foreground, take it straight back so a phone call after
