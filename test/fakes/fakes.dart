@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:kivo_player/core/settings/settings_store.dart';
+import 'package:kivo_player/core/update/update_checker.dart';
+import 'package:kivo_player/core/update/update_info.dart';
 import 'package:kivo_player/platform/interfaces/all_files_access.dart';
 import 'package:kivo_player/platform/interfaces/biometric_auth.dart';
 import 'package:kivo_player/platform/interfaces/frame_extractor.dart';
@@ -499,5 +501,19 @@ class FakeBiometricAuth implements BiometricAuth {
     authCalls++;
     if (gate != null) return gate!.future;
     return willSucceed;
+  }
+}
+
+class FakeUpdateChecker implements UpdateChecker {
+  UpdateInfo? result;
+  bool throwsNull = false; // when true, fetchLatest returns null (error path)
+  int calls = 0;
+  FakeUpdateChecker({this.result});
+
+  @override
+  Future<UpdateInfo?> fetchLatest() async {
+    calls++;
+    if (throwsNull) return null;
+    return result;
   }
 }
