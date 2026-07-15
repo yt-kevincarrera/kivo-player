@@ -44,7 +44,7 @@ class SettingsScreen extends ConsumerWidget {
               onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const AdvancedPlaybackSection()))),
             SettingNavRow(
-              icon: Icons.info_outline, title: 'Acerca de', subtitle: 'Versión $kAppVersion',
+              icon: Icons.info_outline, title: 'Acerca de', subtitle: 'Versión y actualizaciones',
               onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const AboutSection()))),
             if (!ref.watch(settingsProvider).vaultEntranceHidden)
