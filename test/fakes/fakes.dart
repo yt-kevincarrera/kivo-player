@@ -4,6 +4,7 @@ import 'package:kivo_player/core/settings/settings_store.dart';
 import 'package:kivo_player/core/update/update_checker.dart';
 import 'package:kivo_player/core/update/update_info.dart';
 import 'package:kivo_player/platform/interfaces/all_files_access.dart';
+import 'package:kivo_player/platform/interfaces/app_installer.dart';
 import 'package:kivo_player/platform/interfaces/biometric_auth.dart';
 import 'package:kivo_player/platform/interfaces/frame_extractor.dart';
 import 'package:kivo_player/platform/interfaces/media_file_ops.dart';
@@ -516,4 +517,29 @@ class FakeUpdateChecker implements UpdateChecker {
     if (throwsNull) return null;
     return result;
   }
+}
+
+class FakeAppInstaller implements AppInstaller {
+  String version;
+  String abi;
+  InstallOutcome installOutcome;
+  final List<(String, String)> installed = [];
+  final List<String> openedUrls = [];
+  FakeAppInstaller({
+    this.version = '1.0.0',
+    this.abi = 'arm64-v8a',
+    this.installOutcome = InstallOutcome.started,
+  });
+
+  @override
+  Future<String> appVersion() async => version;
+  @override
+  Future<String> primaryAbi() async => abi;
+  @override
+  Future<InstallOutcome> downloadAndInstall(String url, String fileName) async {
+    installed.add((url, fileName));
+    return installOutcome;
+  }
+  @override
+  Future<void> openUrl(String url) async => openedUrls.add(url);
 }
