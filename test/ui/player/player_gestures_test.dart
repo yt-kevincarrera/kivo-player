@@ -114,30 +114,57 @@ void main() {
     return c;
   }
 
-  testWidgets('swipe down from the top strip rotates (portrait→landscape)', (tester) async {
+  testWidgets('center swipe UP rotates portrait→landscape', (tester) async {
     final c = await pumpGestures(tester);
     expect(c.read(orientationProvider), DeviceOrientationLock.portrait);
     final box = tester.getRect(find.byType(PlayerGestures));
-    await tester.dragFrom(Offset(box.center.dx, box.top + 6), const Offset(0, 140));
+    await tester.dragFrom(box.center, const Offset(0, -140));
     await tester.pump(const Duration(milliseconds: 400)); // drain the double-tap countdown
     expect(c.read(orientationProvider), DeviceOrientationLock.landscape);
   });
 
-  testWidgets('swipe down from the center does NOT rotate', (tester) async {
+  testWidgets('center swipe DOWN rotates landscape→portrait', (tester) async {
     final c = await pumpGestures(tester);
+    c.read(orientationProvider.notifier).rotateTo(DeviceOrientationLock.landscape);
     final box = tester.getRect(find.byType(PlayerGestures));
     await tester.dragFrom(box.center, const Offset(0, 140));
-    // Center drag adjusts brightness → shows the HUD (auto-hide timer); drain it
-    // plus the double-tap countdown before teardown checks for pending timers.
-    await tester.pump(const Duration(seconds: 4));
+    await tester.pump(const Duration(milliseconds: 400));
     expect(c.read(orientationProvider), DeviceOrientationLock.portrait);
   });
 
-  testWidgets('in Solo audio, the top swipe does NOT rotate', (tester) async {
+  testWidgets('center swipe in the wrong direction does NOT rotate', (tester) async {
+    final c = await pumpGestures(tester);
+    final box = tester.getRect(find.byType(PlayerGestures));
+    // Already portrait: a downward center swipe has nothing to open into.
+    await tester.dragFrom(box.center, const Offset(0, 140));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(c.read(orientationProvider), DeviceOrientationLock.portrait);
+  });
+
+  testWidgets('the top strip no longer rotates (pulling the status bar down is safe)', (tester) async {
+    final c = await pumpGestures(tester);
+    final box = tester.getRect(find.byType(PlayerGestures));
+    // The reported accident: reaching for the system status bar used to rotate.
+    await tester.dragFrom(Offset(box.center.dx, box.top + 6), const Offset(0, 140));
+    await tester.pump(const Duration(seconds: 4)); // drain any HUD/controls timers
+    expect(c.read(orientationProvider), DeviceOrientationLock.portrait);
+  });
+
+  testWidgets('in Solo audio, the center swipe does NOT rotate', (tester) async {
     final c = await pumpGestures(tester, audioOnly: true);
     final box = tester.getRect(find.byType(PlayerGestures));
-    await tester.dragFrom(Offset(box.center.dx, box.top + 6), const Offset(0, 140));
-    await tester.pump(const Duration(milliseconds: 400)); // drain the double-tap countdown
+    await tester.dragFrom(box.center, const Offset(0, -140));
+    await tester.pump(const Duration(seconds: 4)); // brightness HUD may show instead
+    expect(c.read(orientationProvider), DeviceOrientationLock.portrait);
+  });
+
+  testWidgets('with the controls visible, the center swipe does NOT rotate', (tester) async {
+    final c = await pumpGestures(tester);
+    c.read(controlsVisibleProvider.notifier).show();
+    await tester.pump();
+    final box = tester.getRect(find.byType(PlayerGestures));
+    await tester.dragFrom(box.center, const Offset(0, -140));
+    await tester.pump(const Duration(seconds: 5)); // drain controls auto-hide + HUD timers
     expect(c.read(orientationProvider), DeviceOrientationLock.portrait);
   });
 

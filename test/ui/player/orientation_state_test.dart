@@ -34,6 +34,33 @@ void main() {
     expect(ctrls.lastOrientation, [DeviceOrientationLock.landscape]);
   });
 
+  test('swipeRotateTarget: portrait rotates on swipe UP, landscape on swipe DOWN', () {
+    const p = DeviceOrientationLock.portrait;
+    const l = DeviceOrientationLock.landscape;
+    // Portrait: only an upward swipe (negative dy) past the threshold rotates.
+    expect(swipeRotateTarget(p, -48), l);
+    expect(swipeRotateTarget(p, -200), l);
+    expect(swipeRotateTarget(p, -47), isNull); // too short
+    expect(swipeRotateTarget(p, 200), isNull); // wrong direction (down)
+    // Landscape: only a downward swipe (positive dy) past the threshold rotates.
+    expect(swipeRotateTarget(l, 48), p);
+    expect(swipeRotateTarget(l, 200), p);
+    expect(swipeRotateTarget(l, 47), isNull);  // too short
+    expect(swipeRotateTarget(l, -200), isNull); // wrong direction (up)
+    // A stationary drag never rotates either way.
+    expect(swipeRotateTarget(p, 0), isNull);
+    expect(swipeRotateTarget(l, 0), isNull);
+  });
+
+  test('rotateTo() sets the given orientation and applies it', () {
+    final ctrls = RecCtrls();
+    final c = ProviderContainer(overrides: [deviceControlsProvider.overrideWithValue(ctrls)]);
+    addTearDown(c.dispose);
+    c.read(orientationProvider.notifier).rotateTo(DeviceOrientationLock.landscape);
+    expect(c.read(orientationProvider), DeviceOrientationLock.landscape);
+    expect(ctrls.lastOrientation, [DeviceOrientationLock.landscape]);
+  });
+
   test('reset() forces portrait regardless of prior state', () {
     final ctrls = RecCtrls();
     final c = ProviderContainer(overrides: [deviceControlsProvider.overrideWithValue(ctrls)]);

@@ -98,12 +98,22 @@ void main() {
     expect(inLateralDeadZone(400, 800, 38), isFalse); // center
   });
 
-  test('inTopRotateZone: only the top strip (topInset+topMargin) is true', () {
-    // topInset 24, topMargin 24 → strip is y < 48
-    expect(inTopRotateZone(10, 24, 24), isTrue);   // within the top strip
-    expect(inTopRotateZone(47, 24, 24), isTrue);   // just inside
-    expect(inTopRotateZone(48, 24, 24), isFalse);  // just below the strip
-    expect(inTopRotateZone(200, 24, 24), isFalse); // middle
+  test('inCenterRotateZone: only the central 30% band is true', () {
+    // width 800, fraction 0.30 → band spans x 280..520 (35%..65%)
+    expect(inCenterRotateZone(400, 800), isTrue);  // dead center
+    expect(inCenterRotateZone(280, 800), isTrue);  // left edge of the band
+    expect(inCenterRotateZone(520, 800), isTrue);  // right edge of the band
+    expect(inCenterRotateZone(279, 800), isFalse); // just outside → brightness
+    expect(inCenterRotateZone(521, 800), isFalse); // just outside → volume
+    expect(inCenterRotateZone(10, 800), isFalse);  // far left
+    expect(inCenterRotateZone(790, 800), isFalse); // far right
+  });
+
+  test('inCenterRotateZone: honors a custom fraction and degenerate widths', () {
+    // fraction 0.20 → band spans x 400..600 of 1000
+    expect(inCenterRotateZone(500, 1000, 0.20), isTrue);
+    expect(inCenterRotateZone(399, 1000, 0.20), isFalse);
+    expect(inCenterRotateZone(100, 0), isFalse); // no width → never claims the drag
   });
 
   test('horizontalSeekTarget: fixed ~60s per full screen, ms precision, sensitivity + clamp', () {

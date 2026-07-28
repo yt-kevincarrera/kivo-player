@@ -97,11 +97,16 @@ int defaultHoldRightIndex(List<double> detents) {
 bool inLateralDeadZone(double localX, double width, double margin) =>
     localX < margin || localX > width - margin;
 
-/// True when a touch starts in the top strip ([topInset] + [topMargin]),
-/// reserved for the swipe-down-to-rotate gesture. (Minimize now lives only on
-/// the lateral strips — see [inLateralDeadZone].)
-bool inTopRotateZone(double localY, double topInset, double topMargin) =>
-    localY < topInset + topMargin;
+/// True when a touch starts in the central vertical band ([fraction] of the
+/// width, centered) reserved for swipe-to-rotate. Rotation deliberately lives
+/// here and NOT in the top strip: a drag from the top is how you pull down the
+/// system status bar, and claiming it rotated the video by accident. Brightness
+/// and volume keep the area outside this band.
+bool inCenterRotateZone(double localX, double width, [double fraction = 0.30]) {
+  if (width <= 0) return false;
+  final half = fraction / 2;
+  return localX >= width * (0.5 - half) && localX <= width * (0.5 + half);
+}
 
 ({double system01, double playerPercent}) volumeMapping(double percent, double boostMax) {
   final p = percent.clamp(0.0, boostMax);

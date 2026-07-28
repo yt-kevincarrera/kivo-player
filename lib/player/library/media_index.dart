@@ -16,8 +16,11 @@ class MediaIndexNotifier extends AsyncNotifier<List<VideoItem>> {
     return ref.read(mediaIndexerProvider).scan();
   }
 
+  /// Re-scans in place, KEEPING the current list on screen until the new one
+  /// arrives. It must never publish a data-less `AsyncLoading`: the library
+  /// renders a spinner for that, which unmounts the scroll view and throws the
+  /// user back to the top of the list — jarring right after deleting an item.
   Future<void> refresh() async {
-    state = const AsyncLoading();
     state = await AsyncValue.guard(() => ref.read(mediaIndexerProvider).scan());
   }
 }

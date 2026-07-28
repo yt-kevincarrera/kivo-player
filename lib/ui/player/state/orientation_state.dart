@@ -7,14 +7,36 @@ DeviceOrientationLock nextOrientation(DeviceOrientationLock c) =>
         ? DeviceOrientationLock.landscape
         : DeviceOrientationLock.portrait;
 
+/// The orientation a center-band vertical swipe should land on, or null when the
+/// swipe doesn't qualify (shorter than [threshold], or the wrong direction for
+/// the current orientation). Portrait rotates on a swipe UP (negative [dy]),
+/// landscape on a swipe DOWN — the gesture always points the way you want the
+/// video to open, so it can never fire in the opposite direction.
+DeviceOrientationLock? swipeRotateTarget(
+  DeviceOrientationLock current,
+  double dy, {
+  double threshold = 48,
+}) {
+  if (current == DeviceOrientationLock.landscape) {
+    return dy >= threshold ? DeviceOrientationLock.portrait : null;
+  }
+  return dy <= -threshold ? DeviceOrientationLock.landscape : null;
+}
+
 class OrientationNotifier extends Notifier<DeviceOrientationLock> {
   @override
   DeviceOrientationLock build() => DeviceOrientationLock.portrait;
 
   void apply() => ref.read(deviceControlsProvider).setOrientation([state]);
 
-  void cycle() {
-    state = nextOrientation(state);
+  void cycle() => rotateTo(nextOrientation(state));
+
+  /// Sets an explicit orientation. The center-band swipe picks a direction
+  /// rather than toggling (see [swipeRotateTarget]), so it needs this instead of
+  /// [cycle] — a downward swipe in landscape must land on portrait, never flip
+  /// back to landscape.
+  void rotateTo(DeviceOrientationLock next) {
+    state = next;
     apply();
   }
 
