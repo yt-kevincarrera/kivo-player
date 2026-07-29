@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'update_info.dart';
 
 abstract class UpdateChecker {
@@ -41,7 +42,11 @@ class GithubUpdateChecker implements UpdateChecker {
         releaseUrl: (json['html_url'] as String?) ?? '',
         notes: (json['body'] as String?) ?? '',
       );
-    } catch (_) {
+    } catch (e) {
+      // The UI only ever shows "no se pudo comprobar", so log the real reason —
+      // a missing INTERNET permission in the release manifest looked identical
+      // to being offline and cost a debugging round-trip.
+      debugPrint('UpdateChecker.fetchLatest failed: $e');
       return null;
     } finally {
       client?.close(force: true);
