@@ -32,7 +32,31 @@ jobs:
 
       - run: flutter pub get
 
+      # Sign with the project's real release key so every build — CI or local —
+      # shares one signature. Android rejects an update whose signature changed,
+      # so this is what makes the in-app updater able to install over itself.
+      - name: Restore the release keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 secret is missing — refusing to publish a debug-signed release."
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > android/app/kivo-release.jks
+          cat > android/key.properties <<EOF
+          storePassword=$KEYSTORE_PASSWORD
+          keyPassword=$KEYSTORE_PASSWORD
+          keyAlias=kivo
+          storeFile=kivo-release.jks
+          EOF
+
       - run: flutter build apk --release --split-per-abi
+
+      - name: Scrub the signing material
+        if: always()
+        run: rm -f android/app/kivo-release.jks android/key.properties
 
       - name: Name the APKs after the tag
         run: |
