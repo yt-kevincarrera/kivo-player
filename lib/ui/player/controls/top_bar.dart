@@ -10,7 +10,6 @@ import '../../../player/sleep/sleep_timer.dart';
 import '../more/more_menu.dart';
 import '../tracks/track_picker.dart';
 
-final _pipSupportedProvider = FutureProvider<bool>((ref) => ref.read(pipControllerProvider).isSupported());
 
 class TopBar extends ConsumerWidget {
   const TopBar({super.key});
@@ -73,7 +72,7 @@ class TopBar extends ConsumerWidget {
         ),
         Consumer(
           builder: (context, ref, _) {
-            final supported = ref.watch(_pipSupportedProvider).value ?? false;
+            final supported = ref.watch(pipSupportedProvider).value ?? false;
             if (!supported) return const SizedBox.shrink();
             return IconButton(
               color: Colors.white,
