@@ -68,8 +68,6 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                     }
                   },
                 ),
-                // "Solo audio" moved to the bottom bar (headphones button)
-                // per user feedback — the menu keeps timer + A-B loop only.
               ],
             );
           },

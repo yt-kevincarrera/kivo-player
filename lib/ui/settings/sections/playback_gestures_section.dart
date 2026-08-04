@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
+import '../../player/tutorial/gesture_map_route.dart';
 import '../widgets/setting_tiles.dart';
 import '../widgets/setting_speed_list.dart';
 
@@ -20,6 +21,16 @@ class PlaybackGesturesSection extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 28),
         children: [
+          _label(context, 'Aprender'),
+          SettingsCard(children: [
+            SettingNavRow(
+              icon: Icons.touch_app_outlined,
+              title: 'Ver el mapa de gestos',
+              subtitle: 'Toques, arrastres y botones del reproductor',
+              onTap: () => Navigator.of(context).push(gestureMapRoute()),
+            ),
+          ]),
+          const SizedBox(height: 16),
           _label(context, 'Doble toque'),
           SettingsCard(children: [
             SettingStepper(

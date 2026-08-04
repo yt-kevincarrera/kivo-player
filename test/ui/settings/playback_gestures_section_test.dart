@@ -30,11 +30,13 @@ void main() {
 
   testWidgets('the fine-step segmented persists speedFineStep', (t) async {
     final c = await _pump(t);
-    // The "Velocidad" group is below the fold; scroll it into the built range
-    // before ensureVisible/tap can locate it.
-    await t.drag(find.byType(ListView), const Offset(0, -2000));
-    await t.pump();
-    await t.ensureVisible(find.text('0.10×'));
+    // The "Velocidad" group is below the fold. Scroll UNTIL it is actually
+    // visible instead of by a fixed offset: a fixed drag leaves the target
+    // outside the 600px test viewport as soon as a card is added above, and the
+    // tap then silently lands on nothing.
+    await t.scrollUntilVisible(find.text('0.10×'), 300,
+        scrollable: find.byType(Scrollable).first);
+    await t.pumpAndSettle();
     await t.tap(find.text('0.10×'));
     await t.pump();
     expect(c.read(settingsProvider).speedFineStep, 0.1);
@@ -44,9 +46,9 @@ void main() {
     final c = await _pump(t);
     final before = c.read(settingsProvider).speedPresets.length;
     // Remove the first removable preset chip.
-    await t.drag(find.byType(ListView), const Offset(0, -2000));
-    await t.pump();
-    await t.ensureVisible(find.text('Velocidades preseleccionadas'));
+    await t.scrollUntilVisible(find.text('Velocidades preseleccionadas'), 300,
+        scrollable: find.byType(Scrollable).first);
+    await t.pumpAndSettle();
     final closeIcons = find.byIcon(Icons.close);
     expect(closeIcons, findsWidgets);
     await t.tap(closeIcons.first);
