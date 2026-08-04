@@ -147,6 +147,19 @@ void main() {
     expect(engine.lastPlayingCommand, isNot(true));
   });
 
+  test('returning from the background reattaches the video output and nudges mpv', () async {
+    await setUpAll_();
+    engine.emitPlaying(true);
+    await pump();
+    coord.didChangeAppLifecycleState(AppLifecycleState.paused);
+    await pump();
+    expect(engine.videoTrackEnabled, false);
+    coord.didChangeAppLifecycleState(AppLifecycleState.resumed);
+    await pump();
+    expect(engine.videoTrackEnabled, true);
+    expect(engine.ensureAttachCalls, 1);
+  });
+
   test('a duck request pauses and auto-resumes when the duck ends', () async {
     await setUpAll_();
     c.read(volumePercentProvider.notifier).state = 100;

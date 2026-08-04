@@ -1,5 +1,6 @@
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+import 'frame_ready.dart';
 import 'playback_engine.dart';
 
 /// Process-lifetime singleton engine.
@@ -37,9 +38,13 @@ class MediaKitEngine implements PlaybackEngine {
   @override
   Stream<bool> get completedStream => _player.stream.completed;
 
+  /// Mirrors our own `vid` intent so [hasVideoFrameStream] can ignore the width
+  /// events that `vid=no` produces (see [frameReadyStream]).
+  bool _videoOutputEnabled = true;
+
   @override
   Stream<bool> get hasVideoFrameStream =>
-      _player.stream.width.map((w) => (w ?? 0) > 0);
+      frameReadyStream(_player.stream.width, () => _videoOutputEnabled);
 
   @override
   Future<void> open(String path, {Duration startAt = Duration.zero}) async {
@@ -161,7 +166,27 @@ class MediaKitEngine implements PlaybackEngine {
   Future<void> setVideoTrackEnabled(bool enabled) async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;
+    // Flip the gate BEFORE the property write, so no width event can slip
+    // through with the flag in the wrong state.
+    _videoOutputEnabled = enabled;
     await native.setProperty('vid', enabled ? 'auto' : 'no');
+  }
+
+  @override
+  Future<void> ensureVideoOutputAttached() async {
+    if (!_videoOutputEnabled) return;
+    await Future<void>.delayed(const Duration(milliseconds: 700));
+    if (!shouldRetryVideoAttach(
+      enabled: _videoOutputEnabled,
+      hasVideoSize: videoSize != null,
+    )) {
+      return;
+    }
+    final native = _player.platform as NativePlayer?;
+    if (native == null) return;
+    // One retry, no loops: re-apply the property and force a frame.
+    await native.setProperty('vid', 'auto');
+    await _player.seek(_player.state.position);
   }
 
   @override

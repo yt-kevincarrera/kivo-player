@@ -181,6 +181,11 @@ class FakePlaybackEngine implements PlaybackEngine {
     videoTrackEnabled = enabled;
   }
 
+  int ensureAttachCalls = 0;
+
+  @override
+  Future<void> ensureVideoOutputAttached() async => ensureAttachCalls++;
+
   ({int width, int height})? videoSizeValue;
   @override
   ({int width, int height})? get videoSize => videoSizeValue;

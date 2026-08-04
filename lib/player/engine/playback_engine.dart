@@ -30,7 +30,9 @@ abstract class PlaybackEngine {
   /// false while a (re)open is in flight (no frame yet). Backed by the video
   /// width: media_kit resets it to null on every open and sets it when the
   /// first frame's params are known. The UI uses this to cover the shared
-  /// texture's stale last-frame across an open. Stays false for audio-only.
+  /// texture's stale last-frame across an open. Events that arrive while the
+  /// video output is intentionally off (see [setVideoTrackEnabled]) are
+  /// dropped — the cover belongs to the open sequence, not to mpv's `vid`.
   Stream<bool> get hasVideoFrameStream;
 
   /// Returns a platform video controller (e.g. [VideoController] from
@@ -70,9 +72,15 @@ abstract class PlaybackEngine {
     required int backgroundColorArgb,
   });
 
-  /// Turns the video track off ([enabled] = false → mpv `vid=no`, audio-only)
-  /// or back to automatic selection (true → `vid=auto`).
+  /// Releases mpv's video output ([enabled] = false → `vid=no`) or reattaches it
+  /// (true → `vid=auto`). Used around the background round-trip so a live video
+  /// output is never left holding a surface Android is about to destroy.
   Future<void> setVideoTrackEnabled(bool enabled);
+
+  /// Safety net for the background round-trip: if mpv has not brought its video
+  /// output back shortly after [setVideoTrackEnabled]`(true)`, nudge it once.
+  /// Fire-and-forget — never await this from UI code.
+  Future<void> ensureVideoOutputAttached();
 
   /// Current video pixel dimensions, or null if unknown (used for the PiP
   /// window aspect ratio).

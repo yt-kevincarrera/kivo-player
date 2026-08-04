@@ -121,7 +121,10 @@ class BackgroundPlaybackCoordinator with WidgetsBindingObserver {
       // `pipMode` flipped, PiP would show black. Reattach now that PiP is
       // confirmed (PiP shows video).
       if (inPip && _videoReleasedForBackground) {
-        _ref.read(playbackEngineProvider).setVideoTrackEnabled(true);
+        final engine = _ref.read(playbackEngineProvider);
+        engine.setVideoTrackEnabled(true);
+        // Safety net if mpv does not bring its output back on its own.
+        engine.ensureVideoOutputAttached();
         _videoReleasedForBackground = false;
       }
     });
@@ -150,7 +153,10 @@ class BackgroundPlaybackCoordinator with WidgetsBindingObserver {
     } else if (state == AppLifecycleState.resumed) {
       _inBackground = false;
       if (_videoReleasedForBackground) {
-        _ref.read(playbackEngineProvider).setVideoTrackEnabled(true);
+        final engine = _ref.read(playbackEngineProvider);
+        engine.setVideoTrackEnabled(true);
+        // Safety net if mpv does not bring its output back on its own.
+        engine.ensureVideoOutputAttached();
         _videoReleasedForBackground = false;
       }
       if (_sessionActive) _end();
