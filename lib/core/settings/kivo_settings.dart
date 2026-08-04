@@ -40,6 +40,7 @@ class KivoSettings {
   final String iconStyle; // 'duotone' | 'flat'
   final bool pipAutoOnHome;
   final bool offeredAllFilesAccess;
+  final bool gestureMapShown;
   final bool vaultEntranceHidden;
   final bool vaultBiometricEnabled;
   final bool vaultUninstallWarningShown;
@@ -89,6 +90,7 @@ class KivoSettings {
     required this.iconStyle,
     required this.pipAutoOnHome,
     required this.offeredAllFilesAccess,
+    required this.gestureMapShown,
     required this.vaultEntranceHidden,
     required this.vaultBiometricEnabled,
     required this.vaultUninstallWarningShown,
@@ -139,6 +141,7 @@ class KivoSettings {
         iconStyle: 'duotone',
         pipAutoOnHome: true,
         offeredAllFilesAccess: false,
+        gestureMapShown: false,
         vaultEntranceHidden: false,
         vaultBiometricEnabled: false,
         vaultUninstallWarningShown: false,
@@ -191,6 +194,7 @@ class KivoSettings {
     String? iconStyle,
     bool? pipAutoOnHome,
     bool? offeredAllFilesAccess,
+    bool? gestureMapShown,
     bool? vaultEntranceHidden,
     bool? vaultBiometricEnabled,
     bool? vaultUninstallWarningShown,
@@ -244,6 +248,7 @@ class KivoSettings {
       iconStyle: iconStyle ?? this.iconStyle,
       pipAutoOnHome: pipAutoOnHome ?? this.pipAutoOnHome,
       offeredAllFilesAccess: offeredAllFilesAccess ?? this.offeredAllFilesAccess,
+      gestureMapShown: gestureMapShown ?? this.gestureMapShown,
       vaultEntranceHidden: vaultEntranceHidden ?? this.vaultEntranceHidden,
       vaultBiometricEnabled: vaultBiometricEnabled ?? this.vaultBiometricEnabled,
       vaultUninstallWarningShown: vaultUninstallWarningShown ?? this.vaultUninstallWarningShown,
@@ -297,6 +302,7 @@ class KivoSettings {
         'iconStyle': iconStyle,
         'pipAutoOnHome': pipAutoOnHome,
         'offeredAllFilesAccess': offeredAllFilesAccess,
+        'gestureMapShown': gestureMapShown,
         'vaultEntranceHidden': vaultEntranceHidden,
         'vaultBiometricEnabled': vaultBiometricEnabled,
         'vaultUninstallWarningShown': vaultUninstallWarningShown,
@@ -349,6 +355,7 @@ class KivoSettings {
       iconStyle: m['iconStyle'] ?? d.iconStyle,
       pipAutoOnHome: m['pipAutoOnHome'] ?? d.pipAutoOnHome,
       offeredAllFilesAccess: m['offeredAllFilesAccess'] ?? d.offeredAllFilesAccess,
+      gestureMapShown: m['gestureMapShown'] ?? d.gestureMapShown,
       vaultEntranceHidden: m['vaultEntranceHidden'] ?? d.vaultEntranceHidden,
       vaultBiometricEnabled: m['vaultBiometricEnabled'] ?? d.vaultBiometricEnabled,
       vaultUninstallWarningShown: m['vaultUninstallWarningShown'] ?? d.vaultUninstallWarningShown,
