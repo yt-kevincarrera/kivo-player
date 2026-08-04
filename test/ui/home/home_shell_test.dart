@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
@@ -30,6 +31,29 @@ void main() {
     expect(find.text('Kivo'), findsOneWidget); // library AppBar title
     // The settings tab content is offstage, so its reset tile isn't found yet.
     expect(find.text('Restablecer valores'), findsNothing);
+  });
+
+  testWidgets('back at the Videos root leaves the app instead of popping to a black screen', (t) async {
+    final platformCalls = <MethodCall>[];
+    t.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        platformCalls.add(call);
+        return null;
+      },
+    );
+    addTearDown(() => t.binding.defaultBinaryMessenger
+        .setMockMethodCallHandler(SystemChannels.platform, null));
+
+    await _pump(t);
+    // The system back gesture on the root route: popping it would empty the
+    // root navigator and paint a black void (the reported bug, hit right after
+    // exiting a video to the mini-player). Only the platform may end the app.
+    await t.binding.handlePopRoute();
+    await t.pumpAndSettle();
+
+    expect(platformCalls.map((c) => c.method), contains('SystemNavigator.pop'));
+    expect(find.text('Kivo'), findsOneWidget); // still on the library, not a void
   });
 
   testWidgets('tapping Ajustes shows the settings root; Videos switches back', (t) async {

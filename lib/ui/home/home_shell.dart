@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../mini_player/mini_player_bar.dart';
 import '../settings/settings_screen.dart';
@@ -60,7 +61,11 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         } else if (_index != 0) {
           setState(() => _index = 0); // from a non-Videos tab, back returns to Videos
         } else {
-          Navigator.of(context).pop(); // Videos tab root: leave the app
+          // Videos tab root: end the app the way the platform does. NOT
+          // Navigator.pop() — this IS the root route of the root navigator, so
+          // popping it empties the navigator and paints a black void instead of
+          // leaving (hit right after exiting a video to the mini-player).
+          SystemNavigator.pop();
         }
       },
       child: Scaffold(
