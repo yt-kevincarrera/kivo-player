@@ -47,8 +47,9 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   bool _dismissHaptic = false; // fired the threshold-crossing tick once this drag
   double _topInset = 0;
   double _bottomInset = 0;
-  static const _deadMargin = 24.0;
-  static const _lateralMargin = 38.0;
+  // Shared with the gesture map so the tutorial draws the real zones.
+  static const _deadMargin = kVerticalDeadMargin;
+  static const _lateralMargin = kLateralEdgeMargin;
 
   bool _dead(double dy) =>
       inVerticalDeadZone(dy, _height, _topInset, _bottomInset, _deadMargin);

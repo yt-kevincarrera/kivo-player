@@ -147,4 +147,18 @@ void main() {
     expect(dismissCommit(0.10, 0), isFalse);  // small, slow → snap back
     expect(dismissCommit(0.25, 0), isTrue);   // exactly at threshold
   });
+
+  test('zone constants are the ones the zone functions use', () {
+    // The gesture map draws from these; a drift here would draw a lie.
+    expect(tapZoneOf(kTapCenterStart + 0.01), TapZone.center);
+    expect(tapZoneOf(kTapCenterStart - 0.01), TapZone.left);
+    expect(tapZoneOf(kTapCenterEnd + 0.01), TapZone.right);
+    // Rotate band: inside at the center, outside just past half the fraction.
+    expect(inCenterRotateZone(50, 100), true);
+    expect(inCenterRotateZone(50 + 100 * kCenterRotateFraction / 2 + 1, 100), false);
+    // Lateral edges and vertical dead zone.
+    expect(inLateralDeadZone(kLateralEdgeMargin - 1, 400, kLateralEdgeMargin), true);
+    expect(inLateralDeadZone(200, 400, kLateralEdgeMargin), false);
+    expect(inVerticalDeadZone(kVerticalDeadMargin - 1, 800, 0, 0, kVerticalDeadMargin), true);
+  });
 }

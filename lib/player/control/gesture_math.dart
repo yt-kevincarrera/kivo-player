@@ -1,6 +1,21 @@
 enum TapZone { left, center, right }
 
-TapZone tapZoneOf(double dxFraction, {double centerStart = 0.33, double centerEnd = 0.67}) {
+/// Tap zones as fractions of the width: the double-tap bands are THIRDS.
+const double kTapCenterStart = 0.33;
+const double kTapCenterEnd = 0.67;
+
+/// Width fraction of the center band that owns swipe-to-rotate.
+const double kCenterRotateFraction = 0.30;
+
+/// Lateral strip (logical px) that owns swipe-to-minimize.
+const double kLateralEdgeMargin = 38.0;
+
+/// Top/bottom strip (logical px) where vertical drags are ignored so they
+/// cannot fight the system gesture areas or the control bars.
+const double kVerticalDeadMargin = 24.0;
+
+TapZone tapZoneOf(double dxFraction,
+    {double centerStart = kTapCenterStart, double centerEnd = kTapCenterEnd}) {
   if (dxFraction < centerStart) return TapZone.left;
   if (dxFraction > centerEnd) return TapZone.right;
   return TapZone.center;
@@ -102,7 +117,8 @@ bool inLateralDeadZone(double localX, double width, double margin) =>
 /// here and NOT in the top strip: a drag from the top is how you pull down the
 /// system status bar, and claiming it rotated the video by accident. Brightness
 /// and volume keep the area outside this band.
-bool inCenterRotateZone(double localX, double width, [double fraction = 0.30]) {
+bool inCenterRotateZone(double localX, double width,
+    [double fraction = kCenterRotateFraction]) {
   if (width <= 0) return false;
   final half = fraction / 2;
   return localX >= width * (0.5 - half) && localX <= width * (0.5 + half);
