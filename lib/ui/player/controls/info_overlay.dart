@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/format.dart';
 import '../../../core/settings/settings_provider.dart';
-import '../../../player/background/audio_only.dart';
 import '../../../player/engine/playback_provider.dart';
 import '../../../player/open/video_source.dart';
 
@@ -30,8 +29,7 @@ class InfoOverlay extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
-    // No video in "Solo audio" → the on-screen info overlay is pointless.
-    if (!settings.showInfoOverlay || ref.watch(audioOnlyProvider)) {
+    if (!settings.showInfoOverlay) {
       return const SizedBox.shrink();
     }
     final name = ref.watch(currentVideoProvider)?.displayName ?? 'Kivo';

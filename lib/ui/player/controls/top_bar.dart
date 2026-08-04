@@ -4,7 +4,6 @@ import '../../../core/format.dart';
 import '../../../core/icons/kivo_icons.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../platform/pip_controller_provider.dart';
-import '../../../player/background/audio_only.dart';
 import '../../../player/engine/playback_provider.dart';
 import '../../../player/open/video_source.dart';
 import '../../../player/sleep/sleep_timer.dart';
@@ -75,9 +74,7 @@ class TopBar extends ConsumerWidget {
         Consumer(
           builder: (context, ref, _) {
             final supported = ref.watch(_pipSupportedProvider).value ?? false;
-            // No video in "Solo audio" → PiP is meaningless; hide it.
-            final audioOnly = ref.watch(audioOnlyProvider);
-            if (!supported || audioOnly) return const SizedBox.shrink();
+            if (!supported) return const SizedBox.shrink();
             return IconButton(
               color: Colors.white,
               tooltip: 'Imagen en imagen',

@@ -12,7 +12,6 @@ import '../state/hud_state.dart';
 import '../state/lock_state.dart';
 import '../state/orientation_state.dart';
 import '../state/player_dismiss_state.dart';
-import '../../../player/background/audio_only.dart';
 import '../seek/seek_preview.dart';
 import 'ripple_state.dart';
 import '../speed/speed_ladder_overlay.dart';
@@ -93,10 +92,8 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
     if (_holding) return; // a hold-to-speed gesture owns this touch
     // Center band → swipe-to-rotate (discrete; fires on end), and only while the
     // controls are hidden so it can't steal a drag from someone aiming at them.
-    // Solo audio is locked to portrait, so the band stays inert there.
-    _isCenterRotate = !ref.read(controlsVisibleProvider) &&
-        !ref.read(audioOnlyProvider) &&
-        inCenterRotateZone(dx, _width);
+    _isCenterRotate =
+        !ref.read(controlsVisibleProvider) && inCenterRotateZone(dx, _width);
     if (_isCenterRotate) {
       _rotateDy = 0;
       return;

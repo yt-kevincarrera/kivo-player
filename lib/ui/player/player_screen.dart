@@ -15,7 +15,6 @@ import '../../platform/frame_extractor_provider.dart';
 import '../../platform/interfaces/frame_extractor.dart';
 import '../../platform/subtitle_finder_provider.dart';
 import '../../player/autoplay/autoplay_logic.dart';
-import '../../player/background/audio_only.dart';
 import '../../player/engine/playback_engine.dart';
 import '../../player/engine/playback_provider.dart';
 import '../../player/library/played.dart';
@@ -25,7 +24,6 @@ import '../../player/resume/resume_plan.dart';
 import '../../player/resume/resume_service.dart';
 import '../../player/sleep/sleep_timer.dart';
 import '../../player/tracks/apply_default_tracks.dart';
-import 'audio_only/audio_only_view.dart';
 import 'autoplay/autoplay_overlay.dart';
 import 'controls/controls_overlay.dart';
 import 'controls/flash_overlay.dart';
@@ -66,7 +64,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   late final PlaybackEngine _engine;
   late final ResumeService _resume;
   late final FrameExtractor _frames;
-  late final AudioOnlyNotifier _audioOnly;
   late final StateController<Uint8List?> _miniThumb;
   late final StateController<PlayerDismissApi?> _dismissApi;
   late final PipController _pip;
@@ -90,7 +87,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     });
     _resume = ref.read(resumeServiceProvider);
     _frames = ref.read(frameExtractorProvider);
-    _audioOnly = ref.read(audioOnlyProvider.notifier);
     _miniThumb = ref.read(miniPlayerThumbnailProvider.notifier);
     _dismissApi = ref.read(playerDismissProvider.notifier);
     _pip = ref.read(pipControllerProvider);
@@ -364,7 +360,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     WidgetsBinding.instance.removeObserver(this);
     _saveProgress(); // best-effort for in-app pop
     _engine.pause(); // stop audio when leaving the player (engine is a singleton)
-    _audioOnly.disable(); // reset "Solo audio" so it never carries over to the next open
     _pip.disarm();
     _frames.release(); // release native frame-extractor resources (cached; never via ref)
     _deviceControls.setOrientation([DeviceOrientationLock.auto]);
@@ -430,14 +425,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       final s = ref.read(currentVideoProvider.notifier).sessionAt(index);
       ref.read(queueJumpProvider.notifier).state = null;
       if (s != null) _advance(s, countAsAutoplay: false);
-    });
-    ref.listen(audioOnlyProvider, (prev, on) {
-      // "Solo audio" has no video — lock to portrait (the rotate control is
-      // hidden while it's on, so this stays put until the user leaves the mode).
-      if (on) {
-        ref.read(orientationProvider.notifier).reset();
-        ref.read(orientationProvider.notifier).apply();
-      }
     });
     ref.listen(autoplayConfirmProvider, (_, next) {
       final pending = ref.read(autoplayPendingProvider);
@@ -523,9 +510,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                       Positioned.fill(child: videoBox),
                       if (!ref.watch(pipModeProvider)) ...[
                         const Positioned.fill(child: PlayerGestures(child: SizedBox.expand())),
-                        // Above gestures: only its "Ver video" pill is
-                        // hit-testable; taps/drags elsewhere fall through.
-                        const Positioned.fill(child: AudioOnlyView()),
                         const Positioned.fill(child: RippleOverlay()),
                         const Positioned.fill(child: ControlsOverlay()),
                         const Positioned.fill(child: InfoOverlay()),

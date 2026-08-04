@@ -1,14 +1,11 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/settings/settings_provider.dart';
 import '../../platform/interfaces/media_session.dart';
 import '../../platform/media_session_provider.dart';
 import '../../ui/player/state/pip_state.dart';
-import '../control/gesture_math.dart';
 import '../control/player_controller.dart';
 import '../engine/playback_provider.dart';
 import '../open/video_source.dart';
-import 'audio_only.dart';
 
 /// Whether a foreground media session should exist right now. It must exist
 /// while a video is loaded and we're backgrounded (playing OR paused) so the
@@ -28,14 +25,12 @@ bool shouldHaveMediaSession({
 /// deadlocks the app (confirmed ANR: main thread stuck in
 /// `mpv_set_property_string`→`pthread_cond_wait`). Releasing the output while
 /// mpv is still healthy — and reattaching on resume — keeps the surface from
-/// being yanked out from under a live vo. Skip in PiP (video is shown there)
-/// and in audio-only (vid is already off, owned by [audioOnlyProvider]).
+/// being yanked out from under a live vo. Skip in PiP (video is shown there).
 bool shouldReleaseVideoForBackground({
   required bool hasVideo,
   required bool inPip,
-  required bool audioOnly,
 }) =>
-    hasVideo && !inPip && !audioOnly;
+    hasVideo && !inPip;
 
 /// App-level coordinator: keeps the native media session fed while playback
 /// is relevant, reacts to notification/focus events, and owns the duck.
@@ -60,8 +55,6 @@ class BackgroundPlaybackCoordinator with WidgetsBindingObserver {
   bool _videoReleasedForBackground = false;
 
   bool _pausedByFocus = false;
-  bool _ducking = false;
-  bool _duckUserAdjusted = false;
 
   MediaSessionBridge get _bridge => _ref.read(mediaSessionProvider);
 
@@ -95,7 +88,7 @@ class BackgroundPlaybackCoordinator with WidgetsBindingObserver {
       // ends the call can auto-resume.
       if (p && !was) {
         _bridge.acquireAudioFocus();
-      } else if (!p && was && !_pausedByFocus && !_ducking) {
+      } else if (!p && was && !_pausedByFocus) {
         _bridge.releaseAudioFocus();
       }
       _push(force: true);
@@ -108,9 +101,6 @@ class BackgroundPlaybackCoordinator with WidgetsBindingObserver {
     });
     _ref.listen(durationProvider, (_, next) {
       _duration = next.value ?? Duration.zero;
-    });
-    _ref.listen(volumePercentProvider, (_, __) {
-      if (_ducking) _duckUserAdjusted = true;
     });
     _ref.listen(currentVideoProvider, (_, next) {
       // Ask for the notification permission at first video open — a request
@@ -152,7 +142,6 @@ class BackgroundPlaybackCoordinator with WidgetsBindingObserver {
       if (shouldReleaseVideoForBackground(
         hasVideo: _ref.read(currentVideoProvider) != null,
         inPip: _ref.read(pipModeProvider),
-        audioOnly: _ref.read(audioOnlyProvider),
       )) {
         _ref.read(playbackEngineProvider).setVideoTrackEnabled(false);
         _videoReleasedForBackground = true;
@@ -209,27 +198,15 @@ class BackgroundPlaybackCoordinator with WidgetsBindingObserver {
   // ── audio focus ──────────────────────────────────────────────────────────
 
   void _onFocusLoss() {
-    // A focus loss that interrupts a duck never gets its duckEnd — restore
-    // the user's volume now or playback would resume stuck at 30%.
-    _restoreDuckIfActive();
     if (_playing) _ref.read(playbackEngineProvider).pause();
     _pausedByFocus = false; // permanent: never auto-resume
   }
 
   void _onFocusTransientLoss() {
-    _restoreDuckIfActive();
     if (_playing) {
       _ref.read(playbackEngineProvider).pause();
       _pausedByFocus = true;
     }
-  }
-
-  void _restoreDuckIfActive() {
-    if (_ducking && !_duckUserAdjusted) {
-      _ref.read(playbackEngineProvider).setVolume(_userPlayerVolume);
-    }
-    _ducking = false;
-    _duckUserAdjusted = false;
   }
 
   void _onFocusRegained() {
@@ -239,30 +216,16 @@ class BackgroundPlaybackCoordinator with WidgetsBindingObserver {
     }
   }
 
-  double get _userPlayerVolume {
-    final boost = _ref.read(settingsProvider).volumeBoostMax.toDouble();
-    return volumeMapping(_ref.read(volumePercentProvider), boost).playerPercent;
-  }
-
   void _onDuckStart() {
     if (!_playing) return;
-    // Ducking — lower the volume but keep playing — only makes sense for
-    // audio-only, music-player-style listening. For video, a quiet track loses
-    // content just like a muted audiobook would, and a phone-call ring arrives
-    // as a CAN_DUCK loss, so pause instead and auto-resume when focus returns.
-    if (!_ref.read(audioOnlyProvider)) {
-      _pausedByFocus = true;
-      _ref.read(playbackEngineProvider).pause();
-      return;
-    }
-    _ducking = true;
-    _duckUserAdjusted = false;
-    _ref.read(playbackEngineProvider).setVolume(_userPlayerVolume * 0.3);
+    // Ducking — lowering the volume but keeping playback — loses content for a
+    // video just like a muted audiobook would, and a phone-call ring arrives as
+    // a CAN_DUCK loss. Pause instead, and auto-resume when the duck ends.
+    _pausedByFocus = true;
+    _ref.read(playbackEngineProvider).pause();
   }
 
   void _onDuckEnd() {
-    _restoreDuckIfActive();
-    // A video paused for a duck (see _onDuckStart) resumes when the duck ends.
     if (_pausedByFocus) {
       _ref.read(playbackEngineProvider).play();
       _pausedByFocus = false;

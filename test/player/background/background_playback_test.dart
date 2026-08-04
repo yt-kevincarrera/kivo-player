@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/platform/media_session_provider.dart';
-import 'package:kivo_player/player/background/audio_only.dart';
 import 'package:kivo_player/player/background/background_playback.dart';
 import 'package:kivo_player/player/control/player_controller.dart';
 import 'package:kivo_player/player/engine/playback_provider.dart';
@@ -148,47 +147,18 @@ void main() {
     expect(engine.lastPlayingCommand, isNot(true));
   });
 
-  test('audio-only duck lowers player volume to 30% and restores on duck end', () async {
+  test('a duck request pauses and auto-resumes when the duck ends', () async {
     await setUpAll_();
-    c.read(audioOnlyProvider.notifier).toggle(); // music-like: duck, don't pause
     c.read(volumePercentProvider.notifier).state = 100;
     engine.emitPlaying(true);
     await pump();
+    // A quiet video loses content just like a muted audiobook would, and a
+    // phone-call ring arrives as a CAN_DUCK loss → pause, never duck.
     bridge.callbacks!.onDuckStart();
-    expect(engine.volume, closeTo(30, 0.01));
+    expect(engine.lastPlayingCommand, false);
+    expect(engine.volume, 100); // the volume is never touched
     bridge.callbacks!.onDuckEnd();
-    expect(engine.volume, 100);
-  });
-
-  test('manual volume change during an audio-only duck cancels the restore', () async {
-    await setUpAll_();
-    c.read(audioOnlyProvider.notifier).toggle();
-    c.read(volumePercentProvider.notifier).state = 100;
-    engine.emitPlaying(true);
-    await pump();
-    bridge.callbacks!.onDuckStart();
-    expect(engine.volume, closeTo(30, 0.01));
-    c.read(volumePercentProvider.notifier).state = 60;
-    engine.volume = 77; // whatever the user's gesture applied
-    bridge.callbacks!.onDuckEnd();
-    expect(engine.volume, 77); // duck end must not clobber the user's level
-  });
-
-  test('a focus loss interrupting an audio-only duck restores the volume (no stuck 30%)', () async {
-    await setUpAll_();
-    c.read(audioOnlyProvider.notifier).toggle();
-    c.read(volumePercentProvider.notifier).state = 100;
-    engine.emitPlaying(true);
-    await pump();
-    bridge.callbacks!.onDuckStart();
-    expect(engine.volume, closeTo(30, 0.01));
-    // Duck interrupted by a transient loss (call) that never yields a duckEnd,
-    // then a permanent loss — resuming later must NOT be stuck at 30%.
-    bridge.callbacks!.onFocusTransientLoss();
-    expect(engine.volume, 100); // restored on the loss itself
-    expect(engine.lastPlayingCommand, false); // and paused
-    bridge.callbacks!.onFocusLoss();
-    expect(engine.volume, 100);
+    expect(engine.lastPlayingCommand, true);
   });
 
   test('playing acquires audio focus (foreground too); a user pause releases it', () async {
