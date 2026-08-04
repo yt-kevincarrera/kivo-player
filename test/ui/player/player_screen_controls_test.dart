@@ -39,6 +39,9 @@ void main() {
     final engine = FakePlaybackEngine();
     addTearDown(engine.dispose);
     final s = await SettingsService.load(InMemorySettingsStore());
+    // This file exercises the player itself: opt out of the first-run gesture
+    // map so it does not cover the controls under test.
+    await s.update(s.current.copyWith(gestureMapShown: true));
     final c = ProviderContainer(overrides: [
       settingsServiceProvider.overrideWithValue(s),
       playbackEngineProvider.overrideWithValue(engine),
@@ -73,6 +76,9 @@ void main() {
     final engine = FakePlaybackEngine();
     addTearDown(engine.dispose);
     final s = await SettingsService.load(InMemorySettingsStore());
+    // This file exercises the player itself: opt out of the first-run gesture
+    // map so it does not cover the controls under test.
+    await s.update(s.current.copyWith(gestureMapShown: true));
     final resumeStore = InMemoryResumeStore();
     final c = ProviderContainer(overrides: [
       settingsServiceProvider.overrideWithValue(s),
@@ -159,6 +165,9 @@ void main() {
     final engine = FakePlaybackEngine();
     addTearDown(engine.dispose);
     final s = await SettingsService.load(InMemorySettingsStore());
+    // This file exercises the player itself: opt out of the first-run gesture
+    // map so it does not cover the controls under test.
+    await s.update(s.current.copyWith(gestureMapShown: true));
     final resumeStore = InMemoryResumeStore();
     final frames = FakeFrameExtractor();
     final c = ProviderContainer(overrides: [
@@ -225,6 +234,9 @@ void main() {
     final engine = FakePlaybackEngine();
     addTearDown(engine.dispose);
     final s = await SettingsService.load(InMemorySettingsStore());
+    // This file exercises the player itself: opt out of the first-run gesture
+    // map so it does not cover the controls under test.
+    await s.update(s.current.copyWith(gestureMapShown: true));
     final c = ProviderContainer(overrides: [
       settingsServiceProvider.overrideWithValue(s),
       playbackEngineProvider.overrideWithValue(engine),
@@ -261,6 +273,9 @@ void main() {
     final engine = FakePlaybackEngine();
     addTearDown(engine.dispose);
     final s = await SettingsService.load(InMemorySettingsStore());
+    // This file exercises the player itself: opt out of the first-run gesture
+    // map so it does not cover the controls under test.
+    await s.update(s.current.copyWith(gestureMapShown: true));
     final c = ProviderContainer(overrides: [
       settingsServiceProvider.overrideWithValue(s),
       playbackEngineProvider.overrideWithValue(engine),
@@ -341,6 +356,9 @@ void main() {
     final engine = FakePlaybackEngine();
     addTearDown(engine.dispose);
     final s = await SettingsService.load(InMemorySettingsStore());
+    // This file exercises the player itself: opt out of the first-run gesture
+    // map so it does not cover the controls under test.
+    await s.update(s.current.copyWith(gestureMapShown: true));
     await s.update(s.current.copyWith(preferredSubtitleLanguage: 'es'));
     final c = ProviderContainer(overrides: [
       settingsServiceProvider.overrideWithValue(s),
@@ -390,6 +408,9 @@ void main() {
     final engine = FakePlaybackEngine();
     addTearDown(engine.dispose);
     final s = await SettingsService.load(InMemorySettingsStore());
+    // This file exercises the player itself: opt out of the first-run gesture
+    // map so it does not cover the controls under test.
+    await s.update(s.current.copyWith(gestureMapShown: true));
     await s.update(s.current.copyWith(
       preferredSubtitleLanguage: 'es',
       subtitlesEnabledByDefault: true,

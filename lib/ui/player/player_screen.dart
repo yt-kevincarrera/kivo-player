@@ -45,6 +45,7 @@ import 'state/pip_state.dart';
 import 'state/player_dismiss_state.dart';
 import 'state/video_ready_state.dart';
 import 'state/queue_strip_state.dart';
+import 'tutorial/gesture_map_route.dart';
 
 class PlayerScreen extends ConsumerStatefulWidget {
   const PlayerScreen({super.key});
@@ -199,6 +200,27 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     ref.read(playerControllerProvider).setRate(
       ref.read(settingsProvider).rememberSpeed ? remembered : 1.0,
     );
+    await _maybeShowGestureMap();
+  }
+
+  /// First video ever: teach the gestures before the user pokes at random. The
+  /// map is a route on TOP of the player, so back closes only it (this screen's
+  /// PopScope, which minimizes to the mini-bar, never sees it).
+  ///
+  /// The flag is persisted on CLOSE, not on show — a force-kill mid-tutorial
+  /// must not cost the user the tutorial forever.
+  Future<void> _maybeShowGestureMap() async {
+    if (!mounted) return;
+    if (ref.read(settingsProvider).gestureMapShown) return;
+    _engine.pause();
+    await Navigator.of(context).push(gestureMapRoute());
+    if (!mounted) return;
+    final settings = ref.read(settingsProvider);
+    await ref
+        .read(settingsProvider.notifier)
+        .set(settings.copyWith(gestureMapShown: true));
+    if (!mounted) return;
+    _engine.play();
   }
 
   Future<void> _openSession(VideoSession session, {required bool expandingFromMini}) async {
