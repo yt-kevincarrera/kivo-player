@@ -45,7 +45,7 @@ Mechanical but must be atomic — a partial removal does not compile.
 - Consumes: nothing.
 - Produces: `bool shouldReleaseVideoForBackground({required bool hasVideo, required bool inPip})` — the `audioOnly` parameter is gone. Task 2 calls this same function.
 
-- [ ] **Step 1: Update the pure-function test first (it defines the new signature)**
+- [x] **Step 1: Update the pure-function test first (it defines the new signature)**
 
 In `test/player/background/should_have_media_session_test.dart`, replace the `shouldReleaseVideoForBackground` test with:
 
@@ -61,12 +61,12 @@ In `test/player/background/should_have_media_session_test.dart`, replace the `sh
   });
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `flutter test test/player/background/should_have_media_session_test.dart`
 Expected: FAIL — the call passes 2 named args to a function that requires 3 (`audioOnly` missing).
 
-- [ ] **Step 3: Change the function and the coordinator**
+- [x] **Step 3: Change the function and the coordinator**
 
 In `lib/player/background/background_playback.dart`:
 
@@ -97,7 +97,7 @@ Update the call site in `didChangeAppLifecycleState`:
 
 Remove the `import 'audio_only.dart';` line.
 
-- [ ] **Step 4: Strip the ducking path from the coordinator**
+- [x] **Step 4: Strip the ducking path from the coordinator**
 
 Ducking existed only to serve audio-only ("music-player listening"). Every other case pauses. In `lib/player/background/background_playback.dart`:
 
@@ -135,7 +135,7 @@ Ducking existed only to serve audio-only ("music-player listening"). Every other
 
 - Remove the now-unused imports: `../../core/settings/settings_provider.dart` and `../control/gesture_math.dart`. Keep `../control/player_controller.dart` (used by `onSkip`/`onSeek`).
 
-- [ ] **Step 5: Delete the mode's own files**
+- [x] **Step 5: Delete the mode's own files**
 
 ```bash
 git rm lib/player/background/audio_only.dart lib/ui/player/audio_only/audio_only_view.dart test/player/background/audio_only_test.dart test/ui/player/audio_only_view_test.dart
@@ -143,7 +143,7 @@ git rm lib/player/background/audio_only.dart lib/ui/player/audio_only/audio_only
 
 Then remove the `audioOnly` icon from `lib/core/icons/kivo_icons.dart` (the `static final String audioOnly = _wrap(...)` block at line 106).
 
-- [ ] **Step 6: Collapse the UI branches**
+- [x] **Step 6: Collapse the UI branches**
 
 `lib/ui/player/controls/controls_overlay.dart` — drop the `audio_only.dart` import, the `audioOnly` local, and the layout fork:
 
@@ -187,7 +187,7 @@ and replace the `if (audioOnly) Positioned(…) else const Center(child: CenterC
 
 `lib/ui/player/player_screen.dart` — remove: the two imports (lines 18 and 28), the `late final AudioOnlyNotifier _audioOnly;` field, its assignment in `initState`, the `_audioOnly.disable();` line in `dispose`, the whole `ref.listen(audioOnlyProvider, …)` block in `build`, and the `const Positioned.fill(child: AudioOnlyView()),` entry with its two comment lines.
 
-- [ ] **Step 7: Fix the remaining tests**
+- [x] **Step 7: Fix the remaining tests**
 
 Run `flutter test` and fix every compile error from the removed symbols:
 - `test/player/background/background_playback_test.dart` — drop the `audio_only.dart` import and any audio-only test; add a duck test:
@@ -210,7 +210,7 @@ If `FakeMediaSessionBridge` has no `duckStart()`/`duckEnd()` helpers, add them n
 
 - `test/ui/player/player_gestures_test.dart` — drop the "center band is inert in audio-only" case and the import.
 
-- [ ] **Step 8: Run the full suite**
+- [x] **Step 8: Run the full suite**
 
 Run: `flutter test`
 Expected: PASS, with 4+ fewer tests than before and zero references to `audioOnly` left:
@@ -221,7 +221,7 @@ git grep -n "audioOnly\|audio_only" -- lib test
 
 Expected: no output.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add -A
@@ -253,7 +253,7 @@ auto-resumes, which was already the behavior for every other case."
 - Consumes: `shouldReleaseVideoForBackground({hasVideo, inPip})` from Task 1.
 - Produces: `Stream<bool> frameReadyStream(Stream<int?> widthStream, bool Function() videoOutputEnabled)`, `bool shouldRetryVideoAttach({required bool enabled, required bool hasVideoSize})`, and `PlaybackEngine.ensureVideoOutputAttached() → Future<void>`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `test/player/engine/frame_ready_test.dart`:
 
@@ -303,12 +303,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `flutter test test/player/engine/frame_ready_test.dart`
 Expected: FAIL — `frame_ready.dart` does not exist.
 
-- [ ] **Step 3: Write the pure helpers**
+- [x] **Step 3: Write the pure helpers**
 
 Create `lib/player/engine/frame_ready.dart`:
 
@@ -340,12 +340,12 @@ bool shouldRetryVideoAttach({
     enabled && !hasVideoSize;
 ```
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `flutter test test/player/engine/frame_ready_test.dart`
 Expected: PASS (3 tests).
 
-- [ ] **Step 5: Add `ensureVideoOutputAttached` to the interface**
+- [x] **Step 5: Add `ensureVideoOutputAttached` to the interface**
 
 In `lib/player/engine/playback_engine.dart`, update the `hasVideoFrameStream` doc (drop the "Stays false for audio-only" sentence) and add:
 
@@ -356,7 +356,7 @@ In `lib/player/engine/playback_engine.dart`, update the `hasVideoFrameStream` do
   Future<void> ensureVideoOutputAttached();
 ```
 
-- [ ] **Step 6: Wire the engine**
+- [x] **Step 6: Wire the engine**
 
 In `lib/player/engine/media_kit_engine.dart`, add the import `import 'frame_ready.dart';`, the field, and replace the two members:
 
@@ -397,7 +397,7 @@ In `lib/player/engine/media_kit_engine.dart`, add the import `import 'frame_read
   }
 ```
 
-- [ ] **Step 7: Add the fake's override**
+- [x] **Step 7: Add the fake's override**
 
 In `test/fakes/fakes.dart`, next to `videoTrackEnabled`:
 
@@ -408,7 +408,7 @@ In `test/fakes/fakes.dart`, next to `videoTrackEnabled`:
   Future<void> ensureVideoOutputAttached() async => ensureAttachCalls++;
 ```
 
-- [ ] **Step 8: Write the failing coordinator test**
+- [x] **Step 8: Write the failing coordinator test**
 
 In `test/player/background/background_playback_test.dart`:
 
@@ -427,12 +427,12 @@ In `test/player/background/background_playback_test.dart`:
   });
 ```
 
-- [ ] **Step 9: Run to verify it fails**
+- [x] **Step 9: Run to verify it fails**
 
 Run: `flutter test test/player/background/background_playback_test.dart`
 Expected: FAIL — `ensureAttachCalls` is 0 (the coordinator does not call it yet).
 
-- [ ] **Step 10: Call it from the coordinator**
+- [x] **Step 10: Call it from the coordinator**
 
 In `lib/player/background/background_playback.dart`, in `didChangeAppLifecycleState`'s `resumed` branch:
 
@@ -457,12 +457,12 @@ And in the `pipModeProvider` listener's reattach (same failure mode — a black 
       }
 ```
 
-- [ ] **Step 11: Run the full suite**
+- [x] **Step 11: Run the full suite**
 
 Run: `flutter test`
 Expected: PASS — including `test/ui/player/video_ready_test.dart` **unchanged** (a fresh open still re-arms the cover, because `_openSession` seeds it explicitly).
 
-- [ ] **Step 12: Commit**
+- [x] **Step 12: Commit**
 
 ```bash
 git add -A
@@ -487,7 +487,7 @@ fails to bring its output back."
 **Interfaces:**
 - Produces: `KivoSettings.gestureMapShown` (bool, default `false`), settable via `copyWith(gestureMapShown: true)`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to the settings test file (create it with the usual imports if it does not exist):
 
@@ -505,12 +505,12 @@ Add to the settings test file (create it with the usual imports if it does not e
 
 If the existing file uses different constructor/serialization helper names, match them — check the top of `kivo_settings.dart` first.
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `flutter test test/core/settings/kivo_settings_test.dart`
 Expected: FAIL — `gestureMapShown` is not defined.
 
-- [ ] **Step 3: Add the field in all six places**
+- [x] **Step 3: Add the field in all six places**
 
 Follow `offeredAllFilesAccess` exactly. Field declaration next to the other one-shot flags:
 
@@ -520,12 +520,12 @@ Follow `offeredAllFilesAccess` exactly. Field declaration next to the other one-
 
 constructor `required this.gestureMapShown,` · `defaults()` → `gestureMapShown: false,` · `copyWith` param `bool? gestureMapShown,` and body `gestureMapShown: gestureMapShown ?? this.gestureMapShown,` · `toJson` → `'gestureMapShown': gestureMapShown,` · `fromJson` → `gestureMapShown: m['gestureMapShown'] ?? d.gestureMapShown,`.
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `flutter test test/core/settings/kivo_settings_test.dart`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
@@ -546,7 +546,7 @@ The map must draw the zones the gestures actually use, so both read one source.
 **Interfaces:**
 - Produces: `kTapCenterStart = 0.33`, `kTapCenterEnd = 0.67`, `kCenterRotateFraction = 0.30`, `kLateralEdgeMargin = 38.0`, `kVerticalDeadMargin = 24.0`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to `test/player/control/gesture_math_test.dart`:
 
@@ -566,12 +566,12 @@ Add to `test/player/control/gesture_math_test.dart`:
   });
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `flutter test test/player/control/gesture_math_test.dart`
 Expected: FAIL — the `k…` constants are undefined.
 
-- [ ] **Step 3: Add the constants and use them as the defaults**
+- [x] **Step 3: Add the constants and use them as the defaults**
 
 In `lib/player/control/gesture_math.dart`:
 
@@ -603,12 +603,12 @@ In `lib/ui/player/gestures/player_gestures.dart`, replace the two private fields
   static const _lateralMargin = kLateralEdgeMargin;
 ```
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `flutter test test/player/control/gesture_math_test.dart && flutter test test/ui/player/player_gestures_test.dart`
 Expected: PASS both.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
@@ -627,7 +627,7 @@ git commit -m "refactor(gestures): promote the zone constants so the gesture map
 - Consumes: `KivoSettings` (Task 3's field is not needed here).
 - Produces: `enum MapZone { leftThird, centerThird, rightThird, leftHalf, rightHalf, centerBand, lateralEdges, fullWidth, footer, topBar, bottomBar }`, `enum HintArrow { vertical, horizontal, down }`, `enum MapIcon { back, info, subtitles, pip, audio, more, speed, lock, aspect, rotate }`, `class GestureHint { MapZone zone; String label; HintArrow? arrow; MapIcon? icon; }`, `class GestureMapPage { String title; List<GestureHint> hints; }`, and `List<GestureMapPage> gestureMapPages(KivoSettings s, {required bool pipSupported})`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `test/ui/player/tutorial/gesture_map_content_test.dart`:
 
@@ -694,12 +694,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `flutter test test/ui/player/tutorial/gesture_map_content_test.dart`
 Expected: FAIL — `gesture_map_content.dart` does not exist.
 
-- [ ] **Step 3: Write the content**
+- [x] **Step 3: Write the content**
 
 Create `lib/ui/player/tutorial/gesture_map_content.dart`:
 
@@ -807,12 +807,12 @@ List<GestureMapPage> gestureMapPages(
     ];
 ```
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `flutter test test/ui/player/tutorial/gesture_map_content_test.dart`
 Expected: PASS (7 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
@@ -834,7 +834,7 @@ git commit -m "feat(tutorial): pure content for the gesture map, derived from th
 - Consumes: Task 5's content types; `kTapCenterStart`, `kTapCenterEnd`, `kCenterRotateFraction`, `kLateralEdgeMargin` from Task 4.
 - Produces: `Route<void> gestureMapRoute()`, `class GestureMapScreen extends ConsumerStatefulWidget`, `final pipSupportedProvider = FutureProvider<bool>(…)`.
 
-- [ ] **Step 1: Write the failing widget test**
+- [x] **Step 1: Write the failing widget test**
 
 Create `test/ui/player/tutorial/gesture_map_page_test.dart`:
 
@@ -895,12 +895,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `flutter test test/ui/player/tutorial/gesture_map_page_test.dart`
 Expected: FAIL — `gesture_map_route.dart` does not exist.
 
-- [ ] **Step 3: Promote the PiP-support provider**
+- [x] **Step 3: Promote the PiP-support provider**
 
 The page needs it and it is currently private to the top bar. In `lib/platform/pip_controller_provider.dart` add:
 
@@ -917,7 +917,7 @@ In `lib/ui/player/controls/top_bar.dart`, delete the private `_pipSupportedProvi
             final supported = ref.watch(pipSupportedProvider).value ?? false;
 ```
 
-- [ ] **Step 4: Write the page**
+- [x] **Step 4: Write the page**
 
 Create `lib/ui/player/tutorial/gesture_map_page.dart`. Requirements, all verifiable from the test above plus the Global Constraints:
 
@@ -937,7 +937,7 @@ Create `lib/ui/player/tutorial/gesture_map_page.dart`. Requirements, all verifia
 - Footer: page dots (filled = current) and one button — `Siguiente` on pages 1-2, `Entendido` on the last — which advances the `PageController` or `Navigator.of(context).pop()`s.
 - Everything wrapped in `SafeArea`.
 
-- [ ] **Step 5: Write the route**
+- [x] **Step 5: Write the route**
 
 Create `lib/ui/player/tutorial/gesture_map_route.dart`:
 
@@ -963,17 +963,17 @@ Route<void> gestureMapRoute() => PageRouteBuilder<void>(
     );
 ```
 
-- [ ] **Step 6: Run to verify it passes**
+- [x] **Step 6: Run to verify it passes**
 
 Run: `flutter test test/ui/player/tutorial/gesture_map_page_test.dart`
 Expected: PASS.
 
-- [ ] **Step 7: Run the full suite**
+- [x] **Step 7: Run the full suite**
 
 Run: `flutter test`
 Expected: PASS (the top-bar change must not break its tests).
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add -A
@@ -995,7 +995,7 @@ cannot drift from the behavior."
 - Consumes: `gestureMapRoute()` (Task 6), `KivoSettings.gestureMapShown` (Task 3).
 - Produces: nothing.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/ui/player/gesture_map_first_open_test.dart`, reusing the container setup from `test/ui/player/video_ready_test.dart` (copy its `NoopControls` and `_container` helpers verbatim — same overrides):
 
@@ -1059,12 +1059,12 @@ Create `test/ui/player/gesture_map_first_open_test.dart`, reusing the container 
 
 Add the imports the helpers need plus `package:kivo_player/ui/player/tutorial/gesture_map_route.dart` is **not** needed (the map is reached through the screen). If `SettingsService.update` has a different name, match the real API.
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `flutter test test/ui/player/gesture_map_first_open_test.dart`
 Expected: FAIL on the first test — "Toques" is not found (nothing pushes the map).
 
-- [ ] **Step 3: Add the trigger**
+- [x] **Step 3: Add the trigger**
 
 In `lib/ui/player/player_screen.dart`, add the import `import 'tutorial/gesture_map_route.dart';` and, at the end of `_start()` (after the rate is applied), append:
 
@@ -1091,17 +1091,17 @@ In `lib/ui/player/player_screen.dart`, add the import `import 'tutorial/gesture_
   }
 ```
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `flutter test test/ui/player/gesture_map_first_open_test.dart`
 Expected: PASS (2 tests).
 
-- [ ] **Step 5: Run the full suite**
+- [x] **Step 5: Run the full suite**
 
 Run: `flutter test`
 Expected: PASS. If other player-screen widget tests now find an unexpected map (they use fresh `InMemorySettingsStore`s, so `gestureMapShown` is false), fix them by seeding `gestureMapShown: true` in their settings — the map is expected behavior on a virgin install, so the tests must opt out, not the feature.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add -A
@@ -1120,7 +1120,7 @@ git commit -m "feat(tutorial): show the gesture map on the first ever video open
 - Consumes: `gestureMapRoute()` (Task 6).
 - Produces: nothing.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/ui/settings/gesture_map_entry_test.dart`:
 
@@ -1155,12 +1155,12 @@ void main() {
 If the row sits below the fold, scroll to it first with
 `await tester.scrollUntilVisible(find.text('Ver el mapa de gestos'), 300);`.
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `flutter test test/ui/settings/gesture_map_entry_test.dart`
 Expected: FAIL — no widget with that text.
 
-- [ ] **Step 3: Add the row**
+- [x] **Step 3: Add the row**
 
 In `lib/ui/settings/sections/playback_gestures_section.dart`, add the imports (`../../player/tutorial/gesture_map_route.dart`, `../../../core/icons/kivo_icons.dart`) and, as the FIRST card in the `ListView` (before `Doble toque` — it is the overview of everything below it):
 
@@ -1179,12 +1179,12 @@ In `lib/ui/settings/sections/playback_gestures_section.dart`, add the imports (`
 
 Check `SettingNavRow`'s constructor at `lib/ui/settings/widgets/setting_tiles.dart:34` and match the `icon` parameter's real type (a `KivoIcons` SVG string vs an `IconData`).
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `flutter test test/ui/settings/gesture_map_entry_test.dart`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
@@ -1197,17 +1197,17 @@ git commit -m "feat(settings): reopen the gesture map from Reproducción y gesto
 
 **Files:** none (verification only).
 
-- [ ] **Step 1: Full suite + analyzer**
+- [x] **Step 1: Full suite + analyzer**
 
 Run: `flutter analyze && flutter test`
 Expected: no analyzer issues (dead imports from Task 1 would show here), all tests pass.
 
-- [ ] **Step 2: Confirm the mode is really gone**
+- [x] **Step 2: Confirm the mode is really gone**
 
 Run: `git grep -n "audioOnly\|audio_only\|Solo audio" -- lib test`
 Expected: no output.
 
-- [ ] **Step 3: Build and install the release APK on the Pixel 6**
+- [x] **Step 3: Build and install the release APK on the Pixel 6**
 
 ```bash
 flutter build apk --release && adb -s 24231FDF6006ST install -r build/app/outputs/flutter-apk/app-release.apk
@@ -1215,7 +1215,7 @@ flutter build apk --release && adb -s 24231FDF6006ST install -r build/app/output
 
 Expected: `Success`.
 
-- [ ] **Step 4: Hand the device checklist to the user**
+- [x] **Step 4: Hand the device checklist to the user**
 
 Report these as the things only a human on the device can confirm:
 1. First open on a fresh install (clear app data) shows the map, pauses, and resumes on `Entendido`; a second open does not show it.
