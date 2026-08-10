@@ -276,9 +276,8 @@ class MainActivity : FlutterFragmentActivity() {
                                     MediaStore.Video.Media.DATA,
                                     MediaStore.Video.Media.WIDTH,
                                     MediaStore.Video.Media.HEIGHT,
-                                    MediaStore.Video.Media.RELATIVE_PATH,
                                 )
-                                contentResolver.query(col, proj, null, null,
+                                queryVideos(col, proj,
                                     "${MediaStore.Video.Media.DATE_ADDED} DESC")?.use { c ->
                                     val idC = c.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
                                     val nameC = c.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
@@ -289,13 +288,15 @@ class MainActivity : FlutterFragmentActivity() {
                                     val dataC = c.getColumnIndex(MediaStore.Video.Media.DATA)
                                     val widthC = c.getColumnIndex(MediaStore.Video.Media.WIDTH)
                                     val heightC = c.getColumnIndex(MediaStore.Video.Media.HEIGHT)
+                                    // -1 whenever the column wasn't queried or isn't there.
                                     val relPathC = c.getColumnIndex(MediaStore.Video.Media.RELATIVE_PATH)
                                     while (c.moveToNext()) {
                                         val id = c.getLong(idC)
                                         val uri = ContentUris.withAppendedId(col, id).toString()
+                                        val data = if (dataC >= 0) c.getString(dataC) else null
                                         var folder = if (bucketC >= 0) c.getString(bucketC) else null
-                                        if (folder.isNullOrEmpty() && dataC >= 0) {
-                                            folder = c.getString(dataC)?.let { File(it).parentFile?.name }
+                                        if (folder.isNullOrEmpty() && data != null) {
+                                            folder = File(data).parentFile?.name
                                         }
                                         out.add(hashMapOf(
                                             "id" to id.toString(),
@@ -307,7 +308,8 @@ class MainActivity : FlutterFragmentActivity() {
                                             "dateAddedMs" to c.getLong(dateC) * 1000L, // DATE_ADDED is seconds
                                             "width" to (if (widthC >= 0) c.getInt(widthC) else 0),
                                             "height" to (if (heightC >= 0) c.getInt(heightC) else 0),
-                                            "path" to (if (relPathC >= 0) (c.getString(relPathC) ?: "") else ""),
+                                            "path" to relativePathOf(
+                                                if (relPathC >= 0) c.getString(relPathC) else null, data),
                                         ))
                                     }
                                 }
@@ -530,19 +532,22 @@ class MainActivity : FlutterFragmentActivity() {
                                         MediaStore.Video.Media._ID,
                                         MediaStore.Video.Media.DISPLAY_NAME,
                                         MediaStore.Video.Media.DATA,
-                                        MediaStore.Video.Media.RELATIVE_PATH,
                                         MediaStore.Video.Media.DURATION,
                                         MediaStore.Video.Media.SIZE,
                                         MediaStore.Video.Media.DATE_ADDED,
                                         MediaStore.Video.Media.WIDTH,
                                         MediaStore.Video.Media.HEIGHT,
                                     )
-                                    contentResolver.query(u, proj, null, null, null)?.use { c ->
+                                    queryVideos(u, proj)?.use { c ->
                                         if (!c.moveToFirst()) return@use
                                         val id = c.getString(c.getColumnIndexOrThrow(MediaStore.Video.Media._ID))
                                         val name = c.getString(c.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)) ?: "$id"
                                         val data = c.getColumnIndex(MediaStore.Video.Media.DATA).let { if (it >= 0) c.getString(it) else null }
-                                        val rel = c.getColumnIndex(MediaStore.Video.Media.RELATIVE_PATH).let { if (it >= 0) (c.getString(it) ?: "") else "" }
+                                        val rel = relativePathOf(
+                                            c.getColumnIndex(MediaStore.Video.Media.RELATIVE_PATH)
+                                                .let { if (it >= 0) c.getString(it) else null },
+                                            data,
+                                        )
                                         val dur = c.getLong(c.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION))
                                         val size = c.getLong(c.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE))
                                         val date = c.getLong(c.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED)) * 1000L
@@ -886,6 +891,47 @@ class MainActivity : FlutterFragmentActivity() {
                 if (c.moveToFirst()) c.getString(0) else null
             }
         } catch (_: Exception) { null }
+    }
+
+    /// MediaStore's RELATIVE_PATH column only exists from API 29 (Android 10) on.
+    /// Below that the provider's SQLite schema has no such column, so naming it in
+    /// a projection makes the WHOLE query fail to compile ("no such column
+    /// relative_path") instead of just yielding -1 from getColumnIndex.
+    private val hasRelativePath: Boolean
+        get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+
+    /// Queries video rows with RELATIVE_PATH appended only where the OS version
+    /// says it exists — and, if the provider rejects it anyway, retries without it.
+    /// The version check covers stock Android; the retry covers vendor-forked
+    /// providers that report API 29+ but still lack the column. Losing the column
+    /// costs a folder name (derived from _data instead); losing the query costs
+    /// the whole library.
+    private fun queryVideos(
+        uri: Uri,
+        columns: Array<String>,
+        sortOrder: String? = null,
+    ): android.database.Cursor? {
+        if (!hasRelativePath) return contentResolver.query(uri, columns, null, null, sortOrder)
+        val withRelPath = arrayOf(*columns, MediaStore.Video.Media.RELATIVE_PATH)
+        return try {
+            contentResolver.query(uri, withRelPath, null, null, sortOrder)
+        } catch (e: Exception) {
+            android.util.Log.w("kivo/media",
+                "query rejected ${MediaStore.Video.Media.RELATIVE_PATH} (${e.message}); retrying without it")
+            contentResolver.query(uri, columns, null, null, sortOrder)
+        }
+    }
+
+    /// The folder a row lives in, relative to the storage root, MediaStore style
+    /// ("Movies/"). Read from RELATIVE_PATH where available, otherwise derived
+    /// from the _data path so pre-Android-10 devices still get a real folder.
+    private fun relativePathOf(relPath: String?, data: String?): String {
+        if (!relPath.isNullOrEmpty()) return relPath
+        val parent = data?.takeIf { it.isNotEmpty() }?.let { File(it).parent } ?: return ""
+        val root = Environment.getExternalStorageDirectory().absolutePath.trimEnd('/')
+        if (!parent.startsWith(root)) return "" // removable volume: unknown root
+        val rel = parent.removePrefix(root).trim('/')
+        return if (rel.isEmpty()) "" else "$rel/"
     }
 
     /// The vault directory: a hidden folder in shared storage (same volume as the
