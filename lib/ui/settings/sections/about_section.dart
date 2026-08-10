@@ -7,6 +7,7 @@ import '../../../platform/app_installer_provider.dart';
 import '../../update/update_dialog.dart';
 import '../../widgets/failure_snack_bar.dart';
 import '../widgets/setting_tiles.dart';
+import 'error_log_section.dart';
 
 class AboutSection extends ConsumerStatefulWidget {
   const AboutSection({super.key});
@@ -85,6 +86,16 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
             onChanged: (v) => ref.read(settingsProvider.notifier)
                 .set(ref.read(settingsProvider).copyWith(autoCheckUpdates: v)),
           ),
+          const SizedBox(height: 20),
+          SettingsCard(children: [
+            SettingNavRow(
+              icon: Icons.bug_report_outlined,
+              title: 'Registro de errores',
+              subtitle: 'Los últimos fallos, con su detalle técnico',
+              onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const ErrorLogSection())),
+            ),
+          ]),
         ],
       ),
     );
