@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../errors/error_log_provider.dart';
 import '../settings/settings_provider.dart';
 import '../../platform/app_installer_provider.dart';
 import '../../platform/interfaces/app_installer.dart';
@@ -21,7 +22,8 @@ class UpdateResult {
 }
 
 final updateCheckerProvider = Provider<UpdateChecker>(
-    (ref) => GithubUpdateChecker(() => ref.read(appInstallerProvider).primaryAbi()));
+    (ref) => GithubUpdateChecker(() => ref.read(appInstallerProvider).primaryAbi(),
+        log: ref.read(errorLogProvider)));
 
 class UpdateController {
   final Ref _ref;

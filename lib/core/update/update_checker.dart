@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import '../errors/error_log.dart';
+import '../errors/kivo_failure.dart';
 import 'update_info.dart';
 
 abstract class UpdateChecker {
@@ -9,8 +11,11 @@ abstract class UpdateChecker {
 }
 
 class GithubUpdateChecker implements UpdateChecker {
-  GithubUpdateChecker(this._primaryAbi);
+  GithubUpdateChecker(this._primaryAbi, {ErrorLog? log}) : _log = log;
   final Future<String> Function() _primaryAbi;
+
+  /// Optional so existing tests can build a checker without a log.
+  final ErrorLog? _log;
 
   static final Uri _endpoint = Uri.parse(
       'https://api.github.com/repos/yt-kevincarrera/kivo-player/releases/latest');
@@ -45,7 +50,9 @@ class GithubUpdateChecker implements UpdateChecker {
     } catch (e) {
       // The UI only ever shows "no se pudo comprobar", so log the real reason —
       // a missing INTERNET permission in the release manifest looked identical
-      // to being offline and cost a debugging round-trip.
+      // to being offline and cost a debugging round-trip. The log makes that
+      // reason readable from the device instead of only over adb.
+      _log?.record(KivoFailure(KivoOp.updateCheck, e));
       debugPrint('UpdateChecker.fetchLatest failed: $e');
       return null;
     } finally {
