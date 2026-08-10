@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/errors/kivo_failure.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../core/update/update_providers.dart';
 import '../../../platform/app_installer_provider.dart';
 import '../../update/update_dialog.dart';
+import '../../widgets/failure_snack_bar.dart';
 import '../widgets/setting_tiles.dart';
 
 class AboutSection extends ConsumerStatefulWidget {
@@ -35,7 +37,7 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
         case UpdateStatus.upToDate:
           messenger.showSnackBar(const SnackBar(content: Text('Estás al día ✓')));
         case UpdateStatus.error:
-          messenger.showSnackBar(const SnackBar(content: Text('No se pudo comprobar')));
+          showFailureSnackBar(context, KivoOp.updateCheck);
       }
     } finally {
       if (mounted) setState(() => _checking = false);

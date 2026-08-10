@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/errors/kivo_failure.dart';
 import '../../../vault/vault_entry.dart';
 import '../../../vault/vault_providers.dart';
 import '../../../vault/vault_selection.dart';
+import '../../widgets/failure_snack_bar.dart';
 
 /// Bottom action bar shown while selecting inside the Vault. Mirrors
 /// SelectionBottomBar (thumb-reachable). Delete-forever keeps a confirmation
@@ -33,7 +35,16 @@ class VaultBottomBar extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _action(cs.onSurface, Icons.lock_open_outlined, 'Sacar del Vault', enabled ? () async {
-                final ok = await ref.read(vaultEntriesProvider.notifier).unhide(chosen);
+                final bool ok;
+                try {
+                  ok = await ref.read(vaultEntriesProvider.notifier).unhide(chosen);
+                } on KivoFailure catch (f) {
+                  sel.clear();
+                  if (context.mounted) {
+                    showFailureSnackBar(context, f.op, cause: f.cause);
+                  }
+                  return;
+                }
                 sel.clear();
                 messenger.showSnackBar(SnackBar(content: Text(
                     ok ? '${chosen.length} devueltos a la galería' : 'No se pudieron sacar todos')));
@@ -53,7 +64,16 @@ class VaultBottomBar extends ConsumerWidget {
                   ),
                 );
                 if (ok != true) return;
-                final done = await ref.read(vaultEntriesProvider.notifier).deleteForever(chosen);
+                final bool done;
+                try {
+                  done = await ref.read(vaultEntriesProvider.notifier).deleteForever(chosen);
+                } on KivoFailure catch (f) {
+                  sel.clear();
+                  if (context.mounted) {
+                    showFailureSnackBar(context, f.op, cause: f.cause);
+                  }
+                  return;
+                }
                 sel.clear();
                 messenger.showSnackBar(SnackBar(content: Text(
                     done ? '${chosen.length} borrados' : 'No se pudieron borrar todos')));

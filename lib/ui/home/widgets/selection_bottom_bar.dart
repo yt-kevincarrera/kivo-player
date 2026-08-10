@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/errors/kivo_failure.dart';
 import '../../../platform/interfaces/media_file_ops.dart';
 import '../../../platform/interfaces/media_indexer.dart';
 import '../../../player/library/media_index.dart';
 import '../../../player/library/video_actions.dart';
 import '../../vault/vault_entry_actions.dart';
+import '../../widgets/failure_snack_bar.dart';
 import '../state/library_selection.dart';
 import 'video_options_sheet.dart'; // maybeOfferAllFilesAccess
 
@@ -68,8 +70,8 @@ class SelectionBottomBar extends ConsumerWidget {
                 if (status == FileOpStatus.ok) {
                   messenger.showSnackBar(SnackBar(content: Text('${chosen.length} videos borrados')));
                   sel.clear();
-                } else if (status == FileOpStatus.error) {
-                  messenger.showSnackBar(const SnackBar(content: Text('No se pudieron borrar')));
+                } else if (status == FileOpStatus.error && context.mounted) {
+                  showFailureSnackBar(context, KivoOp.delete);
                 }
               } : null),
             ],

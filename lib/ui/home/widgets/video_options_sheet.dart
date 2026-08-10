@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/errors/kivo_failure.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../platform/all_files_access_provider.dart';
 import '../../../platform/interfaces/all_files_access.dart';
@@ -7,6 +8,7 @@ import '../../../platform/interfaces/media_file_ops.dart';
 import '../../../platform/interfaces/media_indexer.dart';
 import '../../../player/library/video_actions.dart';
 import '../../vault/vault_entry_actions.dart';
+import '../../widgets/failure_snack_bar.dart';
 import 'rename_dialog.dart';
 import 'video_details_sheet.dart';
 
@@ -127,8 +129,8 @@ Future<void> showVideoOptions(BuildContext context, WidgetRef ref, VideoItem v) 
         await maybeOfferAllFilesAccess(context, ref);
         if (!context.mounted) return;
         final r = await ref.read(videoActionsProvider).rename(v, base);
-        if (r.status == FileOpStatus.error) {
-          messenger.showSnackBar(const SnackBar(content: Text('No se pudo renombrar')));
+        if (r.status == FileOpStatus.error && context.mounted) {
+          showFailureSnackBar(context, KivoOp.rename);
         }
       },
       onDelete: () async {
@@ -154,8 +156,8 @@ Future<void> showVideoOptions(BuildContext context, WidgetRef ref, VideoItem v) 
         final status = await ref.read(videoActionsProvider).delete(v);
         if (status == FileOpStatus.ok) {
           messenger.showSnackBar(const SnackBar(content: Text('Video borrado')));
-        } else if (status == FileOpStatus.error) {
-          messenger.showSnackBar(const SnackBar(content: Text('No se pudo borrar')));
+        } else if (status == FileOpStatus.error && context.mounted) {
+          showFailureSnackBar(context, KivoOp.delete);
         }
       },
     ),
