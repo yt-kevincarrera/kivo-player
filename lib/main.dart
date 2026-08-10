@@ -78,7 +78,7 @@ Future<void> main() async {
       resumeServiceProvider.overrideWithValue(resumeService),
       playedStoreProvider.overrideWithValue(HivePlayedStore(playedBox)),
       frameExtractorProvider.overrideWithValue(AndroidFrameExtractor()),
-      mediaIndexerProvider.overrideWithValue(AndroidMediaIndexer()),
+      mediaIndexerProvider.overrideWithValue(AndroidMediaIndexer(errorLog)),
       mediaFileOpsProvider.overrideWithValue(AndroidMediaFileOps()),
       mediaPermissionImplProvider.overrideWithValue(PermissionHandlerMediaPermission()),
       subtitleFinderProvider.overrideWithValue(AndroidSubtitleFinder()),
