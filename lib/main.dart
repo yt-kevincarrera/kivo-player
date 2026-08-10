@@ -87,7 +87,7 @@ Future<void> main() async {
       allFilesAccessProvider.overrideWithValue(AndroidAllFilesAccess()),
       errorLogProvider.overrideWithValue(errorLog),
       appInstallerProvider.overrideWithValue(installer),
-      vaultOpsProvider.overrideWithValue(AndroidVaultOps()),
+      vaultOpsProvider.overrideWithValue(AndroidVaultOps(errorLog)),
       vaultStoreProvider.overrideWithValue(HiveVaultStore(vaultBox)),
       vaultCredentialStoreProvider.overrideWithValue(HiveVaultCredentialStore(vaultCredsBox)),
       biometricAuthProvider.overrideWithValue(LocalAuthBiometric()),

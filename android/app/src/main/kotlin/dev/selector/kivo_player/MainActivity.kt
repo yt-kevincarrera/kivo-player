@@ -588,7 +588,12 @@ class MainActivity : FlutterFragmentActivity() {
                                             ))
                                         }
                                     }
-                                } catch (_: Exception) { /* skip this uri */ }
+                                } catch (e: Exception) {
+                                    // Skip this uri but leave a trace: a batch that
+                                    // silently hides fewer files than asked for is
+                                    // indistinguishable from success.
+                                    android.util.Log.w("kivo/vault", "hide skipped $uriStr: ${e.message}")
+                                }
                             }
                             runOnUiThread { result.success(out) }
                         }
