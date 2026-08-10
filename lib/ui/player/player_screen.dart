@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+import '../../core/errors/error_log_provider.dart';
+import '../../core/errors/kivo_failure.dart';
 import '../../core/settings/settings_provider.dart';
 import '../../platform/device_controls_provider.dart';
 import '../../platform/volume_keys.dart';
@@ -19,6 +21,7 @@ import '../../player/engine/playback_engine.dart';
 import '../../player/engine/playback_provider.dart';
 import '../../player/library/played.dart';
 import '../../player/loop/ab_loop.dart';
+import '../../player/open/guarded_open.dart';
 import '../../player/open/video_source.dart';
 import '../../player/resume/resume_plan.dart';
 import '../../player/resume/resume_service.dart';
@@ -46,6 +49,7 @@ import 'state/player_dismiss_state.dart';
 import 'state/video_ready_state.dart';
 import 'state/queue_strip_state.dart';
 import 'tutorial/gesture_map_route.dart';
+import '../widgets/failure_snack_bar.dart';
 
 class PlayerScreen extends ConsumerStatefulWidget {
   const PlayerScreen({super.key});
@@ -240,7 +244,16 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     if (!expandingFromMini) {
       final plan = planResume(
           _resume.positionFor(_resumeKey!), ref.read(settingsProvider).resumeBehavior);
-      await engine.open(session.playbackPath, startAt: plan.startAt);
+      try {
+        await guardedOpen(engine, session.playbackPath,
+            ref.read(errorLogProvider), startAt: plan.startAt);
+      } on KivoFailure catch (f) {
+        // Report and stop setting this session up. A failed open must not
+        // replace the whole player with an error screen — the previous video
+        // may still be playing behind it.
+        if (mounted) showFailureSnackBar(context, f.op, cause: f.cause);
+        return;
+      }
       if (plan.prompt != ResumePromptKind.none) {
         ref.read(resumePromptProvider.notifier).state =
             ResumePromptState(plan.prompt, plan.savedPosition);

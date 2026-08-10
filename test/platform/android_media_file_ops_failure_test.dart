@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kivo_player/core/errors/error_log.dart';
 import 'package:kivo_player/platform/android/android_media_file_ops.dart';
 import 'package:kivo_player/platform/interfaces/media_file_ops.dart';
-import '../fakes/fakes.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

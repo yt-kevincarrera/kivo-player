@@ -27,18 +27,6 @@ class InMemorySettingsStore implements SettingsStore {
   Future<void> write(Map<String, dynamic> data) async => _data = data;
 }
 
-class InMemoryErrorLogStore implements ErrorLogStore {
-  List<Map<String, dynamic>> data = [];
-  int writeCount = 0;
-  @override
-  List<Map<String, dynamic>> read() => data;
-  @override
-  Future<void> write(List<Map<String, dynamic>> entries) async {
-    writeCount++;
-    data = entries;
-  }
-}
-
 class ThrowingErrorLogStore implements ErrorLogStore {
   @override
   List<Map<String, dynamic>> read() => throw StateError('read boom');
@@ -65,6 +53,9 @@ class FakePlaybackEngine implements PlaybackEngine {
   String? openedPath;
   Duration? openedAt;
   int openCount = 0;
+
+  /// Set to make [open] throw — for the KV-501 path.
+  Object? openError;
   Duration? lastSeek;
   bool? lastPlayingCommand;
   double rate = 1.0;
@@ -95,6 +86,7 @@ class FakePlaybackEngine implements PlaybackEngine {
 
   @override
   Future<void> open(String path, {Duration startAt = Duration.zero}) async {
+    if (openError != null) throw openError!;
     openedPath = path;
     openedAt = startAt;
     openCount++;

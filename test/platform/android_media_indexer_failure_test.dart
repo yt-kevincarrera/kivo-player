@@ -4,7 +4,6 @@ import 'package:kivo_player/core/errors/error_log.dart';
 import 'package:kivo_player/core/errors/kivo_failure.dart';
 import 'package:kivo_player/platform/android/android_media_indexer.dart';
 import 'package:kivo_player/platform/interfaces/media_indexer.dart';
-import '../fakes/fakes.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

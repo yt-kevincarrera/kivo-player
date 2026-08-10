@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/errors/error_log_provider.dart';
 import '../../core/settings/settings_provider.dart';
 import '../../platform/frame_extractor_provider.dart';
 import '../../platform/subtitle_finder_provider.dart';
@@ -6,6 +7,7 @@ import '../../ui/player/state/mini_player_state.dart';
 import '../engine/playback_provider.dart';
 import '../library/played.dart';
 import '../loop/ab_loop.dart';
+import '../open/guarded_open.dart';
 import '../open/video_source.dart';
 import '../resume/resume_plan.dart';
 import '../sleep/sleep_timer.dart';
@@ -69,7 +71,8 @@ class AutoplayCoordinator {
       final plan = planResume(
         _ref.read(resumeServiceProvider).positionFor(next.resumeKey),
         settings.resumeBehavior);
-      await engine.open(next.playbackPath, startAt: plan.startAt);
+      await guardedOpen(engine, next.playbackPath,
+          _ref.read(errorLogProvider), startAt: plan.startAt);
       await engine.play();
       applyDefaultTracks(
         engine: engine, settings: settings, session: next,

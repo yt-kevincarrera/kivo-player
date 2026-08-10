@@ -5,7 +5,6 @@ import 'package:kivo_player/core/errors/error_log.dart';
 import 'package:kivo_player/core/errors/error_log_provider.dart';
 import 'package:kivo_player/core/errors/kivo_failure.dart';
 import 'package:kivo_player/ui/settings/sections/error_log_section.dart';
-import '../fakes/fakes.dart';
 
 ErrorLog _emptyLog() =>
     ErrorLog(InMemoryErrorLogStore(), appVersion: '1.1.0', androidSdk: 28);

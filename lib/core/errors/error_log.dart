@@ -64,6 +64,18 @@ class HiveErrorLogStore implements ErrorLogStore {
       box.put(_key, entries);
 }
 
+/// Keeps entries for this session only. Unlike a platform channel, a log works
+/// fine without its backing store, so this is a legitimate default rather than
+/// a test-only stand-in.
+class InMemoryErrorLogStore implements ErrorLogStore {
+  List<Map<String, dynamic>> _data = const [];
+  @override
+  List<Map<String, dynamic>> read() => _data;
+  @override
+  Future<void> write(List<Map<String, dynamic>> entries) async =>
+      _data = entries;
+}
+
 /// A ring buffer of the last [maxEntries] failures, newest first.
 ///
 /// Every store access is wrapped: this is a diagnostic aid, and one that can
