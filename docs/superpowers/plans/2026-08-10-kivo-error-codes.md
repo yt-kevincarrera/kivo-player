@@ -33,7 +33,7 @@
 - Consumes: nothing.
 - Produces: `enum KivoOp` (values listed below), `const kivoErrorCatalog` of type `Map<KivoOp, ({String code, String message})>`, and `class KivoFailure implements Exception` with `KivoFailure(KivoOp op, Object cause)`, getters `String code`, `String message`, `String detail`. Every later task depends on these exact names.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/core/errors/kivo_failure_test.dart`:
 
@@ -86,12 +86,12 @@ void main() {
 
 The last test is the one that matters most: the original bug reached the user because a screen interpolated `'$e'`. Making `toString()` safe means that mistake can't leak again even if someone repeats it.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `flutter test test/core/errors/kivo_failure_test.dart`
 Expected: FAIL — `Error: Couldn't resolve the package 'kivo_player' … kivo_failure.dart` / target of URI doesn't exist.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Create `lib/core/errors/kivo_failure.dart`:
 
@@ -166,12 +166,12 @@ class KivoFailure implements Exception {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `flutter test test/core/errors/kivo_failure_test.dart`
 Expected: PASS, 5 tests.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add lib/core/errors/kivo_failure.dart test/core/errors/kivo_failure_test.dart
@@ -200,7 +200,7 @@ git commit -m "feat(errors): KivoFailure type and the KV-nnn code catalog"
 
 The `now` injection keeps the timestamp test deterministic.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `test/fakes/fakes.dart` (add `import 'package:kivo_player/core/errors/error_log.dart';` at the top with the other imports):
 
@@ -308,12 +308,12 @@ void main() {
 
 The last test is load-bearing: a diagnostic aid that can throw is worse than none.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `flutter test test/core/errors/error_log_test.dart`
 Expected: FAIL — target of URI doesn't exist for `core/errors/error_log.dart`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Create `lib/core/errors/error_log.dart`:
 
@@ -452,12 +452,12 @@ class ErrorLog {
 Note `_store.write` is not awaited inside `record` — recording must never make a
 failing operation slower to report, and the Hive box write is already ordered.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `flutter test test/core/errors/error_log_test.dart`
 Expected: PASS, 7 tests.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add lib/core/errors/error_log.dart test/core/errors/error_log_test.dart test/fakes/fakes.dart
@@ -487,7 +487,7 @@ version. `AppInstaller` already owns `appVersion()` and `primaryAbi()` on the
 `kivo/update` channel, so `androidSdk()` belongs there rather than in a new
 device-info dependency.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/core/errors/error_log_provider_test.dart`:
 
@@ -523,12 +523,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `flutter test test/core/errors/error_log_provider_test.dart`
 Expected: FAIL — target of URI doesn't exist for `core/errors/error_log_provider.dart`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Create `lib/core/errors/error_log_provider.dart`:
 
@@ -601,7 +601,7 @@ and reuse the same instance for the existing installer override — replace
 not two. Add the imports for `core/errors/error_log.dart` and
 `core/errors/error_log_provider.dart`.
 
-- [ ] **Step 4: Run the full suite**
+- [x] **Step 4: Run the full suite**
 
 Run: `flutter test`
 Expected: PASS. Adding `androidSdk()` to the `AppInstaller` interface breaks any
@@ -611,7 +611,7 @@ other implementer — if a test fake beyond `FakeAppInstaller` implements
 Run: `flutter analyze`
 Expected: no issues.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add lib/core/errors/error_log_provider.dart lib/main.dart lib/platform/interfaces/app_installer.dart lib/platform/android/android_app_installer.dart android/app/src/main/kotlin/dev/selector/kivo_player/MainActivity.kt test/fakes/fakes.dart test/core/errors/error_log_provider_test.dart
@@ -631,7 +631,7 @@ git commit -m "feat(errors): wire the error log into the app with device context
 - Consumes: `KivoFailure`, `KivoOp`, `ErrorLog`.
 - Produces: `AndroidMediaIndexer(ErrorLog log)` — the constructor gains a required positional argument. `scan()` throws `KivoFailure(KivoOp.libraryScan, cause)`; `thumbnail(id)` records `KivoOp.thumbnail` and returns `null` rather than throwing (a missing thumbnail must not take down a grid of 200 tiles).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/platform/android_media_indexer_failure_test.dart`:
 
@@ -701,12 +701,12 @@ void main() {
 `catchError` needs a callback returning the same element type `scan()` does,
 hence the explicit `<VideoItem>[]`.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `flutter test test/platform/android_media_indexer_failure_test.dart`
 Expected: FAIL — `AndroidMediaIndexer` takes no arguments (1 positional given).
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Rewrite `lib/platform/android/android_media_indexer.dart`:
 
@@ -763,7 +763,7 @@ class AndroidMediaIndexer implements MediaIndexer {
 In `lib/main.dart`, change the override to
 `mediaIndexerProvider.overrideWithValue(AndroidMediaIndexer(errorLog))`.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `flutter test test/platform/android_media_indexer_failure_test.dart`
 Expected: PASS, 3 tests.
@@ -771,7 +771,7 @@ Expected: PASS, 3 tests.
 Run: `flutter test`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add lib/platform/android/android_media_indexer.dart lib/main.dart test/platform/android_media_indexer_failure_test.dart
@@ -801,7 +801,7 @@ Batch semantics, exactly as the spec fixes them — a partially successful batch
 | Zero entries for a non-empty request | `throw KivoFailure(vaultHide, …)` → KV-401 |
 | Empty request | return empty, log nothing |
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/platform/android_vault_ops_failure_test.dart`:
 
@@ -895,13 +895,13 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `flutter test test/platform/android_vault_ops_failure_test.dart`
 Expected: FAIL — `AndroidVaultOps` takes no arguments; `hide` currently returns
 `const []` instead of throwing.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Rewrite `lib/platform/android/android_vault_ops.dart`:
 
@@ -1016,7 +1016,7 @@ with:
 In `lib/main.dart`, change the override to
 `vaultOpsProvider.overrideWithValue(AndroidVaultOps(errorLog))`.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `flutter test test/platform/android_vault_ops_failure_test.dart`
 Expected: PASS, 6 tests.
@@ -1025,7 +1025,7 @@ Run: `flutter test`
 Expected: PASS. `hide` now throws where it used to return `[]`, so any caller or
 test that relied on the swallow needs a `try`/`catch` — Task 9 wires the UI ones.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add lib/platform/android/android_vault_ops.dart lib/main.dart android/app/src/main/kotlin/dev/selector/kivo_player/MainActivity.kt test/platform/android_vault_ops_failure_test.dart
@@ -1054,7 +1054,7 @@ changing them would ripple through the UI for no gain — and only add recording
 As the spec's follow-up notes, `detail` will be thin for KV-301/KV-302 until the
 Kotlin side returns a reason instead of `'error'`. That is out of scope here.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/platform/android_media_file_ops_failure_test.dart`:
 
@@ -1129,12 +1129,12 @@ void main() {
 The cancelled test matters: the user tapping "cancel" on the system dialog is not
 a failure and must not fill the log with noise.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `flutter test test/platform/android_media_file_ops_failure_test.dart`
 Expected: FAIL — `AndroidMediaFileOps` takes no arguments.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Rewrite `lib/platform/android/android_media_file_ops.dart`:
 
@@ -1264,7 +1264,7 @@ In `lib/main.dart`, update the three overrides to pass `errorLog`:
 `mediaPermissionImplProvider.overrideWithValue(PermissionHandlerMediaPermission(errorLog))`,
 and pass `log: errorLog` where the update checker is constructed.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `flutter test test/platform/android_media_file_ops_failure_test.dart`
 Expected: PASS, 5 tests.
@@ -1272,7 +1272,7 @@ Expected: PASS, 5 tests.
 Run: `flutter test` and `flutter analyze`
 Expected: PASS, no issues.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add lib/platform/android/android_media_file_ops.dart lib/platform/android/permission_handler_media_permission.dart lib/core/update/update_checker.dart lib/main.dart test/platform/android_media_file_ops_failure_test.dart
@@ -1298,7 +1298,7 @@ function from `Object` to something displayable. `FailureView.from` returns a
 shows a code — an unrecognised error with no code would be exactly the hole this
 work is closing.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/ui/failure_view_test.dart`:
 
@@ -1356,12 +1356,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `flutter test test/ui/failure_view_test.dart`
 Expected: FAIL — target of URI doesn't exist for `ui/widgets/failure_view.dart`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Add to the catalog in `lib/core/errors/kivo_failure.dart` a value for
 unclassified errors, keeping the append-only rule (`999` is reserved for it):
@@ -1535,7 +1535,7 @@ and add `import '../widgets/failure_view.dart';`. Confirm the retry target: if
 the provider that feeds `_body()` is named differently, invalidate the one
 `ref.watch(mediaIndexProvider)` reads on line 259.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `flutter test test/ui/failure_view_test.dart`
 Expected: PASS, 5 tests.
@@ -1546,7 +1546,7 @@ Expected: PASS — the catalog tests now cover `KivoOp.unknown` too.
 Run: `flutter test`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add lib/ui/widgets/failure_view.dart lib/core/errors/kivo_failure.dart lib/ui/home/library_screen.dart test/ui/failure_view_test.dart
@@ -1573,7 +1573,7 @@ Taking a `KivoOp` rather than a `KivoFailure` keeps the call sites short at the
 places that only know *which* operation failed, not why — which is most of them,
 because the file-op adapters return statuses.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/ui/failure_snack_bar_test.dart`:
 
@@ -1612,12 +1612,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `flutter test test/ui/failure_snack_bar_test.dart`
 Expected: FAIL — target of URI doesn't exist for `ui/widgets/failure_snack_bar.dart`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Create `lib/ui/widgets/failure_snack_bar.dart`:
 
@@ -1682,7 +1682,7 @@ Read each of these six call sites before editing: keep the surrounding
 failure branch. Add the imports for `failure_snack_bar.dart` and, where the
 `catch` is used, `core/errors/kivo_failure.dart`.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `flutter test test/ui/failure_snack_bar_test.dart`
 Expected: PASS.
@@ -1692,7 +1692,7 @@ Expected: PASS, no issues. Existing widget tests asserting the old copy (e.g.
 `'No se pudo borrar'`) will fail — update them to the new string; that is the
 intended change, not a regression.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add lib/ui/widgets/failure_snack_bar.dart lib/ui/home/widgets/video_options_sheet.dart lib/ui/home/widgets/selection_bottom_bar.dart lib/ui/settings/sections/about_section.dart lib/ui/vault/widgets/vault_bottom_bar.dart lib/ui/vault/vault_entry_actions.dart test/ui/failure_snack_bar_test.dart
@@ -1716,7 +1716,7 @@ Placed under *Acerca de* next to the version and the update check — the app's
 other diagnostic corner — rather than in the Settings root, keeping a
 developer-facing tool out of the main list.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/ui/error_log_section_test.dart`:
 
@@ -1784,13 +1784,13 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `flutter test test/ui/error_log_section_test.dart`
 Expected: FAIL — target of URI doesn't exist for
 `ui/settings/sections/error_log_section.dart`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Create `lib/ui/settings/sections/error_log_section.dart`:
 
@@ -1962,7 +1962,7 @@ In `about_section.dart`, add after the "Buscar automáticamente" switch:
 with `import 'error_log_section.dart';`. `SettingsCard` and `SettingNavRow` are
 already imported there via `../widgets/setting_tiles.dart`.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `flutter test test/ui/error_log_section_test.dart`
 Expected: PASS, 4 tests.
@@ -1970,7 +1970,7 @@ Expected: PASS, 4 tests.
 Run: `flutter test` and `flutter analyze`
 Expected: PASS, no issues.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add lib/ui/settings/sections/error_log_section.dart lib/ui/settings/sections/about_section.dart test/ui/error_log_section_test.dart
@@ -1995,7 +1995,7 @@ Today a throwing `_player.open` is an unhandled async error and the user gets a
 black screen with no message at all. This is the one place in the plan that adds a
 message where there was none, rather than replacing a bad one.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/player/open_failure_test.dart`:
 
@@ -2042,12 +2042,12 @@ and at the top of its `open` implementation:
     if (openError != null) throw openError!;
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `flutter test test/player/open_failure_test.dart`
 Expected: FAIL — `guardedOpen` is not defined.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Create `lib/player/open/guarded_open.dart`:
 
@@ -2087,7 +2087,7 @@ the coordinator) and route it through `guardedOpen` the same way, catching
 cause: f.cause)` — a failed open must not replace the whole player with a
 full-screen error while something may still be playing.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `flutter test test/player/open_failure_test.dart`
 Expected: PASS, 2 tests.
@@ -2095,7 +2095,7 @@ Expected: PASS, 2 tests.
 Run: `flutter test` and `flutter analyze`
 Expected: PASS, no issues.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add lib/player/open/guarded_open.dart lib/player/autoplay/autoplay_coordinator.dart test/player/open_failure_test.dart test/fakes/fakes.dart
@@ -2108,7 +2108,7 @@ git commit -m "feat(errors): a failed video open reports KV-501 instead of a bla
 
 **Files:** none — verification only.
 
-- [ ] **Step 1: Confirm the suite and the analyzer are clean**
+- [x] **Step 1: Confirm the suite and the analyzer are clean**
 
 Run: `flutter test`
 Expected: PASS, every test.
@@ -2116,7 +2116,7 @@ Expected: PASS, every test.
 Run: `flutter analyze`
 Expected: No issues found.
 
-- [ ] **Step 2: Build and install a release APK**
+- [x] **Step 2: Build and install a release APK**
 
 ```bash
 flutter build apk --release
