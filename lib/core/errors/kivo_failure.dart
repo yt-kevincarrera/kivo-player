@@ -15,6 +15,10 @@ enum KivoOp {
   openVideo,
   updateCheck,
   updateInstall,
+
+  /// Anything that reached the UI without being classified. Having a code for
+  /// "we don't know" is the point: an uncoded error is the hole this closes.
+  unknown,
 }
 
 /// Code and copy for each operation, grouped by domain:
@@ -42,6 +46,8 @@ const kivoErrorCatalog = <KivoOp, ({String code, String message})>{
       (code: 'KV-601', message: 'No pudimos comprobar si hay actualizaciones'),
   KivoOp.updateInstall:
       (code: 'KV-602', message: 'No pudimos instalar la actualización'),
+  KivoOp.unknown:
+      (code: 'KV-999', message: 'Algo no salió como esperábamos'),
 };
 
 /// A failure the user is allowed to see: a friendly [message], a quotable

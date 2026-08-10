@@ -18,6 +18,7 @@ import '../../player/open/video_source.dart';
 import '../player/controls/resume_prompt.dart';
 import '../player/player_route.dart';
 import '../vault/vault_entry_actions.dart';
+import '../widgets/failure_view.dart';
 import 'folder_screen.dart';
 import 'state/library_filter_state.dart';
 import 'state/library_selection.dart';
@@ -259,13 +260,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     final index = ref.watch(mediaIndexProvider);
     return index.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, __) => Center(
-        child: Text(
-          'Error: $e',
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-        ),
+      error: (e, __) => FailureView.from(
+        e,
+        onRetry: () => ref.invalidate(mediaIndexProvider),
       ),
       data: (videos) {
         if (ref.watch(librarySearchActiveProvider)) {
