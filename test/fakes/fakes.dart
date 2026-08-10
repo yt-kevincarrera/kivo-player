@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:typed_data';
+import 'package:kivo_player/core/errors/error_log.dart';
 import 'package:kivo_player/core/settings/settings_store.dart';
 import 'package:kivo_player/core/update/update_checker.dart';
 import 'package:kivo_player/core/update/update_info.dart';
@@ -24,6 +25,26 @@ class InMemorySettingsStore implements SettingsStore {
   Map<String, dynamic>? read() => _data;
   @override
   Future<void> write(Map<String, dynamic> data) async => _data = data;
+}
+
+class InMemoryErrorLogStore implements ErrorLogStore {
+  List<Map<String, dynamic>> data = [];
+  int writeCount = 0;
+  @override
+  List<Map<String, dynamic>> read() => data;
+  @override
+  Future<void> write(List<Map<String, dynamic>> entries) async {
+    writeCount++;
+    data = entries;
+  }
+}
+
+class ThrowingErrorLogStore implements ErrorLogStore {
+  @override
+  List<Map<String, dynamic>> read() => throw StateError('read boom');
+  @override
+  Future<void> write(List<Map<String, dynamic>> entries) async =>
+      throw StateError('write boom');
 }
 
 class FakePlaybackEngine implements PlaybackEngine {
