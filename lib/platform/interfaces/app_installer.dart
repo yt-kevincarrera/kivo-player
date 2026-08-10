@@ -8,6 +8,7 @@ enum InstallOutcome {
 abstract class AppInstaller {
   Future<String> appVersion();   // BuildConfig.VERSION_NAME, e.g. "1.0.0"
   Future<String> primaryAbi();   // Build.SUPPORTED_ABIS[0], e.g. "arm64-v8a"
+  Future<int> androidSdk();      // Build.VERSION.SDK_INT — logged with each failure
   Future<InstallOutcome> downloadAndInstall(String url, String fileName);
   Future<void> openUrl(String url);
 }

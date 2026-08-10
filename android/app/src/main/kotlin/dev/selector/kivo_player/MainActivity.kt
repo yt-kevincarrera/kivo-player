@@ -796,6 +796,7 @@ class MainActivity : FlutterFragmentActivity() {
                     "getAppVersion" -> result.success(
                         try { packageManager.getPackageInfo(packageName, 0).versionName } catch (_: Exception) { "" })
                     "primaryAbi" -> result.success(Build.SUPPORTED_ABIS.firstOrNull() ?: "arm64-v8a")
+                    "androidSdk" -> result.success(Build.VERSION.SDK_INT)
                     "openUrl" -> {
                         val url = call.argument<String>("url")
                         try {

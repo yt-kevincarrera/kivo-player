@@ -4,6 +4,8 @@ import 'package:media_kit/media_kit.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 import 'app.dart';
+import 'core/errors/error_log.dart';
+import 'core/errors/error_log_provider.dart';
 import 'core/settings/settings_store.dart';
 import 'core/settings/settings_service.dart';
 import 'core/settings/settings_provider.dart';
@@ -50,6 +52,17 @@ Future<void> main() async {
   final playedBox = await Hive.openBox('played');
   final vaultBox = await Hive.openBox('vault');
   final vaultCredsBox = await Hive.openBox('vaultCreds');
+  final errorsBox = await Hive.openBox('errors');
+
+  // The app version and API level are captured once and stamped on every
+  // recorded failure: a reported code is only useful with the device it came
+  // from.
+  final installer = AndroidAppInstaller();
+  final errorLog = ErrorLog(
+    HiveErrorLogStore(errorsBox),
+    appVersion: await installer.appVersion(),
+    androidSdk: await installer.androidSdk(),
+  );
 
   final settingsService = await SettingsService.load(HiveSettingsStore(settingsBox));
   final resumeService = ResumeService(
@@ -72,7 +85,8 @@ Future<void> main() async {
       mediaSessionProvider.overrideWithValue(AndroidMediaSessionBridge()),
       pipControllerProvider.overrideWithValue(AndroidPipController()),
       allFilesAccessProvider.overrideWithValue(AndroidAllFilesAccess()),
-      appInstallerProvider.overrideWithValue(AndroidAppInstaller()),
+      errorLogProvider.overrideWithValue(errorLog),
+      appInstallerProvider.overrideWithValue(installer),
       vaultOpsProvider.overrideWithValue(AndroidVaultOps()),
       vaultStoreProvider.overrideWithValue(HiveVaultStore(vaultBox)),
       vaultCredentialStoreProvider.overrideWithValue(HiveVaultCredentialStore(vaultCredsBox)),

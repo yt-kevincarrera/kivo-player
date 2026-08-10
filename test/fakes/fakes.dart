@@ -561,6 +561,9 @@ class FakeAppInstaller implements AppInstaller {
   Future<String> appVersion() async => version;
   @override
   Future<String> primaryAbi() async => abi;
+  int sdk = 34;
+  @override
+  Future<int> androidSdk() async => sdk;
   @override
   Future<InstallOutcome> downloadAndInstall(String url, String fileName) async {
     installed.add((url, fileName));
