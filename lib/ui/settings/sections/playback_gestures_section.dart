@@ -54,6 +54,25 @@ class PlaybackGesturesSection extends ConsumerWidget {
                 onChanged: (v) => n.set(s.copyWith(horizontalSeek: v))),
           ]),
           const SizedBox(height: 16),
+          _label(context, 'Zoom'),
+          SettingsCard(children: [
+            SettingSwitch(
+                title: 'Zoom con pinch',
+                subtitle: 'Pellizca para ampliar y arrastra para encuadrar',
+                value: s.pinchZoom,
+                onChanged: (v) => n.set(s.copyWith(pinchZoom: v))),
+            SettingSegmented<double>(
+                title: 'Zoom máximo', value: s.zoomMax,
+                options: const [(2.0, '2×'), (4.0, '4×'), (6.0, '6×'), (8.0, '8×')],
+                onChanged: (v) => n.set(s.copyWith(zoomMax: v))),
+            SettingSegmented<String>(
+                title: 'Reiniciar el zoom',
+                subtitle: 'Cuándo vuelve solo a 1×',
+                value: s.zoomResetMode,
+                options: const [('exit', 'Al salir'), ('video', 'Cada video'), ('never', 'Nunca')],
+                onChanged: (v) => n.set(s.copyWith(zoomResetMode: v))),
+          ]),
+          const SizedBox(height: 16),
           _label(context, 'Sensibilidad de gestos'),
           SettingsCard(children: [
             SettingSlider(

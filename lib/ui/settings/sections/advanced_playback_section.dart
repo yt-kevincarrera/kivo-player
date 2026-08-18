@@ -43,6 +43,11 @@ class AdvancedPlaybackSection extends ConsumerWidget {
             SettingSwitch(
               title: 'Miniatura flotante (PiP) al salir al inicio', value: s.pipAutoOnHome,
               onChanged: (v) => n.set(s.copyWith(pipAutoOnHome: v))),
+            SettingSwitch(
+              title: 'Seguir reproduciendo al minimizar',
+              subtitle: 'El audio continúa en la barra inferior en vez de pausarse',
+              value: s.minimizeKeepsPlaying,
+              onChanged: (v) => n.set(s.copyWith(minimizeKeepsPlaying: v))),
           ]),
           const SizedBox(height: 16),
           _label(context, 'Subtítulos y audio'),
