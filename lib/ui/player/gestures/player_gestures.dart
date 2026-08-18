@@ -12,6 +12,7 @@ import '../state/hud_state.dart';
 import '../state/lock_state.dart';
 import '../state/orientation_state.dart';
 import '../state/player_dismiss_state.dart';
+import '../state/zoom_state.dart';
 import '../seek/seek_preview.dart';
 import 'ripple_state.dart';
 import '../speed/speed_ladder_overlay.dart';
@@ -26,7 +27,6 @@ class PlayerGestures extends ConsumerStatefulWidget {
 class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   double _lastTapDx = 0;
   double _width = 1, _height = 1;
-  bool _leftSide = true;
   bool _holdLeft = false;
   bool _holding = false; // true while a hold-to-speed long-press is active
   double? _lastHoldSpeed;
@@ -39,20 +39,22 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   double _volCap = 100;
   Duration _seekStart = Duration.zero;
   double _seekAccum = 0;
-  bool _vDead = false;
-  bool _hDead = false;
-  bool _isDismiss = false; // true when the current vertical drag is a dismiss gesture
-  bool _isCenterRotate = false; // true when the current vertical drag began in the center rotate band
   double _rotateDy = 0; // accumulated vertical travel of a center-band drag
   bool _dismissHaptic = false; // fired the threshold-crossing tick once this drag
   double _topInset = 0;
   double _bottomInset = 0;
-  // Shared with the gesture map so the tutorial draws the real zones.
-  static const _deadMargin = kVerticalDeadMargin;
-  static const _lateralMargin = kLateralEdgeMargin;
 
-  bool _dead(double dy) =>
-      inVerticalDeadZone(dy, _height, _topInset, _bottomInset, _deadMargin);
+  // ── the drag state machine ───────────────────────────────────────────────
+  // A pinch cannot coexist with two drag-axis recognizers (GestureDetector
+  // throws), so ONE scale recognizer owns every drag and dispatches by pointer
+  // count and dominant axis. `_intent` is null until the gesture has travelled
+  // far enough to commit; see dragIntentFor.
+  DragIntent? _intent;
+  Offset _start = Offset.zero; // where the gesture began — dead zones are positional
+  Offset _accum = Offset.zero; // travel since the start
+  double _lastScale = 1.0; // previous ScaleUpdateDetails.scale, for the per-frame factor
+
+  Size get _viewport => Size(_width, _height);
 
   void _haptic() {
     if (ref.read(settingsProvider).hapticsOnGestures) HapticFeedback.lightImpact();
@@ -79,152 +81,208 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
     }
   }
 
-  void _onVerticalStart(DragStartDetails d) {
-    final dx = d.localPosition.dx;
-    final dy = d.localPosition.dy;
-    // Minimize lives only on the lateral edges.
-    _isDismiss = inLateralDeadZone(dx, _width, _lateralMargin);
-    if (_isDismiss) {
-      _dismissHaptic = false;
-      return;
-    }
-    _vDead = _dead(dy);
-    if (_vDead) return;
-    if (_holding) return; // a hold-to-speed gesture owns this touch
-    // Center band → swipe-to-rotate (discrete; fires on end), and only while the
-    // controls are hidden so it can't steal a drag from someone aiming at them.
-    _isCenterRotate =
-        !ref.read(controlsVisibleProvider) && inCenterRotateZone(dx, _width);
-    if (_isCenterRotate) {
-      _rotateDy = 0;
-      return;
-    }
-    _leftSide = dx < _width / 2;
-    _volPct = ref.read(volumePercentProvider);
-    _volCap = _volPct < 100
-        ? 100.0
-        : ref.read(settingsProvider).volumeBoostMax.toDouble();
-    ref.read(deviceControlsProvider).currentBrightness().then((b) => _brightness = b);
-    if (!_leftSide) {
-      // Mark volume gesture active so the system-volume listener in player_screen
-      // ignores hardware-key echo events during the drag (preserves boost >100).
-      ref.read(volumeGestureActiveProvider.notifier).state = true;
+  void _onScaleStart(ScaleStartDetails d) {
+    _start = d.localFocalPoint;
+    _accum = Offset.zero;
+    _lastScale = 1.0;
+    _intent = null;
+    _dismissHaptic = false;
+    _decide(d.pointerCount);
+  }
+
+  /// Resolves the intent once enough is known and seeds whatever that intent
+  /// needs. Idempotent: a decided intent is never re-decided.
+  void _decide(int pointerCount) {
+    if (_intent != null) return;
+    final st = ref.read(settingsProvider);
+    final next = dragIntentFor(
+      pointerCount: pointerCount,
+      pinchZoomEnabled: st.pinchZoom,
+      zoomActive: ref.read(zoomProvider).active,
+      start: _start,
+      delta: _accum,
+      viewport: _viewport,
+      topInset: _topInset,
+      bottomInset: _bottomInset,
+      controlsVisible: ref.read(controlsVisibleProvider),
+    );
+    if (next == null) return; // not enough travel yet
+    _intent = next;
+    switch (next) {
+      case DragIntent.brightness:
+        ref.read(deviceControlsProvider).currentBrightness().then((b) => _brightness = b);
+      case DragIntent.volume:
+        _volPct = ref.read(volumePercentProvider);
+        _volCap = _volPct < 100 ? 100.0 : st.volumeBoostMax.toDouble();
+        // Mark the volume gesture active so the system-volume listener in
+        // player_screen ignores hardware-key echo during the drag (preserves
+        // boost >100).
+        ref.read(volumeGestureActiveProvider.notifier).state = true;
+      case DragIntent.seek:
+        // The horizontalSeek setting is gated in the update below, not here:
+        // seeding start state is a harmless no-op when seek is off.
+        _seekStart = ref.read(positionProvider).value ?? Duration.zero;
+        _seekAccum = 0;
+      case DragIntent.rotate:
+        _rotateDy = 0;
+      case DragIntent.zoom:
+      case DragIntent.pan:
+      case DragIntent.dismiss:
+      case DragIntent.none:
+        break;
     }
   }
 
-  void _onVerticalUpdate(DragUpdateDetails d) {
-    if (_isCenterRotate) {
-      _rotateDy += d.delta.dy; // accumulate; the rotate fires on end
-      return;
+  void _onScaleUpdate(ScaleUpdateDetails d) {
+    // A second finger takes over: abandon whatever one-finger gesture was
+    // underway rather than letting the two fight over the same pointers.
+    if (d.pointerCount >= 2 &&
+        _intent != DragIntent.zoom &&
+        ref.read(settingsProvider).pinchZoom) {
+      _cancelIntent();
+      _intent = DragIntent.zoom;
+      _lastScale = d.scale;
     }
-    if (_isDismiss) {
-      // Drive dismiss progress live: clamp downward (0..1).
-      final current = ref.read(dismissProvider);
-      final fraction = (current + d.delta.dy / _height).clamp(0.0, 1.0);
-      ref.read(dismissProvider.notifier).state = fraction;
-      if (!_dismissHaptic && fraction >= 0.25) {
-        _dismissHaptic = true;
-        _haptic(); // tick once when crossing the commit threshold
-      }
-      return;
+    _accum += d.focalPointDelta;
+    if (_intent == null) {
+      _decide(d.pointerCount);
+      if (_intent == null) return;
     }
-    if (_vDead) return;
-    if (_holding) return; // don't change brightness/volume while holding to speed
+    if (_holding) return; // a hold-to-speed long-press owns this touch
     final st = ref.read(settingsProvider);
     final ctrl = ref.read(playerControllerProvider);
-    if (_leftSide) {
-      _brightness = dragValue(_brightness, d.delta.dy, _height, st.brightnessSensitivity);
-      ctrl.setBrightness(_brightness);
-      ref.read(hudProvider.notifier).show(HudKind.brightness, _brightness, '${(_brightness * 100).round()}%');
-    } else {
-      _volPct = dragVolumePercent(_volPct, d.delta.dy, _height, st.volumeSensitivity, _volCap);
-      ctrl.setVolumePercent(_volPct);
-      ref.read(hudProvider.notifier).show(HudKind.volume, _volPct / 100, '${_volPct.round()}%');
+    final zoom = ref.read(zoomProvider.notifier);
+    switch (_intent!) {
+      case DragIntent.none:
+        return;
+      case DragIntent.zoom:
+        final factor = _lastScale == 0 ? 1.0 : d.scale / _lastScale;
+        _lastScale = d.scale;
+        zoom.pinch(factor: factor, focal: d.localFocalPoint, viewport: _viewport);
+        // Two fingers reframe as well, so a pinch can be aimed without lifting.
+        zoom.panBy(d.focalPointDelta, _viewport);
+      case DragIntent.pan:
+        zoom.panBy(d.focalPointDelta, _viewport);
+      case DragIntent.dismiss:
+        // Drive dismiss progress live: clamp downward (0..1).
+        final current = ref.read(dismissProvider);
+        final fraction = (current + d.focalPointDelta.dy / _height).clamp(0.0, 1.0);
+        ref.read(dismissProvider.notifier).state = fraction;
+        if (!_dismissHaptic && fraction >= 0.25) {
+          _dismissHaptic = true;
+          _haptic(); // tick once when crossing the commit threshold
+        }
+      case DragIntent.rotate:
+        _rotateDy += d.focalPointDelta.dy; // accumulate; the rotate fires on end
+      case DragIntent.brightness:
+        _brightness =
+            dragValue(_brightness, d.focalPointDelta.dy, _height, st.brightnessSensitivity);
+        ctrl.setBrightness(_brightness);
+        ref.read(hudProvider.notifier).show(
+            HudKind.brightness, _brightness, '${(_brightness * 100).round()}%');
+      case DragIntent.volume:
+        _volPct = dragVolumePercent(
+            _volPct, d.focalPointDelta.dy, _height, st.volumeSensitivity, _volCap);
+        ctrl.setVolumePercent(_volPct);
+        ref.read(hudProvider.notifier).show(HudKind.volume, _volPct / 100, '${_volPct.round()}%');
+      case DragIntent.seek:
+        if (!st.horizontalSeek) return;
+        final total = ref.read(durationProvider).value ?? Duration.zero;
+        // Bar-like absolute mapping: accumulate raw horizontal travel and scale
+        // a full-width drag at ms precision (× sensitivity).
+        _seekAccum += d.focalPointDelta.dx;
+        final target = horizontalSeekTarget(
+            start: _seekStart, accumPx: _seekAccum, widthPx: _width,
+            total: total, sensitivity: st.seekSensitivity);
+        // Preview, don't live-seek: the video stays put while a centered card
+        // shows the target frame + delta; the seek lands on release.
+        ref.read(gestureSeekProvider.notifier).state = (target: target, from: _seekStart);
+        ref.read(seekPreviewControllerProvider).request(target);
     }
   }
 
-  void _onVerticalEnd(DragEndDetails d) {
-    // Always clear the volume-gesture flag so hardware-key events resume updating
-    // Kivo's volume model (regardless of whether this was a volume or dismiss drag).
+  void _onScaleEnd(ScaleEndDetails d) {
+    // Always clear the volume-gesture flag so hardware-key events resume
+    // updating Kivo's volume model, whatever this drag turned out to be.
     ref.read(volumeGestureActiveProvider.notifier).state = false;
-    if (_isCenterRotate) {
-      _isCenterRotate = false;
-      final dy = _rotateDy;
-      _rotateDy = 0;
-      // Directional, not a toggle: swipe UP in portrait → landscape, DOWN in
-      // landscape → portrait. Anything shorter than the threshold, or pointing
-      // the other way, does nothing.
-      final target = swipeRotateTarget(ref.read(orientationProvider), dy);
-      if (target != null) {
-        ref.read(orientationProvider.notifier).rotateTo(target);
+    final intent = _intent;
+    _intent = null;
+    switch (intent) {
+      case DragIntent.rotate:
+        final dy = _rotateDy;
+        _rotateDy = 0;
+        // Directional, not a toggle: swipe UP in portrait → landscape, DOWN in
+        // landscape → portrait. Anything shorter than the threshold, or
+        // pointing the other way, does nothing.
+        final target = swipeRotateTarget(ref.read(orientationProvider), dy);
+        if (target != null) {
+          ref.read(orientationProvider.notifier).rotateTo(target);
+          _haptic();
+        }
+      case DragIntent.dismiss:
+        final progress = ref.read(dismissProvider);
+        final api = ref.read(playerDismissProvider);
+        if (dismissCommit(progress, d.velocity.pixelsPerSecond.dy)) {
+          if (api != null) {
+            api.complete();
+          } else {
+            // Defensive fallback if no PlayerScreen published the API.
+            ref.read(dismissProvider.notifier).state = 0;
+            Navigator.of(context).maybePop();
+          }
+        } else {
+          _cancelDismiss(api);
+        }
+      case DragIntent.seek:
+        final gesture = ref.read(gestureSeekProvider);
+        if (gesture == null) return; // never engaged (dead zone / seek off)
+        ref.read(playerControllerProvider).seekTo(gesture.target);
+        // Hold the seek bar (if visible) at the target until real position
+        // catches up, mirroring the bar's own release path.
+        ref.read(pendingSeekProvider.notifier).state = gesture.target;
+        ref.read(gestureSeekProvider.notifier).state = null; // hide the card
+        // Drop the last frame so the next swipe doesn't flash the previous target.
+        ref.read(seekPreviewFrameProvider.notifier).state = null;
         _haptic();
-      }
-      return;
+      case DragIntent.zoom:
+        // One disk write per pinch (only in 'never' mode), not sixty.
+        ref.read(zoomProvider.notifier).persistIfRemembered();
+      case DragIntent.pan:
+      case DragIntent.brightness:
+      case DragIntent.volume:
+      case DragIntent.none:
+      case null:
+        break;
     }
-    if (!_isDismiss) return;
-    _isDismiss = false;
-    final progress = ref.read(dismissProvider);
-    final velocityY = d.primaryVelocity ?? 0;
-    final api = ref.read(playerDismissProvider);
-    if (dismissCommit(progress, velocityY)) {
-      if (api != null) {
-        api.complete();
-      } else {
-        // Defensive fallback if no PlayerScreen published the API.
-        ref.read(dismissProvider.notifier).state = 0;
-        Navigator.of(context).maybePop();
-      }
+  }
+
+  /// Unwinds a one-finger gesture that a second finger just stole.
+  void _cancelIntent() {
+    switch (_intent) {
+      case DragIntent.dismiss:
+        _cancelDismiss(ref.read(playerDismissProvider));
+      case DragIntent.seek:
+        ref.read(gestureSeekProvider.notifier).state = null;
+        ref.read(seekPreviewFrameProvider.notifier).state = null;
+      default:
+        break;
+    }
+  }
+
+  void _cancelDismiss(PlayerDismissApi? api) {
+    if (api != null) {
+      api.cancel();
     } else {
-      api?.cancel();
+      ref.read(dismissProvider.notifier).state = 0;
     }
-  }
-
-  void _onHorizontalStart(DragStartDetails d) {
-    final dy = d.localPosition.dy;
-    final dx = d.localPosition.dx;
-    _hDead = _dead(dy) || inLateralDeadZone(dx, _width, _lateralMargin);
-    // The horizontalSeek setting is gated in _onHorizontalUpdate, not here:
-    // GestureDetector handlers can't be conditionally unregistered without a
-    // rebuild, and seeding start state is a harmless no-op when seek is off.
-    _seekStart = ref.read(positionProvider).value ?? Duration.zero;
-    _seekAccum = 0;
-  }
-
-  void _onHorizontalUpdate(DragUpdateDetails d) {
-    if (_hDead) return;
-    if (_holding) return; // don't scrub while holding to speed
-    final st = ref.read(settingsProvider);
-    if (!st.horizontalSeek) return;
-    final total = ref.read(durationProvider).value ?? Duration.zero;
-    // Bar-like absolute mapping: accumulate raw horizontal travel and scale a
-    // full-width drag to the whole video at ms precision (× sensitivity) —
-    // instead of a fixed 90s-per-screen nudge rounded to whole seconds.
-    _seekAccum += d.delta.dx;
-    final target = horizontalSeekTarget(
-        start: _seekStart, accumPx: _seekAccum, widthPx: _width,
-        total: total, sensitivity: st.seekSensitivity);
-    // Preview, don't live-seek: the video stays put while a centered card shows
-    // the target frame + delta; the seek lands on release (_onHorizontalEnd).
-    ref.read(gestureSeekProvider.notifier).state = (target: target, from: _seekStart);
-    ref.read(seekPreviewControllerProvider).request(target);
-  }
-
-  void _onHorizontalEnd(DragEndDetails d) {
-    final gesture = ref.read(gestureSeekProvider);
-    if (gesture == null) return; // gesture never engaged (dead zone / seek off)
-    final target = gesture.target;
-    ref.read(playerControllerProvider).seekTo(target);
-    // Hold the seek bar (if visible) at the target until real position catches
-    // up, mirroring the bar's own release path.
-    ref.read(pendingSeekProvider.notifier).state = target;
-    ref.read(gestureSeekProvider.notifier).state = null; // hide the card
-    // Drop the last frame so the next swipe doesn't flash the previous target.
-    ref.read(seekPreviewFrameProvider.notifier).state = null;
-    _haptic();
   }
 
   void _onLongPressStart(LongPressStartDetails d) {
-    if (_dead(d.localPosition.dy)) { _holding = false; return; }
+    if (inVerticalDeadZone(
+        d.localPosition.dy, _height, _topInset, _bottomInset, kVerticalDeadMargin)) {
+      _holding = false;
+      return;
+    }
     final st = ref.read(settingsProvider);
     final ctrl = ref.read(playerControllerProvider);
     _holding = true;
@@ -240,7 +298,8 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
     } else {
       _holdStartY = d.localPosition.dy;
       _holdBaseIndex = defaultHoldRightIndex(st.holdRightDetents);
-      final v = holdRightSpeedFor(_holdStartY, d.localPosition.dy, _holdStepPx, st.holdRightDetents, _holdBaseIndex);
+      final v = holdRightSpeedFor(
+          _holdStartY, d.localPosition.dy, _holdStepPx, st.holdRightDetents, _holdBaseIndex);
       ctrl.setRate(v);
       ref.read(holdSpeedProvider.notifier).state = v;
       ref.read(holdSpeedIsLadderProvider.notifier).state = true;
@@ -252,7 +311,8 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   void _onLongPressMove(LongPressMoveUpdateDetails d) {
     if (_holdLeft) return;
     final st = ref.read(settingsProvider);
-    final v = holdRightSpeedFor(_holdStartY, d.localPosition.dy, _holdStepPx, st.holdRightDetents, _holdBaseIndex);
+    final v = holdRightSpeedFor(
+        _holdStartY, d.localPosition.dy, _holdStepPx, st.holdRightDetents, _holdBaseIndex);
     ref.read(playerControllerProvider).setRate(v);
     ref.read(holdSpeedProvider.notifier).state = v;
     if (v != _lastHoldSpeed) { _haptic(); _lastHoldSpeed = v; }
@@ -295,12 +355,11 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
           onTap: () => ref.read(controlsVisibleProvider.notifier).toggle(),
           onDoubleTapDown: (d) => _lastTapDx = d.localPosition.dx,
           onDoubleTap: _onDoubleTap,
-          onVerticalDragStart: _onVerticalStart,
-          onVerticalDragUpdate: _onVerticalUpdate,
-          onVerticalDragEnd: _onVerticalEnd,
-          onHorizontalDragStart: _onHorizontalStart,
-          onHorizontalDragUpdate: _onHorizontalUpdate,
-          onHorizontalDragEnd: _onHorizontalEnd,
+          // One scale recognizer owns pinch, pan AND every one-finger drag —
+          // registering scale alongside both drag axes is a hard error.
+          onScaleStart: _onScaleStart,
+          onScaleUpdate: _onScaleUpdate,
+          onScaleEnd: _onScaleEnd,
           onLongPressStart: _onLongPressStart,
           onLongPressMoveUpdate: _onLongPressMove,
           onLongPressEnd: _onLongPressEnd,
