@@ -41,6 +41,9 @@ class GestureMapPage {
 String _speed(double v) =>
     '${v.toStringAsFixed(v == v.roundToDouble() ? 0 : 1)}×';
 
+/// Zoom factors are always whole in the picker (2/4/6/8), so no decimals.
+String _zoom(double v) => '${v.toStringAsFixed(0)}×';
+
 /// The whole tutorial, derived from what the user actually has configured: the
 /// numbers come from [s], and a gesture the user turned OFF is not taught.
 List<GestureMapPage> gestureMapPages(
@@ -72,6 +75,11 @@ List<GestureMapPage> gestureMapPages(
         const GestureHint(MapZone.centerBand,
             'Arrastra en el centro · Girar (con los controles ocultos)',
             arrow: HintArrow.vertical),
+        if (s.pinchZoom) ...[
+          GestureHint(MapZone.fullWidth, 'Pellizca · Zoom (hasta ${_zoom(s.zoomMax)})'),
+          const GestureHint(MapZone.footer,
+              'Con zoom, arrastra · Encuadrar · Toca la píldora para volver a 1×'),
+        ],
         GestureHint(MapZone.footer,
             'Mantén pulsado a la izquierda · ${_speed(s.holdLeftSpeed)}'),
         const GestureHint(MapZone.footer,

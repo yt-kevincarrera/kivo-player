@@ -32,6 +32,19 @@ void main() {
     expect(off[0].hints.any((h) => h.zone == MapZone.centerThird), false);
   });
 
+  test('the pinch-zoom hints are taught, and use the configured max', () {
+    final pages = gestureMapPages(base().copyWith(zoomMax: 6.0), pipSupported: true);
+    expect(labelsOf(pages[1]), contains('Pellizca · Zoom (hasta 6×)'));
+    expect(labelsOf(pages[1]),
+        contains('Con zoom, arrastra · Encuadrar · Toca la píldora para volver a 1×'));
+  });
+
+  test('the pinch-zoom hints disappear when pinch zoom is off', () {
+    final off = gestureMapPages(base().copyWith(pinchZoom: false), pipSupported: true);
+    expect(labelsOf(off[1]).any((l) => l.contains('Pellizca')), false);
+    expect(labelsOf(off[1]).any((l) => l.contains('Encuadrar')), false);
+  });
+
   test('the seek hint disappears when horizontal seek is off', () {
     final off = gestureMapPages(base().copyWith(horizontalSeek: false),
         pipSupported: true);
