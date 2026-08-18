@@ -74,6 +74,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   late final StateController<Uint8List?> _miniThumb;
   late final StateController<PlayerDismissApi?> _dismissApi;
   late final PipController _pip;
+  // Cached like every other service here: dispose() must not touch `ref`.
+  late final ZoomNotifier _zoom;
   StreamSubscription<double>? _sysVolSub;
   StreamSubscription<bool>? _frameSub; // engine's first-frame signal → videoFrameReadyProvider
   StreamSubscription<VolumeKeyEvent>? _volKeySub;
@@ -100,6 +102,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _miniThumb = ref.read(miniPlayerThumbnailProvider.notifier);
     _dismissApi = ref.read(playerDismissProvider.notifier);
     _pip = ref.read(pipControllerProvider);
+    _zoom = ref.read(zoomProvider.notifier);
     _pip.setCallbacks(PipCallbacks(
       onModeChanged: (inPip) {
         if (mounted) ref.read(pipModeProvider.notifier).state = inPip;
@@ -187,6 +190,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     // still on screen when the user jumped to another video.
     ref.read(dismissProvider.notifier).state = 0;
     _dismissing = false;
+    // A genuine video change (not re-expanding the same session from the
+    // mini-bar) drops the zoom — but only in 'video' reset mode.
+    if (!expandingFromMini) _zoom.onVideoChanged();
     ref.read(resumePromptProvider.notifier).state = null;
     ref.read(restartRequestProvider.notifier).state = 0;
     ref.read(playerMinimizedProvider.notifier).state = false;
@@ -413,6 +419,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _deviceControls.setVolumeKeyInterception(false);
     _frameSub?.cancel();
     _dismissCtl.dispose();
+    // Deferred for the same reason as the _dismissApi clear below: writing to a
+    // provider synchronously inside dispose() can land in the middle of this
+    // frame's tree finalization and throw.
+    scheduleMicrotask(_zoom.onPlayerExit);
     // Deferred: writing to a provider synchronously inside dispose() can hit
     // "Tried to modify a provider while the widget tree was building" when
     // this dispose runs as part of the same frame's tree finalization (e.g.
