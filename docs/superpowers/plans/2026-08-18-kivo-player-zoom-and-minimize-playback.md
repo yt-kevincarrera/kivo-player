@@ -36,7 +36,7 @@
 **Interfaces:**
 - Produces: `KivoSettings.pinchZoom` (`bool`, default `true`), `.zoomMax` (`double`, default `4.0`), `.zoomResetMode` (`String`, default `'exit'`, one of `'exit' | 'video' | 'never'`), `.zoomRemembered` (`double`, default `1.0`), `.minimizeKeepsPlaying` (`bool`, default `false`). Every later task consumes these.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/core/settings/kivo_settings_zoom_minimize_test.dart`:
 
@@ -87,12 +87,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `flutter test test/core/settings/kivo_settings_zoom_minimize_test.dart`
 Expected: FAIL — compile errors, `pinchZoom` isn't defined on `KivoSettings`.
 
-- [ ] **Step 3: Add the fields**
+- [x] **Step 3: Add the fields**
 
 In `lib/core/settings/kivo_settings.dart`, add to the `final` declaration block (next to the other gesture fields, after `hapticsOnGestures`):
 
@@ -162,12 +162,12 @@ Add to `fromMap` (note the `toDouble()` — JSON round-trips whole numbers as `i
       minimizeKeepsPlaying: m['minimizeKeepsPlaying'] ?? d.minimizeKeepsPlaying,
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `flutter test test/core/settings/`
 Expected: PASS. Then `flutter analyze` clean and `flutter test` fully green.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add lib/core/settings/kivo_settings.dart test/core/settings/kivo_settings_zoom_minimize_test.dart
@@ -187,7 +187,7 @@ git commit -m "feat(settings): fields for pinch zoom and minimize playback"
 - Consumes: `KivoSettings.minimizeKeepsPlaying` from Task 1.
 - Produces: nothing later tasks depend on.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/ui/player/minimize_keeps_playing_test.dart`. Model it on the container-and-overrides setup in `test/ui/player/player_gestures_test.dart`; assert against `FakePlaybackEngine` from `test/fakes/fakes.dart`. Read that fake first and use whatever it exposes to observe pause/play state (it backs `playingProvider`, so `container.read(playingProvider).value` is the assertion of record).
 
@@ -235,12 +235,12 @@ void main() {
 
 If `FakePlaybackEngine` exposes no `playing` getter or no `open`, adapt to its real API rather than changing the fake — check `test/fakes/fakes.dart` first and use the same accessors the existing player tests use.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `flutter test test/ui/player/minimize_keeps_playing_test.dart`
 Expected: FAIL — the engine is still playing after the close tap.
 
-- [ ] **Step 3: Make the mini-bar pause on close**
+- [x] **Step 3: Make the mini-bar pause on close**
 
 In `lib/ui/mini_player/mini_player_bar.dart`, both exits must stop playback before clearing the minimized flag. Replace the `Dismissible`'s callback:
 
@@ -265,7 +265,7 @@ and the close button's:
 
 Add the `playback_provider.dart` import if it isn't there. Note the two callbacks live in different widgets (`_MiniPlayerBarState` and `_MiniPlayerContent`) — both have a `ref`.
 
-- [ ] **Step 4: Gate the pause on minimize**
+- [x] **Step 4: Gate the pause on minimize**
 
 In `lib/ui/player/player_screen.dart`, add a field next to `_dismissing`:
 
@@ -313,7 +313,7 @@ In `dispose()`, consult the cached field — never `ref`:
     if (!_keepPlayingOnMinimize) _engine.pause();
 ```
 
-- [ ] **Step 5: Extend the test to cover both settings**
+- [x] **Step 5: Extend the test to cover both settings**
 
 Append to the same test file a case per setting value, driving the real minimize path. The simplest honest assertion at this layer is on the decision, not the animation: pump a `PlayerScreen` route is heavy, so instead assert `_keepPlayingOnMinimize`'s effect through the mini-bar contract already covered plus a settings round-trip. If pumping the full player proves impractical in the harness, state that in the commit message and keep the mini-bar test as the behavioural guard — do not fake a passing assertion.
 
@@ -327,12 +327,12 @@ Append to the same test file a case per setting value, driving the real minimize
 
 Replace that comment with the actual copied body when writing the test — no placeholder bodies.
 
-- [ ] **Step 6: Run the tests**
+- [x] **Step 6: Run the tests**
 
 Run: `flutter test`
 Expected: all green. Then `flutter analyze` clean.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add lib/ui/player/player_screen.dart lib/ui/mini_player/mini_player_bar.dart test/ui/player/minimize_keeps_playing_test.dart
@@ -350,7 +350,7 @@ git commit -m "feat(player): minimizing can keep playback running"
 **Interfaces:**
 - Produces: `clampZoomOffset(Offset offset, double scale, Size viewport) -> Offset` and `zoomAt({required double scale, required Offset offset, required double factor, required Offset focal, required Size viewport, required double max}) -> ({double scale, Offset offset})`. Tasks 4 and 6 consume both.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/player/control/zoom_math_test.dart`:
 
@@ -404,12 +404,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `flutter test test/player/control/zoom_math_test.dart`
 Expected: FAIL — `zoom_math.dart` does not exist.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 Create `lib/player/control/zoom_math.dart`:
 
@@ -456,12 +456,12 @@ Offset clampZoomOffset(Offset offset, double scale, Size viewport) {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `flutter test test/player/control/zoom_math_test.dart`
 Expected: PASS (5 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add lib/player/control/zoom_math.dart test/player/control/zoom_math_test.dart
@@ -480,7 +480,7 @@ git commit -m "feat(player): focal-anchored zoom math with translation bounds"
 - Consumes: `clampZoomOffset`, `zoomAt` (Task 3); `KivoSettings.zoomMax`, `.zoomResetMode`, `.zoomRemembered` (Task 1).
 - Produces: `ZoomState({double scale, Offset offset})` with `bool get active`; `zoomProvider`; and on `ZoomNotifier`: `pinch({required double factor, required Offset focal, required Size viewport})`, `panBy(Offset delta, Size viewport)`, `reset()`, `onVideoChanged()`, `onPlayerExit()`, `persistIfRemembered()`. Tasks 5, 6 and 7 consume these exact names.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/ui/player/state/zoom_state_test.dart`:
 
@@ -581,12 +581,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `flutter test test/ui/player/state/zoom_state_test.dart`
 Expected: FAIL — `zoom_state.dart` does not exist.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 Create `lib/ui/player/state/zoom_state.dart`:
 
@@ -663,12 +663,12 @@ class ZoomNotifier extends Notifier<ZoomState> {
 final zoomProvider = NotifierProvider<ZoomNotifier, ZoomState>(ZoomNotifier.new);
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `flutter test test/ui/player/state/zoom_state_test.dart`
 Expected: PASS (7 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add lib/ui/player/state/zoom_state.dart test/ui/player/state/zoom_state_test.dart
@@ -687,7 +687,7 @@ git commit -m "feat(player): zoom state with configurable max and reset modes"
 - Consumes: the existing `inLateralDeadZone`, `inVerticalDeadZone`, `inCenterRotateZone` in the same file.
 - Produces: `enum DragIntent { none, zoom, pan, brightness, volume, seek, dismiss, rotate }`, `const double kIntentSlopPx`, and `DragIntent? dragIntentFor({...})` where **`null` means "not decided yet, keep waiting"** and `DragIntent.none` means "decided to ignore this drag". Task 6 consumes both.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `test/player/control/gesture_math_test.dart` (inside `main`), one case per routing-table row:
 
@@ -767,12 +767,12 @@ Append to `test/player/control/gesture_math_test.dart` (inside `main`), one case
 
 Add `import 'package:flutter/painting.dart';` at the top of the test file for `Size`/`Offset`.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `flutter test test/player/control/gesture_math_test.dart`
 Expected: FAIL — `dragIntentFor` is not defined.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 Append to `lib/player/control/gesture_math.dart` (and add `import 'dart:ui';` at the top for `Offset`/`Size`):
 
@@ -826,12 +826,12 @@ DragIntent? dragIntentFor({
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `flutter test test/player/control/gesture_math_test.dart`
 Expected: PASS — the new group plus every pre-existing test in the file.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add lib/player/control/gesture_math.dart test/player/control/gesture_math_test.dart
@@ -853,7 +853,7 @@ git commit -m "feat(player): pure drag-intent routing for the unified gesture la
 
 **This is the riskiest task in the plan.** The existing gesture tests are the contract: they must pass unchanged. If one needs editing, stop and say why rather than loosening it.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/ui/player/gestures/pinch_zoom_test.dart`. Two-finger gestures need explicit pointers — `tester.startGesture` twice, then move both apart:
 
@@ -949,12 +949,12 @@ void main() {
 
 If importing `NoopControls` from the sibling test file does not work in this harness, copy the class into the new file instead — do not weaken the test to avoid it.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `flutter test test/ui/player/gestures/pinch_zoom_test.dart`
 Expected: FAIL — no zoom happens; `PlayerGestures` has no scale handling.
 
-- [ ] **Step 3: Rewrite the gesture layer**
+- [x] **Step 3: Rewrite the gesture layer**
 
 In `lib/ui/player/gestures/player_gestures.dart`:
 
@@ -1167,12 +1167,12 @@ Two notes for the implementer:
 - `setBrightness` and `setVolumePercent` are on `playerControllerProvider` — keep using the same controller calls the old handlers used (`ctrl.setBrightness`, `ctrl.setVolumePercent`); the code above reads the provider inline, which is equivalent.
 - Delete `_onVerticalStart/_onVerticalUpdate/_onVerticalEnd` and `_onHorizontalStart/_onHorizontalUpdate/_onHorizontalEnd` and the now-unused `_dead` helper only if nothing else references them. `flutter analyze` will name any leftover.
 
-- [ ] **Step 4: Run the whole gesture suite**
+- [x] **Step 4: Run the whole gesture suite**
 
 Run: `flutter test test/ui/player/`
 Expected: the new pinch tests PASS **and** `player_gestures_test.dart` plus `player_dismiss_delegation_test.dart` stay green. Then `flutter test` fully green and `flutter analyze` clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add lib/ui/player/gestures/player_gestures.dart test/ui/player/gestures/pinch_zoom_test.dart
@@ -1192,7 +1192,7 @@ git commit -m "feat(player): one scale recognizer owns every player drag, enabli
 - Consumes: `zoomProvider`, `ZoomState.active`, `ZoomNotifier.reset()` (Task 4).
 - Produces: `ZoomChip` (a `const`-constructible `ConsumerWidget`).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/ui/player/zoom/zoom_chip_test.dart`:
 
@@ -1240,12 +1240,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `flutter test test/ui/player/zoom/zoom_chip_test.dart`
 Expected: FAIL — `zoom_chip.dart` does not exist.
 
-- [ ] **Step 3: Write the chip**
+- [x] **Step 3: Write the chip**
 
 Create `lib/ui/player/zoom/zoom_chip.dart`:
 
@@ -1331,7 +1331,7 @@ Note: the test asserts the chip's text is absent at 1×. `AnimatedOpacity` keeps
 
 placed right after reading `zoom`, with the `AnimatedOpacity`/`IgnorePointer` wrapper dropped and a `TweenAnimationBuilder` used for the 160 ms fade-in on mount (the pattern `mini_player_bar.dart` already uses).
 
-- [ ] **Step 4: Wire it into the player**
+- [x] **Step 4: Wire it into the player**
 
 In `lib/ui/player/player_screen.dart`, wrap the video stack in the transform. Replace the `videoBox`'s `child:` (the `_controller == null ? ... : Stack(...)`) so the `Stack` branch becomes:
 
@@ -1365,12 +1365,12 @@ Add `ZoomChip` to the overlay list, next to the other `Positioned.fill` entries 
 
 Add the imports for `state/zoom_state.dart` and `zoom/zoom_chip.dart`.
 
-- [ ] **Step 5: Run the tests**
+- [x] **Step 5: Run the tests**
 
 Run: `flutter test`
 Expected: green, including the existing `player_screen_controls_test.dart` and `video_ready_test.dart`. Then `flutter analyze` clean.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add lib/ui/player/zoom/zoom_chip.dart lib/ui/player/player_screen.dart test/ui/player/zoom/zoom_chip_test.dart
@@ -1389,7 +1389,7 @@ git commit -m "feat(player): render the zoom transform and its restore chip"
 - Consumes: `ZoomNotifier.onPlayerExit()`, `.onVideoChanged()` (Task 4).
 - Produces: nothing later tasks depend on.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/ui/player/zoom/zoom_reset_wiring_test.dart`. Pumping a whole `PlayerScreen` is heavy; assert the wiring at the notifier level plus the one thing that is genuinely structural — that the reset is deferred, not run inline during teardown:
 
@@ -1446,12 +1446,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails or passes**
+- [x] **Step 2: Run test to verify it fails or passes**
 
 Run: `flutter test test/ui/player/zoom/zoom_reset_wiring_test.dart`
 Expected: PASS — Task 4 already implements the notifier semantics. This test exists to pin them while Step 3 adds the call sites; if it fails, Task 4 is wrong and must be fixed before continuing.
 
-- [ ] **Step 3: Add the call sites**
+- [x] **Step 3: Add the call sites**
 
 In `lib/ui/player/player_screen.dart`, cache the notifier alongside the other cached services (`_resume`, `_frames`, `_miniThumb`, `_deviceControls`) — the same pattern, for the same reason: `dispose()` must not touch `ref`:
 
@@ -1483,12 +1483,12 @@ In `dispose`, defer the reset into a microtask — writing to a provider synchro
 
 Add the `state/zoom_state.dart` import if Task 7 did not already.
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `flutter test`
 Expected: fully green. Then `flutter analyze` clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add lib/ui/player/player_screen.dart test/ui/player/zoom/zoom_reset_wiring_test.dart
@@ -1508,7 +1508,7 @@ git commit -m "feat(player): honour the zoom reset mode on exit and video change
 - Consumes: all five fields from Task 1; the toolkit signatures in Global Constraints.
 - Produces: no new API.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/ui/settings/zoom_minimize_settings_test.dart`. Follow the setup of an existing settings-section test in `test/ui/settings/` — read one first and mirror its container/pump shape:
 
@@ -1543,12 +1543,12 @@ void main() {
 
 If `SettingSwitch`'s title is not itself tappable, tap the `Switch` found within that row instead — check `setting_tiles.dart` and target whatever the row actually exposes.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `flutter test test/ui/settings/zoom_minimize_settings_test.dart`
 Expected: FAIL — no "Zoom con pinch" row exists.
 
-- [ ] **Step 3: Add the Zoom card**
+- [x] **Step 3: Add the Zoom card**
 
 In `lib/ui/settings/sections/playback_gestures_section.dart`, insert a new labelled card after the "Salto y seek" card (before "Sensibilidad de gestos"):
 
@@ -1574,7 +1574,7 @@ In `lib/ui/settings/sections/playback_gestures_section.dart`, insert a new label
           ]),
 ```
 
-- [ ] **Step 4: Add the minimize switch**
+- [x] **Step 4: Add the minimize switch**
 
 In `lib/ui/settings/sections/advanced_playback_section.dart`, inside the "Reproducción" card (beside `autoplayNext` and `pipAutoOnHome`):
 
@@ -1588,16 +1588,16 @@ In `lib/ui/settings/sections/advanced_playback_section.dart`, inside the "Reprod
 
 Match the local variable names that section already uses for the settings object and notifier (`s` / `n` in the gestures section — confirm before editing).
 
-- [ ] **Step 5: Extend the test to cover the other three controls**
+- [x] **Step 5: Extend the test to cover the other three controls**
 
 Add cases to the same file: tapping `6×` sets `zoomMax` to `6.0`; tapping `Cada video` sets `zoomResetMode` to `'video'`; and a second `testWidgets` pumping `AdvancedPlaybackSection` that toggles `minimizeKeepsPlaying` to `true`. Write them out fully, in the shape of Step 1's test.
 
-- [ ] **Step 6: Run the tests**
+- [x] **Step 6: Run the tests**
 
 Run: `flutter test`
 Expected: fully green. Then `flutter analyze` clean.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add lib/ui/settings/sections/playback_gestures_section.dart lib/ui/settings/sections/advanced_playback_section.dart test/ui/settings/zoom_minimize_settings_test.dart
@@ -1615,27 +1615,27 @@ git commit -m "feat(settings): Zoom card and keep-playing-on-minimize switch"
 **Interfaces:**
 - Consumes: everything above.
 
-- [ ] **Step 1: Document the pinch in the gesture map**
+- [x] **Step 1: Document the pinch in the gesture map**
 
 Read `lib/ui/player/tutorial/gesture_map_content.dart` and add an entry in its existing shape describing the new gesture — Spanish copy, matching the surrounding entries' tone: pinch with two fingers to zoom, drag with one finger to reframe while zoomed, tap the chip to return to 1×. Follow whatever data structure the file already uses; do not restructure it.
 
-- [ ] **Step 2: Run the full suite**
+- [x] **Step 2: Run the full suite**
 
 Run: `flutter analyze && flutter test`
 Expected: analyze clean, every test green. Record the final test count in the commit message.
 
-- [ ] **Step 3: Bump the version**
+- [x] **Step 3: Bump the version**
 
 In `pubspec.yaml`, bump the minor version and build number (currently `1.2.0+2007` — go to `1.3.0+2008`; this is a feature release).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add lib/ui/player/tutorial/gesture_map_content.dart pubspec.yaml
 git commit -m "docs(player): gesture map covers pinch zoom; bump to 1.3.0+2008"
 ```
 
-- [ ] **Step 5: Release build to the device**
+- [x] **Step 5: Release build to the device**
 
 ```bash
 flutter build apk --release
@@ -1643,7 +1643,7 @@ flutter build apk --release
 
 Then install to the connected Pixel 6 and verify by hand, because none of it is unit-testable: the pinch feels anchored under the fingers; panning cannot push the frame off-screen; the chip shows a live factor and restores on tap; brightness/volume/seek/minimize still behave at 1×; a second finger mid-swipe does not leave a half-dismissed player; and with "Seguir reproduciendo al minimizar" on, minimizing keeps the audio going while closing the mini-bar stops it.
 
-- [ ] **Step 6: Ship it**
+- [x] **Step 6: Ship it**
 
 Per the project's release convention, push a tag for the new version so the GitHub Release workflow builds and publishes it. Never hand-deliver a locally built APK.
 
