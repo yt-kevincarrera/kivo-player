@@ -48,7 +48,9 @@ import 'state/pip_state.dart';
 import 'state/player_dismiss_state.dart';
 import 'state/video_ready_state.dart';
 import 'state/queue_strip_state.dart';
+import 'state/zoom_state.dart';
 import 'tutorial/gesture_map_route.dart';
+import 'zoom/zoom_chip.dart';
 import '../widgets/failure_snack_bar.dart';
 
 class PlayerScreen extends ConsumerStatefulWidget {
@@ -511,23 +513,42 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
               alignment: Alignment.center,
               child: _controller == null
                   ? const CircularProgressIndicator()
-                  : Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Video(
-                          controller: _controller!,
-                          controls: NoVideoControls, // Kivo draws its own controls; this also kills media_kit's buffering spinner
-                          fit: boxFitFor(ref.watch(aspectModeProvider)),
-                          // 3e: the widget's own lifecycle handler pauses on
-                          // app-background by default, silently defeating
-                          // background playback.
-                          pauseUponEnteringBackgroundMode: false,
+                  // ClipRect: the pinch-zoomed frame must not paint over the
+                  // control bars stacked above it.
+                  : ClipRect(
+                      child: Consumer(
+                        // A LOCAL Consumer on purpose: watching zoomProvider in
+                        // the outer builder would rebuild all ten overlay layers
+                        // on every frame of a 60fps pinch.
+                        builder: (context, ref, child) {
+                          final zoom = ref.watch(zoomProvider);
+                          return Transform(
+                            alignment: Alignment.center,
+                            transform: Matrix4.identity()
+                              ..translateByDouble(zoom.offset.dx, zoom.offset.dy, 0, 1)
+                              ..scaleByDouble(zoom.scale, zoom.scale, 1, 1),
+                            child: child,
+                          );
+                        },
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Video(
+                              controller: _controller!,
+                              controls: NoVideoControls, // Kivo draws its own controls; this also kills media_kit's buffering spinner
+                              fit: boxFitFor(ref.watch(aspectModeProvider)),
+                              // 3e: the widget's own lifecycle handler pauses on
+                              // app-background by default, silently defeating
+                              // background playback.
+                              pauseUponEnteringBackgroundMode: false,
+                            ),
+                            // Cover the singleton texture's stale last-frame (the
+                            // previous video) until the freshly-opened media decodes
+                            // its first frame — otherwise it flashes during the open.
+                            if (!videoReady) const ColoredBox(color: Colors.black),
+                          ],
                         ),
-                        // Cover the singleton texture's stale last-frame (the
-                        // previous video) until the freshly-opened media decodes
-                        // its first frame — otherwise it flashes during the open.
-                        if (!videoReady) const ColoredBox(color: Colors.black),
-                      ],
+                      ),
                     ),
             );
             return Stack(
@@ -558,6 +579,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                         const Positioned.fill(child: InfoOverlay()),
                         const Positioned.fill(child: FlashOverlay()),
                         const Positioned.fill(child: HudOverlay()),
+                        const Positioned.fill(child: ZoomChip()),
                         const Positioned.fill(child: GestureSeekPreview()),
                         const Positioned.fill(child: SpeedLadderOverlay()),
                         const Positioned.fill(child: ResumePrompt()),
