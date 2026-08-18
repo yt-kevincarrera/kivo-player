@@ -78,6 +78,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   Timer? _saveTimer;
   late final AnimationController _dismissCtl;
   bool _dismissing = false; // guards complete() against re-entry (swipe + back)
+  // Read ONCE at minimize time, never in dispose(): reading a provider there
+  // throws and silently drops the work.
+  bool _keepPlayingOnMinimize = false;
 
   @override
   void initState() {
@@ -368,13 +371,14 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   void _completeDismiss() {
     if (_dismissing) return;
     _dismissing = true;
+    _keepPlayingOnMinimize = ref.read(settingsProvider).minimizeKeepsPlaying;
     if (!_previewCaptured) _captureMiniPreview();
     _dismissCtl.value = ref.read(dismissProvider);
     _dismissCtl
         .animateTo(1.0, duration: Duration(milliseconds: dismissDurationMs(_dismissCtl.value)))
         .then((_) {
       if (!mounted) return;
-      _engine.pause();
+      if (!_keepPlayingOnMinimize) _engine.pause();
       _saveProgress();
       ref.read(minimizedSessionKeyProvider.notifier).state = _resumeKey;
       ref.read(playerMinimizedProvider.notifier).state = true;
@@ -394,7 +398,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _volKeySub?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _saveProgress(); // best-effort for in-app pop
-    _engine.pause(); // stop audio when leaving the player (engine is a singleton)
+    // Stop audio when leaving the player (the engine is a singleton) — unless we
+    // are minimizing and the user asked playback to continue in the mini-bar.
+    // Reads the CACHED flag: `ref` is off-limits in dispose().
+    if (!_keepPlayingOnMinimize) _engine.pause();
     _pip.disarm();
     _frames.release(); // release native frame-extractor resources (cached; never via ref)
     _deviceControls.setOrientation([DeviceOrientationLock.auto]);
@@ -476,7 +483,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
         } else {
           // 1-frame window before the API is registered: fall back to the
           // previous immediate minimize+pop.
-          _engine.pause();
+          _keepPlayingOnMinimize = ref.read(settingsProvider).minimizeKeepsPlaying;
+          if (!_keepPlayingOnMinimize) _engine.pause();
           _saveProgress();
           if (!_previewCaptured) _captureMiniPreview();
           ref.read(minimizedSessionKeyProvider.notifier).state = _resumeKey;
