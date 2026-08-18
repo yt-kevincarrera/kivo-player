@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 enum TapZone { left, center, right }
 
 /// Tap zones as fractions of the width: the double-tap bands are THIRDS.
@@ -153,3 +155,51 @@ double volumeKeyStep(double currentPct, int dir, int maxIndex, double boostMax) 
 /// either dragged at least 25% down, or flung down faster than 700 px/s.
 bool dismissCommit(double progress, double velocityY) =>
     progress >= 0.25 || velocityY > 700;
+
+/// What a drag inside the player is FOR. One scale recognizer owns every drag
+/// now (a pinch cannot coexist with two drag-axis recognizers), so the axis
+/// decision is ours to make instead of the gesture arena's — which is exactly
+/// what makes it testable.
+enum DragIntent { none, zoom, pan, brightness, volume, seek, dismiss, rotate }
+
+/// Travel required before a one-finger drag commits to an axis. Small enough to
+/// feel immediate, large enough that a jitter cannot pick the wrong gesture.
+const double kIntentSlopPx = 12.0;
+
+/// Routes a drag to its intent. [start] is where the gesture BEGAN — dead zones
+/// are positional, exactly as the old per-axis drag handlers evaluated them —
+/// and [delta] is accumulated travel since then.
+///
+/// Returns `null` while the gesture has not travelled far enough to commit; the
+/// caller keeps waiting. [DragIntent.none] is a decision: ignore this drag.
+DragIntent? dragIntentFor({
+  required int pointerCount,
+  required bool pinchZoomEnabled,
+  required bool zoomActive,
+  required Offset start,
+  required Offset delta,
+  required Size viewport,
+  required double topInset,
+  required double bottomInset,
+  required bool controlsVisible,
+  double slop = kIntentSlopPx,
+  double lateralMargin = kLateralEdgeMargin,
+  double verticalMargin = kVerticalDeadMargin,
+}) {
+  if (pointerCount >= 2) return pinchZoomEnabled ? DragIntent.zoom : DragIntent.none;
+  // While zoomed, one finger reframes: brightness, volume, seek, minimize and
+  // rotate are suspended until 1x — the chip is how you get back.
+  if (zoomActive) return DragIntent.pan;
+  // Positional, decided with no slop: minimize owns the lateral strips, and
+  // seek was already dead there.
+  if (inLateralDeadZone(start.dx, viewport.width, lateralMargin)) return DragIntent.dismiss;
+  if (inVerticalDeadZone(start.dy, viewport.height, topInset, bottomInset, verticalMargin)) {
+    return DragIntent.none;
+  }
+  if (delta.distance < slop) return null;
+  if (delta.dy.abs() > delta.dx.abs()) {
+    if (!controlsVisible && inCenterRotateZone(start.dx, viewport.width)) return DragIntent.rotate;
+    return start.dx < viewport.width / 2 ? DragIntent.brightness : DragIntent.volume;
+  }
+  return DragIntent.seek;
+}

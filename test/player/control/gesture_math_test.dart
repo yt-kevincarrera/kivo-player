@@ -1,3 +1,4 @@
+import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kivo_player/player/control/gesture_math.dart';
 
@@ -160,5 +161,96 @@ void main() {
     expect(inLateralDeadZone(kLateralEdgeMargin - 1, 400, kLateralEdgeMargin), true);
     expect(inLateralDeadZone(200, 400, kLateralEdgeMargin), false);
     expect(inVerticalDeadZone(kVerticalDeadMargin - 1, 800, 0, 0, kVerticalDeadMargin), true);
+  });
+
+  group('dragIntentFor', () {
+    const viewport = Size(400, 800);
+
+    DragIntent? route({
+      int pointerCount = 1,
+      bool pinchZoomEnabled = true,
+      bool zoomActive = false,
+      required Offset start,
+      Offset delta = const Offset(50, 0),
+      bool controlsVisible = false,
+    }) =>
+        dragIntentFor(
+          pointerCount: pointerCount,
+          pinchZoomEnabled: pinchZoomEnabled,
+          zoomActive: zoomActive,
+          start: start,
+          delta: delta,
+          viewport: viewport,
+          topInset: 0,
+          bottomInset: 0,
+          controlsVisible: controlsVisible,
+        );
+
+    test('two fingers zoom', () {
+      expect(route(pointerCount: 2, start: const Offset(200, 400)), DragIntent.zoom);
+    });
+
+    test('two fingers do nothing when pinch zoom is off', () {
+      expect(route(pointerCount: 2, pinchZoomEnabled: false, start: const Offset(200, 400)),
+          DragIntent.none);
+    });
+
+    test('two fingers win even over the lateral dismiss strip', () {
+      expect(route(pointerCount: 2, start: const Offset(10, 400)), DragIntent.zoom);
+    });
+
+    test('one finger pans while zoomed', () {
+      expect(route(zoomActive: true, start: const Offset(200, 400)), DragIntent.pan);
+    });
+
+    test('panning wins over every one-finger gesture while zoomed', () {
+      // The suspension the design promises: no brightness, volume, seek,
+      // minimize or rotate until the zoom is released.
+      expect(route(zoomActive: true, start: const Offset(10, 400)), DragIntent.pan);
+      expect(route(zoomActive: true, start: const Offset(80, 400), delta: const Offset(0, -60)),
+          DragIntent.pan);
+    });
+
+    test('the lateral strip dismisses, with no slop needed', () {
+      expect(route(start: const Offset(10, 400), delta: Offset.zero), DragIntent.dismiss);
+      expect(route(start: const Offset(395, 400), delta: Offset.zero), DragIntent.dismiss);
+    });
+
+    test('the vertical dead strips are ignored', () {
+      expect(route(start: const Offset(200, 5), delta: Offset.zero), DragIntent.none);
+      expect(route(start: const Offset(200, 795), delta: Offset.zero), DragIntent.none);
+    });
+
+    test('below the slop nothing is decided yet', () {
+      expect(route(start: const Offset(200, 400), delta: const Offset(4, 4)), isNull);
+    });
+
+    test('the centre band rotates on a vertical drag when the controls are hidden', () {
+      expect(route(start: const Offset(200, 400), delta: const Offset(0, -60)), DragIntent.rotate);
+    });
+
+    test('the centre band does NOT rotate while the controls are up', () {
+      expect(
+          route(start: const Offset(200, 400), delta: const Offset(0, -60), controlsVisible: true),
+          DragIntent.volume);
+    });
+
+    test('the centre band seeks on a horizontal drag, never rotates', () {
+      expect(route(start: const Offset(200, 400), delta: const Offset(60, 0)), DragIntent.seek);
+    });
+
+    test('vertical drags are brightness on the left and volume on the right', () {
+      expect(route(start: const Offset(80, 400), delta: const Offset(0, -60)),
+          DragIntent.brightness);
+      expect(route(start: const Offset(320, 400), delta: const Offset(0, -60)), DragIntent.volume);
+    });
+
+    test('horizontal drags seek', () {
+      expect(route(start: const Offset(80, 400), delta: const Offset(60, 5)), DragIntent.seek);
+    });
+
+    test('a diagonal tie goes to seek', () {
+      expect(route(start: const Offset(80, 400), delta: const Offset(40, 40)), DragIntent.seek);
+    });
   });
 }
