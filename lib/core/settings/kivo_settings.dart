@@ -47,6 +47,11 @@ class KivoSettings {
   final bool autoCheckUpdates;
   final int lastUpdateCheckMs;
   final String? skippedUpdateVersion;
+  final bool pinchZoom;
+  final double zoomMax;
+  final String zoomResetMode;  // 'exit' | 'video' | 'never'
+  final double zoomRemembered; // last pinch factor, only written in 'never' mode
+  final bool minimizeKeepsPlaying;
 
   const KivoSettings({
     required this.doubleTapSkipLeft,
@@ -97,6 +102,11 @@ class KivoSettings {
     required this.autoCheckUpdates,
     required this.lastUpdateCheckMs,
     required this.skippedUpdateVersion,
+    required this.pinchZoom,
+    required this.zoomMax,
+    required this.zoomResetMode,
+    required this.zoomRemembered,
+    required this.minimizeKeepsPlaying,
   });
 
   factory KivoSettings.defaults() => const KivoSettings(
@@ -148,6 +158,11 @@ class KivoSettings {
         autoCheckUpdates: true,
         lastUpdateCheckMs: 0,
         skippedUpdateVersion: null,
+        pinchZoom: true,
+        zoomMax: 4.0,
+        zoomResetMode: 'exit',
+        zoomRemembered: 1.0,
+        minimizeKeepsPlaying: false,
       );
 
   static const Object _unset = Object();
@@ -201,6 +216,11 @@ class KivoSettings {
     bool? autoCheckUpdates,
     int? lastUpdateCheckMs,
     Object? skippedUpdateVersion = _unset,
+    bool? pinchZoom,
+    double? zoomMax,
+    String? zoomResetMode,
+    double? zoomRemembered,
+    bool? minimizeKeepsPlaying,
   }) {
     return KivoSettings(
       doubleTapSkipLeft: doubleTapSkipLeft ?? this.doubleTapSkipLeft,
@@ -257,6 +277,11 @@ class KivoSettings {
       skippedUpdateVersion: identical(skippedUpdateVersion, _unset)
           ? this.skippedUpdateVersion
           : skippedUpdateVersion as String?,
+      pinchZoom: pinchZoom ?? this.pinchZoom,
+      zoomMax: zoomMax ?? this.zoomMax,
+      zoomResetMode: zoomResetMode ?? this.zoomResetMode,
+      zoomRemembered: zoomRemembered ?? this.zoomRemembered,
+      minimizeKeepsPlaying: minimizeKeepsPlaying ?? this.minimizeKeepsPlaying,
     );
   }
 
@@ -309,6 +334,11 @@ class KivoSettings {
         'autoCheckUpdates': autoCheckUpdates,
         'lastUpdateCheckMs': lastUpdateCheckMs,
         'skippedUpdateVersion': skippedUpdateVersion,
+        'pinchZoom': pinchZoom,
+        'zoomMax': zoomMax,
+        'zoomResetMode': zoomResetMode,
+        'zoomRemembered': zoomRemembered,
+        'minimizeKeepsPlaying': minimizeKeepsPlaying,
       };
 
   factory KivoSettings.fromMap(Map<String, dynamic> m) {
@@ -362,6 +392,12 @@ class KivoSettings {
       autoCheckUpdates: m['autoCheckUpdates'] ?? d.autoCheckUpdates,
       lastUpdateCheckMs: m['lastUpdateCheckMs'] ?? d.lastUpdateCheckMs,
       skippedUpdateVersion: m['skippedUpdateVersion'] ?? d.skippedUpdateVersion,
+      pinchZoom: m['pinchZoom'] ?? d.pinchZoom,
+      // .toDouble(): JSON writes a whole 4.0 back as an int, and a bare cast throws.
+      zoomMax: (m['zoomMax'] ?? d.zoomMax).toDouble(),
+      zoomResetMode: m['zoomResetMode'] ?? d.zoomResetMode,
+      zoomRemembered: (m['zoomRemembered'] ?? d.zoomRemembered).toDouble(),
+      minimizeKeepsPlaying: m['minimizeKeepsPlaying'] ?? d.minimizeKeepsPlaying,
     );
   }
 }
