@@ -106,7 +106,12 @@ class _MiniPlayerBarState extends ConsumerState<MiniPlayerBar> {
             // build after this fires), so opt out of Dismissible's own
             // resize-then-remove choreography.
             resizeDuration: null,
-            onDismissed: (_) => ref.read(playerMinimizedProvider.notifier).state = false,
+            // Pause explicitly: with "keep playing on minimize" on, the video
+            // may still be running here — dismissing the bar must stop it.
+            onDismissed: (_) {
+              ref.read(playbackEngineProvider).pause();
+              ref.read(playerMinimizedProvider.notifier).state = false;
+            },
             child: _MiniPlayerContent(session: session, onExpand: _expand),
           ),
         ),
@@ -174,7 +179,10 @@ class _MiniPlayerContent extends ConsumerWidget {
                   ),
                   IconButton(
                     icon: Icon(Icons.close, color: cs.onSurfaceVariant),
-                    onPressed: () => ref.read(playerMinimizedProvider.notifier).state = false,
+                    onPressed: () {
+                      ref.read(playbackEngineProvider).pause();
+                      ref.read(playerMinimizedProvider.notifier).state = false;
+                    },
                   ),
                 ],
               ),
