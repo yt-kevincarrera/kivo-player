@@ -28,12 +28,19 @@ class VideoDensityFeed extends ConsumerStatefulWidget {
   final bool groupByDate;
   final bool showContinueRow;
 
+  /// Shown INSTEAD of the (necessarily blank) scroll view when [videos] is
+  /// empty. Callers supply it because only they know why the list came back
+  /// empty — no videos at all, a filter hiding them, a folder just emptied —
+  /// and each of those needs a different way out.
+  final Widget? emptyState;
+
   const VideoDensityFeed({
     super.key,
     required this.videos,
     required this.onOpen,
     this.groupByDate = true,
     this.showContinueRow = true,
+    this.emptyState,
   });
 
   @override
@@ -128,6 +135,13 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
         _reflowCtrl.forward(from: 0);
       }
     });
+
+    // The "Continuar viendo" strip is deliberately dropped here: a video in
+    // progress is by definition one you started, so pairing it with "there's
+    // nothing here" would contradict itself.
+    if (widget.videos.isEmpty && widget.emptyState != null) {
+      return widget.emptyState!;
+    }
 
     final cols = ref.watch(settingsProvider).libraryColumns;
     final sections = widget.groupByDate

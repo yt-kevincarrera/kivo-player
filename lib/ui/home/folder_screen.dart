@@ -8,6 +8,7 @@ import '../../player/open/video_source.dart';
 import '../player/controls/resume_prompt.dart';
 import '../player/player_route.dart';
 import 'state/library_selection.dart';
+import 'widgets/library_empty_state.dart';
 import 'widgets/selection_app_bar.dart';
 import 'widgets/video_density_feed.dart';
 
@@ -68,6 +69,15 @@ class FolderScreen extends ConsumerWidget {
           onOpen: (v, all, origin) => _open(context, ref, v, all, origin),
           groupByDate: false,
           showContinueRow: false,
+          // Reachable by deleting the folder's last video from right here —
+          // the screen would otherwise stay open on a blank body.
+          emptyState: LibraryEmptyState(
+            icon: Icons.folder_off_outlined,
+            title: 'Esta carpeta quedó vacía',
+            subtitle: 'Ya no queda ningún video en «$folder».',
+            primaryLabel: 'Volver',
+            onPrimary: () => Navigator.of(context).maybePop(),
+          ),
         ),
       ),
     );

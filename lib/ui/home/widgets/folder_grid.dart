@@ -4,6 +4,7 @@ import '../../../core/settings/settings_provider.dart';
 import '../../../platform/interfaces/media_indexer.dart';
 import '../../../player/library/library_query.dart';
 import '../../widgets/press_bounce.dart';
+import 'library_empty_state.dart';
 import 'thumbnail_image.dart';
 
 class FolderGrid extends ConsumerWidget {
@@ -20,15 +21,13 @@ class FolderGrid extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final groups = groupByFolder(videos);
     final folders = groups.keys.toList()..sort();
-    final cs = Theme.of(context).colorScheme;
     final accent = Color(ref.watch(settingsProvider).accentColor);
 
     if (folders.isEmpty) {
-      return Center(
-        child: Text(
-          'No se encontraron carpetas',
-          style: TextStyle(color: cs.onSurfaceVariant),
-        ),
+      return const LibraryEmptyState(
+        icon: Icons.folder_off_outlined,
+        title: 'No hay carpetas',
+        subtitle: 'Tus videos aparecerán aquí agrupados por carpeta.',
       );
     }
 

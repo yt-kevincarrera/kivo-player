@@ -23,6 +23,7 @@ import 'folder_screen.dart';
 import 'state/library_filter_state.dart';
 import 'state/library_selection.dart';
 import 'widgets/folder_grid.dart';
+import 'widgets/library_empty_state.dart';
 import 'widgets/selection_app_bar.dart';
 import 'widgets/video_density_feed.dart';
 
@@ -333,7 +334,6 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       unwatchedOnly: unwatchedOnly,
       playedKeys: played,
     );
-    final cs = Theme.of(context).colorScheme;
     return Column(
       children: [
         Padding(
@@ -350,19 +350,22 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           ),
         ),
         Expanded(
-          child: query.trim().isEmpty || filtered.isNotEmpty
-              ? VideoDensityFeed(
-                  videos: filtered,
-                  onOpen: (v, all, origin) => _open(v, all, origin),
-                  groupByDate: sort == LibrarySort.recent,
-                  showContinueRow: false,
-                )
-              : Center(
-                  child: Text(
-                    'No se encontraron videos para "$query"',
-                    style: TextStyle(color: cs.onSurfaceVariant),
+          child: VideoDensityFeed(
+            videos: filtered,
+            onOpen: (v, all, origin) => _open(v, all, origin),
+            groupByDate: sort == LibrarySort.recent,
+            showContinueRow: false,
+            // An empty query hasn't failed to match anything — it just hasn't
+            // been typed yet, so it keeps the (equally empty) feed.
+            emptyState: query.trim().isEmpty
+                ? null
+                : LibraryEmptyState(
+                    icon: Icons.search_off,
+                    title: 'No se encontraron videos para "$query"',
+                    primaryLabel: 'Borrar búsqueda',
+                    onPrimary: _closeSearch,
                   ),
-                ),
+          ),
         ),
       ],
     );
@@ -383,6 +386,50 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       onOpen: (v, all, origin) => _open(v, all, origin),
       groupByDate: sort == LibrarySort.recent,
       showContinueRow: true,
+      // `videos` is the unfiltered index: non-empty here means the videos do
+      // exist and it's the "No vistos" filter that emptied the list.
+      emptyState: _videosEmptyState(hiddenByFilter: videos.isNotEmpty),
+    );
+  }
+
+  /// The three ways the videos list can legitimately come back empty. They
+  /// look alike but the way out differs, so each gets its own state rather
+  /// than one generic "no hay nada".
+  Widget _videosEmptyState({required bool hiddenByFilter}) {
+    if (hiddenByFilter) {
+      return LibraryEmptyState(
+        icon: Icons.visibility_off_outlined,
+        title: 'Ya viste todo',
+        subtitle: 'No queda ningún video sin ver.',
+        primaryLabel: 'Quitar filtro',
+        onPrimary: () =>
+            ref.read(libraryUnwatchedOnlyProvider.notifier).state = false,
+      );
+    }
+    // Android 14's partial grant: the scan is honest, it just can't see past
+    // the handful of videos the user picked — so the fix is widening that
+    // selection, not looking for files that were never hidden.
+    if (ref.watch(mediaPermissionProvider).valueOrNull == MediaAccess.limited) {
+      return LibraryEmptyState(
+        icon: Icons.rule_folder_outlined,
+        title: 'Kivo solo ve los videos que elegiste',
+        subtitle: 'Amplía la selección para ver el resto de tu galería.',
+        primaryLabel: 'Elegir más videos',
+        onPrimary: () => ref.read(mediaPermissionProvider.notifier).request(),
+        secondaryLabel: 'Abrir archivo',
+        onSecondary: _pick,
+      );
+    }
+    return LibraryEmptyState(
+      icon: Icons.video_library_outlined,
+      title: 'Todavía no hay videos',
+      subtitle: 'Cuando grabes o descargues uno aparecerá aquí.',
+      primaryLabel: 'Abrir archivo',
+      onPrimary: _pick,
+      // MediaStore can index a file minutes after it lands, so a manual
+      // re-scan is the difference between "empty" and "empty for now".
+      secondaryLabel: 'Volver a buscar',
+      onSecondary: () => ref.read(mediaIndexProvider.notifier).refresh(),
     );
   }
 
