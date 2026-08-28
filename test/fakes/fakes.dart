@@ -172,6 +172,12 @@ class FakePlaybackEngine implements PlaybackEngine {
     currentSubtitleTrackId = uri;
   }
 
+  final List<double> subtitleDelays = [];
+
+  @override
+  Future<void> setSubtitleDelay(double seconds) async =>
+      subtitleDelays.add(seconds);
+
   double? lastSubtitleFontSize;
   int? lastSubtitleTextColorArgb;
   int? lastSubtitleBackgroundColorArgb;

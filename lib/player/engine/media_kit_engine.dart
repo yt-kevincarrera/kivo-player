@@ -163,6 +163,16 @@ class MediaKitEngine implements PlaybackEngine {
   }
 
   @override
+  Future<void> setSubtitleDelay(double seconds) async {
+    final native = _player.platform as NativePlayer?;
+    if (native == null) return;
+    // Callers MUST debounce: this is a synchronous mpv call on the UI thread,
+    // the same one at the top of the open background-hang ANR trace. One call
+    // per gesture burst, never one per tap.
+    await native.setProperty('sub-delay', seconds.toStringAsFixed(3));
+  }
+
+  @override
   Future<void> setVideoTrackEnabled(bool enabled) async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;

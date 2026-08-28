@@ -66,6 +66,10 @@ abstract class PlaybackEngine {
   Future<void> setSubtitleTrack(String? id); // null = turn off
   Future<void> setExternalSubtitle(String uri, {String? title});
 
+  /// Shifts subtitle timing. Positive = subtitles appear later, matching
+  /// mpv's own `sub-delay` sign.
+  Future<void> setSubtitleDelay(double seconds);
+
   Future<void> setSubtitleStyle({
     required double fontSize,
     required int textColorArgb,
