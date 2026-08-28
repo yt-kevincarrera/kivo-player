@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../widgets/setting_tiles.dart';
+import 'hidden_folders_section.dart';
 
 class GeneralSettingsSection extends ConsumerWidget {
   const GeneralSettingsSection({super.key});
@@ -45,6 +46,17 @@ class GeneralSettingsSection extends ConsumerWidget {
               subtitle: 'Vibración sutil al cruzar umbrales',
               value: s.hapticsOnGestures,
               onChanged: (v) => n.set(s.copyWith(hapticsOnGestures: v)),
+            ),
+          ]),
+          const SizedBox(height: 16),
+          _label(context, 'Biblioteca'),
+          SettingsCard(children: [
+            SettingNavRow(
+              icon: Icons.folder_off_outlined,
+              title: 'Carpetas ocultas',
+              subtitle: 'Carpetas que no aparecen en tu biblioteca',
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => const HiddenFoldersSection())),
             ),
           ]),
         ],
