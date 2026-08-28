@@ -53,20 +53,29 @@ void applyDefaultTracks({
     // What this video remembers wins over the language defaults above: the
     // user picked it for this file specifically. The file is loaded before the
     // offset so the delay lands on the track it was measured against.
-    final prefs = subtitlePrefs.forKey(session.resumeKey);
-    if (prefs != null) {
-      final path = prefs.subtitlePath;
-      if (path != null) {
-        try {
-          await engine.setExternalSubtitle(path);
-        } catch (_) {
-          // The copy may be gone (storage cleared). Degrade to the embedded
-          // tracks already applied rather than failing the open.
-        }
-      }
-      if (prefs.delayMs != 0) {
-        await engine.setSubtitleDelay(prefs.delayMs / 1000);
-      }
+    var delayMs = 0;
+    try {
+      final prefs = subtitlePrefs.forKey(session.resumeKey);
+      delayMs = prefs?.delayMs ?? 0;
+      final path = prefs?.subtitlePath;
+      if (path != null) await engine.setExternalSubtitle(path);
+    } catch (_) {
+      // A corrupted record, or a copy that is gone (storage cleared). Degrade
+      // to the embedded tracks already applied rather than failing the open —
+      // and leave delayMs at 0 so the reset below still happens.
+    }
+
+    // Unconditional, even with no prefs at all and even for a zero offset:
+    // sub-delay is an ordinary mpv option, not per-file state, and the engine
+    // holds one process-lifetime Player that open() reuses — mpv does not
+    // reset it on loadfile. Without this, the previous video's offset silently
+    // rides along into a video that has none. Still exactly one call per open,
+    // so the ANR-sensitive setProperty budget is unchanged.
+    try {
+      await engine.setSubtitleDelay(delayMs / 1000);
+    } catch (_) {
+      // Best-effort like everything else here: a native failure must not break
+      // playback start.
     }
   }();
 }
