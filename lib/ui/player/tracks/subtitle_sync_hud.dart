@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/settings/settings_provider.dart';
+import '../../../player/open/video_source.dart';
 import '../../../player/tracks/subtitle_delay.dart';
 import '../../../player/tracks/subtitle_sync_controller.dart';
 
@@ -11,7 +12,21 @@ import '../../../player/tracks/subtitle_sync_controller.dart';
 /// track picker; closes itself after [_idleTimeout].
 class SubtitleSyncVisibleNotifier extends Notifier<bool> {
   @override
-  bool build() => false;
+  bool build() {
+    // Scoped to the video that is open, so leaving the player, minimizing, or
+    // advancing to the next video always puts the capsule away. Without it the
+    // flag survives a PlayerScreen teardown and the HUD mounts visible on the
+    // next video with no side-effect-free way out — its only other exits (±
+    // and the value tap) change the user's subtitle timing.
+    //
+    // Done here rather than from _PlayerScreenState.dispose(): `ref` is
+    // off-limits in dispose() in this codebase, and this keeps the lifetime
+    // rule next to the state it governs — the same shape SubtitleSyncNotifier
+    // already uses to reset its own value per video.
+    ref.watch(currentVideoProvider);
+    return false;
+  }
+
   void show() => state = true;
   void hide() => state = false;
 }
@@ -34,6 +49,15 @@ class SubtitleSyncHud extends ConsumerStatefulWidget {
 
 class _SubtitleSyncHudState extends ConsumerState<SubtitleSyncHud> {
   Timer? _idle;
+
+  @override
+  void initState() {
+    super.initState();
+    // ref.listen fires on transitions only, never on the first build. The HUD
+    // can perfectly well mount already visible, so arm the auto-hide here too
+    // or nothing ever would.
+    if (ref.read(subtitleSyncVisibleProvider)) _touch();
+  }
 
   @override
   void dispose() {
