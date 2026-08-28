@@ -10,6 +10,7 @@ import 'package:kivo_player/player/library/played.dart';
 import 'package:kivo_player/player/library/video_actions.dart';
 import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
+import 'package:kivo_player/player/tracks/subtitle_importer.dart';
 import 'package:kivo_player/player/tracks/subtitle_prefs_store.dart';
 import '../../fakes/fakes.dart';
 
@@ -31,6 +32,7 @@ const _v = VideoItem(
 Future<ProviderContainer> buildVideoActionsContainer({
   required SubtitlePrefsStore subtitlePrefs,
   String? renameTo,
+  SubtitleImporter? importer,
 }) async {
   final resume = ResumeService(InMemoryResumeStore());
   final played = InMemoryPlayedStore();
@@ -47,6 +49,7 @@ Future<ProviderContainer> buildVideoActionsContainer({
     mediaIndexerProvider.overrideWithValue(FakeMediaIndexer()),
     mediaPermissionImplProvider.overrideWithValue(_Perm()),
     subtitlePrefsStoreProvider.overrideWithValue(subtitlePrefs),
+    subtitleImporterProvider.overrideWithValue(importer ?? FakeSubtitleImporter()),
   ]);
 }
 
@@ -84,5 +87,32 @@ void main() {
     await c.read(videoActionsProvider).deleteMany([_v]);
 
     expect(store.forKey('ep1.mkv'), isNull);
+  });
+
+  test('deleting a video also deletes its imported subtitle copy', () async {
+    final store = InMemorySubtitlePrefsStore();
+    await store.put('ep1.mkv',
+        const VideoSubtitlePrefs(subtitlePath: '/app/subs/ep1.mkv.srt'));
+    final importer = FakeSubtitleImporter();
+    final c = await buildVideoActionsContainer(
+        subtitlePrefs: store, importer: importer);
+    addTearDown(c.dispose);
+
+    await c.read(videoActionsProvider).delete(_v);
+
+    expect(importer.discarded, ['/app/subs/ep1.mkv.srt']);
+  });
+
+  test('a video with no imported copy discards nothing', () async {
+    final store = InMemorySubtitlePrefsStore();
+    await store.put('ep1.mkv', const VideoSubtitlePrefs(delayMs: 500));
+    final importer = FakeSubtitleImporter();
+    final c = await buildVideoActionsContainer(
+        subtitlePrefs: store, importer: importer);
+    addTearDown(c.dispose);
+
+    await c.read(videoActionsProvider).delete(_v);
+
+    expect(importer.discarded, isEmpty);
   });
 }

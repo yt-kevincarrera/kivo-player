@@ -3,6 +3,7 @@ import '../../platform/interfaces/media_file_ops.dart';
 import '../../platform/interfaces/media_indexer.dart';
 import '../../platform/media_file_ops_provider.dart';
 import '../open/video_source.dart'; // resumeServiceProvider
+import '../tracks/subtitle_importer.dart';
 import '../tracks/subtitle_prefs_store.dart';
 import 'continue_watching.dart';
 import 'media_index.dart';
@@ -24,9 +25,19 @@ class VideoActionsController {
     if (status != FileOpStatus.ok) return status;
     await _ref.read(resumeServiceProvider).clear(v.name);
     await _ref.read(playedStoreProvider).remove(v.name);
+    await _discardImportedSubtitle(v.name);
     await _ref.read(subtitlePrefsStoreProvider).remove(v.name);
     await _refreshLibrary();
     return status;
+  }
+
+  /// Deletes the app-owned subtitle copy, if this video had one. Rename does
+  /// NOT need this: the stored path is absolute and stays valid, and the next
+  /// import for that video cleans up after itself.
+  Future<void> _discardImportedSubtitle(String key) async {
+    final path = _ref.read(subtitlePrefsStoreProvider).forKey(key)?.subtitlePath;
+    if (path == null) return;
+    await _ref.read(subtitleImporterProvider).discard(path);
   }
 
   Future<RenameOutcome> rename(VideoItem v, String newBaseName) async {
@@ -54,6 +65,7 @@ class VideoActionsController {
     for (final v in videos) {
       await resume.clear(v.name);
       await played.remove(v.name);
+      await _discardImportedSubtitle(v.name);
       await subtitlePrefs.remove(v.name);
     }
     await _refreshLibrary();

@@ -18,6 +18,7 @@ import 'package:kivo_player/player/engine/playback_engine.dart';
 import 'package:kivo_player/player/queue/file_system_lister.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/player/resume/resume_store.dart';
+import 'package:kivo_player/player/tracks/subtitle_importer.dart';
 
 class InMemorySettingsStore implements SettingsStore {
   Map<String, dynamic>? _data;
@@ -395,6 +396,22 @@ class FakeSubtitleFinder implements SubtitleFinder {
     requestedFolders.add(folder);
     return byFolder[folder] ?? const [];
   }
+}
+
+class FakeSubtitleImporter implements SubtitleImporter {
+  /// What [importFor] hands back; set to null to simulate a failed copy.
+  String? result = '/app/subs/ep1.mkv.srt';
+  final List<(String, String)> imported = [];
+  final List<String> discarded = [];
+
+  @override
+  Future<String?> importFor(String videoKey, String sourcePath) async {
+    imported.add((videoKey, sourcePath));
+    return result;
+  }
+
+  @override
+  Future<void> discard(String importedPath) async => discarded.add(importedPath);
 }
 
 class FakeMediaFileOps implements MediaFileOps {
