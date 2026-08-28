@@ -9,6 +9,7 @@ import '../../../player/engine/playback_provider.dart';
 import '../../../player/engine/playback_engine.dart';
 import '../../../player/open/video_source.dart';
 import '../../../player/tracks/track_selection.dart';
+import 'subtitle_sync_hud.dart';
 
 Future<void> showSubtitlePicker(BuildContext context, WidgetRef ref) {
   return showModalBottomSheet(
@@ -371,6 +372,20 @@ class _TracksSection extends ConsumerWidget {
                   accent: accent,
                   onTap: () => _pickTrack(context, ref, t),
                 ),
+            ],
+            if (isSubtitles && current != null) ...[
+              const _SectionEyebrow(label: 'Sincronía'),
+              _TrackCard(
+                icon: Icons.compare_arrows_rounded,
+                label: 'Sincronizar subtítulos',
+                sublabel: 'Ajustar el desfase mientras se reproduce',
+                active: false,
+                accent: accent,
+                onTap: () {
+                  Navigator.of(context).pop();
+                  ref.read(subtitleSyncVisibleProvider.notifier).show();
+                },
+              ),
             ],
             if (isSubtitles && external.isNotEmpty) ...[
               const _SectionEyebrow(label: 'En la carpeta'),

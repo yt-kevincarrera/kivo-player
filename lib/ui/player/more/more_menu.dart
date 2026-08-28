@@ -5,6 +5,7 @@ import '../../../core/theme/kivo_theme.dart';
 import '../../../player/loop/ab_loop.dart';
 import '../sleep/sleep_timer_panel.dart';
 import '../state/controls_visibility.dart';
+import '../tracks/subtitle_sync_hud.dart';
 
 /// Mini menu behind the top bar's "Más opciones" button. The A-B loop entry
 /// joins this menu in 3c.
@@ -66,6 +67,16 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                     } else {
                       ref.read(abLoopProvider.notifier).cancel();
                     }
+                  },
+                ),
+                const SizedBox(height: 8),
+                _MenuRow(
+                  icon: Icons.compare_arrows_rounded,
+                  title: 'Sincronizar subtítulos',
+                  subtitle: 'Ajustar el desfase mientras se reproduce',
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    ref.read(subtitleSyncVisibleProvider.notifier).show();
                   },
                 ),
               ],
