@@ -38,6 +38,7 @@ import 'hud/hud_overlay.dart';
 import 'seek/gesture_seek_preview.dart';
 import 'sleep/sleep_warning_toast.dart';
 import 'speed/speed_ladder_overlay.dart';
+import 'tracks/subtitle_sync_hud.dart';
 import 'state/aspect_state.dart';
 import 'state/autoplay_state.dart';
 import 'state/dismiss_state.dart';
@@ -595,6 +596,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                         const Positioned.fill(child: ResumePrompt()),
                         const Positioned.fill(child: SleepWarningToast()),
                         const Positioned.fill(child: AutoplayOverlay()),
+                        const Positioned.fill(child: SubtitleSyncHud()),
                       ],
                     ],
                   ),
