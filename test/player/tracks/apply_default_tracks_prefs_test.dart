@@ -56,7 +56,7 @@ void main() {
     await _drainTrackStreams(engine);
     await Future<void>.delayed(const Duration(milliseconds: 50));
 
-    expect(engine.externalSubtitles.single, '/subs/ep1.srt');
+    expect(engine.externalSubtitles.single, ('/subs/ep1.srt', null));
     expect(engine.subtitleDelays, [0.5]);
   });
 

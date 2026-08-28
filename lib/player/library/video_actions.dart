@@ -31,9 +31,15 @@ class VideoActionsController {
     return status;
   }
 
-  /// Deletes the app-owned subtitle copy, if this video had one. Rename does
-  /// NOT need this: the stored path is absolute and stays valid, and the next
-  /// import for that video cleans up after itself.
+  /// Deletes the app-owned subtitle copy, if this video had one.
+  ///
+  /// Rename does not call this: the stored path is absolute, so it keeps
+  /// working under the new key. It does leave the copy named after the OLD
+  /// key, and the importer's sweep matches `stem == videoKey` exactly, so a
+  /// later import under the new key will not collect it — that file is then
+  /// orphaned for good. Deliberate for now: it is a few KB in app-private
+  /// storage with no effect on behaviour, and cleaning it up properly means
+  /// giving SubtitleImporter a move/rename operation it does not have.
   Future<void> _discardImportedSubtitle(String key) async {
     final path = _ref.read(subtitlePrefsStoreProvider).forKey(key)?.subtitlePath;
     if (path == null) return;

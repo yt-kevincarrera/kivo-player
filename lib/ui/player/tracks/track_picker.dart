@@ -442,7 +442,11 @@ class _TracksSection extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 18),
                 child: Text(
-                  isSubtitles ? 'Este video no tiene subtítulos disponibles.' : 'Este video no tiene otras pistas de audio.',
+                  // Never "no hay subtítulos disponibles": the "Cargar
+                  // subtítulo…" card sits right below this line.
+                  isSubtitles
+                      ? 'Este video no trae subtítulos incrustados ni hay archivos junto a él.'
+                      : 'Este video no tiene otras pistas de audio.',
                   style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 13),
                 ),
               ),

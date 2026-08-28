@@ -167,13 +167,15 @@ class FakePlaybackEngine implements PlaybackEngine {
     currentSubtitleTrackId = id;
   }
 
-  final List<String> externalSubtitles = [];
+  /// Every setExternalSubtitle call as (uri, title) — the title is part of the
+  /// behaviour (it is what the track picker lists), so it has to be visible.
+  final List<(String, String?)> externalSubtitles = [];
 
   @override
   Future<void> setExternalSubtitle(String uri, {String? title}) async {
     externalSubtitleUri = uri;
     currentSubtitleTrackId = uri;
-    externalSubtitles.add(uri);
+    externalSubtitles.add((uri, title));
   }
 
   final List<double> subtitleDelays = [];

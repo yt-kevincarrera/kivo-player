@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/format.dart';
+import '../../core/settings/settings_provider.dart';
 import '../engine/playback_provider.dart';
 import '../open/video_source.dart';
 import 'subtitle_importer.dart';
@@ -28,6 +29,17 @@ class ManualSubtitleController {
     await _ref
         .read(playbackEngineProvider)
         .setExternalSubtitle(stored, title: basenameOf(pickedPath));
+
+    // Same flag the picker's folder-subtitle path sets. Without it the file
+    // plays while "Mostrar subtítulos" reads off, and on the next open
+    // applyDefaultTracks turns subtitles off before the prefs block re-adds
+    // this very file.
+    final settings = _ref.read(settingsProvider);
+    if (!settings.subtitlesEnabledByDefault) {
+      await _ref
+          .read(settingsProvider.notifier)
+          .set(settings.copyWith(subtitlesEnabledByDefault: true));
+    }
 
     final store = _ref.read(subtitlePrefsStoreProvider);
     final existing =

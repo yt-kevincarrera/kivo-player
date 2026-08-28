@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../engine/playback_provider.dart';
@@ -64,10 +65,18 @@ class SubtitleSyncNotifier extends Notifier<int> {
     final session = ref.read(currentVideoProvider);
     if (session == null) return;
     final ms = state;
-    await ref.read(playbackEngineProvider).setSubtitleDelay(ms / 1000);
-    final store = ref.read(subtitlePrefsStoreProvider);
-    final existing = store.forKey(session.resumeKey) ?? const VideoSubtitlePrefs();
-    await store.put(session.resumeKey, existing.copyWith(delayMs: ms));
+    try {
+      await ref.read(playbackEngineProvider).setSubtitleDelay(ms / 1000);
+      final store = ref.read(subtitlePrefsStoreProvider);
+      final existing =
+          store.forKey(session.resumeKey) ?? const VideoSubtitlePrefs();
+      await store.put(session.resumeKey, existing.copyWith(delayMs: ms));
+    } catch (e) {
+      // _schedule calls this from a Timer with nothing awaiting it, so a throw
+      // from mpv or from the Hive write would be an unhandled async error in a
+      // zone with no handler. The state stays what the HUD is already showing.
+      debugPrint('SubtitleSyncNotifier._apply failed: $e');
+    }
   }
 }
 

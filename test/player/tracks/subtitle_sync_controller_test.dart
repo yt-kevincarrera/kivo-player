@@ -87,6 +87,32 @@ void main() {
     expect(engine.subtitleDelays, [0.1]);
   });
 
+  // ref.onDispose cancels the pending timer when the notifier is rebuilt for
+  // the new video. Without it the debounce would land after the switch and
+  // write video A's offset onto video B — both in mpv and in B's prefs.
+  test('switching video mid-debounce drops the pending nudge', () {
+    fakeAsync((async) {
+      final engine = FakePlaybackEngine();
+      final store = InMemorySubtitlePrefsStore();
+      store.put('ep2.mkv', const VideoSubtitlePrefs(delayMs: -300));
+      final c = _c(engine, store);
+      addTearDown(c.dispose);
+      // The HUD watches this provider, so keep a listener: the rebuild has to
+      // happen the way it does on screen, not only on the next read.
+      c.listen(subtitleSyncProvider, (_, __) {});
+      c.read(currentVideoProvider.notifier).open(_session('ep1.mkv'));
+
+      c.read(subtitleSyncProvider.notifier).nudge(4);
+      c.read(currentVideoProvider.notifier).open(_session('ep2.mkv'));
+      expect(c.read(subtitleSyncProvider), -300); // rebuilt for the new video
+
+      async.elapse(const Duration(milliseconds: 200));
+      expect(engine.subtitleDelays, isEmpty);
+      expect(store.forKey('ep1.mkv'), isNull);
+      expect(store.forKey('ep2.mkv')!.delayMs, -300);
+    });
+  });
+
   test('nudging with no video open does nothing', () {
     final engine = FakePlaybackEngine();
     final c = _c(engine, InMemorySubtitlePrefsStore());

@@ -8,6 +8,13 @@ import '../../../core/settings/settings_provider.dart';
 Future<void> showFolderOptionsSheet(
     BuildContext context, WidgetRef ref, String folder) {
   final messenger = ScaffoldMessenger.of(context);
+  // Captured up front for the same reason as the messenger: `ref` belongs to
+  // the FolderGrid, and the SnackBar below outlives a tab switch that unmounts
+  // it, so reading through it when "Deshacer" is tapped can throw. The service
+  // is the very object the notifier writes through, so `current` is still the
+  // fresh state the undo needs — no stale snapshot.
+  final settings = ref.read(settingsProvider.notifier);
+  final settingsService = ref.read(settingsServiceProvider);
   return showModalBottomSheet<void>(
     context: context,
     backgroundColor: Theme.of(context).colorScheme.surface,
@@ -38,9 +45,9 @@ Future<void> showFolderOptionsSheet(
                   style: TextStyle(color: cs.onSurfaceVariant)),
               onTap: () async {
                 Navigator.of(sheetContext).pop();
-                final s = ref.read(settingsProvider);
+                final s = settingsService.current;
                 if (s.excludedFolders.contains(folder)) return;
-                await ref.read(settingsProvider.notifier).set(s.copyWith(
+                await settings.set(s.copyWith(
                     excludedFolders: [...s.excludedFolders, folder]));
                 messenger.showSnackBar(SnackBar(
                   content: Text('$folder oculta'),
@@ -50,8 +57,8 @@ Future<void> showFolderOptionsSheet(
                     // the snapshot from when the sheet was open would restore
                     // the wrong set if another folder got hidden in between.
                     onPressed: () {
-                      final now = ref.read(settingsProvider);
-                      ref.read(settingsProvider.notifier).set(now.copyWith(
+                      final now = settingsService.current;
+                      settings.set(now.copyWith(
                           excludedFolders: now.excludedFolders
                               .where((f) => f != folder)
                               .toList()));
