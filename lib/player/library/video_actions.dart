@@ -3,13 +3,15 @@ import '../../platform/interfaces/media_file_ops.dart';
 import '../../platform/interfaces/media_indexer.dart';
 import '../../platform/media_file_ops_provider.dart';
 import '../open/video_source.dart'; // resumeServiceProvider
+import '../tracks/subtitle_prefs_store.dart';
 import 'continue_watching.dart';
 import 'media_index.dart';
 import 'played.dart';
 
 /// Orchestrates a library video's file operations and their side effects:
-/// refreshing the media index, and keeping the resume + played stores (keyed by
-/// file name) consistent — migrating them on rename, clearing them on delete.
+/// refreshing the media index, and keeping the resume, played, and subtitle
+/// prefs stores (keyed by file name) consistent — migrating them on rename,
+/// clearing them on delete.
 class VideoActionsController {
   final Ref _ref;
   VideoActionsController(this._ref);
@@ -22,6 +24,7 @@ class VideoActionsController {
     if (status != FileOpStatus.ok) return status;
     await _ref.read(resumeServiceProvider).clear(v.name);
     await _ref.read(playedStoreProvider).remove(v.name);
+    await _ref.read(subtitlePrefsStoreProvider).remove(v.name);
     await _refreshLibrary();
     return status;
   }
@@ -31,6 +34,7 @@ class VideoActionsController {
     if (outcome.status != FileOpStatus.ok || outcome.newName == null) return outcome;
     final newName = outcome.newName!;
     await _ref.read(resumeServiceProvider).rename(v.name, newName);
+    await _ref.read(subtitlePrefsStoreProvider).rename(v.name, newName);
     final played = _ref.read(playedStoreProvider);
     if (played.isPlayed(v.name)) {
       await played.markPlayed(newName);
@@ -46,9 +50,11 @@ class VideoActionsController {
     if (status != FileOpStatus.ok) return status;
     final resume = _ref.read(resumeServiceProvider);
     final played = _ref.read(playedStoreProvider);
+    final subtitlePrefs = _ref.read(subtitlePrefsStoreProvider);
     for (final v in videos) {
       await resume.clear(v.name);
       await played.remove(v.name);
+      await subtitlePrefs.remove(v.name);
     }
     await _refreshLibrary();
     return status;
