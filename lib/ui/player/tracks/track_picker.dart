@@ -317,21 +317,37 @@ class _TracksSection extends ConsumerWidget {
   }
 
   Future<void> _pickManualSubtitle(BuildContext context, WidgetRef ref) async {
+    // Both captured before the await, because the sheet is popped on every
+    // outcome below and `context` is defunct from then on. The messenger has
+    // to be the app-level one in any case: this sheet has no Scaffold, so a
+    // SnackBar shown while it is still up lands on the player's Scaffold —
+    // the route underneath, behind the bottom 60% of the screen the sheet
+    // occupies. Keeping the sheet open is what hid the failure, not what
+    // preserved it.
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: const ['srt', 'ass', 'ssa', 'vtt', 'sub'],
     );
     final path = result?.files.single.path;
-    if (path == null) return; // cancelled — do nothing
+    if (path == null) return; // cancelled — leave the sheet as it was
     final ok = await ref.read(manualSubtitleProvider).load(path);
-    if (!context.mounted) return;
-    // Only pop on success: a failure keeps the sheet open so the context
-    // showFailureSnackBar needs is still around (it needs one that survives
-    // the sheet being popped, so simplest is to not pop it on that path).
-    if (ok) {
-      Navigator.of(context).pop();
-    } else {
-      showFailureSnackBar(context, KivoOp.subtitleLoad);
+    _closeAndReport(messenger, navigator, ok: ok);
+  }
+
+  /// Closes the sheet and reports the outcome. Synchronous on purpose: the
+  /// navigator's context is the one the "Detalles" sheet opens from, and
+  /// touching it outside the async gap keeps it honest.
+  void _closeAndReport(
+      ScaffoldMessengerState messenger, NavigatorState navigator,
+      {required bool ok}) {
+    navigator.pop();
+    // A KV-502 from an earlier attempt must not still be sitting there after
+    // this one worked.
+    messenger.hideCurrentSnackBar();
+    if (!ok) {
+      showFailureSnackBarOn(messenger, navigator.context, KivoOp.subtitleLoad);
     }
   }
 

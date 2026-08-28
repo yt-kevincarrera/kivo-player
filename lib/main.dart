@@ -75,7 +75,12 @@ Future<void> main() async {
     minSeconds: settingsService.current.resumeMinSeconds,
   );
   final engine = MediaKitEngine();
-  final subsDir = Directory('${(await getExternalStorageDirectory())!.path}/subs');
+  // Nullable by contract (external storage unmounted or shared, and some OEM
+  // images), and this runs before runApp: a force-unwrap here is a black
+  // launch for a feature the user may never touch. The documents directory is
+  // already open above and works just as well for a few KB of subtitles.
+  final externalDir = await getExternalStorageDirectory();
+  final subsDir = Directory('${(externalDir ?? dir).path}/subs');
 
   runApp(ProviderScope(
     overrides: [
