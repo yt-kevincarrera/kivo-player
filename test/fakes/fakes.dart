@@ -166,10 +166,13 @@ class FakePlaybackEngine implements PlaybackEngine {
     currentSubtitleTrackId = id;
   }
 
+  final List<String> externalSubtitles = [];
+
   @override
   Future<void> setExternalSubtitle(String uri, {String? title}) async {
     externalSubtitleUri = uri;
     currentSubtitleTrackId = uri;
+    externalSubtitles.add(uri);
   }
 
   final List<double> subtitleDelays = [];
