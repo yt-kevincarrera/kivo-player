@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
@@ -13,6 +15,7 @@ import 'player/engine/media_kit_engine.dart';
 import 'player/engine/playback_provider.dart';
 import 'player/resume/resume_store.dart';
 import 'player/resume/resume_service.dart';
+import 'player/tracks/subtitle_importer.dart';
 import 'player/tracks/subtitle_prefs_store.dart';
 import 'player/library/played.dart';
 import 'player/open/video_source.dart';
@@ -72,6 +75,7 @@ Future<void> main() async {
     minSeconds: settingsService.current.resumeMinSeconds,
   );
   final engine = MediaKitEngine();
+  final subsDir = Directory('${(await getExternalStorageDirectory())!.path}/subs');
 
   runApp(ProviderScope(
     overrides: [
@@ -91,6 +95,8 @@ Future<void> main() async {
       errorLogProvider.overrideWithValue(errorLog),
       subtitlePrefsStoreProvider
           .overrideWithValue(HiveSubtitlePrefsStore(subtitlePrefsBox)),
+      subtitleImporterProvider
+          .overrideWithValue(FileSubtitleImporter(subsDir, log: errorLog)),
       appInstallerProvider.overrideWithValue(installer),
       vaultOpsProvider.overrideWithValue(AndroidVaultOps(errorLog)),
       vaultStoreProvider.overrideWithValue(HiveVaultStore(vaultBox)),
