@@ -24,6 +24,9 @@ class _Perm implements MediaPermission {
 const _v = VideoItem(
     id: '1', uri: 'content://1', name: 'ep1.mkv', folder: 'Series',
     durationMs: 1000, sizeBytes: 10, dateAddedMs: 0);
+const _v2 = VideoItem(
+    id: '2', uri: 'content://2', name: 'ep2.mkv', folder: 'Series',
+    durationMs: 1000, sizeBytes: 10, dateAddedMs: 0);
 
 /// Assembles a [VideoActionsController] container the same way the other
 /// `video_actions_*_test.dart` files do, plus the subtitle prefs store this
@@ -114,5 +117,27 @@ void main() {
     await c.read(videoActionsProvider).delete(_v);
 
     expect(importer.discarded, isEmpty);
+  });
+
+  test('deleteMany discards each video\'s own imported subtitle copy',
+      () async {
+    final store = InMemorySubtitlePrefsStore();
+    await store.put('ep1.mkv',
+        const VideoSubtitlePrefs(subtitlePath: '/app/subs/ep1.mkv.srt'));
+    await store.put('ep2.mkv',
+        const VideoSubtitlePrefs(subtitlePath: '/app/subs/ep2.mkv.srt'));
+    final importer = FakeSubtitleImporter();
+    final c = await buildVideoActionsContainer(
+        subtitlePrefs: store, importer: importer);
+    addTearDown(c.dispose);
+
+    // Two videos, not one: this is what proves the discard runs per-item
+    // inside the deleteMany loop, rather than once for the whole batch.
+    await c.read(videoActionsProvider).deleteMany([_v, _v2]);
+
+    expect(
+        importer.discarded,
+        unorderedEquals(
+            ['/app/subs/ep1.mkv.srt', '/app/subs/ep2.mkv.srt']));
   });
 }

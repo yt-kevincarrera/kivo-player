@@ -71,4 +71,31 @@ void main() {
     expect(File(other!).existsSync(), true);
     expect(dest.listSync().length, 2);
   });
+
+  test(
+      'a failed copy on re-import leaves the previous copy intact and '
+      'returns null', () async {
+    final dest = Directory('${tmp.path}/subs');
+    final importer = FileSubtitleImporter(dest);
+    final a = File('${tmp.path}/a.srt')..writeAsStringSync('A');
+    final b = File('${tmp.path}/b.srt')..writeAsStringSync('B');
+
+    final first = await importer.importFor('ep1.mkv', a.path);
+    expect(first, isNotNull);
+
+    // Force the copy step of the *second* import to fail, deterministically
+    // and without mocking dart:io: occupy the importer's own temp-file path
+    // (dest path + '.importing') with a directory. File.copy throws when its
+    // destination already exists as a directory (verified directly against
+    // dart:io on Windows before relying on it here) -- this reaches the
+    // exact failure mode Finding 1 is about without needing read-only
+    // permissions, which are awkward to set up portably on Windows.
+    Directory('$first.importing').createSync();
+
+    final second = await importer.importFor('ep1.mkv', b.path);
+
+    expect(second, isNull);
+    expect(File(first!).existsSync(), true);
+    expect(File(first).readAsStringSync(), 'A');
+  });
 }
