@@ -48,4 +48,13 @@ void main() {
     final reloaded = await SettingsService.load(store);
     expect(reloaded.current.iconStyle, 'flat');
   });
+
+  test('excludedFolders defaults to empty and round-trips', () async {
+    final store = InMemorySettingsStore();
+    final svc = await SettingsService.load(store);
+    expect(svc.current.excludedFolders, isEmpty);
+    await svc.update(svc.current.copyWith(excludedFolders: const ['WhatsApp']));
+    final reloaded = await SettingsService.load(store);
+    expect(reloaded.current.excludedFolders, ['WhatsApp']);
+  });
 }

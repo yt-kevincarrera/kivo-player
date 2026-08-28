@@ -12,6 +12,7 @@ import '../open/video_source.dart';
 import '../resume/resume_plan.dart';
 import '../sleep/sleep_timer.dart';
 import '../tracks/apply_default_tracks.dart';
+import '../tracks/subtitle_prefs_store.dart';
 import 'autoplay_logic.dart';
 
 /// App-level coordinator that advances the queue when a video ends WHILE
@@ -76,7 +77,8 @@ class AutoplayCoordinator {
       await engine.play();
       applyDefaultTracks(
         engine: engine, settings: settings, session: next,
-        subtitleFinder: _ref.read(subtitleFinderProvider));
+        subtitleFinder: _ref.read(subtitleFinderProvider),
+        subtitlePrefs: _ref.read(subtitlePrefsStoreProvider));
       _refreshMiniThumb(next.playbackPath);
     } finally {
       _advancing = false;

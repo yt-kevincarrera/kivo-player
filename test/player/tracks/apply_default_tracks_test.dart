@@ -3,6 +3,7 @@ import 'package:kivo_player/core/settings/kivo_settings.dart';
 import 'package:kivo_player/player/engine/playback_engine.dart';
 import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/tracks/apply_default_tracks.dart';
+import 'package:kivo_player/player/tracks/subtitle_prefs_store.dart';
 import 'package:kivo_player/platform/interfaces/subtitle_finder.dart';
 import '../../fakes/fakes.dart';
 
@@ -21,7 +22,8 @@ void main() {
         engine: e,
         settings: KivoSettings.defaults().copyWith(preferredAudioLanguage: 'es'),
         session: session,
-        subtitleFinder: _NoSubs());
+        subtitleFinder: _NoSubs(),
+        subtitlePrefs: InMemorySubtitlePrefsStore());
     // Emit tracks so the .first calls resolve (no 2s timeout timer left pending).
     // A pump is needed between the two emissions: the subtitle stream's
     // `.first` only subscribes after the audio pick's `await setAudioTrack`

@@ -1,5 +1,7 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/errors/kivo_failure.dart';
 import '../../../core/settings/kivo_settings.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
@@ -8,7 +10,10 @@ import '../../../platform/subtitle_finder_provider.dart';
 import '../../../player/engine/playback_provider.dart';
 import '../../../player/engine/playback_engine.dart';
 import '../../../player/open/video_source.dart';
+import '../../../player/tracks/manual_subtitle_controller.dart';
 import '../../../player/tracks/track_selection.dart';
+import '../../widgets/failure_snack_bar.dart';
+import 'subtitle_sync_hud.dart';
 
 Future<void> showSubtitlePicker(BuildContext context, WidgetRef ref) {
   return showModalBottomSheet(
@@ -311,6 +316,41 @@ class _TracksSection extends ConsumerWidget {
     Navigator.of(context).pop();
   }
 
+  Future<void> _pickManualSubtitle(BuildContext context, WidgetRef ref) async {
+    // Both captured before the await, because the sheet is popped on every
+    // outcome below and `context` is defunct from then on. The messenger has
+    // to be the app-level one in any case: this sheet has no Scaffold, so a
+    // SnackBar shown while it is still up lands on the player's Scaffold —
+    // the route underneath, behind the bottom 60% of the screen the sheet
+    // occupies. Keeping the sheet open is what hid the failure, not what
+    // preserved it.
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['srt', 'ass', 'ssa', 'vtt', 'sub'],
+    );
+    final path = result?.files.single.path;
+    if (path == null) return; // cancelled — leave the sheet as it was
+    final ok = await ref.read(manualSubtitleProvider).load(path);
+    _closeAndReport(messenger, navigator, ok: ok);
+  }
+
+  /// Closes the sheet and reports the outcome. Synchronous on purpose: the
+  /// navigator's context is the one the "Detalles" sheet opens from, and
+  /// touching it outside the async gap keeps it honest.
+  void _closeAndReport(
+      ScaffoldMessengerState messenger, NavigatorState navigator,
+      {required bool ok}) {
+    navigator.pop();
+    // A KV-502 from an earlier attempt must not still be sitting there after
+    // this one worked.
+    messenger.hideCurrentSnackBar();
+    if (!ok) {
+      showFailureSnackBarOn(messenger, navigator.context, KivoOp.subtitleLoad);
+    }
+  }
+
   void _pickExternal(BuildContext context, WidgetRef ref, ExternalSubtitle e) {
     engine.setExternalSubtitle(e.uri, title: e.displayName);
     final lang = languageFromFilename(e.displayName);
@@ -372,6 +412,20 @@ class _TracksSection extends ConsumerWidget {
                   onTap: () => _pickTrack(context, ref, t),
                 ),
             ],
+            if (isSubtitles && current != null) ...[
+              const _SectionEyebrow(label: 'Sincronía'),
+              _TrackCard(
+                icon: Icons.compare_arrows_rounded,
+                label: 'Sincronizar subtítulos',
+                sublabel: 'Ajustar el desfase mientras se reproduce',
+                active: false,
+                accent: accent,
+                onTap: () {
+                  Navigator.of(context).pop();
+                  ref.read(subtitleSyncVisibleProvider.notifier).show();
+                },
+              ),
+            ],
             if (isSubtitles && external.isNotEmpty) ...[
               const _SectionEyebrow(label: 'En la carpeta'),
               for (final e in external)
@@ -388,10 +442,25 @@ class _TracksSection extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 18),
                 child: Text(
-                  isSubtitles ? 'Este video no tiene subtítulos disponibles.' : 'Este video no tiene otras pistas de audio.',
+                  // Never "no hay subtítulos disponibles": the "Cargar
+                  // subtítulo…" card sits right below this line.
+                  isSubtitles
+                      ? 'Este video no trae subtítulos incrustados ni hay archivos junto a él.'
+                      : 'Este video no tiene otras pistas de audio.',
                   style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 13),
                 ),
               ),
+            if (isSubtitles) ...[
+              const _SectionEyebrow(label: 'Desde tu dispositivo'),
+              _TrackCard(
+                icon: Icons.upload_file_outlined,
+                label: 'Cargar subtítulo…',
+                sublabel: 'Elegir un archivo .srt, .ass o .vtt',
+                active: false,
+                accent: accent,
+                onTap: () => _pickManualSubtitle(context, ref),
+              ),
+            ],
           ],
         );
       },

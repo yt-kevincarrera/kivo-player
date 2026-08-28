@@ -66,6 +66,14 @@ abstract class PlaybackEngine {
   Future<void> setSubtitleTrack(String? id); // null = turn off
   Future<void> setExternalSubtitle(String uri, {String? title});
 
+  /// Shifts subtitle timing. Positive = subtitles appear later, matching
+  /// mpv's own `sub-delay` sign.
+  ///
+  /// Callers MUST debounce: this is a synchronous mpv call on the UI thread,
+  /// the same one at the top of the open background-hang ANR trace. One call
+  /// per gesture burst, never one per tap.
+  Future<void> setSubtitleDelay(double seconds);
+
   Future<void> setSubtitleStyle({
     required double fontSize,
     required int textColorArgb,

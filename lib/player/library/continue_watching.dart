@@ -11,7 +11,7 @@ class ContinueItem {
 }
 
 final continueWatchingProvider = Provider<List<ContinueItem>>((ref) {
-  final index = ref.watch(mediaIndexProvider).valueOrNull ?? const [];
+  final index = ref.watch(libraryIndexProvider).valueOrNull ?? const [];
   if (index.isEmpty) return const [];
   final byName = {for (final v in index) v.name: v};
   final entries = ref.read(resumeServiceProvider).entries()

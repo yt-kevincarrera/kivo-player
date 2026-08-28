@@ -20,7 +20,7 @@ class SelectionBottomBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selected = ref.watch(librarySelectionProvider);
     final sel = ref.read(librarySelectionProvider.notifier);
-    final index = ref.watch(mediaIndexProvider).valueOrNull ?? const <VideoItem>[];
+    final index = ref.watch(libraryIndexProvider).valueOrNull ?? const <VideoItem>[];
     final chosen = index.where((v) => selected.contains(v.uri)).toList();
     final cs = Theme.of(context).colorScheme;
     final messenger = ScaffoldMessenger.of(context);

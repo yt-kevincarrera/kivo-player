@@ -4,6 +4,7 @@ import '../../../core/settings/settings_provider.dart';
 import '../../../platform/interfaces/media_indexer.dart';
 import '../../../player/library/library_query.dart';
 import '../../widgets/press_bounce.dart';
+import 'folder_options_sheet.dart';
 import 'library_empty_state.dart';
 import 'thumbnail_image.dart';
 
@@ -43,9 +44,12 @@ class FolderGrid extends ConsumerWidget {
       itemBuilder: (_, i) {
         final name = folders[i];
         final items = groups[name]!;
-        return PressBounce(
-          onTap: () => onOpenFolder(name, items),
-          child: _FolderCard(name: name, items: items, accent: accent),
+        return GestureDetector(
+          onLongPress: () => showFolderOptionsSheet(context, ref, name),
+          child: PressBounce(
+            onTap: () => onOpenFolder(name, items),
+            child: _FolderCard(name: name, items: items, accent: accent),
+          ),
         );
       },
     );

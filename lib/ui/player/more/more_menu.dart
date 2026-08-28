@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/format.dart';
 import '../../../core/theme/kivo_theme.dart';
+import '../../../player/engine/playback_engine.dart';
+import '../../../player/engine/playback_provider.dart';
 import '../../../player/loop/ab_loop.dart';
 import '../sleep/sleep_timer_panel.dart';
 import '../state/controls_visibility.dart';
+import '../tracks/subtitle_sync_hud.dart';
 
 /// Mini menu behind the top bar's "Más opciones" button. The A-B loop entry
 /// joins this menu in 3c.
@@ -20,6 +23,7 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
         padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
         child: Consumer(
           builder: (_, sheetRef, __) {
+            final engine = sheetRef.read(playbackEngineProvider);
             final loop = sheetRef.watch(abLoopProvider);
             final loopSubtitle = switch (loop?.phase) {
               null => 'Repetir un fragmento del video',
@@ -66,6 +70,33 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                     } else {
                       ref.read(abLoopProvider.notifier).cancel();
                     }
+                  },
+                ),
+                // Offered only while a subtitle is actually showing: with subs
+                // off, sub-delay changes nothing on screen and the entry reads
+                // as a broken control. Same gate the track picker applies to
+                // its own sync row.
+                StreamBuilder<MediaTrack?>(
+                  stream: engine.currentSubtitleTrackStream,
+                  initialData: engine.currentSubtitleTrack,
+                  builder: (_, snap) {
+                    if (snap.data == null) return const SizedBox.shrink();
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SizedBox(height: 8),
+                        _MenuRow(
+                          icon: Icons.compare_arrows_rounded,
+                          title: 'Sincronizar subtítulos',
+                          subtitle: 'Ajustar el desfase mientras se reproduce',
+                          onTap: () {
+                            Navigator.of(sheetContext).pop();
+                            ref.read(subtitleSyncVisibleProvider.notifier).show();
+                          },
+                        ),
+                      ],
+                    );
                   },
                 ),
               ],

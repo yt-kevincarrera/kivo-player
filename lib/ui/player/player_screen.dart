@@ -27,6 +27,7 @@ import '../../player/resume/resume_plan.dart';
 import '../../player/resume/resume_service.dart';
 import '../../player/sleep/sleep_timer.dart';
 import '../../player/tracks/apply_default_tracks.dart';
+import '../../player/tracks/subtitle_prefs_store.dart';
 import 'autoplay/autoplay_overlay.dart';
 import 'controls/controls_overlay.dart';
 import 'controls/flash_overlay.dart';
@@ -38,6 +39,7 @@ import 'hud/hud_overlay.dart';
 import 'seek/gesture_seek_preview.dart';
 import 'sleep/sleep_warning_toast.dart';
 import 'speed/speed_ladder_overlay.dart';
+import 'tracks/subtitle_sync_hud.dart';
 import 'state/aspect_state.dart';
 import 'state/autoplay_state.dart';
 import 'state/dismiss_state.dart';
@@ -279,7 +281,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     if (!expandingFromMini) {
       applyDefaultTracks(
           engine: engine, settings: settings, session: session,
-          subtitleFinder: ref.read(subtitleFinderProvider));
+          subtitleFinder: ref.read(subtitleFinderProvider),
+          subtitlePrefs: ref.read(subtitlePrefsStoreProvider));
     }
     _frames.prepare(session.playbackPath);
     _armPip();
@@ -595,6 +598,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                         const Positioned.fill(child: ResumePrompt()),
                         const Positioned.fill(child: SleepWarningToast()),
                         const Positioned.fill(child: AutoplayOverlay()),
+                        const Positioned.fill(child: SubtitleSyncHud()),
                       ],
                     ],
                   ),

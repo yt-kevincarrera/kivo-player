@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
@@ -13,6 +15,8 @@ import 'player/engine/media_kit_engine.dart';
 import 'player/engine/playback_provider.dart';
 import 'player/resume/resume_store.dart';
 import 'player/resume/resume_service.dart';
+import 'player/tracks/subtitle_importer.dart';
+import 'player/tracks/subtitle_prefs_store.dart';
 import 'player/library/played.dart';
 import 'player/open/video_source.dart';
 import 'platform/all_files_access_provider.dart';
@@ -53,6 +57,7 @@ Future<void> main() async {
   final vaultBox = await Hive.openBox('vault');
   final vaultCredsBox = await Hive.openBox('vaultCreds');
   final errorsBox = await Hive.openBox('errors');
+  final subtitlePrefsBox = await Hive.openBox('subtitlePrefs');
 
   // The app version and API level are captured once and stamped on every
   // recorded failure: a reported code is only useful with the device it came
@@ -70,6 +75,12 @@ Future<void> main() async {
     minSeconds: settingsService.current.resumeMinSeconds,
   );
   final engine = MediaKitEngine();
+  // Nullable by contract (external storage unmounted or shared, and some OEM
+  // images), and this runs before runApp: a force-unwrap here is a black
+  // launch for a feature the user may never touch. The documents directory is
+  // already open above and works just as well for a few KB of subtitles.
+  final externalDir = await getExternalStorageDirectory();
+  final subsDir = Directory('${(externalDir ?? dir).path}/subs');
 
   runApp(ProviderScope(
     overrides: [
@@ -87,6 +98,10 @@ Future<void> main() async {
       pipControllerProvider.overrideWithValue(AndroidPipController()),
       allFilesAccessProvider.overrideWithValue(AndroidAllFilesAccess()),
       errorLogProvider.overrideWithValue(errorLog),
+      subtitlePrefsStoreProvider
+          .overrideWithValue(HiveSubtitlePrefsStore(subtitlePrefsBox)),
+      subtitleImporterProvider
+          .overrideWithValue(FileSubtitleImporter(subsDir, log: errorLog)),
       appInstallerProvider.overrideWithValue(installer),
       vaultOpsProvider.overrideWithValue(AndroidVaultOps(errorLog)),
       vaultStoreProvider.overrideWithValue(HiveVaultStore(vaultBox)),

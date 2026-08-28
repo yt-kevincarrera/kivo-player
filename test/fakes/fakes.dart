@@ -18,6 +18,7 @@ import 'package:kivo_player/player/engine/playback_engine.dart';
 import 'package:kivo_player/player/queue/file_system_lister.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/player/resume/resume_store.dart';
+import 'package:kivo_player/player/tracks/subtitle_importer.dart';
 
 class InMemorySettingsStore implements SettingsStore {
   Map<String, dynamic>? _data;
@@ -166,11 +167,22 @@ class FakePlaybackEngine implements PlaybackEngine {
     currentSubtitleTrackId = id;
   }
 
+  /// Every setExternalSubtitle call as (uri, title) — the title is part of the
+  /// behaviour (it is what the track picker lists), so it has to be visible.
+  final List<(String, String?)> externalSubtitles = [];
+
   @override
   Future<void> setExternalSubtitle(String uri, {String? title}) async {
     externalSubtitleUri = uri;
     currentSubtitleTrackId = uri;
+    externalSubtitles.add((uri, title));
   }
+
+  final List<double> subtitleDelays = [];
+
+  @override
+  Future<void> setSubtitleDelay(double seconds) async =>
+      subtitleDelays.add(seconds);
 
   double? lastSubtitleFontSize;
   int? lastSubtitleTextColorArgb;
@@ -386,6 +398,22 @@ class FakeSubtitleFinder implements SubtitleFinder {
     requestedFolders.add(folder);
     return byFolder[folder] ?? const [];
   }
+}
+
+class FakeSubtitleImporter implements SubtitleImporter {
+  /// What [importFor] hands back; set to null to simulate a failed copy.
+  String? result = '/app/subs/ep1.mkv.srt';
+  final List<(String, String)> imported = [];
+  final List<String> discarded = [];
+
+  @override
+  Future<String?> importFor(String videoKey, String sourcePath) async {
+    imported.add((videoKey, sourcePath));
+    return result;
+  }
+
+  @override
+  Future<void> discard(String importedPath) async => discarded.add(importedPath);
 }
 
 class FakeMediaFileOps implements MediaFileOps {

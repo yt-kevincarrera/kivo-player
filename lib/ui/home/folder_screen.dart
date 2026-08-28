@@ -42,7 +42,7 @@ class FolderScreen extends ConsumerWidget {
     // performed from inside this screen (via the shared VideoDensityFeed's
     // ⋮ menu) is reflected immediately. Fall back to the constructor
     // snapshot only while the index is still loading.
-    final live = ref.watch(mediaIndexProvider).valueOrNull;
+    final live = ref.watch(libraryIndexProvider).valueOrNull;
     final vids = live == null
         ? videos
         : live.where((v) => v.folder == folder).toList();

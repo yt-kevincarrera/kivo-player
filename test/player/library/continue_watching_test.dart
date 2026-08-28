@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kivo_player/core/settings/settings_provider.dart';
+import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/platform/interfaces/media_indexer.dart';
 import 'package:kivo_player/platform/interfaces/media_permission.dart';
 import 'package:kivo_player/platform/media_permission_provider.dart';
@@ -34,7 +36,11 @@ void main() {
     await store.put('b.mp4', 95, 200); // 95s of 100s = 95% (keep; <97%)
     await store.put('c.mp4', 99, 300); // 99% finished → drop
     await store.put('ghost.mp4', 10, 400); // not in index → drop
+    // continueWatchingProvider now reads libraryIndexProvider, which watches
+    // settingsProvider (for excludedFolders) — needs a real settings service.
+    final settingsSvc = await SettingsService.load(InMemorySettingsStore());
     final c = ProviderContainer(overrides: [
+      settingsServiceProvider.overrideWithValue(settingsSvc),
       mediaPermissionImplProvider.overrideWithValue(_Granted()),
       mediaIndexerProvider.overrideWithValue(FakeMediaIndexer(
           [v('a.mp4', 100000), v('b.mp4', 100000), v('c.mp4', 100000)])),

@@ -163,6 +163,13 @@ class MediaKitEngine implements PlaybackEngine {
   }
 
   @override
+  Future<void> setSubtitleDelay(double seconds) async {
+    final native = _player.platform as NativePlayer?;
+    if (native == null) return;
+    await native.setProperty('sub-delay', seconds.toStringAsFixed(3));
+  }
+
+  @override
   Future<void> setVideoTrackEnabled(bool enabled) async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;
