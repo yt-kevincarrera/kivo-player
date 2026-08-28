@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/settings/settings_provider.dart';
 import '../../platform/interfaces/media_indexer.dart';
 import '../../platform/interfaces/media_permission.dart';
 import '../../platform/media_indexer_provider.dart';
@@ -24,3 +25,19 @@ class MediaIndexNotifier extends AsyncNotifier<List<VideoItem>> {
     state = await AsyncValue.guard(() => ref.read(mediaIndexerProvider).scan());
   }
 }
+
+/// The index minus the folders the user hid — what every library surface must
+/// read.
+///
+/// Deliberately a derived provider rather than a filter inside
+/// [MediaIndexNotifier]: watching settings there would re-run `build()` and
+/// publish a data-less `AsyncLoading`, which unmounts the scroll view. This
+/// re-filters with no rescan and no loading flash.
+final libraryIndexProvider = Provider<AsyncValue<List<VideoItem>>>((ref) {
+  final raw = ref.watch(mediaIndexProvider);
+  final excluded =
+      ref.watch(settingsProvider.select((s) => s.excludedFolders)).toSet();
+  if (excluded.isEmpty) return raw;
+  return raw.whenData(
+      (videos) => videos.where((v) => !excluded.contains(v.folder)).toList());
+});

@@ -58,6 +58,9 @@ class KivoSettings {
   /// the download over.
   final int pendingUpdateDownloadId;
   final String? pendingUpdateVersion;
+  /// Bucket display names hidden from the library. A view filter only — the
+  /// files are never touched, unlike the vault.
+  final List<String> excludedFolders;
 
   const KivoSettings({
     required this.doubleTapSkipLeft,
@@ -115,6 +118,7 @@ class KivoSettings {
     required this.minimizeKeepsPlaying,
     required this.pendingUpdateDownloadId,
     required this.pendingUpdateVersion,
+    required this.excludedFolders,
   });
 
   factory KivoSettings.defaults() => const KivoSettings(
@@ -173,6 +177,7 @@ class KivoSettings {
         minimizeKeepsPlaying: false,
         pendingUpdateDownloadId: -1,
         pendingUpdateVersion: null,
+        excludedFolders: [],
       );
 
   static const Object _unset = Object();
@@ -233,6 +238,7 @@ class KivoSettings {
     bool? minimizeKeepsPlaying,
     int? pendingUpdateDownloadId,
     Object? pendingUpdateVersion = _unset,
+    List<String>? excludedFolders,
   }) {
     return KivoSettings(
       doubleTapSkipLeft: doubleTapSkipLeft ?? this.doubleTapSkipLeft,
@@ -299,6 +305,7 @@ class KivoSettings {
       pendingUpdateVersion: identical(pendingUpdateVersion, _unset)
           ? this.pendingUpdateVersion
           : pendingUpdateVersion as String?,
+      excludedFolders: excludedFolders ?? this.excludedFolders,
     );
   }
 
@@ -358,6 +365,7 @@ class KivoSettings {
         'minimizeKeepsPlaying': minimizeKeepsPlaying,
         'pendingUpdateDownloadId': pendingUpdateDownloadId,
         'pendingUpdateVersion': pendingUpdateVersion,
+        'excludedFolders': excludedFolders,
       };
 
   factory KivoSettings.fromMap(Map<String, dynamic> m) {
@@ -422,6 +430,8 @@ class KivoSettings {
               d.pendingUpdateDownloadId,
       pendingUpdateVersion:
           m['pendingUpdateVersion'] ?? d.pendingUpdateVersion,
+      excludedFolders: (m['excludedFolders'] as List?)?.cast<String>() ??
+          d.excludedFolders,
     );
   }
 }

@@ -129,7 +129,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   /// video list (not the Carpetas grid) is showing, which is the only place
   /// selection can be entered from (long-press on a [VideoTile]).
   List<VideoItem> _currentVisibleVideos() {
-    final index = ref.watch(mediaIndexProvider).valueOrNull;
+    final index = ref.watch(libraryIndexProvider).valueOrNull;
     if (index == null) return const [];
     final sort = librarySortFor(ref.watch(settingsProvider).librarySort);
     final unwatchedOnly = ref.watch(libraryUnwatchedOnlyProvider);
@@ -258,7 +258,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   }
 
   Widget _body() {
-    final index = ref.watch(mediaIndexProvider);
+    final index = ref.watch(libraryIndexProvider);
     return index.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, __) => FailureView.from(
