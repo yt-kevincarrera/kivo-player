@@ -1,5 +1,7 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/errors/kivo_failure.dart';
 import '../../../core/settings/kivo_settings.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
@@ -8,7 +10,9 @@ import '../../../platform/subtitle_finder_provider.dart';
 import '../../../player/engine/playback_provider.dart';
 import '../../../player/engine/playback_engine.dart';
 import '../../../player/open/video_source.dart';
+import '../../../player/tracks/manual_subtitle_controller.dart';
 import '../../../player/tracks/track_selection.dart';
+import '../../widgets/failure_snack_bar.dart';
 import 'subtitle_sync_hud.dart';
 
 Future<void> showSubtitlePicker(BuildContext context, WidgetRef ref) {
@@ -312,6 +316,25 @@ class _TracksSection extends ConsumerWidget {
     Navigator.of(context).pop();
   }
 
+  Future<void> _pickManualSubtitle(BuildContext context, WidgetRef ref) async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['srt', 'ass', 'ssa', 'vtt', 'sub'],
+    );
+    final path = result?.files.single.path;
+    if (path == null) return; // cancelled — do nothing
+    final ok = await ref.read(manualSubtitleProvider).load(path);
+    if (!context.mounted) return;
+    // Only pop on success: a failure keeps the sheet open so the context
+    // showFailureSnackBar needs is still around (it needs one that survives
+    // the sheet being popped, so simplest is to not pop it on that path).
+    if (ok) {
+      Navigator.of(context).pop();
+    } else {
+      showFailureSnackBar(context, KivoOp.subtitleLoad);
+    }
+  }
+
   void _pickExternal(BuildContext context, WidgetRef ref, ExternalSubtitle e) {
     engine.setExternalSubtitle(e.uri, title: e.displayName);
     final lang = languageFromFilename(e.displayName);
@@ -407,6 +430,17 @@ class _TracksSection extends ConsumerWidget {
                   style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 13),
                 ),
               ),
+            if (isSubtitles) ...[
+              const _SectionEyebrow(label: 'Desde tu dispositivo'),
+              _TrackCard(
+                icon: Icons.upload_file_outlined,
+                label: 'Cargar subtítulo…',
+                sublabel: 'Elegir un archivo .srt, .ass o .vtt',
+                active: false,
+                accent: accent,
+                onTap: () => _pickManualSubtitle(context, ref),
+              ),
+            ],
           ],
         );
       },
