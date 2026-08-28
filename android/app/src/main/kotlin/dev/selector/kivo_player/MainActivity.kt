@@ -61,32 +61,77 @@ class MainActivity : FlutterFragmentActivity() {
     private var pendingRenameFinalName: String? = null
 
     // --- kivo/update ---
-    private var updateDownloadId = -1L
+    // The download is owned by DownloadManager, not by this Activity: it keeps
+    // going with Kivo backgrounded or killed. Dart holds the id (persisted in
+    // settings) and polls downloadStatus while its UI is on screen. Nothing
+    // installs automatically — installDownload only runs when the user taps
+    // Instalar, so an update never hijacks the screen mid-video.
+    private val downloadManager: DownloadManager
+        get() = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
 
-    private val downloadReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L) ?: -1L
-            if (id != updateDownloadId || id == -1L) return
-            val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-            val uri = dm.getUriForDownloadedFile(id) ?: return
-            val install = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(uri, "application/vnd.android.package-archive")
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-            try { startActivity(install) } catch (_: Exception) {}
-        }
-    }
-
-    private fun startApkDownload(url: String, fileName: String) {
-        val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        // Download into app external files (no extra storage permission needed).
+    /** Queues the APK and returns its DownloadManager id, or -1 on failure. */
+    private fun enqueueApk(url: String, fileName: String): Long {
+        // App-private external files: no storage permission, and the manifest's
+        // FileProvider already maps exactly this directory.
         val dest = File(getExternalFilesDir(null), fileName).apply { if (exists()) delete() }
         val req = DownloadManager.Request(Uri.parse(url))
             .setTitle("Kivo $fileName")
             .setMimeType("application/vnd.android.package-archive")
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            // Visible while it runs, gone once it finishes. A completed-download
+            // notification would offer a second, competing way to install.
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
             .setDestinationUri(Uri.fromFile(dest))
-        updateDownloadId = dm.enqueue(req)
+        return try { downloadManager.enqueue(req) } catch (_: Exception) { -1L }
+    }
+
+    /** Null when the id is unknown — cleared by the system or by the user. */
+    private fun queryDownload(id: Long): Map<String, Any?>? {
+        if (id < 0) return null
+        val cursor = try {
+            downloadManager.query(DownloadManager.Query().setFilterById(id))
+        } catch (_: Exception) { null } ?: return null
+        cursor.use {
+            if (!it.moveToFirst()) return null
+            val status = it.getInt(it.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
+            val reason = it.getInt(it.getColumnIndexOrThrow(DownloadManager.COLUMN_REASON))
+            return mapOf(
+                "status" to when (status) {
+                    DownloadManager.STATUS_PENDING -> "pending"
+                    DownloadManager.STATUS_RUNNING -> "running"
+                    DownloadManager.STATUS_PAUSED -> "paused"
+                    DownloadManager.STATUS_SUCCESSFUL -> "done"
+                    else -> "failed"
+                },
+                // Only read while paused. It is what separates "the system
+                // parked this until you have Wi-Fi" from "a transfer hiccup,
+                // retrying" — the difference the UI used to be unable to show.
+                "reason" to if (reason == DownloadManager.PAUSED_WAITING_TO_RETRY) "retry" else "network",
+                "received" to it.getLong(
+                    it.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)),
+                "total" to it.getLong(
+                    it.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)),
+            )
+        }
+    }
+
+    private fun installDownload(id: Long): String {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !packageManager.canRequestPackageInstalls()) {
+            // Route the user to enable "install unknown apps" for Kivo, then they retry.
+            try {
+                startActivity(Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                    Uri.parse("package:$packageName")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            } catch (_: Exception) {}
+            return "needsPermission"
+        }
+        val uri = try { downloadManager.getUriForDownloadedFile(id) } catch (_: Exception) { null }
+            ?: return "failed"
+        return try {
+            startActivity(Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/vnd.android.package-archive")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+            })
+            "started"
+        } catch (_: Exception) { "failed" }
     }
 
     companion object {
@@ -116,17 +161,6 @@ class MainActivity : FlutterFragmentActivity() {
             ?: super.provideFlutterEngine(context)
 
     override fun shouldDestroyEngineWithHost(): Boolean = false
-
-    override fun onCreate(savedInstanceState: android.os.Bundle?) {
-        super.onCreate(savedInstanceState)
-        val filter = IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(downloadReceiver, filter, Context.RECEIVER_EXPORTED)
-        } else {
-            @Suppress("UnspecifiedRegisterReceiverFlag")
-            registerReceiver(downloadReceiver, filter)
-        }
-    }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -809,26 +843,23 @@ class MainActivity : FlutterFragmentActivity() {
                             result.success(null)
                         } catch (e: Exception) { result.error("OPEN_FAILED", e.message, null) }
                     }
-                    "downloadAndInstall" -> {
+                    "enqueueUpdate" -> {
                         val url = call.argument<String>("url")
                         val fileName = call.argument<String>("fileName") ?: "update.apk"
                         if (url == null) { result.error("INVALID_ARG", "url required", null); return@setMethodCallHandler }
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !packageManager.canRequestPackageInstalls()) {
-                            // Route the user to enable "install unknown apps" for Kivo, then they retry.
-                            try {
-                                startActivity(Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-                                    Uri.parse("package:$packageName")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                            } catch (_: Exception) {}
-                            result.success("needsPermission")
-                            return@setMethodCallHandler
-                        }
-                        try {
-                            startApkDownload(url, fileName)
-                            result.success("started")
-                        } catch (e: Exception) {
-                            result.success("failed")
-                        }
+                        result.success(enqueueApk(url, fileName))
                     }
+                    // The channel codec sends a Dart int as Int32 or Int64 depending
+                    // on its magnitude, so read every id as a Number.
+                    "downloadStatus" -> result.success(
+                        queryDownload(call.argument<Number>("id")?.toLong() ?: -1L))
+                    "cancelDownload" -> {
+                        val id = call.argument<Number>("id")?.toLong() ?: -1L
+                        if (id >= 0) try { downloadManager.remove(id) } catch (_: Exception) {}
+                        result.success(null)
+                    }
+                    "installDownload" -> result.success(
+                        installDownload(call.argument<Number>("id")?.toLong() ?: -1L))
                     else -> result.notImplemented()
                 }
             }
@@ -871,7 +902,6 @@ class MainActivity : FlutterFragmentActivity() {
     // configureFlutterEngine re-points the channel on each re-attach.
 
     override fun onDestroy() {
-        try { unregisterReceiver(downloadReceiver) } catch (_: Exception) {}
         // Release on the executor thread so it can't race an in-flight frameAt;
         // shutdown() still lets this already-submitted task run to completion.
         frameExecutor.submit {

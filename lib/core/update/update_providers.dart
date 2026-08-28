@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../errors/error_log_provider.dart';
 import '../settings/settings_provider.dart';
 import '../../platform/app_installer_provider.dart';
-import '../../platform/interfaces/app_installer.dart';
 import 'update_checker.dart';
 import 'update_info.dart';
 import 'version_compare.dart';
@@ -43,11 +42,6 @@ class UpdateController {
       return const UpdateResult(UpdateStatus.upToDate);
     }
     return UpdateResult(UpdateStatus.available, info);
-  }
-
-  Future<InstallOutcome> startUpdate(UpdateInfo info) {
-    return _ref.read(appInstallerProvider)
-        .downloadAndInstall(info.apkUrl!, 'kivo-${info.version}.apk');
   }
 
   Future<void> openInBrowser(UpdateInfo info) =>

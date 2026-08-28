@@ -33,7 +33,7 @@ void main() {
             final r = await ref.read(updateControllerProvider).check();
             final c2 = kivoNavigatorKey.currentContext;
             if (r.status == UpdateStatus.available && c2 != null) {
-              showUpdateDialog(c2, ref, r.info!);
+              showUpdateDialog(c2, r.info!);
             }
           });
           return const Scaffold(body: SizedBox());

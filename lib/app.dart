@@ -35,7 +35,7 @@ class _KivoAppState extends ConsumerState<KivoApp> {
     if (result.status != UpdateStatus.available) return;
     final ctx = kivoNavigatorKey.currentContext;
     if (ctx == null || !ctx.mounted) return;
-    showUpdateDialog(ctx, ref, result.info!);
+    showUpdateDialog(ctx, result.info!);
   }
 
   @override

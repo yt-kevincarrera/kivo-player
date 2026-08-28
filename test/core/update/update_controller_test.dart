@@ -70,13 +70,4 @@ void main() {
     expect((await c.read(updateControllerProvider).check()).status, UpdateStatus.upToDate);
     expect((await c.read(updateControllerProvider).check(manual: true)).status, UpdateStatus.available);
   });
-
-  test('startUpdate forwards to the installer with a versioned file name', () async {
-    final installer = FakeAppInstaller(version: '1.0.0');
-    final c = await _c(checker: FakeUpdateChecker(), installer: installer);
-    addTearDown(c.dispose);
-    await c.read(updateControllerProvider).startUpdate(_info('1.1.0'));
-    expect(installer.installed.single.$1, 'u');
-    expect(installer.installed.single.$2, 'kivo-1.1.0.apk');
-  });
 }

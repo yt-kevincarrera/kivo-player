@@ -541,12 +541,24 @@ class FakeAppInstaller implements AppInstaller {
   String version;
   String abi;
   InstallOutcome installOutcome;
-  final List<(String, String)> installed = [];
+
+  /// Id handed out by [enqueueUpdate]; set to -1 to simulate a refused queue.
+  int nextDownloadId;
+
+  /// What [downloadStatus] reports. Tests move this to drive the controller
+  /// through running → paused → done the way DownloadManager would.
+  DownloadProgress status = const DownloadProgress(DownloadStage.running, received: 1, total: 4);
+
+  final List<(String, String)> enqueued = [];
+  final List<int> cancelled = [];
+  final List<int> installs = [];
   final List<String> openedUrls = [];
+
   FakeAppInstaller({
     this.version = '1.0.0',
     this.abi = 'arm64-v8a',
     this.installOutcome = InstallOutcome.started,
+    this.nextDownloadId = 7,
   });
 
   @override
@@ -556,11 +568,26 @@ class FakeAppInstaller implements AppInstaller {
   int sdk = 34;
   @override
   Future<int> androidSdk() async => sdk;
+
   @override
-  Future<InstallOutcome> downloadAndInstall(String url, String fileName) async {
-    installed.add((url, fileName));
+  Future<int> enqueueUpdate(String url, String fileName) async {
+    enqueued.add((url, fileName));
+    return nextDownloadId;
+  }
+
+  @override
+  Future<DownloadProgress> downloadStatus(int id) async =>
+      id == nextDownloadId ? status : DownloadProgress.gone;
+
+  @override
+  Future<void> cancelDownload(int id) async => cancelled.add(id);
+
+  @override
+  Future<InstallOutcome> installDownload(int id) async {
+    installs.add(id);
     return installOutcome;
   }
+
   @override
   Future<void> openUrl(String url) async => openedUrls.add(url);
 }

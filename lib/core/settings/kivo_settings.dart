@@ -52,6 +52,12 @@ class KivoSettings {
   final String zoomResetMode;  // 'exit' | 'video' | 'never'
   final double zoomRemembered; // last pinch factor, only written in 'never' mode
   final bool minimizeKeepsPlaying;
+  /// A DownloadManager id for an update APK that is queued or already on
+  /// disk, or -1. Persisted because the download outlives the process: on the
+  /// next launch this is what lets Kivo re-attach to it instead of starting
+  /// the download over.
+  final int pendingUpdateDownloadId;
+  final String? pendingUpdateVersion;
 
   const KivoSettings({
     required this.doubleTapSkipLeft,
@@ -107,6 +113,8 @@ class KivoSettings {
     required this.zoomResetMode,
     required this.zoomRemembered,
     required this.minimizeKeepsPlaying,
+    required this.pendingUpdateDownloadId,
+    required this.pendingUpdateVersion,
   });
 
   factory KivoSettings.defaults() => const KivoSettings(
@@ -163,6 +171,8 @@ class KivoSettings {
         zoomResetMode: 'exit',
         zoomRemembered: 1.0,
         minimizeKeepsPlaying: false,
+        pendingUpdateDownloadId: -1,
+        pendingUpdateVersion: null,
       );
 
   static const Object _unset = Object();
@@ -221,6 +231,8 @@ class KivoSettings {
     String? zoomResetMode,
     double? zoomRemembered,
     bool? minimizeKeepsPlaying,
+    int? pendingUpdateDownloadId,
+    Object? pendingUpdateVersion = _unset,
   }) {
     return KivoSettings(
       doubleTapSkipLeft: doubleTapSkipLeft ?? this.doubleTapSkipLeft,
@@ -282,6 +294,11 @@ class KivoSettings {
       zoomResetMode: zoomResetMode ?? this.zoomResetMode,
       zoomRemembered: zoomRemembered ?? this.zoomRemembered,
       minimizeKeepsPlaying: minimizeKeepsPlaying ?? this.minimizeKeepsPlaying,
+      pendingUpdateDownloadId:
+          pendingUpdateDownloadId ?? this.pendingUpdateDownloadId,
+      pendingUpdateVersion: identical(pendingUpdateVersion, _unset)
+          ? this.pendingUpdateVersion
+          : pendingUpdateVersion as String?,
     );
   }
 
@@ -339,6 +356,8 @@ class KivoSettings {
         'zoomResetMode': zoomResetMode,
         'zoomRemembered': zoomRemembered,
         'minimizeKeepsPlaying': minimizeKeepsPlaying,
+        'pendingUpdateDownloadId': pendingUpdateDownloadId,
+        'pendingUpdateVersion': pendingUpdateVersion,
       };
 
   factory KivoSettings.fromMap(Map<String, dynamic> m) {
@@ -398,6 +417,11 @@ class KivoSettings {
       zoomResetMode: m['zoomResetMode'] ?? d.zoomResetMode,
       zoomRemembered: (m['zoomRemembered'] ?? d.zoomRemembered).toDouble(),
       minimizeKeepsPlaying: m['minimizeKeepsPlaying'] ?? d.minimizeKeepsPlaying,
+      pendingUpdateDownloadId:
+          (m['pendingUpdateDownloadId'] as num?)?.toInt() ??
+              d.pendingUpdateDownloadId,
+      pendingUpdateVersion:
+          m['pendingUpdateVersion'] ?? d.pendingUpdateVersion,
     );
   }
 }
