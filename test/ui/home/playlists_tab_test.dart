@@ -11,6 +11,7 @@ import 'package:kivo_player/platform/media_permission_provider.dart';
 import 'package:kivo_player/player/library/media_index.dart';
 import 'package:kivo_player/player/playlists/playlist_controller.dart';
 import 'package:kivo_player/player/playlists/playlist_store.dart';
+import 'package:kivo_player/ui/home/playlists/playlist_screen.dart';
 import 'package:kivo_player/ui/home/playlists/playlists_tab.dart';
 import '../../fakes/fakes.dart';
 
@@ -94,5 +95,23 @@ void main() {
 
     await _pump(tester, c);
     expect(find.text('Serie'), findsOneWidget);
+  });
+
+  testWidgets('tapping a playlist row opens its screen', (tester) async {
+    final store = InMemoryPlaylistStore();
+    final c = await _c(store, [_v('1', 'a.mkv')]);
+    addTearDown(c.dispose);
+    await c.read(mediaIndexProvider.future);
+    final p = await c.read(playlistsProvider.notifier).create('Serie');
+    await c.read(playlistsProvider.notifier).addVideos(p.id, [_v('1', 'a.mkv')]);
+
+    await _pump(tester, c);
+    expect(find.byType(PlaylistScreen), findsNothing);
+
+    await tester.tap(find.text('Serie'));
+    await tester.pumpAndSettle();
+
+    final screen = tester.widget<PlaylistScreen>(find.byType(PlaylistScreen));
+    expect(screen.playlistId, p.id);
   });
 }

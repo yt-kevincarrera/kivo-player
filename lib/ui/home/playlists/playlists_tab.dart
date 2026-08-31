@@ -9,12 +9,10 @@ import '../../../player/playlists/playlist_playback.dart';
 import '../../widgets/press_bounce.dart';
 import '../widgets/library_empty_state.dart';
 import '../widgets/thumbnail_image.dart';
+import 'playlist_screen.dart';
 
 /// The third sub-tab in Videos (spec §7): user-made playlists, each shown
 /// with a cover (the first AVAILABLE entry's thumbnail) and a count.
-///
-/// Deliberately not the one that pushes the playlist screen itself — that
-/// screen doesn't exist yet (it's a later task); rows are inert for now.
 class PlaylistsTab extends ConsumerWidget {
   const PlaylistsTab({super.key});
 
@@ -132,9 +130,9 @@ class _PlaylistRow extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: PressBounce(
-        onTap: () {
-          // TODO: push the playlist screen once it exists — a later task.
-        },
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => PlaylistScreen(playlistId: playlist.id),
+        )),
         child: Container(
           decoration: BoxDecoration(
             color: cs.surfaceContainerHighest,
