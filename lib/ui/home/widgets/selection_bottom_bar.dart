@@ -46,7 +46,7 @@ class SelectionBottomBar extends ConsumerWidget {
                 sel.clear();
                 await moveToVault(context, ref, items);
               } : null),
-              _action(cs.onSurface, Icons.playlist_add, 'A lista', enabled ? () {
+              _action(cs.onSurface, Icons.playlist_add, 'A una lista', enabled ? () {
                 // Clear FIRST, matching Al Vault above — the bar disappearing
                 // immediately stops repeat taps. showAddToPlaylistSheet pops
                 // and reports on its own, so this is fire-and-forget: nothing

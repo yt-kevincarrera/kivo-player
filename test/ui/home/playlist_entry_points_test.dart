@@ -59,7 +59,7 @@ void main() {
 
     // Only that the entry point exists and is reachable — the sheet itself is
     // covered by its own test.
-    expect(find.text('A lista'), findsOneWidget);
+    expect(find.text('A una lista'), findsOneWidget);
   });
 
   testWidgets('the video ⋮ sheet offers adding to a playlist', (tester) async {
