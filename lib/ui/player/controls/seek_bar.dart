@@ -4,6 +4,7 @@ import '../../../core/format.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../player/control/player_controller.dart';
 import '../../../player/engine/playback_provider.dart';
+import '../chapters/chapter_marks_layer.dart';
 import '../loop/ab_range_layer.dart';
 import '../seek/seek_preview.dart';
 import '../state/controls_visibility.dart';
@@ -98,6 +99,7 @@ class _SeekBarState extends ConsumerState<SeekBar>
             alignment: Alignment.center,
             children: [
               const Positioned.fill(child: AbRangeLayer()),
+              const Positioned.fill(child: ChapterMarksLayer()),
               AnimatedBuilder(
                 animation: _thumbAnim,
                 builder: (context, _) => SliderTheme(

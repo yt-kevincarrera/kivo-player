@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import '../chapters/chapter.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'frame_ready.dart';
@@ -65,11 +67,11 @@ class MediaKitEngine implements PlaybackEngine {
   Future<void> dispose() => _player.dispose();
 
   MediaTrack _audioToMedia(AudioTrack t) => MediaTrack(
-        id: t.id,
-        title: t.title,
-        language: t.language,
-        isDefault: t.isDefault ?? false,
-      );
+    id: t.id,
+    title: t.title,
+    language: t.language,
+    isDefault: t.isDefault ?? false,
+  );
 
   MediaTrack? _subtitleToMedia(SubtitleTrack t) {
     // media_kit's pseudo-tracks: 'no' = explicitly off, 'auto' = nothing
@@ -86,14 +88,20 @@ class MediaKitEngine implements PlaybackEngine {
 
   @override
   Stream<List<MediaTrack>> get audioTracksStream => _player.stream.tracks.map(
-      (t) => t.audio
-          .where((a) => a.id != 'auto' && a.id != 'no') // pseudo-tracks, not pickable rows
-          .map(_audioToMedia)
-          .toList());
+    (t) => t.audio
+        .where(
+          (a) => a.id != 'auto' && a.id != 'no',
+        ) // pseudo-tracks, not pickable rows
+        .map(_audioToMedia)
+        .toList(),
+  );
 
   @override
-  Stream<List<MediaTrack>> get subtitleTracksStream => _player.stream.tracks
-      .map((t) => t.subtitle.map(_subtitleToMedia).whereType<MediaTrack>().toList());
+  Stream<List<MediaTrack>> get subtitleTracksStream =>
+      _player.stream.tracks.map(
+        (t) =>
+            t.subtitle.map(_subtitleToMedia).whereType<MediaTrack>().toList(),
+      );
 
   @override
   Stream<MediaTrack?> get currentAudioTrackStream =>
@@ -119,7 +127,8 @@ class MediaKitEngine implements PlaybackEngine {
   MediaTrack? get currentAudioTrack => _audioToMedia(_player.state.track.audio);
 
   @override
-  MediaTrack? get currentSubtitleTrack => _subtitleToMedia(_player.state.track.subtitle);
+  MediaTrack? get currentSubtitleTrack =>
+      _subtitleToMedia(_player.state.track.subtitle);
 
   @override
   Future<void> setAudioTrack(String id) async {
@@ -159,7 +168,10 @@ class MediaKitEngine implements PlaybackEngine {
     await native.setProperty('sub-ass-override', 'force');
     await native.setProperty('sub-font-size', fontSize.toStringAsFixed(0));
     await native.setProperty('sub-color', _toMpvColor(textColorArgb));
-    await native.setProperty('sub-back-color', _toMpvColor(backgroundColorArgb));
+    await native.setProperty(
+      'sub-back-color',
+      _toMpvColor(backgroundColorArgb),
+    );
   }
 
   @override
@@ -167,6 +179,42 @@ class MediaKitEngine implements PlaybackEngine {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;
     await native.setProperty('sub-delay', seconds.toStringAsFixed(3));
+  }
+
+  @override
+  Future<List<MediaChapter>> chapters() async {
+    final native = _player.platform as NativePlayer?;
+    if (native == null) return const [];
+    try {
+      // A file with no chapters costs exactly this one read — the loop below
+      // never runs. Only files that actually have chapters pay for them.
+      final count = int.tryParse(
+        await native.getProperty('chapter-list/count'),
+      );
+      if (count == null || count <= 0) return const [];
+
+      final out = <MediaChapter>[];
+      for (var i = 0; i < count; i++) {
+        final seconds =
+            double.tryParse(await native.getProperty('chapter-list/$i/time')) ??
+            0;
+        final title = await native.getProperty('chapter-list/$i/title');
+        out.add(
+          MediaChapter(
+            // mpv leaves the title empty for unnamed chapters, which is common;
+            // a number is more use to the reader than a blank row.
+            title: title.trim().isEmpty ? 'Capítulo ${i + 1}' : title.trim(),
+            start: Duration(milliseconds: (seconds * 1000).round()),
+          ),
+        );
+      }
+      return out;
+    } catch (e) {
+      // Chapters are a navigation nicety: a file whose metadata mpv cannot
+      // read still plays fine, so this degrades to "no chapters".
+      debugPrint('MediaKitEngine.chapters failed: $e');
+      return const [];
+    }
   }
 
   @override
