@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
 import '../../../player/open/video_source.dart';
+import '../state/controls_visibility.dart';
 import '../../../player/tracks/track_delay.dart';
 import '../../../player/tracks/track_delay_controller.dart';
 
@@ -109,6 +110,11 @@ class _TrackSyncHudState extends ConsumerState<TrackSyncHud> {
     ref.listen<SyncTarget?>(syncHudProvider, (previous, next) {
       if (next != null) {
         _touch();
+        // The panel is what the user is looking at now; the controls bar over
+        // the same video is just noise. ControlsOverlay also refuses to render
+        // while we are up, so a stray tap cannot bring them back on top of us
+        // — this keeps the flag itself honest, which player_gestures reads.
+        ref.read(controlsVisibleProvider.notifier).hide();
       } else {
         _cancelIdle();
       }
@@ -144,82 +150,102 @@ class _TrackSyncHudState extends ConsumerState<TrackSyncHud> {
               border: Border.all(color: accent.withValues(alpha: 0.35)),
               borderRadius: BorderRadius.circular(18),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+            child: Stack(
               children: [
-                _TargetToggle(
-                  target: target,
-                  accent: accent,
-                  onChanged: (t) {
-                    ref.read(syncHudProvider.notifier).show(t);
-                    _touch();
-                  },
-                ),
-                const SizedBox(height: 10),
-                // Value above, buttons below: a thumb on the − / + never
-                // covers the number it is changing.
-                Text(
-                  formatDelay(ms),
-                  key: const ValueKey('subtitle-sync-value'),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 26,
-                    letterSpacing: 0.5,
-                    height: 1.1,
-                    fontFeatures: [FontFeature.tabularFigures()],
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: _PanelButton(
+                    key: const ValueKey('sync-close'),
+                    glyph: '✕',
+                    quiet: true,
+                    size: 34,
+                    onStep: () {
+                      // Flush first: closing by hand must not drop the last
+                      // nudge, exactly like the idle timeout does.
+                      sync.flush();
+                      ref.read(syncHudProvider.notifier).hide();
+                    },
                   ),
                 ),
-                const SizedBox(height: 12),
-                _DragBar(
-                  key: const ValueKey('sync-drag-bar'),
-                  delayMs: ms,
-                  accent: accent,
-                  onDelay: (v) {
-                    sync.setTo(v);
-                    _touch();
-                  },
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'arrastra la barra o usa los botones',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.38),
-                    fontSize: 10,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    _PanelButton(
-                      key: const ValueKey('subtitle-sync-minus'),
-                      glyph: '−',
-                      repeats: true,
-                      onStep: () {
-                        sync.nudge(-1);
+                    _TargetToggle(
+                      target: target,
+                      accent: accent,
+                      onChanged: (t) {
+                        ref.read(syncHudProvider.notifier).show(t);
                         _touch();
                       },
                     ),
-                    // Resets only the side that is showing — `sync` is already
-                    // the active notifier, so each tab gets its own reset for
-                    // free.
-                    _PanelButton(
-                      key: const ValueKey('sync-reset'),
-                      glyph: '⟲',
-                      quiet: true,
-                      onStep: () {
-                        sync.reset();
+                    const SizedBox(height: 10),
+                    // Value above, buttons below: a thumb on the − / + never
+                    // covers the number it is changing.
+                    Text(
+                      formatDelay(ms),
+                      key: const ValueKey('subtitle-sync-value'),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 26,
+                        letterSpacing: 0.5,
+                        height: 1.1,
+                        fontFeatures: [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _DragBar(
+                      key: const ValueKey('sync-drag-bar'),
+                      delayMs: ms,
+                      accent: accent,
+                      onDelay: (v) {
+                        sync.setTo(v);
                         _touch();
                       },
                     ),
-                    _PanelButton(
-                      key: const ValueKey('subtitle-sync-plus'),
-                      glyph: '+',
-                      repeats: true,
-                      onStep: () {
-                        sync.nudge(1);
-                        _touch();
-                      },
+                    const SizedBox(height: 4),
+                    Text(
+                      'arrastra la barra o usa los botones',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.38),
+                        fontSize: 10,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _PanelButton(
+                          key: const ValueKey('subtitle-sync-minus'),
+                          glyph: '−',
+                          repeats: true,
+                          onStep: () {
+                            sync.nudge(-1);
+                            _touch();
+                          },
+                        ),
+                        // Resets only the side that is showing — `sync` is already
+                        // the active notifier, so each tab gets its own reset for
+                        // free.
+                        _PanelButton(
+                          key: const ValueKey('sync-reset'),
+                          glyph: '⟲',
+                          quiet: true,
+                          onStep: () {
+                            sync.reset();
+                            _touch();
+                          },
+                        ),
+                        _PanelButton(
+                          key: const ValueKey('subtitle-sync-plus'),
+                          glyph: '+',
+                          repeats: true,
+                          onStep: () {
+                            sync.nudge(1);
+                            _touch();
+                          },
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -329,6 +355,7 @@ class _PanelButton extends StatefulWidget {
     required this.onStep,
     this.repeats = false,
     this.quiet = false,
+    this.size = 46,
   });
 
   final String glyph;
@@ -337,6 +364,8 @@ class _PanelButton extends StatefulWidget {
 
   /// Reads as secondary to the − / + it sits between.
   final bool quiet;
+
+  final double size;
 
   @override
   State<_PanelButton> createState() => _PanelButtonState();
@@ -373,8 +402,8 @@ class _PanelButtonState extends State<_PanelButton> {
       onLongPressEnd: widget.repeats ? (_) => _stopRepeat() : null,
       onLongPressCancel: widget.repeats ? _stopRepeat : null,
       child: Container(
-        width: 46,
-        height: 46,
+        width: widget.size,
+        height: widget.size,
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: widget.quiet ? 0.05 : 0.08),
           borderRadius: BorderRadius.circular(14),

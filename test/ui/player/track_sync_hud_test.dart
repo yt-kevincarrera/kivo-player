@@ -8,6 +8,7 @@ import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/tracks/track_delay.dart';
 import 'package:kivo_player/player/tracks/track_delay_controller.dart';
 import 'package:kivo_player/player/tracks/track_prefs_store.dart';
+import 'package:kivo_player/ui/player/state/controls_visibility.dart';
 import 'package:kivo_player/ui/player/tracks/track_sync_hud.dart';
 import '../../fakes/fakes.dart';
 
@@ -273,4 +274,44 @@ void main() {
 
     await tester.pump(const Duration(milliseconds: 300));
   });
+  testWidgets('the close button dismisses it and keeps the pending value',
+      (tester) async {
+    final engine = FakePlaybackEngine();
+    final c = await _c(engine);
+    addTearDown(c.dispose);
+    c.read(currentVideoProvider.notifier).open(const VideoSession(
+        playbackPath: '/v/a.mkv', displayName: 'a.mkv', queue: ['/v/a.mkv'], index: 0));
+    await _pump(tester, c);
+    c.read(syncHudProvider.notifier).show(SyncTarget.subtitles);
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('subtitle-sync-plus')));
+    await tester.pump();
+    // Closing right away, well inside the 120 ms debounce.
+    expect(engine.subtitleDelays, isEmpty);
+
+    await tester.tap(find.byKey(const ValueKey('sync-close')));
+    await tester.pump();
+
+    expect(c.read(syncHudProvider), isNull);
+    // Flushed on the way out — closing by hand must not drop the last nudge.
+    expect(engine.subtitleDelays, [0.05]);
+  });
+
+  testWidgets('opening it puts the player controls away', (tester) async {
+    final c = await _c(FakePlaybackEngine());
+    addTearDown(c.dispose);
+    c.read(currentVideoProvider.notifier).open(const VideoSession(
+        playbackPath: '/v/a.mkv', displayName: 'a.mkv', queue: ['/v/a.mkv'], index: 0));
+    await _pump(tester, c);
+
+    c.read(controlsVisibleProvider.notifier).show();
+    expect(c.read(controlsVisibleProvider), true);
+
+    c.read(syncHudProvider.notifier).show(SyncTarget.subtitles);
+    await tester.pump();
+
+    expect(c.read(controlsVisibleProvider), false);
+  });
+
 }

@@ -70,4 +70,12 @@ void main() {
       expect(c.read(controlsVisibleProvider), false);
     });
   });
+  test('the sync panel suppresses the controls no matter who asked for them',
+      () {
+    expect(controlsShouldRender(visible: true, syncPanelOpen: false), true);
+    expect(controlsShouldRender(visible: true, syncPanelOpen: true), false);
+    expect(controlsShouldRender(visible: false, syncPanelOpen: false), false);
+    expect(controlsShouldRender(visible: false, syncPanelOpen: true), false);
+  });
+
 }

@@ -33,4 +33,17 @@ class ControlsVisibilityNotifier extends Notifier<bool> {
 
 final controlsVisibleProvider =
     NotifierProvider<ControlsVisibilityNotifier, bool>(
-        ControlsVisibilityNotifier.new);
+      ControlsVisibilityNotifier.new,
+    );
+
+/// Whether the controls bar should be on screen at all.
+///
+/// The sync panel wins: it is what the user is looking at, and anything that
+/// calls [ControlsVisibilityNotifier.show] — a stray tap on the video, the
+/// seek bar, the queue strip — would otherwise punch the controls straight
+/// through it. Gating the render rather than trusting every caller to check
+/// is what makes that impossible instead of merely unlikely.
+bool controlsShouldRender({
+  required bool visible,
+  required bool syncPanelOpen,
+}) => visible && !syncPanelOpen;

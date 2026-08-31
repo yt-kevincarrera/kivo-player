@@ -8,12 +8,16 @@ import 'bottom_bar.dart';
 import 'center_controls.dart';
 import 'hold_to_unlock.dart';
 import 'top_bar.dart';
+import '../tracks/track_sync_hud.dart';
 
 class ControlsOverlay extends ConsumerWidget {
   const ControlsOverlay({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final visible = ref.watch(controlsVisibleProvider);
+    final visible = controlsShouldRender(
+      visible: ref.watch(controlsVisibleProvider),
+      syncPanelOpen: ref.watch(syncHudProvider) != null,
+    );
     final locked = ref.watch(lockProvider);
     final accent = Color(ref.watch(settingsProvider).accentColor);
     return AnimatedOpacity(
@@ -29,66 +33,80 @@ class ControlsOverlay extends ConsumerWidget {
                 ),
               ),
             )
-          : Stack(children: [
-              Positioned.fill(
-                child: IgnorePointer(
-                  ignoring: true, // never absorb taps — tap-to-hide must reach PlayerGestures
-                  child: Container(
-                      color: Colors.black.withValues(alpha: 0.22)),
+          : Stack(
+              children: [
+                Positioned.fill(
+                  child: IgnorePointer(
+                    ignoring:
+                        true, // never absorb taps — tap-to-hide must reach PlayerGestures
+                    child: Container(
+                      color: Colors.black.withValues(alpha: 0.22),
+                    ),
+                  ),
                 ),
-              ),
-              Listener(
-                // Any touch on a control restarts the auto-hide timer so the
-                // controls don't vanish while the user is interacting. Empty
-                // areas hit no child (deferToChild) and fall through to
-                // PlayerGestures' tap-to-hide.
-                onPointerDown: (_) =>
-                    ref.read(controlsVisibleProvider.notifier).show(),
-                onPointerMove: (_) =>
-                    ref.read(controlsVisibleProvider.notifier).show(),
-                child: IgnorePointer(
-                  ignoring: !visible,
-                  child: Stack(
-                  children: [
-                    Positioned(
-                      top: 0, left: 0, right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.fromLTRB(8, 8, 8, 24),
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [Colors.black54, Colors.transparent],
+                Listener(
+                  // Any touch on a control restarts the auto-hide timer so the
+                  // controls don't vanish while the user is interacting. Empty
+                  // areas hit no child (deferToChild) and fall through to
+                  // PlayerGestures' tap-to-hide.
+                  onPointerDown: (_) =>
+                      ref.read(controlsVisibleProvider.notifier).show(),
+                  onPointerMove: (_) =>
+                      ref.read(controlsVisibleProvider.notifier).show(),
+                  child: IgnorePointer(
+                    ignoring: !visible,
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.fromLTRB(8, 8, 8, 24),
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [Colors.black54, Colors.transparent],
+                              ),
+                            ),
+                            child: const SafeArea(
+                              bottom: false,
+                              child: TopBar(),
+                            ),
                           ),
                         ),
-                        child: const SafeArea(bottom: false, child: TopBar()),
-                      ),
-                    ),
-                    const Center(child: CenterControls()),
-                    Positioned(
-                      bottom: 0, left: 0, right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.fromLTRB(12, 24, 12, 8),
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.bottomCenter,
-                            end: Alignment.topCenter,
-                            colors: [Colors.black87, Colors.transparent],
+                        const Center(child: CenterControls()),
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.fromLTRB(12, 24, 12, 8),
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                                colors: [Colors.black87, Colors.transparent],
+                              ),
+                            ),
+                            child: const SafeArea(
+                              top: false,
+                              child: BottomBar(),
+                            ),
                           ),
                         ),
-                        child: const SafeArea(top: false, child: BottomBar()),
-                      ),
+                        const Positioned(
+                          right: 14,
+                          bottom: 116, // clear of the seek bar + button row
+                          child: AbLoopChip(),
+                        ),
+                      ],
                     ),
-                    const Positioned(
-                      right: 14,
-                      bottom: 116, // clear of the seek bar + button row
-                      child: AbLoopChip(),
-                    ),
-                  ],
+                  ),
                 ),
-                ),
-              ),
-            ]),
+              ],
+            ),
     );
   }
 }
