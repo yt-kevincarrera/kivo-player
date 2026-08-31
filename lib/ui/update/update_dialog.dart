@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/errors/kivo_failure.dart';
 import '../../core/settings/settings_provider.dart';
+import '../../core/update/release_notes.dart';
 import '../../core/update/update_download_controller.dart';
 import '../../core/update/update_info.dart';
 import '../../core/update/update_providers.dart';
@@ -71,7 +72,9 @@ class _UpdateDialogState extends ConsumerState<_UpdateDialog> {
         if (info == null) {
           return Text('Ya no hay ninguna descarga en curso.', style: muted);
         }
-        final notes = info.notes.trim();
+        // Stripped of headings and the compare link: a URL is no use inside a
+        // dialog, and older releases contain nothing else.
+        final notes = cleanReleaseNotes(info.notes);
         return Text(
           notes.isEmpty ? 'Hay una versión más reciente disponible.' : notes,
           style: muted,

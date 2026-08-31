@@ -18,6 +18,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The notes below diff against the previous tag, which a shallow
+          # clone does not have.
+          fetch-depth: 0
 
       - uses: actions/setup-java@v4
         with:
@@ -66,9 +70,34 @@ jobs:
           mv app-armeabi-v7a-release.apk "kivo-${v}-armeabi-v7a.apk"
           mv app-x86_64-release.apk      "kivo-${v}-x86_64.apk"
 
+      # GitHub's own generated notes list merged PRs. For a repo that has been
+      # pushing straight to master that list is empty, which is why every
+      # release so far said nothing but "Full Changelog: <link>". The commit
+      # subjects ARE the changelog here, so build the notes from those — the
+      # in-app updater shows this text, and a link is no use inside a dialog.
+      - name: Build the release notes from the commits
+        run: |
+          PREV=$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || true)
+          RANGE="${GITHUB_REF_NAME}"
+          if [ -n "$PREV" ]; then RANGE="${PREV}..${GITHUB_REF_NAME}"; fi
+          ITEMS=$(git log --no-merges --pretty=format:'%s' "$RANGE" \
+            | grep -Ev '^(chore|docs|test|ci|build|style)(\(|:)' \
+            | sed -E 's/^(feat|fix|refactor|perf)(\(([^)]+)\))?: */- /' \
+            || true)
+          {
+            echo "## Novedades"
+            echo
+            if [ -n "$ITEMS" ]; then
+              echo "$ITEMS"
+            else
+              echo "- Mejoras internas y correcciones"
+            fi
+          } > RELEASE_NOTES.md
+          cat RELEASE_NOTES.md
+
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: build/app/outputs/flutter-apk/kivo-*.apk
-          generate_release_notes: true
+          body_path: RELEASE_NOTES.md
           fail_on_unmatched_files: true
