@@ -7,6 +7,7 @@ import '../../../player/library/media_index.dart';
 import '../../../player/library/video_actions.dart';
 import '../../vault/vault_entry_actions.dart';
 import '../../widgets/failure_snack_bar.dart';
+import '../playlists/add_to_playlist_sheet.dart';
 import '../state/library_selection.dart';
 import 'video_options_sheet.dart'; // maybeOfferAllFilesAccess
 
@@ -44,6 +45,15 @@ class SelectionBottomBar extends ConsumerWidget {
                 final items = chosen;
                 sel.clear();
                 await moveToVault(context, ref, items);
+              } : null),
+              _action(cs.onSurface, Icons.playlist_add, 'A una lista', enabled ? () {
+                // Clear FIRST, matching Al Vault above — the bar disappearing
+                // immediately stops repeat taps. showAddToPlaylistSheet pops
+                // and reports on its own, so this is fire-and-forget: nothing
+                // here touches context after it starts.
+                final items = chosen;
+                sel.clear();
+                showAddToPlaylistSheet(context, ref, items);
               } : null),
               _action(cs.onSurface, Icons.share_outlined, 'Compartir', enabled ? () async {
                 await ref.read(videoActionsProvider).shareMany(chosen);

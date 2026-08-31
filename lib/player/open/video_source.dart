@@ -57,8 +57,16 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
   /// NOT re-sorted by name and NOT scoped to the current folder, so a tap in a
   /// flat library view continues through every following video, crossing
   /// folders, just as they appear on screen.
-  void openFromList(VideoItem current, List<VideoItem> shown) {
-    var idx = shown.indexWhere((v) => v.uri == current.uri);
+  ///
+  /// [at] pins the position when the caller already knows it. The URI search
+  /// cannot tell two copies of the same video apart, and a playlist may hold
+  /// one twice on purpose — without [at], tapping the second copy would open
+  /// the session at the first, and autoplay would walk the list again from
+  /// there instead of continuing past it.
+  void openFromList(VideoItem current, List<VideoItem> shown, {int? at}) {
+    var idx = (at != null && at >= 0 && at < shown.length)
+        ? at
+        : shown.indexWhere((v) => v.uri == current.uri);
     final list = idx < 0 ? <VideoItem>[current] : shown;
     if (idx < 0) idx = 0;
     state = VideoSession(

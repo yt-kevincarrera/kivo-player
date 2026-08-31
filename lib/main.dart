@@ -13,6 +13,7 @@ import 'core/settings/settings_service.dart';
 import 'core/settings/settings_provider.dart';
 import 'player/engine/media_kit_engine.dart';
 import 'player/engine/playback_provider.dart';
+import 'player/playlists/playlist_store.dart';
 import 'player/resume/resume_store.dart';
 import 'player/resume/resume_service.dart';
 import 'player/tracks/subtitle_importer.dart';
@@ -62,6 +63,7 @@ Future<void> main() async {
   // Box key kept as 'subtitlePrefs' from when the record only held subtitle
   // state: renaming it would strand every 1.6.x install's saved offsets.
   final trackPrefsBox = await Hive.openBox('subtitlePrefs');
+  final playlistsBox = await Hive.openBox('playlists');
 
   // The app version and API level are captured once and stamped on every
   // recorded failure: a reported code is only useful with the device it came
@@ -92,6 +94,7 @@ Future<void> main() async {
       playbackEngineProvider.overrideWithValue(engine),
       resumeServiceProvider.overrideWithValue(resumeService),
       playedStoreProvider.overrideWithValue(HivePlayedStore(playedBox)),
+      playlistStoreProvider.overrideWithValue(HivePlaylistStore(playlistsBox)),
       frameExtractorProvider.overrideWithValue(AndroidFrameExtractor()),
       mediaIndexerProvider.overrideWithValue(AndroidMediaIndexer(errorLog)),
       mediaFileOpsProvider.overrideWithValue(AndroidMediaFileOps(errorLog)),

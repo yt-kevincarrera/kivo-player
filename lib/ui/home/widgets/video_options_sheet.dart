@@ -9,6 +9,7 @@ import '../../../platform/interfaces/media_indexer.dart';
 import '../../../player/library/video_actions.dart';
 import '../../vault/vault_entry_actions.dart';
 import '../../widgets/failure_snack_bar.dart';
+import '../playlists/add_to_playlist_sheet.dart';
 import 'rename_dialog.dart';
 import 'video_details_sheet.dart';
 
@@ -18,6 +19,7 @@ class VideoOptionsSheet extends StatelessWidget {
   final VoidCallback onShare;
   final VoidCallback onRename;
   final VoidCallback onDetails;
+  final VoidCallback onAddToPlaylist;
   final VoidCallback onDelete;
   final VoidCallback onMoveToVault;
   const VideoOptionsSheet({
@@ -26,6 +28,7 @@ class VideoOptionsSheet extends StatelessWidget {
     required this.onShare,
     required this.onRename,
     required this.onDetails,
+    required this.onAddToPlaylist,
     required this.onDelete,
     required this.onMoveToVault,
   });
@@ -34,25 +37,36 @@ class VideoOptionsSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-            child: Text(video.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                    color: cs.onSurface, fontSize: 15, fontWeight: FontWeight.w700)),
+      // Scroll-controlled and height-bounded, as more_menu.dart had to be:
+      // six rows no longer fit a fixed sheet on a short screen. Bounded so a
+      // future seventh row is a non-event instead of an overflow.
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                child: Text(video.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        color: cs.onSurface, fontSize: 15, fontWeight: FontWeight.w700)),
+              ),
+              _row(context, Icons.share_outlined, 'Compartir', cs.onSurface, onShare),
+              _row(context, Icons.drive_file_rename_outline, 'Renombrar', cs.onSurface, onRename),
+              _row(context, Icons.info_outline, 'Detalles', cs.onSurface, onDetails),
+              _row(context, Icons.playlist_add, 'Añadir a lista', cs.onSurface, onAddToPlaylist),
+              _row(context, Icons.lock_outline, 'Mover al Vault', cs.onSurface, onMoveToVault),
+              _row(context, Icons.delete_outline, 'Borrar', cs.error, onDelete),
+              const SizedBox(height: 8),
+            ],
           ),
-          _row(context, Icons.share_outlined, 'Compartir', cs.onSurface, onShare),
-          _row(context, Icons.drive_file_rename_outline, 'Renombrar', cs.onSurface, onRename),
-          _row(context, Icons.info_outline, 'Detalles', cs.onSurface, onDetails),
-          _row(context, Icons.lock_outline, 'Mover al Vault', cs.onSurface, onMoveToVault),
-          _row(context, Icons.delete_outline, 'Borrar', cs.error, onDelete),
-          const SizedBox(height: 8),
-        ],
+        ),
       ),
     );
   }
@@ -106,6 +120,7 @@ Future<void> showVideoOptions(BuildContext context, WidgetRef ref, VideoItem v) 
   final messenger = ScaffoldMessenger.of(context);
   return showModalBottomSheet<void>(
     context: context,
+    isScrollControlled: true,
     backgroundColor: Theme.of(context).colorScheme.surface,
     builder: (sheetContext) => VideoOptionsSheet(
       video: v,
@@ -116,6 +131,13 @@ Future<void> showVideoOptions(BuildContext context, WidgetRef ref, VideoItem v) 
       onDetails: () {
         Navigator.pop(sheetContext);
         showVideoDetails(context, v);
+      },
+      onAddToPlaylist: () {
+        // Pop first, like every other row here. showAddToPlaylistSheet pops
+        // and reports on its own, so this is fire-and-forget — nothing below
+        // touches context after it starts.
+        Navigator.pop(sheetContext);
+        showAddToPlaylistSheet(context, ref, [v]);
       },
       onMoveToVault: () async {
         Navigator.pop(sheetContext);

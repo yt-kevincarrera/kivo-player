@@ -3,6 +3,7 @@ import '../../platform/interfaces/media_file_ops.dart';
 import '../../platform/interfaces/media_indexer.dart';
 import '../../platform/media_file_ops_provider.dart';
 import '../open/video_source.dart'; // resumeServiceProvider
+import '../playlists/playlist_controller.dart';
 import '../tracks/subtitle_importer.dart';
 import '../tracks/track_prefs_store.dart';
 import 'continue_watching.dart';
@@ -10,9 +11,12 @@ import 'media_index.dart';
 import 'played.dart';
 
 /// Orchestrates a library video's file operations and their side effects:
-/// refreshing the media index, and keeping the resume, played, and subtitle
-/// prefs stores (keyed by file name) consistent — migrating them on rename,
-/// clearing them on delete.
+/// refreshing the media index, and keeping the resume, played, subtitle
+/// prefs, and playlist stores (keyed by file name) consistent — migrating
+/// them on rename, clearing them on delete. Playlists are the one exception:
+/// delete deliberately does NOT touch them, so a video's entry survives its
+/// own deletion and renders greyed — an SD card unplugged for an afternoon
+/// must not destroy a playlist.
 class VideoActionsController {
   final Ref _ref;
   VideoActionsController(this._ref);
@@ -52,6 +56,7 @@ class VideoActionsController {
     final newName = outcome.newName!;
     await _ref.read(resumeServiceProvider).rename(v.name, newName);
     await _ref.read(trackPrefsStoreProvider).rename(v.name, newName);
+    await _ref.read(playlistsProvider.notifier).renameEntry(v.id, v.name, newName);
     final played = _ref.read(playedStoreProvider);
     if (played.isPlayed(v.name)) {
       await played.markPlayed(newName);

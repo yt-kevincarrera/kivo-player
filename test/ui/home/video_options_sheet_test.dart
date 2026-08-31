@@ -9,7 +9,7 @@ const _v = VideoItem(
 );
 
 void main() {
-  testWidgets('VideoOptionsSheet shows four actions and fires callbacks', (tester) async {
+  testWidgets('VideoOptionsSheet shows six actions and fires callbacks', (tester) async {
     final fired = <String>[];
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
@@ -18,6 +18,7 @@ void main() {
           onShare: () => fired.add('share'),
           onRename: () => fired.add('rename'),
           onDetails: () => fired.add('details'),
+          onAddToPlaylist: () => fired.add('addToPlaylist'),
           onDelete: () => fired.add('delete'),
           onMoveToVault: () => fired.add('vault'),
         ),
@@ -25,7 +26,8 @@ void main() {
     ));
 
     expect(find.text('clip.mp4'), findsOneWidget);
-    for (final label in ['Compartir', 'Renombrar', 'Detalles', 'Mover al Vault', 'Borrar']) {
+    for (final label
+        in ['Compartir', 'Renombrar', 'Detalles', 'Añadir a lista', 'Mover al Vault', 'Borrar']) {
       expect(find.text(label), findsOneWidget);
     }
 
