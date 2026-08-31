@@ -168,6 +168,10 @@ class _UpdateDialogState extends ConsumerState<_UpdateDialog> {
         ];
       case DownloadPhase.ready:
         return [
+          // Without a way out, a downloaded APK you no longer want is
+          // permanent: it keeps its 30 MB and keeps claiming the update slot,
+          // which is how an updater bug once made itself unfixable in-app.
+          TextButton(onPressed: _dl.cancel, child: const Text('Descartar')),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Ahora no'),

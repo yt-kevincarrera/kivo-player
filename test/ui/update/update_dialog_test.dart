@@ -241,6 +241,32 @@ void main() {
     expect(installer.installs.single, 4);
   });
 
+  testWidgets('Descartar drops a ready download and frees the slot',
+      (tester) async {
+    final installer = FakeAppInstaller(nextDownloadId: 4)
+      ..status = const DownloadProgress(DownloadStage.done, received: 10, total: 10);
+    final c = await _container(installer);
+    addTearDown(c.dispose);
+    final close = await _openDialog(tester, c);
+
+    await tester.tap(find.text('Descargar'));
+    await tester.pumpAndSettle();
+    await c.read(updateDownloadProvider.notifier).refresh();
+    await tester.pumpAndSettle();
+    expect(find.text('Listo para instalar'), findsOneWidget);
+
+    await tester.tap(find.text('Descartar'));
+    await tester.pumpAndSettle();
+
+    // The APK is removed and the slot is free again — the release notes are
+    // back, so a newer version can be downloaded instead.
+    expect(installer.cancelled.single, 4);
+    expect(c.read(updateDownloadProvider).phase, DownloadPhase.idle);
+    expect(find.text('Novedades'), findsOneWidget);
+
+    await close();
+  });
+
   testWidgets('Omitir esta versión persists the skip', (tester) async {
     final c = await _container(FakeAppInstaller());
     addTearDown(c.dispose);

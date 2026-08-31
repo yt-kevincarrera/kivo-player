@@ -44,14 +44,18 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
     if (_checking) return;
     setState(() => _checking = true);
     try {
-      final result = await ref.read(updateControllerProvider).check(manual: true);
+      final result = await ref
+          .read(updateControllerProvider)
+          .check(manual: true);
       if (!mounted) return;
       final messenger = ScaffoldMessenger.of(context);
       switch (result.status) {
         case UpdateStatus.available:
           showUpdateDialog(context, result.info!);
         case UpdateStatus.upToDate:
-          messenger.showSnackBar(const SnackBar(content: Text('Estás al día ✓')));
+          messenger.showSnackBar(
+            const SnackBar(content: Text('Estás al día ✓')),
+          );
         case UpdateStatus.error:
           showFailureSnackBar(context, KivoOp.updateCheck);
       }
@@ -60,42 +64,62 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
     }
   }
 
-  /// Doubles as the way back into a download the user hid: once one is queued
-  /// this row tracks it and re-opens the dialog, so a finished APK is never
-  /// stranded behind a network round-trip to GitHub.
-  Widget _updateTile(ColorScheme cs) {
+  /// The pending-download row and the manual check, in that order.
+  ///
+  /// The pending row is the way back into a download the user hid, so a
+  /// finished APK is never stranded behind a network round-trip to GitHub. It
+  /// is an ADDITION, never a replacement: when it replaced the check row, a
+  /// stuck download locked the user out of ever finding a newer release — and
+  /// that is exactly how a bug in the updater made itself unfixable from
+  /// inside the app.
+  List<Widget> _updateTiles(ColorScheme cs) {
     final pending = ref.watch(updateDownloadProvider);
     // The version is missing only if settings were cleared under a live
     // download, so it belongs in the subtitle rather than the title.
     final v = pending.version;
-    switch (pending.phase) {
-      case DownloadPhase.downloading:
-        return ListTile(
+    return [
+      switch (pending.phase) {
+        DownloadPhase.downloading => ListTile(
           leading: Icon(Icons.downloading_outlined, color: cs.onSurfaceVariant),
           title: const Text('Descargando la actualización'),
-          subtitle: Text(v == null ? 'Toca para ver el progreso' : 'Kivo $v · toca para ver el progreso'),
+          subtitle: Text(
+            v == null
+                ? 'Toca para ver el progreso'
+                : 'Kivo $v · toca para ver el progreso',
+          ),
           onTap: () => showPendingUpdateDialog(context),
-        );
-      case DownloadPhase.ready:
-        return ListTile(
+        ),
+        DownloadPhase.ready => ListTile(
           leading: Icon(Icons.download_done_outlined, color: cs.secondary),
           title: const Text('Actualización lista para instalar'),
-          subtitle: Text(v == null ? 'Toca para instalarla' : 'Kivo $v · toca para instalarla'),
+          subtitle: Text(
+            v == null
+                ? 'Toca para instalarla'
+                : 'Kivo $v · toca para instalarla',
+          ),
           onTap: () => showPendingUpdateDialog(context),
-        );
-      case DownloadPhase.idle:
-      case DownloadPhase.failed:
-        return ListTile(
-          leading: _checking
-              ? SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: cs.secondary))
-              : Icon(Icons.system_update_outlined, color: cs.onSurfaceVariant),
-          title: const Text('Buscar actualizaciones'),
-          onTap: _checking ? null : _check,
-        );
-    }
+        ),
+        DownloadPhase.idle || DownloadPhase.failed => const SizedBox.shrink(),
+      },
+      _checkTile(cs),
+    ];
+  }
+
+  Widget _checkTile(ColorScheme cs) {
+    return ListTile(
+      leading: _checking
+          ? SizedBox(
+              width: 22,
+              height: 22,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: cs.secondary,
+              ),
+            )
+          : Icon(Icons.system_update_outlined, color: cs.onSurfaceVariant),
+      title: const Text('Buscar actualizaciones'),
+      onTap: _checking ? null : _check,
+    );
   }
 
   @override
@@ -108,41 +132,69 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
         padding: const EdgeInsets.fromLTRB(14, 20, 14, 28),
         children: [
           Center(
-            child: Column(children: [
-              Text('Kivo', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: cs.onSurface)),
-              const SizedBox(height: 6),
-              FutureBuilder<String>(
-                future: _versionFuture,
-                builder: (_, snap) => Text('Versión ${snap.data ?? '…'}',
-                    style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant)),
-              ),
-              const SizedBox(height: 4),
-              Text('Reproductor de video local', style: TextStyle(fontSize: 12.5, color: cs.onSurfaceVariant)),
-              const SizedBox(height: 20),
-              Text('Por Kevin Carrera', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onSurface)),
-              const SizedBox(height: 2),
-              SelectableText('kevin.ccdo@gmail.com', style: TextStyle(fontSize: 12.5, color: cs.secondary)),
-            ]),
+            child: Column(
+              children: [
+                Text(
+                  'Kivo',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: cs.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                FutureBuilder<String>(
+                  future: _versionFuture,
+                  builder: (_, snap) => Text(
+                    'Versión ${snap.data ?? '…'}',
+                    style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Reproductor de video local',
+                  style: TextStyle(fontSize: 12.5, color: cs.onSurfaceVariant),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Por Kevin Carrera',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: cs.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                SelectableText(
+                  'kevin.ccdo@gmail.com',
+                  style: TextStyle(fontSize: 12.5, color: cs.secondary),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 28),
-          _updateTile(cs),
+          ..._updateTiles(cs),
           SettingSwitch(
             title: 'Buscar automáticamente',
             subtitle: 'Comprueba al abrir, máximo una vez al día',
             value: auto,
-            onChanged: (v) => ref.read(settingsProvider.notifier)
+            onChanged: (v) => ref
+                .read(settingsProvider.notifier)
                 .set(ref.read(settingsProvider).copyWith(autoCheckUpdates: v)),
           ),
           const SizedBox(height: 20),
-          SettingsCard(children: [
-            SettingNavRow(
-              icon: Icons.bug_report_outlined,
-              title: 'Registro de errores',
-              subtitle: 'Los últimos fallos, con su detalle técnico',
-              onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const ErrorLogSection())),
-            ),
-          ]),
+          SettingsCard(
+            children: [
+              SettingNavRow(
+                icon: Icons.bug_report_outlined,
+                title: 'Registro de errores',
+                subtitle: 'Los últimos fallos, con su detalle técnico',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const ErrorLogSection()),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
