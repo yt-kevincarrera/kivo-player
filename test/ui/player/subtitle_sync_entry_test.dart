@@ -66,10 +66,11 @@ void main() {
     expect(find.text('Bucle A-B'), findsNothing);
   });
 
-  // Spec §2: with no subtitle showing, sub-delay changes nothing on screen, so
-  // the entry would be a control that visibly does nothing. Same gate the
-  // track picker already applies to its own sync row.
-  testWidgets('the sync entry is absent with no subtitle track active',
+  // Spec §2 asks that the entry not be a control that visibly does nothing with
+  // subs off. Hiding it entirely satisfied that but made the feature invisible
+  // — reported from the device as "no option anywhere". A visible row that is
+  // plainly disabled, and says why, is discoverable AND honest.
+  testWidgets('the sync entry is shown disabled with no subtitle track active',
       (tester) async {
     final svc = await SettingsService.load(InMemorySettingsStore());
     final c = ProviderContainer(overrides: [
@@ -80,11 +81,17 @@ void main() {
     addTearDown(c.dispose);
 
     await _pumpMenu(tester, c);
+    expect(find.text('Sincronizar subtítulos'), findsOneWidget);
+    expect(find.text('Activa un subtítulo para poder ajustarlo'), findsOneWidget);
+
+    // Tapping it does nothing at all: no HUD, and the sheet stays open.
+    await tester.tap(find.text('Sincronizar subtítulos'));
+    await tester.pumpAndSettle();
+    expect(c.read(subtitleSyncVisibleProvider), false);
     expect(find.text('Bucle A-B'), findsOneWidget);
-    expect(find.text('Sincronizar subtítulos'), findsNothing);
   });
 
-  testWidgets('the sync entry appears when a subtitle track goes active',
+  testWidgets('the sync entry becomes usable when a subtitle track goes active',
       (tester) async {
     final svc = await SettingsService.load(InMemorySettingsStore());
     final engine = FakePlaybackEngine();
@@ -96,10 +103,14 @@ void main() {
     addTearDown(c.dispose);
 
     await _pumpMenu(tester, c);
-    expect(find.text('Sincronizar subtítulos'), findsNothing);
+    expect(find.text('Activa un subtítulo para poder ajustarlo'), findsOneWidget);
 
     engine.emitCurrentSubtitle(const MediaTrack(id: 'sub1'));
     await tester.pumpAndSettle();
-    expect(find.text('Sincronizar subtítulos'), findsOneWidget);
+    expect(find.text('Ajustar el desfase mientras se reproduce'), findsOneWidget);
+
+    await tester.tap(find.text('Sincronizar subtítulos'));
+    await tester.pumpAndSettle();
+    expect(c.read(subtitleSyncVisibleProvider), true);
   });
 }

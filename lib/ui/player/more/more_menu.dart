@@ -52,8 +52,11 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                   subtitle: 'Detener la reproducción automáticamente',
                   onTap: () {
                     Navigator.of(sheetContext).pop();
-                    showSleepTimerPanel(context, ref,
-                        onBack: () => showMoreMenu(context, ref));
+                    showSleepTimerPanel(
+                      context,
+                      ref,
+                      onBack: () => showMoreMenu(context, ref),
+                    );
                   },
                 ),
                 const SizedBox(height: 8),
@@ -72,15 +75,15 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                     }
                   },
                 ),
-                // Offered only while a subtitle is actually showing: with subs
-                // off, sub-delay changes nothing on screen and the entry reads
-                // as a broken control. Same gate the track picker applies to
-                // its own sync row.
+                // Always listed, but inert while no subtitle is showing: with
+                // subs off sub-delay changes nothing on screen. Hiding it
+                // outright made the feature undiscoverable — a disabled row
+                // that says why is both honest and findable.
                 StreamBuilder<MediaTrack?>(
                   stream: engine.currentSubtitleTrackStream,
                   initialData: engine.currentSubtitleTrack,
                   builder: (_, snap) {
-                    if (snap.data == null) return const SizedBox.shrink();
+                    final active = snap.data != null;
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -89,10 +92,15 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                         _MenuRow(
                           icon: Icons.compare_arrows_rounded,
                           title: 'Sincronizar subtítulos',
-                          subtitle: 'Ajustar el desfase mientras se reproduce',
+                          subtitle: active
+                              ? 'Ajustar el desfase mientras se reproduce'
+                              : 'Activa un subtítulo para poder ajustarlo',
+                          enabled: active,
                           onTap: () {
                             Navigator.of(sheetContext).pop();
-                            ref.read(subtitleSyncVisibleProvider.notifier).show();
+                            ref
+                                .read(subtitleSyncVisibleProvider.notifier)
+                                .show();
                           },
                         ),
                       ],
@@ -113,46 +121,76 @@ class _MenuRow extends StatelessWidget {
   final String title;
   final String subtitle;
   final VoidCallback onTap;
-  const _MenuRow({required this.icon, required this.title, required this.subtitle, required this.onTap});
+
+  /// A disabled row still lists the feature — it just cannot be used yet, and
+  /// its subtitle is expected to say why.
+  final bool enabled;
+
+  const _MenuRow({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.enabled = true,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(13),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        decoration: BoxDecoration(
-          color: const Color(0xFF182036),
-          borderRadius: BorderRadius.circular(13),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 30,
-              height: 30,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(9),
+    final fade = enabled ? 1.0 : 0.4;
+    return Opacity(
+      opacity: fade,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(13),
+        onTap: enabled ? onTap : null,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF182036),
+            borderRadius: BorderRadius.circular(13),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: Icon(icon, size: 16, color: Colors.white70),
               ),
-              child: Icon(icon, size: 16, color: Colors.white70),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(title,
-                      style: const TextStyle(color: Colors.white, fontSize: 13.5, fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 1),
-                  Text(subtitle,
-                      style: TextStyle(color: Colors.white.withValues(alpha: 0.42), fontSize: 11)),
-                ],
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.42),
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Icon(Icons.chevron_right_rounded, size: 18, color: Colors.white.withValues(alpha: 0.42)),
-          ],
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 18,
+                color: Colors.white.withValues(alpha: 0.42),
+              ),
+            ],
+          ),
         ),
       ),
     );
