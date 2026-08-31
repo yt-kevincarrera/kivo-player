@@ -198,4 +198,52 @@ void main() {
     expect(c.read(updateDownloadProvider).downloadId, 2);
     expect(c.read(settingsProvider).pendingUpdateDownloadId, 2);
   });
+
+  test('an update that is already installed is dropped on launch', () async {
+    // The user installed it; Android replaced the package and killed us. On the
+    // next launch the APK is still in DownloadManager and its id is still in
+    // settings, so without this the app offers to install what it is running.
+    final installer = FakeAppInstaller(version: '1.1.0', nextDownloadId: 5)
+      ..status = const DownloadProgress(DownloadStage.done, received: 100, total: 100);
+    final c = await _c(installer,
+        seed: {'pendingUpdateDownloadId': 5, 'pendingUpdateVersion': '1.1.0'});
+    addTearDown(c.dispose);
+
+    c.read(updateDownloadProvider); // trigger build()
+    await Future<void>.delayed(Duration.zero);
+
+    expect(c.read(updateDownloadProvider).phase, DownloadPhase.idle);
+    expect(c.read(settingsProvider).pendingUpdateDownloadId, -1);
+    expect(c.read(settingsProvider).pendingUpdateVersion, isNull);
+    // The APK is removed too — a stale 30 MB is not ours to keep.
+    expect(installer.cancelled.single, 5);
+  });
+
+  test('an update older than what is installed is dropped too', () async {
+    final installer = FakeAppInstaller(version: '1.2.0', nextDownloadId: 5)
+      ..status = const DownloadProgress(DownloadStage.done, received: 100, total: 100);
+    final c = await _c(installer,
+        seed: {'pendingUpdateDownloadId': 5, 'pendingUpdateVersion': '1.1.0'});
+    addTearDown(c.dispose);
+
+    c.read(updateDownloadProvider);
+    await Future<void>.delayed(Duration.zero);
+
+    expect(c.read(updateDownloadProvider).phase, DownloadPhase.idle);
+    expect(installer.cancelled.single, 5);
+  });
+
+  test('a genuinely newer pending update survives launch', () async {
+    final installer = FakeAppInstaller(version: '1.0.0', nextDownloadId: 5)
+      ..status = const DownloadProgress(DownloadStage.done, received: 100, total: 100);
+    final c = await _c(installer,
+        seed: {'pendingUpdateDownloadId': 5, 'pendingUpdateVersion': '1.1.0'});
+    addTearDown(c.dispose);
+
+    c.read(updateDownloadProvider);
+    await Future<void>.delayed(Duration.zero);
+
+    expect(c.read(updateDownloadProvider).phase, DownloadPhase.ready);
+    expect(installer.cancelled, isEmpty);
+  });
 }

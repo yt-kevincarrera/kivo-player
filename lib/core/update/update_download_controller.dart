@@ -8,6 +8,7 @@ import '../settings/settings_provider.dart';
 import '../../platform/app_installer_provider.dart';
 import '../../platform/interfaces/app_installer.dart';
 import 'update_info.dart';
+import 'version_compare.dart';
 
 /// How often the queued download is re-read while someone is looking at it.
 const updatePollInterval = Duration(milliseconds: 500);
@@ -83,12 +84,32 @@ class UpdateDownloadNotifier extends Notifier<UpdateDownloadState> {
     // A download from a previous run is still out there. Show it as in flight
     // until the first refresh says otherwise — a pending download rendered as
     // "idle" would invite the user to queue a second copy of the same APK.
-    scheduleMicrotask(refresh);
+    scheduleMicrotask(_reattach);
     return UpdateDownloadState(
       phase: DownloadPhase.downloading,
       version: s.pendingUpdateVersion,
       downloadId: s.pendingUpdateDownloadId,
     );
+  }
+
+  /// Re-attaches to a download that outlived the last run — after first
+  /// throwing it away if we are already running it.
+  ///
+  /// A successful install is the one outcome nothing else cleans up:
+  /// [install] deliberately keeps the id so a FAILED install can retry without
+  /// re-downloading, and a success gives no callback because Android replaces
+  /// the package and kills us. So the completion signal is our own version on
+  /// the next launch — if the pending APK is not newer than what is running,
+  /// it is not an update any more.
+  Future<void> _reattach() async {
+    final pending = state.version;
+    if (pending != null &&
+        !isNewer(pending, await _installer.appVersion())) {
+      // cancel() also removes the APK: a stale 30 MB is not ours to keep.
+      await cancel();
+      return;
+    }
+    await refresh();
   }
 
   /// Called by the UI while it is on screen. Polling only runs between this
