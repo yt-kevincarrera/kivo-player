@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../engine/playback_engine.dart';
 import '../engine/playback_provider.dart';
 import '../open/video_source.dart';
-import 'subtitle_delay.dart';
+import 'track_delay.dart';
 import 'track_prefs_store.dart';
 
 /// How long a controller waits for the taps to stop before telling mpv.
@@ -50,7 +50,20 @@ abstract class TrackDelayNotifier extends Notifier<int> {
 
   void nudge(int steps) {
     if (ref.read(currentVideoProvider) == null) return;
-    state = nudgeSubtitleDelay(state, steps);
+    state = nudgeDelay(state, steps);
+    _schedule();
+  }
+
+  /// Jumps straight to a value — how the drag bar reports the finger.
+  ///
+  /// Deliberately debounced like [nudge] rather than applied immediately: a
+  /// drag emits dozens of these a second, and each one reaching mpv would be
+  /// dozens of synchronous calls on the UI thread. The debounce that was built
+  /// for tap bursts covers this without changing.
+  void setTo(int ms) {
+    if (ref.read(currentVideoProvider) == null) return;
+    if (ms == state) return;
+    state = ms;
     _schedule();
   }
 
