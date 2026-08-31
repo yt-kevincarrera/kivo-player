@@ -134,6 +134,47 @@ class MainActivity : FlutterFragmentActivity() {
         } catch (_: Exception) { "failed" }
     }
 
+    /// Writes a captured frame into the gallery under Pictures/Kivo and
+    /// returns its content:// uri, or null.
+    ///
+    /// On API 29+ the row is created IS_PENDING so the gallery never indexes a
+    /// half-written file; the flag is cleared once the bytes are down. Below
+    /// 29 there is no pending flag, and no runtime permission either, because
+    /// the app writes through MediaStore rather than to the raw path.
+    private fun saveImageToGallery(bytes: ByteArray, fileName: String): String? {
+        val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+        } else {
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        }
+        val values = android.content.ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
+            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                put(MediaStore.Images.Media.RELATIVE_PATH, "${Environment.DIRECTORY_PICTURES}/Kivo")
+                put(MediaStore.Images.Media.IS_PENDING, 1)
+            }
+        }
+
+        var uri: android.net.Uri? = null
+        return try {
+            uri = contentResolver.insert(collection, values) ?: return null
+            contentResolver.openOutputStream(uri)?.use { it.write(bytes) }
+                ?: throw java.io.IOException("no output stream for $uri")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                values.clear()
+                values.put(MediaStore.Images.Media.IS_PENDING, 0)
+                contentResolver.update(uri, values, null, null)
+            }
+            uri.toString()
+        } catch (e: Exception) {
+            // A half-written row would sit in the gallery as a broken image, so
+            // take it back out rather than leave it.
+            uri?.let { try { contentResolver.delete(it, null, null) } catch (_: Exception) {} }
+            null
+        }
+    }
+
     companion object {
         private const val PIP_ACTION = "dev.selector.kivo_player.PIP_ACTION"
         private const val PIP_EXTRA = "action"
@@ -411,6 +452,29 @@ class MainActivity : FlutterFragmentActivity() {
                             } catch (e: Exception) {
                                 runOnUiThread { result.error("FIND_SUBTITLES_FAILED", e.message, null) }
                             }
+                        }
+                    }
+                    // ── frame capture ─────────────────────────────────────
+                    "saveImage" -> {
+                        val bytes = call.argument<ByteArray>("bytes")
+                        val name = call.argument<String>("fileName")
+                        if (bytes == null || name == null) {
+                            result.error("INVALID_ARG", "bytes and fileName required", null)
+                            return@setMethodCallHandler
+                        }
+                        result.success(saveImageToGallery(bytes, name))
+                    }
+                    "viewImage" -> {
+                        val uri = call.argument<String>("uri")
+                        if (uri == null) { result.error("INVALID_ARG", "uri required", null); return@setMethodCallHandler }
+                        try {
+                            startActivity(Intent(Intent.ACTION_VIEW).apply {
+                                setDataAndType(Uri.parse(uri), "image/*")
+                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+                            })
+                            result.success(null)
+                        } catch (e: Exception) {
+                            result.error("VIEW_FAILED", e.message, null)
                         }
                     }
                     "share" -> {

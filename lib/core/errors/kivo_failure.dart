@@ -13,6 +13,7 @@ enum KivoOp {
   vaultRestore,
   vaultPurge,
   openVideo,
+  frameCapture,
   subtitleLoad,
   updateCheck,
   updateInstall,
@@ -45,6 +46,8 @@ const kivoErrorCatalog = <KivoOp, ({String code, String message})>{
   KivoOp.openVideo: (code: 'KV-501', message: 'No pudimos abrir el video'),
   KivoOp.subtitleLoad:
       (code: 'KV-502', message: 'No pudimos cargar el subtítulo'),
+  KivoOp.frameCapture:
+      (code: 'KV-503', message: 'No pudimos guardar la captura'),
   KivoOp.updateCheck:
       (code: 'KV-601', message: 'No pudimos comprobar si hay actualizaciones'),
   KivoOp.updateInstall:

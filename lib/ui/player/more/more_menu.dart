@@ -4,9 +4,12 @@ import '../../../core/format.dart';
 import '../../../core/theme/kivo_theme.dart';
 import '../../../player/engine/playback_engine.dart';
 import '../../../player/engine/playback_provider.dart';
+import '../../../core/errors/kivo_failure.dart';
+import '../../../player/capture/frame_capture_controller.dart';
 import '../../../player/loop/ab_loop.dart';
 import '../sleep/sleep_timer_panel.dart';
 import '../state/controls_visibility.dart';
+import '../../widgets/failure_snack_bar.dart';
 import '../tracks/track_sync_hud.dart';
 
 /// Mini menu behind the top bar's "Más opciones" button. The A-B loop entry
@@ -76,6 +79,16 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                   },
                 ),
                 const SizedBox(height: 8),
+                _MenuRow(
+                  icon: Icons.photo_camera_outlined,
+                  title: 'Capturar fotograma',
+                  subtitle: 'Guardar esta imagen en la galería',
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    _captureFrame(context, ref);
+                  },
+                ),
+                const SizedBox(height: 8),
                 // Always enabled now that audio delay exists: even with subs
                 // off there is something to adjust. The capsule opens on
                 // whichever side is actually usable, and its own Sub|Audio
@@ -106,6 +119,62 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
             );
           },
         ),
+      ),
+    ),
+  );
+}
+
+/// Captures the current frame and reports the outcome.
+///
+/// The messenger is captured before the await: the sheet this was tapped in is
+/// already gone by the time the capture finishes.
+Future<void> _captureFrame(BuildContext context, WidgetRef ref) async {
+  // Captured before the await: the sheet this was tapped in is gone by the
+  // time the capture finishes.
+  final messenger = ScaffoldMessenger.of(context);
+  _reportCapture(
+    messenger,
+    ref,
+    await ref.read(frameCaptureProvider).capture(),
+  );
+}
+
+/// Synchronous on purpose: everything it touches was captured before the
+/// await, so no BuildContext crosses an async gap here.
+void _reportCapture(
+  ScaffoldMessengerState messenger,
+  WidgetRef ref,
+  FrameCapture capture,
+) {
+  if (!capture.ok) {
+    showFailureSnackBarOn(messenger, messenger.context, KivoOp.frameCapture);
+    return;
+  }
+
+  messenger.hideCurrentSnackBar();
+  messenger.showSnackBar(
+    SnackBar(
+      content: Row(
+        children: [
+          // The bytes are already in hand, so the thumbnail costs nothing and
+          // proves at a glance that the right frame was caught.
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: Image.memory(
+              capture.bytes!,
+              width: 56,
+              height: 32,
+              fit: BoxFit.cover,
+              gaplessPlayback: true,
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(child: Text('Captura guardada')),
+        ],
+      ),
+      action: SnackBarAction(
+        label: 'Ver',
+        onPressed: () => ref.read(frameCaptureProvider).view(capture.uri!),
       ),
     ),
   );

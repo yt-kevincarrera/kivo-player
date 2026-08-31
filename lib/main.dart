@@ -24,6 +24,7 @@ import 'platform/android/android_all_files_access.dart';
 import 'platform/android/android_app_installer.dart';
 import 'platform/android/android_frame_extractor.dart';
 import 'platform/android/android_media_file_ops.dart';
+import 'platform/android/android_image_saver.dart';
 import 'platform/android/android_media_indexer.dart';
 import 'platform/android/android_media_session.dart';
 import 'platform/android/android_pip_controller.dart';
@@ -33,6 +34,7 @@ import 'platform/android/permission_handler_media_permission.dart';
 import 'platform/app_installer_provider.dart';
 import 'platform/biometric_auth_provider.dart';
 import 'platform/frame_extractor_provider.dart';
+import 'platform/image_saver_provider.dart';
 import 'platform/media_file_ops_provider.dart';
 import 'platform/media_indexer_provider.dart';
 import 'platform/media_permission_provider.dart';
@@ -102,6 +104,7 @@ Future<void> main() async {
       errorLogProvider.overrideWithValue(errorLog),
       trackPrefsStoreProvider
           .overrideWithValue(HiveTrackPrefsStore(trackPrefsBox)),
+      imageSaverProvider.overrideWithValue(AndroidImageSaver(errorLog)),
       subtitleImporterProvider
           .overrideWithValue(FileSubtitleImporter(subsDir, log: errorLog)),
       appInstallerProvider.overrideWithValue(installer),

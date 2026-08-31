@@ -243,13 +243,27 @@ class FakeFileSystemLister implements FileSystemLister {
 
 class FakeFrameExtractor implements FrameExtractor {
   final List<Duration> requested = [];
+  final List<String> prepared = [];
   String? preparedPath;
+
+  /// When set, every frameAt returns exactly this instead of the generated
+  /// bytes — for asserting on what a caller did with the frame.
+  Uint8List? bytes;
+
+  /// Simulates a position with no decodable frame.
+  bool returnsNull = false;
+
+  /// Simulates MediaMetadataRetriever throwing on a broken file.
+  bool throwOnFrame = false;
   bool released = false;
   bool autoComplete = true;
   final List<Completer<Uint8List?>> _pending = [];
 
   @override
-  Future<void> prepare(String path) async => preparedPath = path;
+  Future<void> prepare(String path) async {
+    preparedPath = path;
+    prepared.add(path);
+  }
 
   @override
   Future<void> release() async => released = true;
@@ -257,6 +271,9 @@ class FakeFrameExtractor implements FrameExtractor {
   @override
   Future<Uint8List?> frameAt(Duration position) {
     requested.add(position);
+    if (throwOnFrame) throw StateError("retriever boom");
+    if (returnsNull) return Future.value(null);
+    if (bytes != null) return Future.value(bytes);
     if (autoComplete) {
       return Future.value(Uint8List.fromList([position.inSeconds & 0xff]));
     }
