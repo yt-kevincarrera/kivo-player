@@ -137,12 +137,31 @@ void main() {
     await c.read(playlistsProvider.notifier).addVideos(a.id, [_v('1', 'viejo.mkv')]);
     await c.read(playlistsProvider.notifier).addVideos(b.id, [_v('1', 'viejo.mkv')]);
 
-    await c.read(playlistsProvider.notifier).renameEntry('viejo.mkv', 'nuevo.mkv');
+    await c.read(playlistsProvider.notifier).renameEntry('1', 'viejo.mkv', 'nuevo.mkv');
 
     for (final p in store.all()) {
       expect(p.entries.single.displayName, 'nuevo.mkv');
       expect(p.entries.single.mediaId, '1');
     }
+  });
+
+  test('renaming one video leaves another with the same name alone', () async {
+    // Two files in different folders can share a name. Matching on the name
+    // would rewrite the other one's entry too, leaving it labelled with a
+    // name it does not have and its move fallback pointing at the wrong video.
+    final store = InMemoryPlaylistStore();
+    final c = _c(store);
+    addTearDown(c.dispose);
+    final p = await c.read(playlistsProvider.notifier).create('A');
+    await c.read(playlistsProvider.notifier).addVideos(
+        p.id, [_v('1', 'S01E01.mkv'), _v('2', 'S01E01.mkv')]);
+
+    await c.read(playlistsProvider.notifier)
+        .renameEntry('1', 'S01E01.mkv', 'Piloto.mkv');
+
+    final entries = store.all().single.entries;
+    expect(entries[0].displayName, 'Piloto.mkv');
+    expect(entries[1].displayName, 'S01E01.mkv');
   });
 
   test('acting on an unknown playlist id does nothing', () async {

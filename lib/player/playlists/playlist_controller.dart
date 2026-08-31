@@ -64,12 +64,21 @@ class PlaylistsNotifier extends Notifier<List<Playlist>> {
   /// The media id survives a rename on its own, so this is not what keeps the
   /// entry working today — it keeps the NAME fallback accurate, which is what
   /// would carry the entry through a later move.
-  Future<void> renameEntry(String oldName, String newName) async {
+  ///
+  /// Matched by [mediaId], not by name: two files in different folders can
+  /// share a name, and renaming one of them must not rewrite the other's
+  /// entry — that would leave it labelled with a name it does not have and,
+  /// worse, pointing its name fallback at somebody else's video. An entry
+  /// with no id stored falls back to the name, which is all it has.
+  Future<void> renameEntry(String mediaId, String oldName, String newName) async {
+    bool isTheRenamed(PlaylistEntry e) =>
+        e.mediaId.isEmpty ? e.displayName == oldName : e.mediaId == mediaId;
+
     for (final p in _store.all()) {
-      if (!p.entries.any((e) => e.displayName == oldName)) continue;
+      if (!p.entries.any(isTheRenamed)) continue;
       await _store.put(p.copyWith(
         entries: p.entries
-            .map((e) => e.displayName == oldName
+            .map((e) => isTheRenamed(e)
                 ? PlaylistEntry(mediaId: e.mediaId, displayName: newName)
                 : e)
             .toList(),

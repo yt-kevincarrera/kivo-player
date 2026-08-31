@@ -49,6 +49,10 @@ class PlaylistsTab extends ConsumerWidget {
   }
 
   Future<void> _createPlaylist(BuildContext context, WidgetRef ref) async {
+    // Read before the dialog: the notifier belongs to the container and
+    // outlives this widget, where ref does not. Same rule the sheet and the
+    // playlist screen follow.
+    final playlists = ref.read(playlistsProvider.notifier);
     final controller = TextEditingController();
     String? name;
     try {
@@ -79,7 +83,7 @@ class PlaylistsTab extends ConsumerWidget {
       WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
     }
     if (name == null) return;
-    await ref.read(playlistsProvider.notifier).create(name);
+    await playlists.create(name);
   }
 }
 
@@ -91,6 +95,7 @@ class _NewPlaylistButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final accent = Color(ref.watch(settingsProvider).accentColor);
     return FloatingActionButton.extended(
+      heroTag: 'playlists-new',
       onPressed: onTap,
       backgroundColor: accent,
       foregroundColor: onAccent(accent),
@@ -123,9 +128,11 @@ class _PlaylistRow extends ConsumerWidget {
       }
     }
 
+    final n = playlist.entries.length;
+    final videos = n == 1 ? '1 video' : '$n videos';
     final countLabel = missing == 0
-        ? '${playlist.entries.length} videos'
-        : '${playlist.entries.length} videos · $missing no disponibles';
+        ? videos
+        : '$videos · $missing no ${missing == 1 ? 'disponible' : 'disponibles'}';
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),

@@ -229,11 +229,15 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                 if (ref.watch(librarySearchActiveProvider) || _tab == 0)
                   const _SortMenuButton(),
                 if (!ref.watch(librarySearchActiveProvider)) ...[
-                  IconButton(
-                    tooltip: 'Cambiar densidad',
-                    icon: const Icon(Icons.grid_view),
-                    onPressed: _cycleDensity,
-                  ),
+                  // Density is a property of the Todo feed and the Carpetas
+                  // grid; on Listas the button would respond and change
+                  // nothing.
+                  if (_tab != 2)
+                    IconButton(
+                      tooltip: 'Cambiar densidad',
+                      icon: const Icon(Icons.grid_view),
+                      onPressed: _cycleDensity,
+                    ),
                   IconButton(
                     tooltip: 'Abrir archivo',
                     icon: KivoIcon(KivoIcons.folderOpen, size: 22),

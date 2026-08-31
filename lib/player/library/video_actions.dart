@@ -56,7 +56,7 @@ class VideoActionsController {
     final newName = outcome.newName!;
     await _ref.read(resumeServiceProvider).rename(v.name, newName);
     await _ref.read(trackPrefsStoreProvider).rename(v.name, newName);
-    await _ref.read(playlistsProvider.notifier).renameEntry(v.name, newName);
+    await _ref.read(playlistsProvider.notifier).renameEntry(v.id, v.name, newName);
     final played = _ref.read(playedStoreProvider);
     if (played.isPlayed(v.name)) {
       await played.markPlayed(newName);

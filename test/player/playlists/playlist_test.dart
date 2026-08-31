@@ -91,4 +91,53 @@ void main() {
       expect(playlistStartIndex(const [], const {}), -1);
     });
   });
+
+  group('the shape that reaches Hive', () {
+    test('a playlist survives the round trip, duplicates and all', () {
+      const p = Playlist(
+        id: '1000',
+        name: 'Serie',
+        createdAtMs: 1000,
+        entries: [
+          PlaylistEntry(mediaId: '7', displayName: 'ep1.mkv'),
+          PlaylistEntry(mediaId: '7', displayName: 'ep1.mkv'),
+          PlaylistEntry(mediaId: '8', displayName: 'ep2.mkv'),
+        ],
+      );
+      final back = Playlist.fromMap(p.toMap());
+      expect(back.id, p.id);
+      expect(back.name, p.name);
+      expect(back.createdAtMs, p.createdAtMs);
+      expect(back.entries, p.entries);
+    });
+
+    test('a map typed the way Hive hands it back still reads', () {
+      // Hive returns Map<dynamic, dynamic> and List<dynamic>, not the typed
+      // maps toMap built — reading has to survive that.
+      final Map<dynamic, dynamic> raw = {
+        'id': '1',
+        'name': 'Serie',
+        'created': 1000,
+        'entries': <dynamic>[
+          <dynamic, dynamic>{'i': '7', 'n': 'ep1.mkv'},
+        ],
+      };
+      final p = Playlist.fromMap(raw);
+      expect(p.entries.single, const PlaylistEntry(mediaId: '7', displayName: 'ep1.mkv'));
+    });
+
+    test('a stored playlist from a future version does not throw', () {
+      // Unknown keys are ignored and missing ones fall back, so a box written
+      // by a newer build still opens instead of taking the library with it.
+      final p = Playlist.fromMap(const {'id': '1', 'nuevo': 'algo'});
+      expect(p.name, '');
+      expect(p.createdAtMs, 0);
+      expect(p.entries, isEmpty);
+    });
+
+    test('created reads as a num, so an int or a double both work', () {
+      expect(Playlist.fromMap(const {'created': 1000.0}).createdAtMs, 1000);
+      expect(Playlist.fromMap(const {'created': 1000}).createdAtMs, 1000);
+    });
+  });
 }

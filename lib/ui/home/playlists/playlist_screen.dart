@@ -61,6 +61,9 @@ class PlaylistScreen extends ConsumerWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        // Distinct tags: otherwise the tab's «Nueva lista» pill flies across
+        // and morphs into this one on the push, which reads as a glitch.
+        heroTag: 'playlist-play',
         onPressed: () => _play(context, ref),
         backgroundColor: accent,
         foregroundColor: onAccent(accent),
@@ -257,7 +260,12 @@ class _EntryRow extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        resolved.entry.displayName,
+                        // The resolved video's name when there is one: a
+                        // rename done outside Kivo never reached the entry,
+                        // and the row should not keep showing a name the file
+                        // no longer has. An unavailable entry has only the
+                        // stored name to offer.
+                        resolved.video?.name ?? resolved.entry.displayName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
