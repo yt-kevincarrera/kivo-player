@@ -14,6 +14,7 @@ import 'package:kivo_player/platform/interfaces/media_session.dart';
 import 'package:kivo_player/platform/interfaces/pip_controller.dart';
 import 'package:kivo_player/platform/interfaces/subtitle_finder.dart';
 import 'package:kivo_player/platform/interfaces/vault_ops.dart';
+import 'package:kivo_player/player/chapters/chapter.dart';
 import 'package:kivo_player/player/engine/playback_engine.dart';
 import 'package:kivo_player/player/queue/file_system_lister.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
@@ -120,7 +121,10 @@ class FakePlaybackEngine implements PlaybackEngine {
   Future<void> setVolume(double percent) async => volume = percent;
   @override
   Future<void> dispose() async {
-    _pos.close(); _dur.close(); _playing.close(); _buffering.close();
+    _pos.close();
+    _dur.close();
+    _playing.close();
+    _buffering.close();
     _completed.close();
     _audioTracks.close();
     _subtitleTracks.close();
@@ -185,6 +189,16 @@ class FakePlaybackEngine implements PlaybackEngine {
       subtitleDelays.add(seconds);
 
   final List<double> audioDelays = [];
+
+  /// What [chapters] returns; empty is the common case on real files.
+  List<MediaChapter> chaptersValue = const [];
+  int chapterReads = 0;
+
+  @override
+  Future<List<MediaChapter>> chapters() async {
+    chapterReads++;
+    return chaptersValue;
+  }
 
   @override
   Future<void> setAudioDelay(double seconds) async => audioDelays.add(seconds);
@@ -283,7 +297,8 @@ class FakeFrameExtractor implements FrameExtractor {
   }
 
   /// Complete the oldest outstanding manual request with bytes tagged [tag].
-  void completeNext(int tag) => _pending.removeAt(0).complete(Uint8List.fromList([tag & 0xff]));
+  void completeNext(int tag) =>
+      _pending.removeAt(0).complete(Uint8List.fromList([tag & 0xff]));
 }
 
 class FakeMediaIndexer implements MediaIndexer {
@@ -296,6 +311,7 @@ class FakeMediaIndexer implements MediaIndexer {
     scans++;
     return items;
   }
+
   @override
   Future<Uint8List?> thumbnail(String id) async => thumb;
 }
@@ -356,18 +372,27 @@ class FakePipController implements PipController {
   @override
   void setCallbacks(PipCallbacks cb) => _cb = cb;
   @override
-  Future<void> arm({required int width, required int height, required bool playing}) async {
+  Future<void> arm({
+    required int width,
+    required int height,
+    required bool playing,
+  }) async {
     armed = true;
     lastWidth = width;
     lastHeight = height;
     lastPlaying = playing;
   }
+
   @override
   Future<void> disarm() async => armed = false;
   @override
   Future<void> enterNow() async => enterCount++;
   @override
-  Future<void> updateState({required int width, required int height, required bool playing}) async {
+  Future<void> updateState({
+    required int width,
+    required int height,
+    required bool playing,
+  }) async {
     lastWidth = width;
     lastHeight = height;
     lastPlaying = playing;
@@ -392,7 +417,12 @@ class FakeResumeService implements ResumeService {
   Duration? positionFor(String key) => positions[key];
 
   @override
-  Future<void> record(String key, Duration position, Duration total, int nowMs) async {
+  Future<void> record(
+    String key,
+    Duration position,
+    Duration total,
+    int nowMs,
+  ) async {
     recordedKeys.add(key);
     positions[key] = position;
   }
@@ -435,7 +465,8 @@ class FakeSubtitleImporter implements SubtitleImporter {
   }
 
   @override
-  Future<void> discard(String importedPath) async => discarded.add(importedPath);
+  Future<void> discard(String importedPath) async =>
+      discarded.add(importedPath);
 }
 
 class FakeMediaFileOps implements MediaFileOps {
@@ -443,7 +474,10 @@ class FakeMediaFileOps implements MediaFileOps {
   final List<(String, String)> renamed = []; // (uri, baseName)
   final List<String> sharedUris = [];
   FileOpStatus deleteResult = FileOpStatus.ok;
-  RenameOutcome renameOutcome = const RenameOutcome(FileOpStatus.ok, newName: 'renamed.mp4');
+  RenameOutcome renameOutcome = const RenameOutcome(
+    FileOpStatus.ok,
+    newName: 'renamed.mp4',
+  );
 
   @override
   Future<FileOpStatus> delete(String uri) async {
@@ -471,7 +505,8 @@ class FakeMediaFileOps implements MediaFileOps {
   }
 
   @override
-  Future<void> shareMany(List<String> uris) async => sharedManyUris.add(List.of(uris));
+  Future<void> shareMany(List<String> uris) async =>
+      sharedManyUris.add(List.of(uris));
 }
 
 class FakeAllFilesAccess implements AllFilesAccess {
@@ -513,22 +548,20 @@ class FakeVaultOps implements VaultOps {
   Future<List<Map<String, dynamic>>> hide(List<String> uris) async {
     hiddenUris.addAll(uris);
     if (hideResult != null) return hideResult!(uris);
-    return uris
-        .map((u) {
-          final id = u.split('/').last;
-          return {
-            'id': id,
-            'privatePath': '/vault/$id.mp4',
-            'displayName': '$id.mp4',
-            'originalRelativePath': 'Movies/',
-            'durationMs': 0,
-            'sizeBytes': 0,
-            'dateAddedMs': 0,
-            'width': 0,
-            'height': 0,
-          };
-        })
-        .toList();
+    return uris.map((u) {
+      final id = u.split('/').last;
+      return {
+        'id': id,
+        'privatePath': '/vault/$id.mp4',
+        'displayName': '$id.mp4',
+        'originalRelativePath': 'Movies/',
+        'durationMs': 0,
+        'sizeBytes': 0,
+        'dateAddedMs': 0,
+        'width': 0,
+        'height': 0,
+      };
+    }).toList();
   }
 
   @override
@@ -557,12 +590,17 @@ class FakeBiometricAuth implements BiometricAuth {
   bool available;
   bool willSucceed;
   int authCalls = 0;
+
   /// Optional gate: when set, [authenticate] awaits this completer instead of
   /// returning immediately, so tests can observe the "in flight" state before
   /// resolving it with `gate.complete(result)`. Defaults to null, preserving
   /// the immediate-return behavior for existing callers.
   Completer<bool>? gate;
-  FakeBiometricAuth({this.available = true, this.willSucceed = true, this.gate});
+  FakeBiometricAuth({
+    this.available = true,
+    this.willSucceed = true,
+    this.gate,
+  });
   @override
   Future<bool> isAvailable() async => available;
   @override
@@ -597,7 +635,11 @@ class FakeAppInstaller implements AppInstaller {
 
   /// What [downloadStatus] reports. Tests move this to drive the controller
   /// through running → paused → done the way DownloadManager would.
-  DownloadProgress status = const DownloadProgress(DownloadStage.running, received: 1, total: 4);
+  DownloadProgress status = const DownloadProgress(
+    DownloadStage.running,
+    received: 1,
+    total: 4,
+  );
 
   final List<(String, String)> enqueued = [];
   final List<int> cancelled = [];

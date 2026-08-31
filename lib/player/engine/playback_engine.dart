@@ -1,3 +1,5 @@
+import '../chapters/chapter.dart';
+
 /// A single audio or subtitle track, decoupled from media_kit's own
 /// [AudioTrack]/[SubtitleTrack] types so they never leak past this file.
 class MediaTrack {
@@ -79,6 +81,14 @@ abstract class PlaybackEngine {
   ///
   /// Same debounce contract as [setSubtitleDelay], and the same hazard.
   Future<void> setAudioDelay(double seconds);
+
+  /// The video's own chapter marks, or empty when it has none.
+  ///
+  /// Read on demand rather than kept live: media_kit does not surface
+  /// chapters, so this walks mpv's chapter-list one property at a time, and
+  /// doing that during a video open would land dozens of synchronous FFI
+  /// calls on the UI thread at the busiest moment there is.
+  Future<List<MediaChapter>> chapters();
 
   Future<void> setSubtitleStyle({
     required double fontSize,
