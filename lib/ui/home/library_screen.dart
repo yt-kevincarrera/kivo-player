@@ -20,6 +20,7 @@ import '../player/player_route.dart';
 import '../vault/vault_entry_actions.dart';
 import '../widgets/failure_view.dart';
 import 'folder_screen.dart';
+import 'playlists/playlists_tab.dart';
 import 'state/library_filter_state.dart';
 import 'state/library_selection.dart';
 import 'widgets/folder_grid.dart';
@@ -35,7 +36,7 @@ class LibraryScreen extends ConsumerStatefulWidget {
 }
 
 class _LibraryScreenState extends ConsumerState<LibraryScreen> {
-  int _tab = 0; // 0 = Todo, 1 = Carpetas
+  int _tab = 0; // 0 = Todo, 1 = Carpetas, 2 = Listas
   StreamSubscription<dynamic>? _shareSub;
   late final PageController _pageController;
   final _searchController = TextEditingController();
@@ -313,6 +314,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                     key: const ValueKey(1),
                     child: _foldersTab(videos),
                   ),
+                  const _KeepAlivePage(
+                    key: ValueKey(2),
+                    child: PlaylistsTab(),
+                  ),
                 ],
               ),
             ),
@@ -490,6 +495,8 @@ class _FilterChips extends StatelessWidget {
           _chip(context, cs, 'Todo', 0),
           const SizedBox(width: 8),
           _chip(context, cs, 'Carpetas', 1),
+          const SizedBox(width: 8),
+          _chip(context, cs, 'Listas', 2),
           if (showUnwatchedToggle) ...[
             const SizedBox(width: 8),
             _UnwatchedChip(active: unwatchedOnly, onTap: onToggleUnwatched),
