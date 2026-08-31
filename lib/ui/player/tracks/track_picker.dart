@@ -13,7 +13,7 @@ import '../../../player/open/video_source.dart';
 import '../../../player/tracks/manual_subtitle_controller.dart';
 import '../../../player/tracks/track_selection.dart';
 import '../../widgets/failure_snack_bar.dart';
-import 'subtitle_sync_hud.dart';
+import 'track_sync_hud.dart';
 
 Future<void> showSubtitlePicker(BuildContext context, WidgetRef ref) {
   return showModalBottomSheet(
@@ -473,25 +473,28 @@ class _TracksSection extends ConsumerWidget {
                   onTap: () => _pickTrack(context, ref, t),
                 ),
             ],
-            if (isSubtitles) ...[
-              const _SectionEyebrow(label: 'Sincronía'),
-              // Listed even with no subtitle showing — sub-delay would change
-              // nothing then, so the row is disabled rather than hidden.
-              _TrackCard(
-                icon: Icons.compare_arrows_rounded,
-                label: 'Sincronizar subtítulos',
-                sublabel: current != null
-                    ? 'Ajustar el desfase mientras se reproduce'
-                    : 'Activa un subtítulo para poder ajustarlo',
-                active: false,
-                enabled: current != null,
-                accent: accent,
-                onTap: () {
-                  Navigator.of(context).pop();
-                  ref.read(subtitleSyncVisibleProvider.notifier).show();
-                },
-              ),
-            ],
+            const _SectionEyebrow(label: 'Sincronía'),
+            // Each picker opens the capsule on its own side; the capsule's
+            // Sub|Audio switch moves between them from there. The subtitle row
+            // is listed even with no subtitle showing — sub-delay would change
+            // nothing then, so it is disabled rather than hidden.
+            _TrackCard(
+              icon: Icons.compare_arrows_rounded,
+              label: isSubtitles
+                  ? 'Sincronizar subtítulos'
+                  : 'Sincronizar audio',
+              sublabel: isSubtitles && current == null
+                  ? 'Activa un subtítulo para poder ajustarlo'
+                  : 'Ajustar el desfase mientras se reproduce',
+              active: false,
+              enabled: !isSubtitles || current != null,
+              accent: accent,
+              onTap: () {
+                Navigator.of(context).pop();
+                ref.read(syncHudProvider.notifier).show(
+                    isSubtitles ? SyncTarget.subtitles : SyncTarget.audio);
+              },
+            ),
             if (isSubtitles && external.isNotEmpty) ...[
               const _SectionEyebrow(label: 'En la carpeta'),
               for (final e in external)

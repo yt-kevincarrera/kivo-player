@@ -184,6 +184,11 @@ class FakePlaybackEngine implements PlaybackEngine {
   Future<void> setSubtitleDelay(double seconds) async =>
       subtitleDelays.add(seconds);
 
+  final List<double> audioDelays = [];
+
+  @override
+  Future<void> setAudioDelay(double seconds) async => audioDelays.add(seconds);
+
   double? lastSubtitleFontSize;
   int? lastSubtitleTextColorArgb;
   int? lastSubtitleBackgroundColorArgb;

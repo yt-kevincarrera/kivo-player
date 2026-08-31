@@ -5,7 +5,7 @@ import '../../core/settings/settings_provider.dart';
 import '../engine/playback_provider.dart';
 import '../open/video_source.dart';
 import 'subtitle_importer.dart';
-import 'subtitle_prefs_store.dart';
+import 'track_prefs_store.dart';
 
 /// Loads a subtitle the user picked by hand: copy it somewhere durable, hand
 /// it to mpv, and remember it for this video.
@@ -41,9 +41,9 @@ class ManualSubtitleController {
           .set(settings.copyWith(subtitlesEnabledByDefault: true));
     }
 
-    final store = _ref.read(subtitlePrefsStoreProvider);
+    final store = _ref.read(trackPrefsStoreProvider);
     final existing =
-        store.forKey(session.resumeKey) ?? const VideoSubtitlePrefs();
+        store.forKey(session.resumeKey) ?? const VideoTrackPrefs();
     // copyWith, not a fresh record: a delay already set for this video must
     // survive swapping the subtitle file.
     await store.put(session.resumeKey, existing.copyWith(subtitlePath: stored));

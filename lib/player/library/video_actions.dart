@@ -4,7 +4,7 @@ import '../../platform/interfaces/media_indexer.dart';
 import '../../platform/media_file_ops_provider.dart';
 import '../open/video_source.dart'; // resumeServiceProvider
 import '../tracks/subtitle_importer.dart';
-import '../tracks/subtitle_prefs_store.dart';
+import '../tracks/track_prefs_store.dart';
 import 'continue_watching.dart';
 import 'media_index.dart';
 import 'played.dart';
@@ -26,7 +26,7 @@ class VideoActionsController {
     await _ref.read(resumeServiceProvider).clear(v.name);
     await _ref.read(playedStoreProvider).remove(v.name);
     await _discardImportedSubtitle(v.name);
-    await _ref.read(subtitlePrefsStoreProvider).remove(v.name);
+    await _ref.read(trackPrefsStoreProvider).remove(v.name);
     await _refreshLibrary();
     return status;
   }
@@ -41,7 +41,7 @@ class VideoActionsController {
   /// storage with no effect on behaviour, and cleaning it up properly means
   /// giving SubtitleImporter a move/rename operation it does not have.
   Future<void> _discardImportedSubtitle(String key) async {
-    final path = _ref.read(subtitlePrefsStoreProvider).forKey(key)?.subtitlePath;
+    final path = _ref.read(trackPrefsStoreProvider).forKey(key)?.subtitlePath;
     if (path == null) return;
     await _ref.read(subtitleImporterProvider).discard(path);
   }
@@ -51,7 +51,7 @@ class VideoActionsController {
     if (outcome.status != FileOpStatus.ok || outcome.newName == null) return outcome;
     final newName = outcome.newName!;
     await _ref.read(resumeServiceProvider).rename(v.name, newName);
-    await _ref.read(subtitlePrefsStoreProvider).rename(v.name, newName);
+    await _ref.read(trackPrefsStoreProvider).rename(v.name, newName);
     final played = _ref.read(playedStoreProvider);
     if (played.isPlayed(v.name)) {
       await played.markPlayed(newName);
@@ -67,7 +67,7 @@ class VideoActionsController {
     if (status != FileOpStatus.ok) return status;
     final resume = _ref.read(resumeServiceProvider);
     final played = _ref.read(playedStoreProvider);
-    final subtitlePrefs = _ref.read(subtitlePrefsStoreProvider);
+    final subtitlePrefs = _ref.read(trackPrefsStoreProvider);
     for (final v in videos) {
       await resume.clear(v.name);
       await played.remove(v.name);

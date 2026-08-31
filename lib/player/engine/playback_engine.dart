@@ -74,6 +74,12 @@ abstract class PlaybackEngine {
   /// per gesture burst, never one per tap.
   Future<void> setSubtitleDelay(double seconds);
 
+  /// Shifts audio timing against the video. Positive = audio plays later,
+  /// matching mpv's own `audio-delay` sign.
+  ///
+  /// Same debounce contract as [setSubtitleDelay], and the same hazard.
+  Future<void> setAudioDelay(double seconds);
+
   Future<void> setSubtitleStyle({
     required double fontSize,
     required int textColorArgb,

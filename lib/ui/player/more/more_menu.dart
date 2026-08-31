@@ -7,7 +7,7 @@ import '../../../player/engine/playback_provider.dart';
 import '../../../player/loop/ab_loop.dart';
 import '../sleep/sleep_timer_panel.dart';
 import '../state/controls_visibility.dart';
-import '../tracks/subtitle_sync_hud.dart';
+import '../tracks/track_sync_hud.dart';
 
 /// Mini menu behind the top bar's "Más opciones" button. The A-B loop entry
 /// joins this menu in 3c.
@@ -75,35 +75,30 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                     }
                   },
                 ),
-                // Always listed, but inert while no subtitle is showing: with
-                // subs off sub-delay changes nothing on screen. Hiding it
-                // outright made the feature undiscoverable — a disabled row
-                // that says why is both honest and findable.
+                const SizedBox(height: 8),
+                // Always enabled now that audio delay exists: even with subs
+                // off there is something to adjust. The capsule opens on
+                // whichever side is actually usable, and its own Sub|Audio
+                // switch moves between them.
                 StreamBuilder<MediaTrack?>(
                   stream: engine.currentSubtitleTrackStream,
                   initialData: engine.currentSubtitleTrack,
                   builder: (_, snap) {
-                    final active = snap.data != null;
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const SizedBox(height: 8),
-                        _MenuRow(
-                          icon: Icons.compare_arrows_rounded,
-                          title: 'Sincronizar subtítulos',
-                          subtitle: active
-                              ? 'Ajustar el desfase mientras se reproduce'
-                              : 'Activa un subtítulo para poder ajustarlo',
-                          enabled: active,
-                          onTap: () {
-                            Navigator.of(sheetContext).pop();
-                            ref
-                                .read(subtitleSyncVisibleProvider.notifier)
-                                .show();
-                          },
-                        ),
-                      ],
+                    final subsActive = snap.data != null;
+                    return _MenuRow(
+                      icon: Icons.compare_arrows_rounded,
+                      title: 'Sincronizar audio y subtítulos',
+                      subtitle: 'Ajustar el desfase mientras se reproduce',
+                      onTap: () {
+                        Navigator.of(sheetContext).pop();
+                        ref
+                            .read(syncHudProvider.notifier)
+                            .show(
+                              subsActive
+                                  ? SyncTarget.subtitles
+                                  : SyncTarget.audio,
+                            );
+                      },
                     );
                   },
                 ),
@@ -122,75 +117,66 @@ class _MenuRow extends StatelessWidget {
   final String subtitle;
   final VoidCallback onTap;
 
-  /// A disabled row still lists the feature — it just cannot be used yet, and
-  /// its subtitle is expected to say why.
-  final bool enabled;
-
   const _MenuRow({
     required this.icon,
     required this.title,
     required this.subtitle,
     required this.onTap,
-    this.enabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    final fade = enabled ? 1.0 : 0.4;
-    return Opacity(
-      opacity: fade,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(13),
-        onTap: enabled ? onTap : null,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          decoration: BoxDecoration(
-            color: const Color(0xFF182036),
-            borderRadius: BorderRadius.circular(13),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(9),
-                ),
-                child: Icon(icon, size: 16, color: Colors.white70),
+    return InkWell(
+      borderRadius: BorderRadius.circular(13),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFF182036),
+          borderRadius: BorderRadius.circular(13),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(9),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w600,
-                      ),
+              child: Icon(icon, size: 16, color: Colors.white70),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
                     ),
-                    const SizedBox(height: 1),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.42),
-                        fontSize: 11,
-                      ),
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.42),
+                      fontSize: 11,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              Icon(
-                Icons.chevron_right_rounded,
-                size: 18,
-                color: Colors.white.withValues(alpha: 0.42),
-              ),
-            ],
-          ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 18,
+              color: Colors.white.withValues(alpha: 0.42),
+            ),
+          ],
         ),
       ),
     );

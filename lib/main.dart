@@ -16,7 +16,7 @@ import 'player/engine/playback_provider.dart';
 import 'player/resume/resume_store.dart';
 import 'player/resume/resume_service.dart';
 import 'player/tracks/subtitle_importer.dart';
-import 'player/tracks/subtitle_prefs_store.dart';
+import 'player/tracks/track_prefs_store.dart';
 import 'player/library/played.dart';
 import 'player/open/video_source.dart';
 import 'platform/all_files_access_provider.dart';
@@ -57,7 +57,9 @@ Future<void> main() async {
   final vaultBox = await Hive.openBox('vault');
   final vaultCredsBox = await Hive.openBox('vaultCreds');
   final errorsBox = await Hive.openBox('errors');
-  final subtitlePrefsBox = await Hive.openBox('subtitlePrefs');
+  // Box key kept as 'subtitlePrefs' from when the record only held subtitle
+  // state: renaming it would strand every 1.6.x install's saved offsets.
+  final trackPrefsBox = await Hive.openBox('subtitlePrefs');
 
   // The app version and API level are captured once and stamped on every
   // recorded failure: a reported code is only useful with the device it came
@@ -98,8 +100,8 @@ Future<void> main() async {
       pipControllerProvider.overrideWithValue(AndroidPipController()),
       allFilesAccessProvider.overrideWithValue(AndroidAllFilesAccess()),
       errorLogProvider.overrideWithValue(errorLog),
-      subtitlePrefsStoreProvider
-          .overrideWithValue(HiveSubtitlePrefsStore(subtitlePrefsBox)),
+      trackPrefsStoreProvider
+          .overrideWithValue(HiveTrackPrefsStore(trackPrefsBox)),
       subtitleImporterProvider
           .overrideWithValue(FileSubtitleImporter(subsDir, log: errorLog)),
       appInstallerProvider.overrideWithValue(installer),

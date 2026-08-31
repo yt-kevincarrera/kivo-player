@@ -5,8 +5,9 @@ import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/player/open/video_source.dart';
-import 'package:kivo_player/player/tracks/subtitle_prefs_store.dart';
-import 'package:kivo_player/ui/player/tracks/subtitle_sync_hud.dart';
+import 'package:kivo_player/player/tracks/track_delay_controller.dart';
+import 'package:kivo_player/player/tracks/track_prefs_store.dart';
+import 'package:kivo_player/ui/player/tracks/track_sync_hud.dart';
 import '../../fakes/fakes.dart';
 
 Future<ProviderContainer> _c(FakePlaybackEngine engine) async {
@@ -14,14 +15,14 @@ Future<ProviderContainer> _c(FakePlaybackEngine engine) async {
   return ProviderContainer(overrides: [
     settingsServiceProvider.overrideWithValue(svc),
     playbackEngineProvider.overrideWithValue(engine),
-    subtitlePrefsStoreProvider.overrideWithValue(InMemorySubtitlePrefsStore()),
+    trackPrefsStoreProvider.overrideWithValue(InMemoryTrackPrefsStore()),
   ]);
 }
 
 Future<void> _pump(WidgetTester tester, ProviderContainer c) => tester.pumpWidget(
       UncontrolledProviderScope(
         container: c,
-        child: const MaterialApp(home: Scaffold(body: SubtitleSyncHud())),
+        child: const MaterialApp(home: Scaffold(body: TrackSyncHud())),
       ),
     );
 
@@ -40,7 +41,7 @@ void main() {
         playbackPath: '/v/a.mkv', displayName: 'a.mkv', queue: ['/v/a.mkv'], index: 0));
     await _pump(tester, c);
 
-    c.read(subtitleSyncVisibleProvider.notifier).show();
+    c.read(syncHudProvider.notifier).show(SyncTarget.subtitles);
     await tester.pump();
     expect(find.text('0,00 s'), findsOneWidget);
 
@@ -53,7 +54,7 @@ void main() {
     await tester.pump();
     expect(find.text('−0,05 s'), findsOneWidget);
 
-    // Drain subtitleSyncProvider's trailing debounce (subtitle_sync_controller.dart)
+    // Drain subtitleSyncProvider's trailing debounce (track_delay_controller.dart)
     // so its Timer isn't still pending when the widget tree tears down.
     await tester.pump(const Duration(milliseconds: 200));
   });
@@ -64,7 +65,7 @@ void main() {
     c.read(currentVideoProvider.notifier).open(const VideoSession(
         playbackPath: '/v/a.mkv', displayName: 'a.mkv', queue: ['/v/a.mkv'], index: 0));
     await _pump(tester, c);
-    c.read(subtitleSyncVisibleProvider.notifier).show();
+    c.read(syncHudProvider.notifier).show(SyncTarget.subtitles);
     await tester.pump();
 
     await tester.tap(find.byKey(const ValueKey('subtitle-sync-plus')));
@@ -73,7 +74,7 @@ void main() {
     await tester.pump();
     expect(find.text('0,00 s'), findsOneWidget);
 
-    // Drain subtitleSyncProvider's trailing debounce (subtitle_sync_controller.dart)
+    // Drain subtitleSyncProvider's trailing debounce (track_delay_controller.dart)
     // so its Timer isn't still pending when the widget tree tears down.
     await tester.pump(const Duration(milliseconds: 200));
   });
@@ -88,14 +89,14 @@ void main() {
     addTearDown(c.dispose);
     c.read(currentVideoProvider.notifier).open(const VideoSession(
         playbackPath: '/v/a.mkv', displayName: 'a.mkv', queue: ['/v/a.mkv'], index: 0));
-    c.read(subtitleSyncVisibleProvider.notifier).show();
+    c.read(syncHudProvider.notifier).show(SyncTarget.subtitles);
 
     await _pump(tester, c);
     expect(find.text('0,00 s'), findsOneWidget);
 
     await tester.pump(const Duration(seconds: 4));
     await tester.pumpAndSettle();
-    expect(c.read(subtitleSyncVisibleProvider), false);
+    expect(c.read(syncHudProvider), isNull);
   });
 
   // The other half of the same hole: the capsule belongs to the video that is
@@ -107,14 +108,14 @@ void main() {
     videos.open(const VideoSession(
         playbackPath: '/v/a.mkv', displayName: 'a.mkv', queue: ['/v/a.mkv'], index: 0));
     await _pump(tester, c);
-    c.read(subtitleSyncVisibleProvider.notifier).show();
+    c.read(syncHudProvider.notifier).show(SyncTarget.subtitles);
     await tester.pump();
     expect(find.text('0,00 s'), findsOneWidget);
 
     videos.open(const VideoSession(
         playbackPath: '/v/b.mkv', displayName: 'b.mkv', queue: ['/v/b.mkv'], index: 0));
     await tester.pump();
-    expect(c.read(subtitleSyncVisibleProvider), false);
+    expect(c.read(syncHudProvider), isNull);
     expect(find.text('0,00 s'), findsNothing);
   });
 
@@ -124,12 +125,46 @@ void main() {
     c.read(currentVideoProvider.notifier).open(const VideoSession(
         playbackPath: '/v/a.mkv', displayName: 'a.mkv', queue: ['/v/a.mkv'], index: 0));
     await _pump(tester, c);
-    c.read(subtitleSyncVisibleProvider.notifier).show();
+    c.read(syncHudProvider.notifier).show(SyncTarget.subtitles);
     await tester.pump();
     expect(find.text('0,00 s'), findsOneWidget);
 
     await tester.pump(const Duration(seconds: 4));
     await tester.pumpAndSettle();
-    expect(c.read(subtitleSyncVisibleProvider), false);
+    expect(c.read(syncHudProvider), isNull);
   });
+  testWidgets('the Sub|Audio switch moves which offset the buttons touch',
+      (tester) async {
+    final c = await _c(FakePlaybackEngine());
+    addTearDown(c.dispose);
+    c.read(currentVideoProvider.notifier).open(const VideoSession(
+        playbackPath: '/v/a.mkv', displayName: 'a.mkv', queue: ['/v/a.mkv'], index: 0));
+    await _pump(tester, c);
+
+    c.read(syncHudProvider.notifier).show(SyncTarget.subtitles);
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('subtitle-sync-plus')));
+    await tester.pump();
+    expect(find.text('+0,05 s'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('sync-target-audio')));
+    await tester.pump();
+    // The audio side starts at its own value, untouched by the subtitle nudge.
+    expect(find.text('0,00 s'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('subtitle-sync-minus')));
+    await tester.pump();
+    expect(find.text('−0,05 s'), findsOneWidget);
+    expect(c.read(subtitleSyncProvider), 50);
+    expect(c.read(audioSyncProvider), -50);
+
+    // Back to Sub: its own value is still there.
+    await tester.tap(find.byKey(const ValueKey('sync-target-subtitles')));
+    await tester.pump();
+    expect(find.text('+0,05 s'), findsOneWidget);
+
+    await tester.pump(const Duration(milliseconds: 300));
+  });
+
 }

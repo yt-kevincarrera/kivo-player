@@ -2,7 +2,7 @@ import '../../core/settings/kivo_settings.dart';
 import '../../platform/interfaces/subtitle_finder.dart';
 import '../engine/playback_engine.dart';
 import '../open/video_source.dart';
-import 'subtitle_prefs_store.dart';
+import 'track_prefs_store.dart';
 import 'track_selection.dart';
 
 /// Applies the user's default audio/subtitle choices when a video opens:
@@ -17,7 +17,7 @@ void applyDefaultTracks({
   required KivoSettings settings,
   required VideoSession session,
   required SubtitleFinder subtitleFinder,
-  required SubtitlePrefsStore subtitlePrefs,
+  required TrackPrefsStore subtitlePrefs,
 }) {
   () async {
     final audioTracks = await engine.audioTracksStream.first.timeout(
@@ -53,29 +53,37 @@ void applyDefaultTracks({
     // What this video remembers wins over the language defaults above: the
     // user picked it for this file specifically. The file is loaded before the
     // offset so the delay lands on the track it was measured against.
-    var delayMs = 0;
+    var subtitleDelayMs = 0;
+    var audioDelayMs = 0;
     try {
       final prefs = subtitlePrefs.forKey(session.resumeKey);
-      delayMs = prefs?.delayMs ?? 0;
+      subtitleDelayMs = prefs?.subtitleDelayMs ?? 0;
+      audioDelayMs = prefs?.audioDelayMs ?? 0;
       final path = prefs?.subtitlePath;
       if (path != null) await engine.setExternalSubtitle(path);
     } catch (_) {
       // A corrupted record, or a copy that is gone (storage cleared). Degrade
       // to the embedded tracks already applied rather than failing the open —
-      // and leave delayMs at 0 so the reset below still happens.
+      // and leave both offsets at 0 so the resets below still happen.
     }
 
-    // Unconditional, even with no prefs at all and even for a zero offset:
-    // sub-delay is an ordinary mpv option, not per-file state, and the engine
-    // holds one process-lifetime Player that open() reuses — mpv does not
-    // reset it on loadfile. Without this, the previous video's offset silently
-    // rides along into a video that has none. Still exactly one call per open,
-    // so the ANR-sensitive setProperty budget is unchanged.
+    // Both unconditional, even with no prefs at all and even for a zero
+    // offset: sub-delay and audio-delay are ordinary mpv options, not per-file
+    // state, and the engine holds one process-lifetime Player that open()
+    // reuses — mpv does not reset them on loadfile. Without this, the previous
+    // video's offset silently rides along into a video that has none, while
+    // the HUD swears it is zero. Two calls per open, not per tap, so the
+    // ANR-sensitive setProperty budget is unchanged.
     try {
-      await engine.setSubtitleDelay(delayMs / 1000);
+      await engine.setSubtitleDelay(subtitleDelayMs / 1000);
     } catch (_) {
       // Best-effort like everything else here: a native failure must not break
       // playback start.
+    }
+    try {
+      await engine.setAudioDelay(audioDelayMs / 1000);
+    } catch (_) {
+      // Separate try: a failure applying one offset must not skip the other.
     }
   }();
 }

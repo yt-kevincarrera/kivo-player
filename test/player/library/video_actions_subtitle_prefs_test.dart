@@ -11,7 +11,7 @@ import 'package:kivo_player/player/library/video_actions.dart';
 import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/player/tracks/subtitle_importer.dart';
-import 'package:kivo_player/player/tracks/subtitle_prefs_store.dart';
+import 'package:kivo_player/player/tracks/track_prefs_store.dart';
 import '../../fakes/fakes.dart';
 
 class _Perm implements MediaPermission {
@@ -33,7 +33,7 @@ const _v2 = VideoItem(
 /// file exercises. Named-parameter shape so later tests (e.g. an `importer`
 /// override) can extend it without touching existing call sites.
 Future<ProviderContainer> buildVideoActionsContainer({
-  required SubtitlePrefsStore subtitlePrefs,
+  required TrackPrefsStore subtitlePrefs,
   String? renameTo,
   SubtitleImporter? importer,
 }) async {
@@ -51,15 +51,15 @@ Future<ProviderContainer> buildVideoActionsContainer({
     playedStoreProvider.overrideWithValue(played),
     mediaIndexerProvider.overrideWithValue(FakeMediaIndexer()),
     mediaPermissionImplProvider.overrideWithValue(_Perm()),
-    subtitlePrefsStoreProvider.overrideWithValue(subtitlePrefs),
+    trackPrefsStoreProvider.overrideWithValue(subtitlePrefs),
     subtitleImporterProvider.overrideWithValue(importer ?? FakeSubtitleImporter()),
   ]);
 }
 
 void main() {
   test('rename carries the subtitle prefs to the new name', () async {
-    final store = InMemorySubtitlePrefsStore();
-    await store.put('ep1.mkv', const VideoSubtitlePrefs(delayMs: 500));
+    final store = InMemoryTrackPrefsStore();
+    await store.put('ep1.mkv', const VideoTrackPrefs(subtitleDelayMs: 500));
     final c = await buildVideoActionsContainer(
         subtitlePrefs: store, renameTo: 'ep1-renamed.mkv');
     addTearDown(c.dispose);
@@ -67,12 +67,12 @@ void main() {
     await c.read(videoActionsProvider).rename(_v, 'ep1-renamed');
 
     expect(store.forKey('ep1.mkv'), isNull);
-    expect(store.forKey('ep1-renamed.mkv')!.delayMs, 500);
+    expect(store.forKey('ep1-renamed.mkv')!.subtitleDelayMs, 500);
   });
 
   test('delete clears the subtitle prefs', () async {
-    final store = InMemorySubtitlePrefsStore();
-    await store.put('ep1.mkv', const VideoSubtitlePrefs(delayMs: 500));
+    final store = InMemoryTrackPrefsStore();
+    await store.put('ep1.mkv', const VideoTrackPrefs(subtitleDelayMs: 500));
     final c = await buildVideoActionsContainer(subtitlePrefs: store);
     addTearDown(c.dispose);
 
@@ -82,8 +82,8 @@ void main() {
   });
 
   test('deleteMany clears the prefs of every video in the batch', () async {
-    final store = InMemorySubtitlePrefsStore();
-    await store.put('ep1.mkv', const VideoSubtitlePrefs(delayMs: 500));
+    final store = InMemoryTrackPrefsStore();
+    await store.put('ep1.mkv', const VideoTrackPrefs(subtitleDelayMs: 500));
     final c = await buildVideoActionsContainer(subtitlePrefs: store);
     addTearDown(c.dispose);
 
@@ -93,9 +93,9 @@ void main() {
   });
 
   test('deleting a video also deletes its imported subtitle copy', () async {
-    final store = InMemorySubtitlePrefsStore();
+    final store = InMemoryTrackPrefsStore();
     await store.put('ep1.mkv',
-        const VideoSubtitlePrefs(subtitlePath: '/app/subs/ep1.mkv.srt'));
+        const VideoTrackPrefs(subtitlePath: '/app/subs/ep1.mkv.srt'));
     final importer = FakeSubtitleImporter();
     final c = await buildVideoActionsContainer(
         subtitlePrefs: store, importer: importer);
@@ -107,8 +107,8 @@ void main() {
   });
 
   test('a video with no imported copy discards nothing', () async {
-    final store = InMemorySubtitlePrefsStore();
-    await store.put('ep1.mkv', const VideoSubtitlePrefs(delayMs: 500));
+    final store = InMemoryTrackPrefsStore();
+    await store.put('ep1.mkv', const VideoTrackPrefs(subtitleDelayMs: 500));
     final importer = FakeSubtitleImporter();
     final c = await buildVideoActionsContainer(
         subtitlePrefs: store, importer: importer);
@@ -121,11 +121,11 @@ void main() {
 
   test('deleteMany discards each video\'s own imported subtitle copy',
       () async {
-    final store = InMemorySubtitlePrefsStore();
+    final store = InMemoryTrackPrefsStore();
     await store.put('ep1.mkv',
-        const VideoSubtitlePrefs(subtitlePath: '/app/subs/ep1.mkv.srt'));
+        const VideoTrackPrefs(subtitlePath: '/app/subs/ep1.mkv.srt'));
     await store.put('ep2.mkv',
-        const VideoSubtitlePrefs(subtitlePath: '/app/subs/ep2.mkv.srt'));
+        const VideoTrackPrefs(subtitlePath: '/app/subs/ep2.mkv.srt'));
     final importer = FakeSubtitleImporter();
     final c = await buildVideoActionsContainer(
         subtitlePrefs: store, importer: importer);

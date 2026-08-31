@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kivo_player/core/settings/kivo_settings.dart';
 import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/tracks/apply_default_tracks.dart';
-import 'package:kivo_player/player/tracks/subtitle_prefs_store.dart';
+import 'package:kivo_player/player/tracks/track_prefs_store.dart';
 import '../../fakes/fakes.dart';
 
 VideoSession _session() => const VideoSession(
@@ -24,8 +24,8 @@ Future<void> _drainTrackStreams(FakePlaybackEngine engine) async {
 void main() {
   test('a remembered offset is applied on open', () async {
     final engine = FakePlaybackEngine();
-    final store = InMemorySubtitlePrefsStore();
-    await store.put('ep1.mkv', const VideoSubtitlePrefs(delayMs: -750));
+    final store = InMemoryTrackPrefsStore();
+    await store.put('ep1.mkv', const VideoTrackPrefs(subtitleDelayMs: -750));
 
     applyDefaultTracks(
       engine: engine,
@@ -42,9 +42,9 @@ void main() {
 
   test('a remembered subtitle file is loaded before the offset', () async {
     final engine = FakePlaybackEngine();
-    final store = InMemorySubtitlePrefsStore();
+    final store = InMemoryTrackPrefsStore();
     await store.put('ep1.mkv',
-        const VideoSubtitlePrefs(delayMs: 500, subtitlePath: '/subs/ep1.srt'));
+        const VideoTrackPrefs(subtitleDelayMs: 500, subtitlePath: '/subs/ep1.srt'));
 
     applyDefaultTracks(
       engine: engine,
@@ -68,7 +68,7 @@ void main() {
       settings: KivoSettings.defaults(),
       session: _session(),
       subtitleFinder: FakeSubtitleFinder(),
-      subtitlePrefs: InMemorySubtitlePrefsStore(),
+      subtitlePrefs: InMemoryTrackPrefsStore(),
     );
     await _drainTrackStreams(engine);
     await Future<void>.delayed(const Duration(milliseconds: 50));
@@ -84,8 +84,8 @@ void main() {
   test('the previous video\'s offset does not leak onto the next one',
       () async {
     final engine = FakePlaybackEngine();
-    final store = InMemorySubtitlePrefsStore();
-    await store.put('ep1.mkv', const VideoSubtitlePrefs(delayMs: 500));
+    final store = InMemoryTrackPrefsStore();
+    await store.put('ep1.mkv', const VideoTrackPrefs(subtitleDelayMs: 500));
 
     applyDefaultTracks(
       engine: engine,
@@ -121,23 +121,75 @@ void main() {
       settings: KivoSettings.defaults(),
       session: _session(),
       subtitleFinder: FakeSubtitleFinder(),
-      subtitlePrefs: _ThrowingSubtitlePrefsStore(),
+      subtitlePrefs: _ThrowingTrackPrefsStore(),
     );
     await _drainTrackStreams(engine);
     await Future<void>.delayed(const Duration(milliseconds: 50));
 
     expect(engine.subtitleDelays, [0.0]);
   });
+  // Same trap as the subtitle offset, same reason: audio-delay is a global mpv
+  // option on a process-lifetime Player. This is the test that was missing when
+  // the subtitle version of this bug shipped.
+  test('the previous video\'s audio offset does not leak onto the next one',
+      () async {
+    final engine = FakePlaybackEngine();
+    final store = InMemoryTrackPrefsStore();
+    await store.put('ep1.mkv', const VideoTrackPrefs(audioDelayMs: -300));
+
+    applyDefaultTracks(
+      engine: engine,
+      settings: KivoSettings.defaults(),
+      session: _session(),
+      subtitleFinder: FakeSubtitleFinder(),
+      subtitlePrefs: store,
+    );
+    await _drainTrackStreams(engine);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    applyDefaultTracks(
+      engine: engine,
+      settings: KivoSettings.defaults(),
+      session: const VideoSession(
+          playbackPath: '/v/ep2.mkv',
+          displayName: 'ep2.mkv',
+          queue: ['/v/ep2.mkv'],
+          index: 0),
+      subtitleFinder: FakeSubtitleFinder(),
+      subtitlePrefs: store,
+    );
+    await _drainTrackStreams(engine);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    expect(engine.audioDelays, [-0.3, 0.0]);
+  });
+
+  test('a video with nothing stored still gets both offsets zeroed', () async {
+    final engine = FakePlaybackEngine();
+    applyDefaultTracks(
+      engine: engine,
+      settings: KivoSettings.defaults(),
+      session: _session(),
+      subtitleFinder: FakeSubtitleFinder(),
+      subtitlePrefs: InMemoryTrackPrefsStore(),
+    );
+    await _drainTrackStreams(engine);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    expect(engine.subtitleDelays, [0.0]);
+    expect(engine.audioDelays, [0.0]);
+  });
+
 }
 
 /// A Hive record that cannot be decoded: [forKey] throwing must not escape
 /// applyDefaultTracks' fire-and-forget IIFE (there is no zone handler for it),
 /// and must not skip the delay reset either.
-class _ThrowingSubtitlePrefsStore implements SubtitlePrefsStore {
+class _ThrowingTrackPrefsStore implements TrackPrefsStore {
   @override
-  VideoSubtitlePrefs? forKey(String key) => throw StateError('corrupt record');
+  VideoTrackPrefs? forKey(String key) => throw StateError('corrupt record');
   @override
-  Future<void> put(String key, VideoSubtitlePrefs prefs) async {}
+  Future<void> put(String key, VideoTrackPrefs prefs) async {}
   @override
   Future<void> remove(String key) async {}
   @override
