@@ -47,6 +47,27 @@ void main() {
     expect(n.peekNext(), isNull); // now at the last
   });
 
+  test('[at] pins the position when the same video appears twice', () {
+    final c = makeC();
+    final n = c.read(currentVideoProvider.notifier);
+    // A playlist may legitimately hold one video twice. Without [at], the URI
+    // search resolves both copies to the first, so tapping the last one would
+    // start the queue at position 0 and autoplay would walk it all over again.
+    final dup = _item('1.mkv', 'A');
+    final shown = [dup, _item('2.mkv', 'A'), dup];
+    n.openFromList(dup, shown, at: 2);
+    expect(c.read(currentVideoProvider)!.index, 2);
+    expect(n.peekNext(), isNull); // it IS the last entry
+  });
+
+  test('an out-of-range [at] falls back to the URI search', () {
+    final c = makeC();
+    final n = c.read(currentVideoProvider.notifier);
+    final shown = [_item('1.mkv', 'A'), _item('2.mkv', 'A')];
+    n.openFromList(shown[1], shown, at: 9);
+    expect(c.read(currentVideoProvider)!.index, 1);
+  });
+
   test('peekNext returns the next session or null at the end', () {
     final c = makeC();
     final n = c.read(currentVideoProvider.notifier);

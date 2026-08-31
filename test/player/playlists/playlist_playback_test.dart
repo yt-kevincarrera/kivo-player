@@ -143,4 +143,25 @@ void main() {
 
     expect(c.read(resolvedPlaylistProvider(p.id)).single.available, true);
   });
+
+  test('tapping the second copy of a duplicated entry starts at that copy',
+      () async {
+    // Spec §1: the same video twice in one list is legal. The queue then holds
+    // the same URI twice, and openFromList's URI search cannot tell the copies
+    // apart — so the position has to be pinned, or autoplay walks the list
+    // again from the first copy instead of recognising the end.
+    final c = await _c([_v('1', 'a.mkv'), _v('2', 'b.mkv')], InMemoryPlayedStore());
+    addTearDown(c.dispose);
+    await c.read(mediaIndexProvider.future);
+
+    final p = await c.read(playlistsProvider.notifier).create('Serie');
+    await c.read(playlistsProvider.notifier).addVideos(
+        p.id, [_v('1', 'a.mkv'), _v('2', 'b.mkv'), _v('1', 'a.mkv')]);
+
+    expect(c.read(playlistPlaybackProvider).playAt(p.id, 2), true);
+    final session = c.read(currentVideoProvider)!;
+    expect(session.displayName, 'a.mkv');
+    expect(session.queue.length, 3);
+    expect(session.index, 2);
+  });
 }

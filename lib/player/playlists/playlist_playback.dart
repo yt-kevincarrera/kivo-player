@@ -64,9 +64,12 @@ class PlaylistPlayback {
     final queueIndex = available[entryIndex];
     if (queueIndex == null || videos.isEmpty) return false;
 
+    // Pin the position: a playlist may hold the same video twice, and
+    // openFromList's URI search would resolve both to the first copy.
     _ref.read(currentVideoProvider.notifier).openFromList(
           videos[queueIndex],
           videos,
+          at: queueIndex,
         );
     return true;
   }
