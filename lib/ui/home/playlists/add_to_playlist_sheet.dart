@@ -25,10 +25,11 @@ class _AddToPlaylistSheet extends ConsumerWidget {
     final navigator = Navigator.of(context);
 
     return SafeArea(
-      // Scroll-controlled and height-bounded, same fix as more_menu.dart: a
-      // dozen playlists must scroll instead of overflowing the sheet. The
-      // title and "Nueva lista" stay outside the scroll area so they're
-      // always reachable.
+      // Scroll-controlled and height-bounded, as more_menu.dart had to be: a
+      // dozen playlists must scroll instead of overflowing the sheet. Only the
+      // rows scroll here — the title and "Nueva lista" stay outside, so they
+      // are always reachable. That leaves the fixed part unscrollable, so any
+      // future row added above or below the list has to earn its height.
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.8,
@@ -133,36 +134,49 @@ class _AddToPlaylistSheet extends ConsumerWidget {
     ScaffoldMessengerState messenger,
     NavigatorState navigator,
   ) async {
+    // Read the notifier before anything can pop this sheet: it belongs to the
+    // container and outlives the sheet, where `ref` does not.
+    final playlists = ref.read(playlistsProvider.notifier);
     final controller = TextEditingController();
-    final name = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Nueva lista'),
-        content: TextField(controller: controller, autofocus: true),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () {
-              final trimmed = controller.text.trim();
-              // Blank (including whitespace-only) is refused by NOT popping:
-              // the dialog stays open so the user sees why nothing happened,
-              // rather than a silent no-op that just closes it.
-              if (trimmed.isEmpty) return;
-              Navigator.pop(dialogContext, trimmed);
-            },
-            child: const Text('Crear'),
-          ),
-        ],
-      ),
-    );
+    String? name;
+    try {
+      name = await showDialog<String>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Nueva lista'),
+          content: TextField(controller: controller, autofocus: true),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                final trimmed = controller.text.trim();
+                // Blank (including whitespace-only) is refused by NOT popping:
+                // the dialog stays open so the user sees why nothing happened,
+                // rather than a silent no-op that just closes it.
+                if (trimmed.isEmpty) return;
+                Navigator.pop(dialogContext, trimmed);
+              },
+              child: const Text('Crear'),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      // Deferred for the same reason as rename_dialog.dart: the dialog's
+      // exit transition still reads the controller for a frame or two.
+      WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
+    }
     if (name == null) return;
 
-    final playlist = await ref.read(playlistsProvider.notifier).create(name);
-    await ref.read(playlistsProvider.notifier).addVideos(playlist.id, videos);
+    // Pop BEFORE the writes, not after. The sheet is dismissible, so a user
+    // who swipes it away while the writes are in flight would otherwise have
+    // this pop land on the screen underneath and send them back a level.
     navigator.pop();
+    final playlist = await playlists.create(name);
+    await playlists.addVideos(playlist.id, videos);
     messenger.showSnackBar(SnackBar(content: Text('Añadido a «${playlist.name}»')));
   }
 }
