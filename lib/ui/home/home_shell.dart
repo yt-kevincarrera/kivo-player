@@ -34,9 +34,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   }
 
   Widget _tab(int i, Widget root) => Navigator(
-        key: _navKeys[i],
-        onGenerateRoute: (_) => MaterialPageRoute(builder: (_) => root),
-      );
+    key: _navKeys[i],
+    onGenerateRoute: (_) => MaterialPageRoute(builder: (_) => root),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +59,14 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         if (nav != null && nav.canPop()) {
           nav.pop();
         } else if (_index != 0) {
-          setState(() => _index = 0); // from a non-Videos tab, back returns to Videos
+          setState(
+            () => _index = 0,
+          ); // from a non-Videos tab, back returns to Videos
+        } else if (ref.read(librarySubTabProvider) != 0) {
+          // Same idea one level in: from Carpetas or Listas, back goes to
+          // Todo. Leaving the app straight from a sub-tab reads as the app
+          // closing on you, since nothing visibly "went back" first.
+          ref.read(librarySubTabProvider.notifier).state = 0;
         } else {
           // Videos tab root: end the app the way the platform does. NOT
           // Navigator.pop() — this IS the root route of the root navigator, so
@@ -102,7 +109,9 @@ class _BottomTabBar extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
-        border: Border(top: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.5))),
+        border: Border(
+          top: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.5)),
+        ),
       ),
       child: SafeArea(
         top: false,
@@ -130,11 +139,14 @@ class _BottomTabBar extends StatelessWidget {
           children: [
             Icon(icon, size: 24, color: color),
             const SizedBox(height: 4),
-            Text(label,
-                style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-                    color: color)),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                color: color,
+              ),
+            ),
           ],
         ),
       ),

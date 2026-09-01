@@ -35,8 +35,14 @@ class LibraryScreen extends ConsumerStatefulWidget {
   ConsumerState<LibraryScreen> createState() => _LibraryScreenState();
 }
 
+/// Which sub-tab of Videos is showing: 0 = Todo, 1 = Carpetas, 2 = Listas.
+///
+/// Lives outside the screen so the root back handler in home_shell.dart can
+/// send the user back to Todo instead of out of the app. The screen still
+/// owns the pager; it just no longer owns the answer to "which tab".
+final librarySubTabProvider = StateProvider<int>((ref) => 0);
+
 class _LibraryScreenState extends ConsumerState<LibraryScreen> {
-  int _tab = 0; // 0 = Todo, 1 = Carpetas, 2 = Listas
   StreamSubscription<dynamic>? _shareSub;
   late final PageController _pageController;
   final _searchController = TextEditingController();
@@ -102,6 +108,16 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   /// 1→2→3→1, the same cycle the button's tooltip announces.
   int get _nextColumns => (ref.read(settingsProvider).libraryColumns % 3) + 1;
 
+  void _goToPage(int i) {
+    if (!_pageController.hasClients) return;
+    if (_pageController.page?.round() == i) return;
+    _pageController.animateToPage(
+      i,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
   void _cycleDensity() {
     final s = ref.read(settingsProvider);
     final next = (s.libraryColumns % 3) + 1; // 1→2→3→1
@@ -151,11 +167,15 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   @override
   Widget build(BuildContext context) {
     final perm = ref.watch(mediaPermissionProvider);
+    final tab = ref.watch(librarySubTabProvider);
     final selecting = ref.watch(librarySelectionProvider).isNotEmpty;
+    // The tab can also change from outside (back returns to Todo), and the
+    // pager has to follow it there, not only on a chip tap.
+    ref.listen<int>(librarySubTabProvider, (_, next) => _goToPage(next));
     // Selection only applies to the video list (Todo tab / search results),
     // never the Carpetas grid — but it's safe to compute unconditionally
     // since it's only ever non-empty when a video list was showing.
-    final showingVideos = _tab == 0 || ref.watch(librarySearchActiveProvider);
+    final showingVideos = tab == 0 || ref.watch(librarySearchActiveProvider);
     final scaffold = Scaffold(
       appBar: selecting && showingVideos
           ? SelectionAppBar(allVisible: _currentVisibleVideos())
@@ -228,13 +248,13 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                           onPressed: _openSearch,
                         ),
                 ),
-                if (ref.watch(librarySearchActiveProvider) || _tab == 0)
+                if (ref.watch(librarySearchActiveProvider) || tab == 0)
                   const _SortMenuButton(),
                 if (!ref.watch(librarySearchActiveProvider)) ...[
                   // Density is a property of the Todo feed and the Carpetas
                   // grid; on Listas the button would respond and change
                   // nothing.
-                  if (_tab != 2)
+                  if (tab != 2)
                     IconButton(
                       // Says what the tap DOES, not what the feature is
                       // called: "densidad" told the user nothing.
@@ -270,6 +290,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
   Widget _body() {
     final index = ref.watch(libraryIndexProvider);
+    final tab = ref.watch(librarySubTabProvider);
     return index.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, __) => FailureView.from(
@@ -283,26 +304,23 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         return Column(
           children: [
             _FilterChips(
-              selected: _tab,
+              selected: tab,
               onChanged: (i) {
                 // Selection is only meaningful in the videos list (tab 0):
                 // switching sub-tabs away from it would otherwise leave the
                 // selection set non-empty while SelectionAppBar is no longer
                 // shown, orphaning it (and PopScope would swallow back).
-                if (i != _tab) {
+                if (i != tab) {
                   ref.read(librarySelectionProvider.notifier).clear();
                   // Same reason, for the Listas tab's own marks: leaving
                   // the tab must not leave a selection behind with no bar.
                   ref.read(playlistsSelectionProvider.notifier).clear();
                 }
-                setState(() => _tab = i);
-                _pageController.animateToPage(
-                  i,
-                  duration: const Duration(milliseconds: 250),
-                  curve: Curves.easeOutCubic,
-                );
+                // The listener above moves the pager; setting the tab here
+                // keeps a chip tap and a back press on one single path.
+                ref.read(librarySubTabProvider.notifier).state = i;
               },
-              showUnwatchedToggle: _tab == 0,
+              showUnwatchedToggle: tab == 0,
               unwatchedOnly: ref.watch(libraryUnwatchedOnlyProvider),
               onToggleUnwatched: () {
                 final notifier = ref.read(
@@ -521,6 +539,11 @@ class _FilterChips extends StatelessWidget {
   /// selected do not need to spell themselves out to stay recognisable.
   /// "Todo" keeps its text always — it has no icon that would read as
   /// "everything" without one.
+  /// A chip with an [icon] carries its label only while it is the selected
+  /// one: four full-width chips ate the row, and the three that are not
+  /// selected do not need to spell themselves out to stay recognisable.
+  /// "Todo" keeps its text always — it has no icon that would read as
+  /// "everything" without one.
   Widget _chip(
     BuildContext context,
     ColorScheme cs,
@@ -543,8 +566,8 @@ class _FilterChips extends StatelessWidget {
           child: GestureDetector(
             onTap: () => onChanged(i),
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              curve: Curves.easeOut,
+              duration: _chipAnim,
+              curve: _chipCurve,
               padding: EdgeInsets.symmetric(
                 horizontal: showLabel ? 14 : 10,
                 vertical: 6,
@@ -553,29 +576,23 @@ class _FilterChips extends StatelessWidget {
                 color: active ? accent : cs.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(20),
               ),
-              // The label appearing changes the chip's width, which
-              // AnimatedContainer does not animate on its own.
-              child: AnimatedSize(
-                duration: const Duration(milliseconds: 150),
-                curve: Curves.easeOut,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (icon != null) Icon(icon, size: 15, color: fg),
-                    if (icon != null && showLabel) const SizedBox(width: 5),
-                    if (showLabel)
-                      Text(
-                        label,
-                        style: TextStyle(
-                          color: fg,
-                          fontSize: 13,
-                          fontWeight: active
-                              ? FontWeight.w600
-                              : FontWeight.w500,
-                        ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (icon != null) Icon(icon, size: 15, color: fg),
+                  _chipLabel(
+                    show: showLabel,
+                    gap: icon != null,
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        color: fg,
+                        fontSize: 13,
+                        fontWeight: active ? FontWeight.w600 : FontWeight.w500,
                       ),
-                  ],
-                ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -583,6 +600,38 @@ class _FilterChips extends StatelessWidget {
       },
     );
   }
+}
+
+/// One duration and curve for every chip, so the tabs and the filter next to
+/// them expand in step.
+const _chipAnim = Duration(milliseconds: 260);
+const _chipCurve = Curves.easeOutCubic;
+
+/// The label's width and its opacity ride the same value, so it slides out
+/// from behind the icon instead of popping in once the box has finished
+/// growing. AnimatedSize alone animated the box but not the text, which is
+/// what made the old version feel abrupt.
+Widget _chipLabel({
+  required bool show,
+  required bool gap,
+  required Widget child,
+}) {
+  return TweenAnimationBuilder<double>(
+    tween: Tween(begin: show ? 1 : 0, end: show ? 1 : 0),
+    duration: _chipAnim,
+    curve: _chipCurve,
+    builder: (context, t, inner) => ClipRect(
+      child: Align(
+        alignment: Alignment.centerLeft,
+        widthFactor: t,
+        child: Opacity(opacity: t, child: inner),
+      ),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [if (gap) const SizedBox(width: 5), child],
+    ),
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -605,8 +654,8 @@ class _UnwatchedChip extends ConsumerWidget {
       child: GestureDetector(
         onTap: onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.easeOut,
+          duration: _chipAnim,
+          curve: _chipCurve,
           padding: EdgeInsets.symmetric(
             horizontal: active ? 14 : 10,
             vertical: 6,
@@ -615,28 +664,25 @@ class _UnwatchedChip extends ConsumerWidget {
             color: active ? accent : cs.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(20),
           ),
-          // Same rule as the tabs: the label shows only while the filter is on,
-          // which is also when it is worth saying out loud.
-          child: AnimatedSize(
-            duration: const Duration(milliseconds: 150),
-            curve: Curves.easeOut,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.visibility_off_outlined, size: 15, color: fg),
-                if (active) ...[
-                  const SizedBox(width: 5),
-                  Text(
-                    'No vistos',
-                    style: TextStyle(
-                      color: fg,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
+          // Same rule as the tabs: the label shows only while the filter is
+          // on, which is also when it is worth saying out loud.
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.visibility_off_outlined, size: 15, color: fg),
+              _chipLabel(
+                show: active,
+                gap: true,
+                child: Text(
+                  'No vistos',
+                  style: TextStyle(
+                    color: fg,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
                   ),
-                ],
-              ],
-            ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

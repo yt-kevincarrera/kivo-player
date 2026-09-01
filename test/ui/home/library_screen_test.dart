@@ -248,23 +248,27 @@ void main() {
       expect(find.byIcon(Icons.select_all), findsNothing);
     },
   );
-
   testWidgets('an unselected tab is its icon alone; selecting it spells it out',
       (tester) async {
     // Four full-width chips ate the row, so only the selected one carries its
-    // label. «Todo» is the exception: it has no icon that would read as
-    // "everything" on its own.
+    // label. The label stays in the tree at zero width so it can slide out
+    // rather than pop in, which is why this measures the chip instead of
+    // asking whether the text exists.
     await _buildApp(tester);
 
-    expect(find.text('Todo'), findsOneWidget);
-    expect(find.text('Carpetas'), findsNothing);
-    expect(find.byIcon(Icons.folder_outlined), findsOneWidget);
+    double chipWidth(IconData icon) => tester.getSize(find
+        .ancestor(
+          of: find.byIcon(icon),
+          matching: find.byType(AnimatedContainer),
+        )
+        .first).width;
+
+    final collapsed = chipWidth(Icons.folder_outlined);
 
     await tester.tap(find.byIcon(Icons.folder_outlined));
     await tester.pumpAndSettle();
 
-    expect(find.text('Carpetas'), findsOneWidget);
-    expect(find.byIcon(Icons.folder_outlined), findsOneWidget);
+    expect(chipWidth(Icons.folder_outlined), greaterThan(collapsed));
     // «Todo» keeps its label even now that it is not the selected one.
     expect(find.text('Todo'), findsOneWidget);
   });
