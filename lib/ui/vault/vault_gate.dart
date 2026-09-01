@@ -27,6 +27,15 @@ class _VaultGateState extends ConsumerState<VaultGate> with WidgetsBindingObserv
   // first attempt is still up (stickyAuth delivers inactive/paused/resumed
   // around the sheet while the original await is still pending).
   bool _biometricInFlight = false;
+  // Set only when the app is paused/inactivated WHILE a biometric attempt is
+  // still in flight (i.e. the OS sheet may have been yanked away mid-attempt
+  // by real backgrounding, not resolved). This is the sole trigger for the
+  // resume handler below re-attempting biometric. A resume that follows an
+  // attempt that already resolved — including the user tapping Cancel on
+  // the sheet, which local_auth reports as a plain `false` indistinguishable
+  // from a failed attempt — leaves this false, so it does nothing: no
+  // re-prompt, no loop. See didChangeAppLifecycleState and _maybeBiometric.
+  bool _biometricInterrupted = false;
   // While true, a biometric attempt is either about to start or in flight,
   // so the OS biometric sheet owns the screen and PinPad stays hidden
   // underneath a simple placeholder. False shows PinPad immediately (no
@@ -60,18 +69,29 @@ class _VaultGateState extends ConsumerState<VaultGate> with WidgetsBindingObserv
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
       ref.read(vaultUnlockedProvider.notifier).state = false;
+      // Only remember this as a genuine interruption when a biometric
+      // attempt was actually in flight. If it isn't — e.g. the previous
+      // attempt already resolved because the user tapped Cancel or the
+      // fingerprint just wasn't recognized — this pause is not a reason to
+      // retry biometric on the next resume.
+      if (_biometricInFlight) _biometricInterrupted = true;
     } else if (state == AppLifecycleState.resumed) {
       if (!mounted) return;
       final unlocked = ref.read(vaultUnlockedProvider);
       final auth = ref.read(vaultAuthProvider);
-      if (!unlocked && auth.isConfigured) {
-        // User backgrounded mid-vault and came back: don't silently
-        // downgrade to PIN-only, give them another shot at biometric.
-        // NOTE: if a biometric attempt is still in flight (e.g. this resume
-        // is the OS biometric sheet resolving while the original
-        // authenticate() await from _maybeBiometric() hasn't returned yet),
-        // _biometricInFlight guards _maybeBiometric() below from starting a
-        // second, concurrent authenticate() call.
+      // Only reachable when the prior attempt never got a chance to
+      // resolve (app was backgrounded mid-prompt, e.g. OS killed the
+      // sheet): give it another shot at biometric instead of silently
+      // downgrading to PIN-only. Deliberately does NOT fire for a resume
+      // that follows an attempt the user already resolved by cancelling —
+      // that must land on PinPad and stay there, not re-summon the sheet.
+      // NOTE: if a biometric attempt is still in flight (e.g. this resume
+      // is the OS biometric sheet resolving while the original
+      // authenticate() await from _maybeBiometric() hasn't returned yet),
+      // _biometricInFlight guards _maybeBiometric() below from starting a
+      // second, concurrent authenticate() call.
+      if (!unlocked && auth.isConfigured && _biometricInterrupted) {
+        _biometricInterrupted = false;
         _biometricTried = false;
         setState(() => _showPinPad = !_willAttemptBiometric());
         _maybeBiometric();
@@ -93,8 +113,11 @@ class _VaultGateState extends ConsumerState<VaultGate> with WidgetsBindingObserv
     // because `resumed` deliberately resets _biometricTried to false so a
     // fresh background/foreground cycle gets another shot at biometric — but
     // if we're resuming WHILE the original authenticate() call is still
-    // pending (stickyAuth's inactive/paused/resumed dance around the OS
-    // biometric sheet), that pending call must be left alone, not raced.
+    // pending (on some devices the OS biometric sheet itself causes an
+    // inactive/paused/resumed dance while it's showing — nothing to do with
+    // local_auth's own stickyAuth option, which this app leaves off; see
+    // local_auth_biometric.dart), that pending call must be left alone, not
+    // raced.
     if (_biometricInFlight) return;
     if (_biometricTried) return;
     _biometricTried = true;

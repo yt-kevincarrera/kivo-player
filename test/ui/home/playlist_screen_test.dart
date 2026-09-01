@@ -17,8 +17,25 @@ import 'package:kivo_player/player/playlists/playlist_controller.dart';
 import 'package:kivo_player/player/playlists/playlist_store.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/ui/home/playlists/playlist_screen.dart';
+import 'package:kivo_player/ui/home/state/library_selection.dart';
 import 'package:kivo_player/ui/home/widgets/thumbnail_image.dart';
 import '../../fakes/fakes.dart';
+
+/// Every row's ⋮ / options icon now lives inside a reused `VideoTile` (or,
+/// for an unavailable entry, the hand-matched row that mirrors it) rather
+/// than behind a dedicated `playlist-remove-N` key — this locates it by
+/// scoping to the row's own key first, so it stays index-specific.
+Finder _optionsButton(int index) => find.descendant(
+      of: find.byKey(ValueKey('playlist-entry-$index')),
+      matching: find.byIcon(Icons.close),
+    );
+
+/// The drag grip at the START of row [index] — the only drag target now
+/// that `buildDefaultDragHandles` is false.
+Finder _grip(int index) => find.descendant(
+      of: find.byKey(ValueKey('playlist-entry-$index')),
+      matching: find.byIcon(Icons.drag_handle),
+    );
 
 VideoItem _v(String id, String name) => VideoItem(
       id: id,
@@ -196,7 +213,7 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('playlist-remove-0')));
+    await tester.tap(_optionsButton(0));
     await tester.pumpAndSettle();
 
     expect(find.text('a.mkv'), findsNothing);
@@ -220,7 +237,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Remove the MIDDLE entry — proves undo restores position, not just presence.
-    await tester.tap(find.byKey(const ValueKey('playlist-remove-1')));
+    await tester.tap(_optionsButton(1));
     await tester.pumpAndSettle();
 
     expect(find.text('b.mkv'), findsNothing);
@@ -251,11 +268,11 @@ void main() {
     await tester.pumpAndSettle();
 
     // Remove three entries back-to-back without letting any snackbar settle.
-    await tester.tap(find.byKey(const ValueKey('playlist-remove-0')));
+    await tester.tap(_optionsButton(0));
     await tester.pump();
-    await tester.tap(find.byKey(const ValueKey('playlist-remove-0')));
+    await tester.tap(_optionsButton(0));
     await tester.pump();
-    await tester.tap(find.byKey(const ValueKey('playlist-remove-0')));
+    await tester.tap(_optionsButton(0));
     await tester.pumpAndSettle();
 
     expect(find.byType(SnackBar), findsOneWidget);
@@ -428,5 +445,95 @@ void main() {
 
     expect(store.all().single.name, 'Otra serie');
     expect(find.text('Otra serie'), findsWidgets);
+  });
+
+  testWidgets('long-pressing an available entry marks it, shown via the selection app bar',
+      (tester) async {
+    final store = InMemoryPlaylistStore();
+    final c = await _c(store, [_v('1', 'a.mkv'), _v('2', 'b.mkv')]);
+    addTearDown(c.dispose);
+    await c.read(mediaIndexProvider.future);
+    final p = await c.read(playlistsProvider.notifier).create('Serie');
+    await c.read(playlistsProvider.notifier)
+        .addVideos(p.id, [_v('1', 'a.mkv'), _v('2', 'b.mkv')]);
+
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: c,
+      child: MaterialApp(home: PlaylistScreen(playlistId: p.id)),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.text('a.mkv'));
+    await tester.pumpAndSettle();
+
+    expect(c.read(librarySelectionProvider), {'content://1'});
+    // The normal AppBar (playlist name + rename/delete menu) is swapped for
+    // the shared SelectionAppBar while marking is active.
+    expect(find.text('1 seleccionado'), findsOneWidget);
+    expect(find.text('Serie'), findsNothing);
+
+    // Tapping the second (unmarked) entry while marking is active toggles
+    // its mark too, instead of opening it.
+    await tester.tap(find.text('b.mkv'));
+    await tester.pumpAndSettle();
+    expect(c.read(librarySelectionProvider), {'content://1', 'content://2'});
+    expect(c.read(currentVideoProvider), isNull);
+  });
+
+  testWidgets('an unavailable entry cannot be marked', (tester) async {
+    final store = InMemoryPlaylistStore();
+    final c = await _c(store, const []); // nothing on the device
+    addTearDown(c.dispose);
+    await c.read(mediaIndexProvider.future);
+    final p = await c.read(playlistsProvider.notifier).create('Serie');
+    await c.read(playlistsProvider.notifier).addVideos(p.id, [_v('1', 'a.mkv')]);
+
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: c,
+      child: MaterialApp(home: PlaylistScreen(playlistId: p.id)),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.text('a.mkv'));
+    await tester.pumpAndSettle();
+
+    expect(c.read(librarySelectionProvider), isEmpty);
+    // Still the normal AppBar — long-pressing an unavailable row never
+    // entered selection mode.
+    expect(find.text('Serie'), findsOneWidget);
+  });
+
+  testWidgets('dragging the grip reorders; the rest of the row no longer drags',
+      (tester) async {
+    final store = InMemoryPlaylistStore();
+    final c = await _c(store, [_v('1', 'a.mkv'), _v('2', 'b.mkv'), _v('3', 'c.mkv')]);
+    addTearDown(c.dispose);
+    await c.read(mediaIndexProvider.future);
+    final p = await c.read(playlistsProvider.notifier).create('Serie');
+    await c.read(playlistsProvider.notifier).addVideos(
+        p.id, [_v('1', 'a.mkv'), _v('2', 'b.mkv'), _v('3', 'c.mkv')]);
+
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: c,
+      child: MaterialApp(home: PlaylistScreen(playlistId: p.id)),
+    ));
+    await tester.pumpAndSettle();
+
+    // A single one-shot drag() only registers one swap with
+    // ReorderableListView — its drag proxy tracks the pointer's motion
+    // incrementally, frame by frame, the way a real drag arrives. Stepping
+    // the move (and pumping between steps) mimics that and carries the item
+    // all the way to the end, matching the other reorder tests' expectation
+    // that dragging item 0 past the end lands it last.
+    final gesture = await tester.startGesture(tester.getCenter(_grip(0)));
+    for (var i = 0; i < 6; i++) {
+      await gesture.moveBy(const Offset(0, 50));
+      await tester.pump();
+    }
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    expect(store.all().single.entries.map((e) => e.displayName),
+        ['b.mkv', 'c.mkv', 'a.mkv']);
   });
 }

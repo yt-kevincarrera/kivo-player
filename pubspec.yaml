@@ -47,6 +47,10 @@ dependencies:
   permission_handler: ^11.3.1
   crypto: ^3.0.3
   local_auth: ^2.3.0
+  # Direct dep (not just transitive via local_auth) because
+  # lib/platform/android/local_auth_biometric.dart imports AndroidAuthMessages
+  # from it directly — local_auth.dart doesn't re-export that type.
+  local_auth_android: ^1.0.56
 
 dev_dependencies:
   flutter_test:
