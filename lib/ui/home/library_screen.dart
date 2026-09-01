@@ -291,6 +291,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                 // shown, orphaning it (and PopScope would swallow back).
                 if (i != _tab) {
                   ref.read(librarySelectionProvider.notifier).clear();
+                  // Same reason, for the Listas tab's own marks: leaving
+                  // the tab must not leave a selection behind with no bar.
+                  ref.read(playlistsSelectionProvider.notifier).clear();
                 }
                 setState(() => _tab = i);
                 _pageController.animateToPage(

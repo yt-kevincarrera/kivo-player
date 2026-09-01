@@ -14,6 +14,7 @@ import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/platform/frame_extractor_provider.dart';
 import 'package:kivo_player/ui/home/library_screen.dart';
+import 'package:kivo_player/ui/home/playlists/playlists_tab.dart';
 import 'package:kivo_player/ui/home/state/library_selection.dart';
 import 'package:kivo_player/ui/home/widgets/video_tile.dart';
 import '../../fakes/fakes.dart';
@@ -278,5 +279,23 @@ void main() {
     expect(find.bySemanticsLabel('Carpetas'), findsOneWidget);
     expect(find.bySemanticsLabel('Listas'), findsOneWidget);
     handle.dispose();
+  });
+
+  testWidgets('leaving the Listas tab clears the playlists marked in it',
+      (tester) async {
+    // The pager keeps every sub-tab alive, so marks left behind would sit
+    // there with their bar gone and reappear on return. Marking is the tab's
+    // own gesture; what this covers is that the screen owning the pager is
+    // the one that clears them.
+    final container = await _buildApp(tester);
+    addTearDown(container.dispose);
+
+    container.read(playlistsSelectionProvider.notifier).toggle('cualquiera');
+    expect(container.read(playlistsSelectionProvider), isNotEmpty);
+
+    await tester.tap(find.byIcon(Icons.folder_outlined));
+    await tester.pumpAndSettle();
+
+    expect(container.read(playlistsSelectionProvider), isEmpty);
   });
 }

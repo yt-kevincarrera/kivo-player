@@ -15,7 +15,6 @@ import 'playlist_screen.dart';
 /// (Todo=0, Carpetas=1, Listas=2 — see the `_tab` comment and the PageView's
 /// `children` list there). Selection-clear-on-leave (below) needs to know its
 /// own index and has no other way to learn it without editing that file.
-const _kListasPageIndex = 2;
 
 /// Bulk-delete marking for the Listas tab, kept entirely local to this file
 /// per the design brief: this is NOT library_screen.dart's
@@ -23,8 +22,8 @@ const _kListasPageIndex = 2;
 /// tab and belongs to a file this branch does not touch. Selection is active
 /// ⇔ the set is non-empty (unmarking the last one exits it, same convention
 /// as LibrarySelectionNotifier).
-class _PlaylistsSelectionNotifier extends StateNotifier<Set<String>> {
-  _PlaylistsSelectionNotifier() : super(const {});
+class PlaylistsSelectionNotifier extends StateNotifier<Set<String>> {
+  PlaylistsSelectionNotifier() : super(const {});
 
   void toggle(String id) {
     final next = Set<String>.of(state);
@@ -35,9 +34,15 @@ class _PlaylistsSelectionNotifier extends StateNotifier<Set<String>> {
   void clear() => state = const {};
 }
 
-final _playlistsSelectionProvider =
-    StateNotifierProvider<_PlaylistsSelectionNotifier, Set<String>>(
-  (ref) => _PlaylistsSelectionNotifier(),
+/// Public so library_screen.dart can clear it when the user leaves the
+/// Listas sub-tab: the pager keeps every sub-tab alive, so a selection left
+/// behind would sit there invisibly with its bar gone and come back on
+/// return. The tab itself has no way to notice it stopped being the visible
+/// one, and inventing one by reaching up to the ambient pager was worse than
+/// letting the screen that owns the pager say so.
+final playlistsSelectionProvider =
+    StateNotifierProvider<PlaylistsSelectionNotifier, Set<String>>(
+  (ref) => PlaylistsSelectionNotifier(),
 );
 
 /// The third sub-tab in Videos (spec §7): user-made playlists, each shown
@@ -46,54 +51,13 @@ final _playlistsSelectionProvider =
 /// Long-pressing a row marks it for a bulk delete; while any row is marked,
 /// a plain tap toggles the mark instead of opening the playlist (spec: "me
 /// gustaria poder borrar la lista sin tener que entrar a ella").
-class PlaylistsTab extends ConsumerStatefulWidget {
+class PlaylistsTab extends ConsumerWidget {
   const PlaylistsTab({super.key});
 
   @override
-  ConsumerState<PlaylistsTab> createState() => _PlaylistsTabState();
-}
-
-class _PlaylistsTabState extends ConsumerState<PlaylistsTab> {
-  PageController? _pager;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Reaches up to the ambient PageView that hosts this tab (this widget IS
-    // one of its children, so a Scrollable ancestor is always the pager's
-    // own) to notice when the user swipes/taps to a different sub-tab. There
-    // is no other route to that signal here: the pager keeps every sub-tab's
-    // widget alive (_KeepAlivePage in library_screen.dart forces
-    // wantKeepAlive true), and the PageController plus the active tab index
-    // are private to _LibraryScreenState. Outside the real app shell (e.g. a
-    // widget test that mounts PlaylistsTab directly) there is no ambient
-    // Scrollable, so this is a no-op — maybeOf returns null.
-    final controller = Scrollable.maybeOf(context)?.widget.controller;
-    if (!identical(controller, _pager)) {
-      _pager?.removeListener(_onPagerChanged);
-      _pager = controller is PageController ? controller : null;
-      _pager?.addListener(_onPagerChanged);
-    }
-  }
-
-  @override
-  void dispose() {
-    _pager?.removeListener(_onPagerChanged);
-    super.dispose();
-  }
-
-  void _onPagerChanged() {
-    final page = _pager?.page;
-    if (page == null || page.round() == _kListasPageIndex) return;
-    if (ref.read(_playlistsSelectionProvider).isNotEmpty) {
-      ref.read(_playlistsSelectionProvider.notifier).clear();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final playlists = ref.watch(playlistsProvider);
-    final selecting = ref.watch(_playlistsSelectionProvider).isNotEmpty;
+    final selecting = ref.watch(playlistsSelectionProvider).isNotEmpty;
 
     if (playlists.isEmpty) {
       return LibraryEmptyState(
@@ -194,7 +158,7 @@ class _PlaylistsSelectionBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selected = ref.watch(_playlistsSelectionProvider);
+    final selected = ref.watch(playlistsSelectionProvider);
     final cs = Theme.of(context).colorScheme;
     final count = selected.length;
     final label = count == 1 ? '1 lista seleccionada' : '$count listas seleccionadas';
@@ -218,7 +182,7 @@ class _PlaylistsSelectionBar extends ConsumerWidget {
                 ),
               ),
               TextButton(
-                onPressed: () => ref.read(_playlistsSelectionProvider.notifier).clear(),
+                onPressed: () => ref.read(playlistsSelectionProvider.notifier).clear(),
                 child: const Text('Cancelar'),
               ),
               TextButton(
@@ -241,8 +205,8 @@ class _PlaylistsSelectionBar extends ConsumerWidget {
     // playlist_screen.dart's own _delete follows: the notifier and the ids to
     // act on outlive whatever happens to `context` while the dialog is up.
     final notifier = ref.read(playlistsProvider.notifier);
-    final selectionNotifier = ref.read(_playlistsSelectionProvider.notifier);
-    final ids = ref.read(_playlistsSelectionProvider).toList();
+    final selectionNotifier = ref.read(playlistsSelectionProvider.notifier);
+    final ids = ref.read(playlistsSelectionProvider).toList();
     final n = ids.length;
 
     final confirmed = await showDialog<bool>(
@@ -296,7 +260,7 @@ class _PlaylistRowState extends ConsumerState<_PlaylistRow> {
     final playlist = widget.playlist;
     final cs = Theme.of(context).colorScheme;
     final accent = Color(ref.watch(settingsProvider).accentColor);
-    final selectionIds = ref.watch(_playlistsSelectionProvider);
+    final selectionIds = ref.watch(playlistsSelectionProvider);
     final selecting = selectionIds.isNotEmpty;
     final selected = selectionIds.contains(playlist.id);
 
@@ -324,7 +288,7 @@ class _PlaylistRowState extends ConsumerState<_PlaylistRow> {
 
     void handleTap() {
       if (selecting) {
-        ref.read(_playlistsSelectionProvider.notifier).toggle(playlist.id);
+        ref.read(playlistsSelectionProvider.notifier).toggle(playlist.id);
         return;
       }
       Navigator.of(context).push(MaterialPageRoute(
@@ -336,7 +300,7 @@ class _PlaylistRowState extends ConsumerState<_PlaylistRow> {
       padding: const EdgeInsets.only(bottom: 10),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onLongPress: () => ref.read(_playlistsSelectionProvider.notifier).toggle(playlist.id),
+        onLongPress: () => ref.read(playlistsSelectionProvider.notifier).toggle(playlist.id),
         onLongPressDown: (_) => setState(() => _pressing = true),
         onLongPressCancel: () => setState(() => _pressing = false),
         onLongPressUp: () => setState(() => _pressing = false),

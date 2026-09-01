@@ -58,38 +58,6 @@ Future<void> _pump(WidgetTester tester, ProviderContainer c) async {
   await tester.pumpAndSettle();
 }
 
-/// Mounts PlaylistsTab inside a 3-page PageView shaped like
-/// library_screen.dart's real sub-tab pager (Todo=0, Carpetas=1, Listas=2),
-/// so the tab-leave-clears-selection behavior — which watches the ambient
-/// PageView's own controller via Scrollable.of(context), since there is no
-/// other route to that signal without editing library_screen.dart — has a
-/// real PageController to observe.
-Future<PageController> _pumpWithRealPager(WidgetTester tester, ProviderContainer c) async {
-  final controller = PageController();
-  addTearDown(controller.dispose);
-  await tester.pumpWidget(UncontrolledProviderScope(
-    container: c,
-    child: MaterialApp(
-      home: Scaffold(
-        body: PageView(
-          controller: controller,
-          physics: const NeverScrollableScrollPhysics(),
-          children: const [
-            SizedBox.expand(child: Text('Todo')),
-            SizedBox.expand(child: Text('Carpetas')),
-            PlaylistsTab(),
-          ],
-        ),
-      ),
-    ),
-  ));
-  await tester.pumpAndSettle();
-  // Land on Listas (index 2), same as tapping the chip in the real app.
-  controller.jumpToPage(2);
-  await tester.pumpAndSettle();
-  return controller;
-}
-
 void main() {
   testWidgets('with no playlists it explains what they are for', (tester) async {
     final c = await _c(InMemoryPlaylistStore(), const []);
@@ -291,22 +259,7 @@ void main() {
       expect(find.text('Borrar'), findsNothing);
     });
 
-    testWidgets('leaving the Listas tab clears the selection', (tester) async {
-      final c = await twoPlaylists();
-      addTearDown(c.dispose);
-      final controller = await _pumpWithRealPager(tester, c);
-
-      await tester.longPress(find.text('Serie'));
-      await tester.pumpAndSettle();
-      expect(find.text('Borrar'), findsOneWidget);
-
-      controller.jumpToPage(0);
-      await tester.pumpAndSettle();
-
-      controller.jumpToPage(2);
-      await tester.pumpAndSettle();
-
-      expect(find.text('Borrar'), findsNothing);
-    });
+    // Leaving the tab clears the marks; that is wired where the pager lives,
+    // so its test is in library_screen_test.dart.
   });
 }
