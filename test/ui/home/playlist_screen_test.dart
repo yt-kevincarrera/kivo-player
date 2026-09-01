@@ -17,6 +17,7 @@ import 'package:kivo_player/player/playlists/playlist_controller.dart';
 import 'package:kivo_player/player/playlists/playlist_store.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/ui/home/playlists/playlist_screen.dart';
+import 'package:kivo_player/ui/home/widgets/thumbnail_image.dart';
 import '../../fakes/fakes.dart';
 
 VideoItem _v(String id, String name) => VideoItem(
@@ -140,6 +141,45 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(c.read(currentVideoProvider), isNull);
+  });
+
+  testWidgets('an available entry shows its video thumbnail', (tester) async {
+    final store = InMemoryPlaylistStore();
+    final c = await _c(store, [_v('1', 'a.mkv')]);
+    addTearDown(c.dispose);
+    await c.read(mediaIndexProvider.future);
+    final p = await c.read(playlistsProvider.notifier).create('Serie');
+    await c.read(playlistsProvider.notifier).addVideos(p.id, [_v('1', 'a.mkv')]);
+
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: c,
+      child: MaterialApp(home: PlaylistScreen(playlistId: p.id)),
+    ));
+    await tester.pumpAndSettle();
+
+    final thumb = tester.widget<ThumbnailImage>(find.byType(ThumbnailImage));
+    expect(thumb.id, '1');
+  });
+
+  testWidgets(
+      'an unavailable entry shows the coverless-playlist placeholder, not a thumbnail',
+      (tester) async {
+    final store = InMemoryPlaylistStore();
+    final c = await _c(store, const []); // nothing on the device
+    addTearDown(c.dispose);
+    await c.read(mediaIndexProvider.future);
+    final p = await c.read(playlistsProvider.notifier).create('Serie');
+    await c.read(playlistsProvider.notifier).addVideos(p.id, [_v('1', 'a.mkv')]);
+
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: c,
+      child: MaterialApp(home: PlaylistScreen(playlistId: p.id)),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ThumbnailImage), findsNothing);
+    // Same placeholder icon the Listas tab uses for a coverless playlist.
+    expect(find.byIcon(Icons.playlist_play_rounded), findsOneWidget);
   });
 
   testWidgets('removing an entry takes it off the screen', (tester) async {

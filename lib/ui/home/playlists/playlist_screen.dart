@@ -10,6 +10,7 @@ import '../../../player/playlists/playlist_controller.dart';
 import '../../../player/playlists/playlist_playback.dart';
 import '../../player/player_route.dart';
 import '../widgets/library_empty_state.dart';
+import '../widgets/thumbnail_image.dart';
 
 /// One playlist's entries, in order: reorder, remove, rename the playlist,
 /// delete the playlist, and play (spec §7).
@@ -249,9 +250,46 @@ class _EntryRow extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             child: Row(
               children: [
-                Icon(
-                  available ? Icons.play_circle_outline : Icons.error_outline,
-                  color: available ? cs.onSurfaceVariant : cs.error,
+                // Same row scale as VideoTile's list row (168 wide, 16:9,
+                // 8-radius corners) so a playlist entry reads like any other
+                // video row in the app. An unavailable entry has no video and
+                // therefore no id to fetch a thumbnail for, so it gets the
+                // same coverless-playlist placeholder the Listas tab uses,
+                // with a small error badge standing in for the icon this
+                // row used to show alone — the un-softened cue moves onto
+                // the thumbnail instead of disappearing.
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SizedBox(
+                    width: 168,
+                    child: AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: available
+                          ? ThumbnailImage(resolved.video!.id, fit: BoxFit.cover)
+                          : Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                Container(
+                                  color: cs.surfaceContainerHigh,
+                                  alignment: Alignment.center,
+                                  child: Icon(
+                                    Icons.playlist_play_rounded,
+                                    color: cs.onSurfaceVariant,
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 4,
+                                  right: 4,
+                                  child: Icon(
+                                    Icons.error_outline,
+                                    size: 16,
+                                    color: cs.error,
+                                  ),
+                                ),
+                              ],
+                            ),
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
