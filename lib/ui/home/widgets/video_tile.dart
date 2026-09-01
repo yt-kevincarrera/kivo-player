@@ -15,6 +15,13 @@ class VideoTile extends ConsumerStatefulWidget {
   final String? sizeLabel; // e.g. "49 MB" — shown in list-row meta line
   final bool isNew;
   final VoidCallback? onOptions;
+
+  /// The trailing button's icon and tooltip. Defaults to the ⋮ that opens
+  /// the options sheet. A playlist row overrides it, because there the
+  /// button removes the entry from the list, and a ⋮ that is not a menu
+  /// lies about what it does.
+  final IconData trailingIcon;
+  final String? trailingTooltip;
   final VoidCallback? onLongPress;
   final bool selected;
   final bool selecting;
@@ -28,6 +35,8 @@ class VideoTile extends ConsumerStatefulWidget {
     this.sizeLabel,
     this.isNew = false,
     this.onOptions,
+    this.trailingIcon = Icons.more_vert,
+    this.trailingTooltip,
     this.onLongPress,
     this.selected = false,
     this.selecting = false,
@@ -170,8 +179,9 @@ class _VideoTileState extends ConsumerState<VideoTile> {
                 ),
                 // Far right: options menu icon — has its own onPressed, does not trigger row onTap
                 IconButton(
+                  tooltip: widget.trailingTooltip,
                   icon: Icon(
-                    Icons.more_vert,
+                    widget.trailingIcon,
                     size: 20,
                     color: cs.onSurfaceVariant,
                   ),

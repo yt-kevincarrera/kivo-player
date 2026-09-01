@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/format.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
 import '../../../player/library/continue_watching.dart';
@@ -9,8 +11,10 @@ import '../../../player/playlists/playlist.dart';
 import '../../../player/playlists/playlist_controller.dart';
 import '../../../player/playlists/playlist_playback.dart';
 import '../../player/player_route.dart';
+import '../state/library_selection.dart';
 import '../widgets/library_empty_state.dart';
-import '../widgets/thumbnail_image.dart';
+import '../widgets/selection_app_bar.dart';
+import '../widgets/video_tile.dart';
 
 /// One playlist's entries, in order: reorder, remove, rename the playlist,
 /// delete the playlist, and play (spec §7).
@@ -44,33 +48,45 @@ class PlaylistScreen extends ConsumerWidget {
 
     final resolved = ref.watch(resolvedPlaylistProvider(playlistId));
     final accent = Color(ref.watch(settingsProvider).accentColor);
+    final selected = ref.watch(librarySelectionProvider);
+    final selecting = selected.isNotEmpty;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(playlist.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-        actions: [
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              if (value == 'rename') _rename(context, ref, playlist!);
-              if (value == 'delete') _delete(context, ref, playlist!);
-            },
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'rename', child: Text('Renombrar lista')),
-              PopupMenuItem(value: 'delete', child: Text('Borrar lista')),
-            ],
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        // Distinct tags: otherwise the tab's «Nueva lista» pill flies across
-        // and morphs into this one on the push, which reads as a glitch.
-        heroTag: 'playlist-play',
-        onPressed: () => _play(context, ref),
-        backgroundColor: accent,
-        foregroundColor: onAccent(accent),
-        icon: const Icon(Icons.play_arrow_rounded),
-        label: const Text('Reproducir'),
-      ),
+    final scaffold = Scaffold(
+      appBar: selecting
+          ? SelectionAppBar(
+              allVisible: [
+                for (final r in resolved)
+                  if (r.available) r.video!,
+              ],
+            )
+          : AppBar(
+              title: Text(playlist.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+              actions: [
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'rename') _rename(context, ref, playlist!);
+                    if (value == 'delete') _delete(context, ref, playlist!);
+                  },
+                  itemBuilder: (_) => const [
+                    PopupMenuItem(value: 'rename', child: Text('Renombrar lista')),
+                    PopupMenuItem(value: 'delete', child: Text('Borrar lista')),
+                  ],
+                ),
+              ],
+            ),
+      floatingActionButton: selecting
+          ? null
+          : FloatingActionButton.extended(
+              // Distinct tags: otherwise the tab's «Nueva lista» pill flies
+              // across and morphs into this one on the push, which reads as
+              // a glitch.
+              heroTag: 'playlist-play',
+              onPressed: () => _play(context, ref),
+              backgroundColor: accent,
+              foregroundColor: onAccent(accent),
+              icon: const Icon(Icons.play_arrow_rounded),
+              label: const Text('Reproducir'),
+            ),
       body: resolved.isEmpty
           ? const LibraryEmptyState(
               icon: Icons.playlist_play_rounded,
@@ -80,6 +96,7 @@ class PlaylistScreen extends ConsumerWidget {
             )
           : ReorderableListView.builder(
               padding: const EdgeInsets.fromLTRB(4, 8, 4, 96),
+              buildDefaultDragHandles: false,
               itemCount: resolved.length,
               onReorder: (oldIndex, newIndex) {
                 // Flutter reports newIndex as the position BEFORE the
@@ -95,15 +112,99 @@ class PlaylistScreen extends ConsumerWidget {
               },
               itemBuilder: (context, i) {
                 final re = resolved[i];
-                return _EntryRow(
-                  key: ValueKey('playlist-entry-$i'),
-                  index: i,
-                  resolved: re,
-                  onTap: re.available ? () => _openEntry(context, ref, i) : null,
-                  onRemove: () => _removeEntry(context, ref, i, re),
-                );
+                return _buildEntryRow(context, ref, i, re, selecting, selected);
               },
             ),
+    );
+
+    // Back clears an active mark instead of leaving the screen — same
+    // convention as folder_screen.dart / home_shell.dart. The global
+    // SelectionBottomBar (mounted once in HomeShell, below every pushed
+    // screen in this tab's Navigator) reacts to librarySelectionProvider on
+    // its own and needs no wiring here.
+    return PopScope(
+      canPop: !selecting,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) ref.read(librarySelectionProvider.notifier).clear();
+      },
+      child: scaffold,
+    );
+  }
+
+  /// One playlist row, grip-first: [Icons.drag_handle] is the only drag
+  /// target (`ReorderableListView.builder` above sets
+  /// `buildDefaultDragHandles: false`, so nothing else on the row starts a
+  /// drag) — freeing the rest of the row for long-press-to-mark. An
+  /// available entry reuses [VideoTile] itself, the same widget the library
+  /// and folder screens use, so a playlist row is not an imitation of a
+  /// library row but literally one: identical thumbnail box (fixing the
+  /// inconsistent-thumbnail-size bug — VideoTile wraps its thumbnail in a
+  /// `Stack(fit: StackFit.expand)`, which forces every thumbnail to the same
+  /// box regardless of the source video's own aspect ratio, whereas the old
+  /// hand-rolled row did not), selection tinting, and long-press. VideoTile's
+  /// only trailing affordance is a fixed ⋮ icon with no menu of its own here
+  /// to open, so it is wired directly to this entry's one relevant action:
+  /// quitting it from the list (same remove-with-Deshacer behavior as
+  /// before). An unavailable entry has no [VideoItem] to hand VideoTile, so
+  /// it is rebuilt by hand to match VideoTile's list-row metrics exactly
+  /// (168-wide 16:9 thumbnail box, 8-radius corners, same text styles) while
+  /// keeping its own un-softened unavailable treatment, and carries neither
+  /// long-press-to-mark nor a selection tint — it cannot join the selection.
+  Widget _buildEntryRow(
+    BuildContext context,
+    WidgetRef ref,
+    int i,
+    ResolvedEntry re,
+    bool selecting,
+    Set<String> selected,
+  ) {
+    final cs = Theme.of(context).colorScheme;
+    final content = re.available
+        ? VideoTile(
+            video: re.video!,
+            listRow: true,
+            sizeLabel: fmtSize(re.video!.sizeBytes),
+            selected: selected.contains(re.video!.uri),
+            selecting: selecting,
+            // Not a ⋮: this button removes the entry, so it says so.
+            // Sharing, renaming and the rest live behind long-press, the
+            // same selection the library uses.
+            trailingIcon: Icons.close,
+            trailingTooltip: 'Quitar de la lista',
+            onOptions: () => _removeEntry(context, ref, i, re),
+            onLongPress: () {
+              HapticFeedback.selectionClick();
+              ref.read(librarySelectionProvider.notifier).toggle(re.video!.uri);
+            },
+            onTap: (origin) {
+              if (selecting) {
+                HapticFeedback.selectionClick();
+                ref.read(librarySelectionProvider.notifier).toggle(re.video!.uri);
+                return;
+              }
+              _openEntry(context, ref, i);
+            },
+          )
+        : _UnavailableEntryRow(
+            resolved: re,
+            onRemove: () => _removeEntry(context, ref, i, re),
+          );
+
+    return Padding(
+      key: ValueKey('playlist-entry-$i'),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      child: Row(
+        children: [
+          ReorderableDragStartListener(
+            index: i,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: Icon(Icons.drag_handle, color: cs.onSurfaceVariant),
+            ),
+          ),
+          Expanded(child: content),
+        ],
+      ),
     );
   }
 
@@ -231,137 +332,102 @@ class PlaylistScreen extends ConsumerWidget {
   }
 }
 
-/// One row: the video's name, or `No disponible` when it can't be resolved.
+/// An unavailable entry's row: no [VideoItem] exists behind it, so it cannot
+/// be a [VideoTile] (which requires one) — this hand-builds the exact same
+/// list-row metrics instead (168-wide 16:9 thumbnail box, 8-radius corners,
+/// same 10px thumbnail↔text gap, same title text style) so it occupies the
+/// identical row shape as the available entries around it.
 ///
-/// An unavailable entry reads as unmistakably unavailable rather than merely
-/// dimmed — a strikethrough name, a red icon and a red label, not just lower
-/// opacity — per a standing note in this app that a subtle-only cue gets
-/// missed. It stays draggable (ReorderableListView owns that, independent of
-/// this row's own tap handler) and removable (its own button, always live).
-class _EntryRow extends StatelessWidget {
-  const _EntryRow({
-    required super.key,
-    required this.index,
-    required this.resolved,
-    required this.onTap,
-    required this.onRemove,
-  });
+/// It reads as unmistakably unavailable rather than merely dimmed — a
+/// strikethrough name, a red icon and a red label, not just lower opacity —
+/// per a standing note in this app that a subtle-only cue gets missed. It
+/// carries neither long-press-to-mark nor a selection tint (there is no
+/// [VideoItem] to add to the selection) and stays draggable — the grip
+/// beside it is wired the same as every other row.
+class _UnavailableEntryRow extends StatelessWidget {
+  const _UnavailableEntryRow({required this.resolved, required this.onRemove});
 
-  final int index;
   final ResolvedEntry resolved;
-  final VoidCallback? onTap;
   final VoidCallback onRemove;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final available = resolved.available;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: available ? cs.surfaceContainerHighest : cs.errorContainer.withValues(alpha: 0.16),
-        borderRadius: BorderRadius.circular(10),
-        border: available
-            ? null
-            : Border.all(color: cs.error.withValues(alpha: 0.4), width: 1),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            child: Row(
-              children: [
-                // Same row scale as VideoTile's list row (168 wide, 16:9,
-                // 8-radius corners) so a playlist entry reads like any other
-                // video row in the app. An unavailable entry has no video and
-                // therefore no id to fetch a thumbnail for, so it gets the
-                // same coverless-playlist placeholder the Listas tab uses,
-                // with a small error badge standing in for the icon this
-                // row used to show alone — the un-softened cue moves onto
-                // the thumbnail instead of disappearing.
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: SizedBox(
-                    width: 168,
-                    child: AspectRatio(
-                      aspectRatio: 16 / 9,
-                      child: available
-                          ? ThumbnailImage(resolved.video!.id, fit: BoxFit.cover)
-                          : Stack(
-                              fit: StackFit.expand,
-                              children: [
-                                Container(
-                                  color: cs.surfaceContainerHigh,
-                                  alignment: Alignment.center,
-                                  child: Icon(
-                                    Icons.playlist_play_rounded,
-                                    color: cs.onSurfaceVariant,
-                                  ),
-                                ),
-                                Positioned(
-                                  top: 4,
-                                  right: 4,
-                                  child: Icon(
-                                    Icons.error_outline,
-                                    size: 16,
-                                    color: cs.error,
-                                  ),
-                                ),
-                              ],
-                            ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        // The resolved video's name when there is one: a
-                        // rename done outside Kivo never reached the entry,
-                        // and the row should not keep showing a name the file
-                        // no longer has. An unavailable entry has only the
-                        // stored name to offer.
-                        resolved.video?.name ?? resolved.entry.displayName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: available ? cs.onSurface : cs.onSurfaceVariant,
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w600,
-                          decoration: available ? null : TextDecoration.lineThrough,
-                        ),
+      color: Colors.transparent,
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 168,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: AspectRatio(
+                aspectRatio: 16 / 9,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Container(
+                      color: cs.surfaceContainerHigh,
+                      alignment: Alignment.center,
+                      child: Icon(
+                        Icons.playlist_play_rounded,
+                        color: cs.onSurfaceVariant,
                       ),
-                      if (!available) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          'No disponible',
-                          style: TextStyle(
-                            color: cs.error,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ],
+                    ),
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: Icon(Icons.error_outline, size: 16, color: cs.error),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  // The resolved video's name when there is one: a rename
+                  // done outside Kivo never reached the entry, and the row
+                  // should not keep showing a name the file no longer has.
+                  // An unavailable entry has only the stored name to offer.
+                  resolved.video?.name ?? resolved.entry.displayName,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: cs.onSurfaceVariant,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.lineThrough,
                   ),
                 ),
-                IconButton(
-                  key: ValueKey('playlist-remove-$index'),
-                  onPressed: onRemove,
-                  icon: const Icon(Icons.close),
-                  tooltip: 'Quitar de la lista',
+                const SizedBox(height: 2),
+                Text(
+                  'No disponible',
+                  style: TextStyle(
+                    color: cs.error,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ],
             ),
           ),
-        ),
+          IconButton(
+            icon: Icon(Icons.more_vert, size: 20, color: cs.onSurfaceVariant),
+            onPressed: onRemove,
+            tooltip: 'Quitar de la lista',
+            visualDensity: VisualDensity.compact,
+            padding: const EdgeInsets.all(4),
+            constraints: const BoxConstraints(),
+          ),
+        ],
       ),
     );
   }
