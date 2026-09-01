@@ -14,6 +14,7 @@ import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/platform/frame_extractor_provider.dart';
 import 'package:kivo_player/ui/home/library_screen.dart';
+import 'package:kivo_player/ui/home/playlists/playlists_tab.dart';
 import 'package:kivo_player/ui/home/state/library_selection.dart';
 import 'package:kivo_player/ui/home/widgets/video_tile.dart';
 import '../../fakes/fakes.dart';
@@ -103,7 +104,7 @@ void main() {
     await _buildApp(tester);
 
     // Tap the "Carpetas" filter chip
-    await tester.tap(find.text('Carpetas'));
+    await tester.tap(find.byIcon(Icons.folder_outlined));
     await tester.pumpAndSettle();
 
     // Both folder names should appear as folder cards
@@ -125,7 +126,7 @@ void main() {
   ) async {
     await _buildApp(tester);
 
-    await tester.tap(find.text('Carpetas'));
+    await tester.tap(find.byIcon(Icons.folder_outlined));
     await tester.pumpAndSettle();
     expect(find.text('Movies'), findsOneWidget);
 
@@ -216,12 +217,12 @@ void main() {
 
   testWidgets('"No vistos" chip is hidden on the Carpetas tab', (tester) async {
     await _buildApp(tester);
-    expect(find.text('No vistos'), findsOneWidget);
+    expect(find.byIcon(Icons.visibility_off_outlined), findsOneWidget);
 
-    await tester.tap(find.text('Carpetas'));
+    await tester.tap(find.byIcon(Icons.folder_outlined));
     await tester.pumpAndSettle();
 
-    expect(find.text('No vistos'), findsNothing);
+    expect(find.byIcon(Icons.visibility_off_outlined), findsNothing);
   });
 
   testWidgets(
@@ -240,11 +241,61 @@ void main() {
       // cleared, otherwise SelectionAppBar reverts to the normal AppBar
       // while the selection provider stays non-empty (invisible + PopScope
       // then swallows the next back press).
-      await tester.tap(find.text('Carpetas'));
+      await tester.tap(find.byIcon(Icons.folder_outlined));
       await tester.pumpAndSettle();
 
       expect(container.read(librarySelectionProvider), isEmpty);
       expect(find.byIcon(Icons.select_all), findsNothing);
     },
   );
+
+  testWidgets('an unselected tab is its icon alone; selecting it spells it out',
+      (tester) async {
+    // Four full-width chips ate the row, so only the selected one carries its
+    // label. «Todo» is the exception: it has no icon that would read as
+    // "everything" on its own.
+    await _buildApp(tester);
+
+    expect(find.text('Todo'), findsOneWidget);
+    expect(find.text('Carpetas'), findsNothing);
+    expect(find.byIcon(Icons.folder_outlined), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.folder_outlined));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Carpetas'), findsOneWidget);
+    expect(find.byIcon(Icons.folder_outlined), findsOneWidget);
+    // «Todo» keeps its label even now that it is not the selected one.
+    expect(find.text('Todo'), findsOneWidget);
+  });
+
+  testWidgets('the icon-only chips still announce themselves to a reader',
+      (tester) async {
+    // An icon with no text has to carry its name in semantics or a screen
+    // reader gets nothing at all.
+    final handle = tester.ensureSemantics();
+    await _buildApp(tester);
+
+    expect(find.bySemanticsLabel('Carpetas'), findsOneWidget);
+    expect(find.bySemanticsLabel('Listas'), findsOneWidget);
+    handle.dispose();
+  });
+
+  testWidgets('leaving the Listas tab clears the playlists marked in it',
+      (tester) async {
+    // The pager keeps every sub-tab alive, so marks left behind would sit
+    // there with their bar gone and reappear on return. Marking is the tab's
+    // own gesture; what this covers is that the screen owning the pager is
+    // the one that clears them.
+    final container = await _buildApp(tester);
+    addTearDown(container.dispose);
+
+    container.read(playlistsSelectionProvider.notifier).toggle('cualquiera');
+    expect(container.read(playlistsSelectionProvider), isNotEmpty);
+
+    await tester.tap(find.byIcon(Icons.folder_outlined));
+    await tester.pumpAndSettle();
+
+    expect(container.read(playlistsSelectionProvider), isEmpty);
+  });
 }

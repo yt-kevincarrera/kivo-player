@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kivo_player/platform/interfaces/media_indexer.dart';
+import 'package:kivo_player/player/playlists/playlist.dart';
 import 'package:kivo_player/player/playlists/playlist_controller.dart';
 import 'package:kivo_player/player/playlists/playlist_store.dart';
 
@@ -100,6 +101,71 @@ void main() {
     expect(store.all().single.entries.single.displayName, 'b.mkv');
   });
 
+  test('insertEntryAt puts the entry back at exactly that position', () async {
+    final store = InMemoryPlaylistStore();
+    final c = _c(store);
+    addTearDown(c.dispose);
+    final p = await c.read(playlistsProvider.notifier).create('Serie');
+    await c.read(playlistsProvider.notifier).addVideos(
+        p.id, [_v('1', 'a.mkv'), _v('2', 'b.mkv'), _v('3', 'c.mkv')]);
+    final removed = store.all().single.entries[1]; // b.mkv
+
+    await c.read(playlistsProvider.notifier).removeEntryAt(p.id, 1);
+    await c.read(playlistsProvider.notifier).insertEntryAt(p.id, 1, removed);
+
+    expect(store.all().single.entries.map((e) => e.displayName),
+        ['a.mkv', 'b.mkv', 'c.mkv']);
+  });
+
+  test('insertEntryAt clamps an out-of-range index instead of throwing',
+      () async {
+    final store = InMemoryPlaylistStore();
+    final c = _c(store);
+    addTearDown(c.dispose);
+    final p = await c.read(playlistsProvider.notifier).create('Serie');
+    await c.read(playlistsProvider.notifier).addVideos(p.id, [_v('1', 'a.mkv')]);
+    const entry = PlaylistEntry(mediaId: '2', displayName: 'b.mkv');
+
+    await c.read(playlistsProvider.notifier).insertEntryAt(p.id, 99, entry);
+
+    expect(store.all().single.entries.map((e) => e.displayName),
+        ['a.mkv', 'b.mkv']);
+  });
+
+  test('insertEntryAt with a negative index clamps to the front', () async {
+    final store = InMemoryPlaylistStore();
+    final c = _c(store);
+    addTearDown(c.dispose);
+    final p = await c.read(playlistsProvider.notifier).create('Serie');
+    await c.read(playlistsProvider.notifier).addVideos(p.id, [_v('1', 'a.mkv')]);
+    const entry = PlaylistEntry(mediaId: '2', displayName: 'b.mkv');
+
+    await c.read(playlistsProvider.notifier).insertEntryAt(p.id, -5, entry);
+
+    expect(store.all().single.entries.map((e) => e.displayName),
+        ['b.mkv', 'a.mkv']);
+  });
+
+  test('undo round-trip restores original order even with duplicate videos',
+      () async {
+    // Spec §1 makes duplicates legal, and removeEntryAt is position-based —
+    // undo must be too, or removing the SECOND occurrence of a repeated
+    // video could restore it into the FIRST occurrence's slot instead.
+    final store = InMemoryPlaylistStore();
+    final c = _c(store);
+    addTearDown(c.dispose);
+    final p = await c.read(playlistsProvider.notifier).create('Serie');
+    await c.read(playlistsProvider.notifier).addVideos(
+        p.id, [_v('1', 'a.mkv'), _v('1', 'a.mkv'), _v('1', 'a.mkv')]);
+    final second = store.all().single.entries[1];
+
+    await c.read(playlistsProvider.notifier).removeEntryAt(p.id, 1);
+    await c.read(playlistsProvider.notifier).insertEntryAt(p.id, 1, second);
+
+    expect(store.all().single.entries.length, 3);
+    expect(store.all().single.entries.map((e) => e.mediaId), ['1', '1', '1']);
+  });
+
   test('renaming a playlist keeps its entries and its id', () async {
     final store = InMemoryPlaylistStore();
     final c = _c(store);
@@ -173,6 +239,8 @@ void main() {
     await c.read(playlistsProvider.notifier).rename('nope', 'x');
     await c.read(playlistsProvider.notifier).removeEntryAt('nope', 0);
     await c.read(playlistsProvider.notifier).reorder('nope', 0, 1);
+    await c.read(playlistsProvider.notifier).insertEntryAt(
+        'nope', 0, const PlaylistEntry(mediaId: '1', displayName: 'a.mkv'));
 
     expect(store.all(), isEmpty);
   });

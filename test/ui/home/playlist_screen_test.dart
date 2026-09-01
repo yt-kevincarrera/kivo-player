@@ -17,6 +17,7 @@ import 'package:kivo_player/player/playlists/playlist_controller.dart';
 import 'package:kivo_player/player/playlists/playlist_store.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/ui/home/playlists/playlist_screen.dart';
+import 'package:kivo_player/ui/home/widgets/thumbnail_image.dart';
 import '../../fakes/fakes.dart';
 
 VideoItem _v(String id, String name) => VideoItem(
@@ -142,6 +143,45 @@ void main() {
     expect(c.read(currentVideoProvider), isNull);
   });
 
+  testWidgets('an available entry shows its video thumbnail', (tester) async {
+    final store = InMemoryPlaylistStore();
+    final c = await _c(store, [_v('1', 'a.mkv')]);
+    addTearDown(c.dispose);
+    await c.read(mediaIndexProvider.future);
+    final p = await c.read(playlistsProvider.notifier).create('Serie');
+    await c.read(playlistsProvider.notifier).addVideos(p.id, [_v('1', 'a.mkv')]);
+
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: c,
+      child: MaterialApp(home: PlaylistScreen(playlistId: p.id)),
+    ));
+    await tester.pumpAndSettle();
+
+    final thumb = tester.widget<ThumbnailImage>(find.byType(ThumbnailImage));
+    expect(thumb.id, '1');
+  });
+
+  testWidgets(
+      'an unavailable entry shows the coverless-playlist placeholder, not a thumbnail',
+      (tester) async {
+    final store = InMemoryPlaylistStore();
+    final c = await _c(store, const []); // nothing on the device
+    addTearDown(c.dispose);
+    await c.read(mediaIndexProvider.future);
+    final p = await c.read(playlistsProvider.notifier).create('Serie');
+    await c.read(playlistsProvider.notifier).addVideos(p.id, [_v('1', 'a.mkv')]);
+
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: c,
+      child: MaterialApp(home: PlaylistScreen(playlistId: p.id)),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ThumbnailImage), findsNothing);
+    // Same placeholder icon the Listas tab uses for a coverless playlist.
+    expect(find.byIcon(Icons.playlist_play_rounded), findsOneWidget);
+  });
+
   testWidgets('removing an entry takes it off the screen', (tester) async {
     final store = InMemoryPlaylistStore();
     final c = await _c(store, [_v('1', 'a.mkv')]);
@@ -161,6 +201,64 @@ void main() {
 
     expect(find.text('a.mkv'), findsNothing);
     expect(store.all().single.entries, isEmpty);
+  });
+
+  testWidgets('removing an entry offers Deshacer, which restores it at its original index',
+      (tester) async {
+    final store = InMemoryPlaylistStore();
+    final c = await _c(store, [_v('1', 'a.mkv'), _v('2', 'b.mkv'), _v('3', 'c.mkv')]);
+    addTearDown(c.dispose);
+    await c.read(mediaIndexProvider.future);
+    final p = await c.read(playlistsProvider.notifier).create('Serie');
+    await c.read(playlistsProvider.notifier).addVideos(
+        p.id, [_v('1', 'a.mkv'), _v('2', 'b.mkv'), _v('3', 'c.mkv')]);
+
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: c,
+      child: MaterialApp(home: PlaylistScreen(playlistId: p.id)),
+    ));
+    await tester.pumpAndSettle();
+
+    // Remove the MIDDLE entry — proves undo restores position, not just presence.
+    await tester.tap(find.byKey(const ValueKey('playlist-remove-1')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('b.mkv'), findsNothing);
+    expect(store.all().single.entries.map((e) => e.displayName), ['a.mkv', 'c.mkv']);
+    expect(find.text('Deshacer'), findsOneWidget);
+
+    await tester.tap(find.text('Deshacer'));
+    await tester.pumpAndSettle();
+
+    expect(store.all().single.entries.map((e) => e.displayName),
+        ['a.mkv', 'b.mkv', 'c.mkv']);
+  });
+
+  testWidgets('removing entries quickly does not queue multiple snackbars',
+      (tester) async {
+    final store = InMemoryPlaylistStore();
+    final c = await _c(store, [_v('1', 'a.mkv'), _v('2', 'b.mkv'), _v('3', 'c.mkv')]);
+    addTearDown(c.dispose);
+    await c.read(mediaIndexProvider.future);
+    final p = await c.read(playlistsProvider.notifier).create('Serie');
+    await c.read(playlistsProvider.notifier).addVideos(
+        p.id, [_v('1', 'a.mkv'), _v('2', 'b.mkv'), _v('3', 'c.mkv')]);
+
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: c,
+      child: MaterialApp(home: PlaylistScreen(playlistId: p.id)),
+    ));
+    await tester.pumpAndSettle();
+
+    // Remove three entries back-to-back without letting any snackbar settle.
+    await tester.tap(find.byKey(const ValueKey('playlist-remove-0')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('playlist-remove-0')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('playlist-remove-0')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SnackBar), findsOneWidget);
   });
 
   group('reorder — both drag directions', () {

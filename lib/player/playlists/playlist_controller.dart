@@ -51,6 +51,18 @@ class PlaylistsNotifier extends Notifier<List<Playlist>> {
         return p.copyWith(entries: entries);
       });
 
+  /// Undo for [removeEntryAt]: puts [entry] back at [index], clamped to the
+  /// current bounds rather than thrown on — the list may have changed shape
+  /// since the removal this is undoing (e.g. another entry removed after
+  /// it), and a clamp still lands somewhere sane instead of crashing the
+  /// undo action.
+  Future<void> insertEntryAt(String id, int index, PlaylistEntry entry) =>
+      _update(id, (p) {
+        final entries = [...p.entries];
+        entries.insert(index.clamp(0, entries.length), entry);
+        return p.copyWith(entries: entries);
+      });
+
   Future<void> reorder(String id, int oldIndex, int newIndex) => _update(id, (p) {
         if (oldIndex < 0 || oldIndex >= p.entries.length) return p;
         final entries = [...p.entries];
