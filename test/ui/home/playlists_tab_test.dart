@@ -131,12 +131,16 @@ void main() {
       addTearDown(c.dispose);
       await _pump(tester, c);
 
-      expect(find.text('Borrar'), findsNothing);
+      // Keyed rather than find.text('Borrar'): every row now carries its own
+      // swipe-to-delete button reading the same word, hidden behind the row
+      // until swiped — this checks the bulk-select BAR specifically.
+      const bulkBorrar = Key('playlists-bulk-borrar');
+      expect(find.byKey(bulkBorrar), findsNothing);
 
       await tester.longPress(find.text('Serie'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Borrar'), findsOneWidget);
+      expect(find.byKey(bulkBorrar), findsOneWidget);
       expect(find.textContaining('1'), findsWidgets);
     });
 
@@ -171,14 +175,17 @@ void main() {
       addTearDown(c.dispose);
       await _pump(tester, c);
 
+      const bulkBorrar = Key('playlists-bulk-borrar');
       await tester.longPress(find.text('Serie'));
       await tester.pumpAndSettle();
-      expect(find.text('Borrar'), findsOneWidget);
+      expect(find.byKey(bulkBorrar), findsOneWidget);
 
       await tester.tap(find.text('Serie'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Borrar'), findsNothing);
+      // Keyed rather than find.text('Borrar'): once selecting ends, every
+      // row's own (hidden, swiped-closed) Borrar button is back in the tree.
+      expect(find.byKey(bulkBorrar), findsNothing);
     });
 
     testWidgets('the Nueva lista FAB is hidden while the selection bar is up',
@@ -212,7 +219,8 @@ void main() {
       await tester.tap(find.text('Cancelar'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Borrar'), findsNothing);
+      // Keyed rather than find.text('Borrar') — see the marking test above.
+      expect(find.byKey(const Key('playlists-bulk-borrar')), findsNothing);
       expect(find.text('Nueva lista'), findsOneWidget);
       expect(store.all().length, 2);
     });
@@ -228,12 +236,13 @@ void main() {
       await c.read(playlistsProvider.notifier).create('Curso');
       await _pump(tester, c);
 
+      const bulkBorrar = Key('playlists-bulk-borrar');
       await tester.longPress(find.text('Serie'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Curso'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Borrar').first);
+      await tester.tap(find.byKey(bulkBorrar));
       await tester.pumpAndSettle();
 
       // Names the count and reuses the "cannot be undone" register from
@@ -248,18 +257,137 @@ void main() {
       await tester.pumpAndSettle();
       expect(store.all().length, 2);
 
-      await tester.tap(find.text('Borrar').first);
+      await tester.tap(find.byKey(bulkBorrar));
       await tester.pumpAndSettle();
       await tester.tap(find.descendant(
           of: find.byType(AlertDialog), matching: find.text('Borrar')));
       await tester.pumpAndSettle();
 
       expect(store.all(), isEmpty);
-      // The selection bar is gone — nothing left to select.
-      expect(find.text('Borrar'), findsNothing);
+      // The selection bar is gone — nothing left to select. (No rows either:
+      // an empty playlist list renders the empty state, not swipe buttons.)
+      expect(find.byKey(bulkBorrar), findsNothing);
     });
 
     // Leaving the tab clears the marks; that is wired where the pager lives,
     // so its test is in library_screen_test.dart.
+  });
+
+  group('swipe actions on a row', () {
+    testWidgets(
+        'swiping a row left reveals Borrar, and tapping it deletes without a dialog',
+        (tester) async {
+      final store = InMemoryPlaylistStore();
+      final c = await _c(store, const []);
+      addTearDown(c.dispose);
+      await c.read(mediaIndexProvider.future);
+      final serie = await c.read(playlistsProvider.notifier).create('Serie');
+      await _pump(tester, c);
+
+      // The button is always mounted (just visually covered) behind a closed
+      // row, so its presence isn't the useful signal here — being tappable
+      // is; the swipe left is what should make it reachable.
+      final swipeBorrar = Key('playlist-swipe-borrar-${serie.id}');
+
+      await tester.drag(find.text('Serie'), const Offset(-200, 0));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(swipeBorrar));
+      await tester.pumpAndSettle();
+
+      // The tap on the revealed button IS the confirmation (spec) — unlike
+      // the bulk-delete bar's Borrar, there is no dialog after it.
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(store.all(), isEmpty);
+    });
+
+    testWidgets('swiping a row right reveals Renombrar and opens the rename dialog',
+        (tester) async {
+      final store = InMemoryPlaylistStore();
+      final c = await _c(store, const []);
+      addTearDown(c.dispose);
+      await c.read(mediaIndexProvider.future);
+      final serie = await c.read(playlistsProvider.notifier).create('Serie');
+      await _pump(tester, c);
+
+      final swipeRenombrar = Key('playlist-swipe-renombrar-${serie.id}');
+
+      await tester.drag(find.text('Serie'), const Offset(200, 0));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(swipeRenombrar));
+      await tester.pumpAndSettle();
+
+      // Same dialog shape as playlist_screen.dart's own rename: title,
+      // pre-filled TextField, Guardar actually renames.
+      expect(find.text('Renombrar lista'), findsOneWidget);
+      await tester.enterText(find.byType(TextField), 'Temporada 2');
+      await tester.tap(find.text('Guardar'));
+      await tester.pumpAndSettle();
+
+      expect(store.all().single.name, 'Temporada 2');
+    });
+
+    testWidgets("opening one row's swipe actions closes another's", (tester) async {
+      final store = InMemoryPlaylistStore();
+      final c = await _c(store, const []);
+      addTearDown(c.dispose);
+      await c.read(mediaIndexProvider.future);
+      final serie = await c.read(playlistsProvider.notifier).create('Serie');
+      final curso = await c.read(playlistsProvider.notifier).create('Curso');
+      await _pump(tester, c);
+
+      final serieBorrar = Key('playlist-swipe-borrar-${serie.id}');
+      final cursoBorrar = Key('playlist-swipe-borrar-${curso.id}');
+
+      await tester.drag(find.text('Serie'), const Offset(-200, 0));
+      await tester.pumpAndSettle();
+
+      await tester.drag(find.text('Curso'), const Offset(-200, 0));
+      await tester.pumpAndSettle();
+
+      // Serie's row auto-closed the moment Curso's opened. Its Borrar button
+      // is still in the tree (just covered again), so tapping where it lives
+      // now lands on the row's own foreground instead — which, per spec,
+      // closes Curso's reveal rather than deleting anything. warnIfMissed is
+      // off because this miss (on the covered button) is the point being
+      // tested, not an accident.
+      await tester.tap(find.byKey(serieBorrar), warnIfMissed: false);
+      await tester.pumpAndSettle();
+      expect(store.all().map((p) => p.name).toSet(), {'Serie', 'Curso'});
+
+      // Curso's own Borrar is unaffected and still works on its own.
+      await tester.drag(find.text('Curso'), const Offset(-200, 0));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(cursoBorrar));
+      await tester.pumpAndSettle();
+
+      expect(store.all().map((p) => p.name).toList(), ['Serie']);
+    });
+
+    testWidgets('swiping does nothing while rows are marked for bulk delete',
+        (tester) async {
+      final store = InMemoryPlaylistStore();
+      final c = await _c(store, const []);
+      addTearDown(c.dispose);
+      await c.read(mediaIndexProvider.future);
+      final serie = await c.read(playlistsProvider.notifier).create('Serie');
+      await c.read(playlistsProvider.notifier).create('Curso');
+      await _pump(tester, c);
+
+      await tester.longPress(find.text('Serie'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('playlists-bulk-borrar')), findsOneWidget);
+
+      await tester.drag(find.text('Serie'), const Offset(-200, 0));
+      await tester.pumpAndSettle();
+
+      // No swipe button ever entered the tree — swiping is fully disabled
+      // while marking is active, not merely hidden behind the row.
+      expect(find.byKey(Key('playlist-swipe-borrar-${serie.id}')), findsNothing);
+      // Nothing about the mark itself was disturbed by the failed drag.
+      expect(find.byKey(const Key('playlists-bulk-borrar')), findsOneWidget);
+      expect(store.all().length, 2);
+    });
   });
 }

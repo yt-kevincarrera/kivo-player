@@ -76,7 +76,13 @@ class PlaylistsTab extends ConsumerWidget {
         ListView.builder(
           padding: const EdgeInsets.fromLTRB(12, 8, 12, 88),
           itemCount: playlists.length,
-          itemBuilder: (context, i) => _PlaylistRow(playlist: playlists[i]),
+          // Keyed by playlist id: this row now carries swipe-reveal state
+          // (_offset) that must stay with the right playlist across
+          // reorders/deletes, not get silently reused by list position.
+          itemBuilder: (context, i) => _PlaylistRow(
+            key: ValueKey(playlists[i].id),
+            playlist: playlists[i],
+          ),
         ),
         // The selection bar and the "Nueva lista" FAB share the same corner —
         // never both at once, so marking a row doesn't leave a control fighting
@@ -186,6 +192,10 @@ class _PlaylistsSelectionBar extends ConsumerWidget {
                 child: const Text('Cancelar'),
               ),
               TextButton(
+                // Keyed: a playlist row's own swipe-to-delete button also
+                // reads "Borrar" now, so tests need a way to address this
+                // one — the bulk bar's — specifically.
+                key: const Key('playlists-bulk-borrar'),
                 onPressed: () => _delete(context, ref),
                 child: Text(
                   'Borrar',
@@ -244,16 +254,164 @@ class _PlaylistsSelectionBar extends ConsumerWidget {
   }
 }
 
+/// Tracks which playlist row (by id) currently has its swipe actions
+/// revealed, so revealing one row's actions closes any other's. Kept local
+/// to this file, same convention as PlaylistsSelectionNotifier above. Null
+/// means no row is swiped open.
+final _playlistSwipeOpenRowProvider = StateProvider<String?>((ref) => null);
+
+/// Width of each revealed swipe-action button (Renombrar / Borrar) — wide
+/// enough to be an easy thumb target, matching the row's own thumbnail width
+/// below.
+const double _kSwipeActionWidth = 96;
+
+/// Renames [playlist] via the same dialog shape as playlist_screen.dart's
+/// private `_rename` (title, TextField pre-filled with the current name,
+/// Cancelar/Guardar, blank refused by not popping, deferred controller
+/// dispose). Duplicated here because that method is private to that file,
+/// which this branch must not edit — keep the two in sync by hand if either
+/// one changes.
+Future<void> _renamePlaylist(BuildContext context, WidgetRef ref, Playlist playlist) async {
+  final notifier = ref.read(playlistsProvider.notifier);
+  final controller = TextEditingController(text: playlist.name);
+  String? name;
+  try {
+    name = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Renombrar lista'),
+        content: TextField(controller: controller, autofocus: true),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              final trimmed = controller.text.trim();
+              // Blank (including whitespace-only) is refused by NOT popping,
+              // matching every other rename/create dialog in this app.
+              if (trimmed.isEmpty) return;
+              Navigator.pop(dialogContext, trimmed);
+            },
+            child: const Text('Guardar'),
+          ),
+        ],
+      ),
+    );
+  } finally {
+    // Deferred: the dialog's exit transition still reads the controller for
+    // a frame or two after showDialog's future resolves.
+    WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
+  }
+  if (name == null) return;
+  await notifier.rename(playlist.id, name);
+}
+
 class _PlaylistRow extends ConsumerStatefulWidget {
-  const _PlaylistRow({required this.playlist});
+  const _PlaylistRow({super.key, required this.playlist});
   final Playlist playlist;
 
   @override
   ConsumerState<_PlaylistRow> createState() => _PlaylistRowState();
 }
 
-class _PlaylistRowState extends ConsumerState<_PlaylistRow> {
+class _PlaylistRowState extends ConsumerState<_PlaylistRow>
+    with SingleTickerProviderStateMixin {
   bool _pressing = false;
+
+  // Horizontal swipe reveal. `_offset` is the row content's current
+  // translateX: 0 closed, negative reveals Borrar on the right (swipe
+  // left), positive reveals Renombrar on the left (swipe right). Dragging
+  // sets it directly for 1:1 finger tracking; releasing hands off to
+  // `_swipeController` to animate the snap to the nearest resting position.
+  double _offset = 0;
+  late final AnimationController _swipeController;
+  Animation<double>? _swipeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _swipeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 220),
+    );
+  }
+
+  @override
+  void dispose() {
+    _swipeAnimation?.removeListener(_onSwipeTick);
+    _swipeController.dispose();
+    super.dispose();
+  }
+
+  void _onSwipeTick() {
+    setState(() => _offset = _swipeAnimation!.value);
+  }
+
+  void _animateTo(double target) {
+    _swipeAnimation?.removeListener(_onSwipeTick);
+    _swipeAnimation = Tween<double>(begin: _offset, end: target).animate(
+      CurvedAnimation(parent: _swipeController, curve: Curves.easeOut),
+    )..addListener(_onSwipeTick);
+    _swipeController
+      ..stop()
+      ..value = 0
+      ..forward();
+  }
+
+  /// Snaps shut instantly (no slide) and forgets this row as the open one,
+  /// if it was. Used right before an action fires (Borrar/Renombrar) and
+  /// when multi-select marking starts — an animated slide would just be in
+  /// the way in both cases.
+  void _forceClose() {
+    _swipeAnimation?.removeListener(_onSwipeTick);
+    _swipeController.stop();
+    if (_offset != 0) setState(() => _offset = 0);
+    if (ref.read(_playlistSwipeOpenRowProvider) == widget.playlist.id) {
+      ref.read(_playlistSwipeOpenRowProvider.notifier).state = null;
+    }
+  }
+
+  void _onDragStart(DragStartDetails details) {
+    _swipeAnimation?.removeListener(_onSwipeTick);
+    _swipeController.stop();
+  }
+
+  void _onDragUpdate(DragUpdateDetails details) {
+    setState(() {
+      _offset =
+          (_offset + details.delta.dx).clamp(-_kSwipeActionWidth, _kSwipeActionWidth);
+    });
+  }
+
+  void _onDragEnd(DragEndDetails details) {
+    final opensBorrar = _offset < -_kSwipeActionWidth / 2;
+    final opensRenombrar = _offset > _kSwipeActionWidth / 2;
+    if (opensBorrar || opensRenombrar) {
+      ref.read(_playlistSwipeOpenRowProvider.notifier).state = widget.playlist.id;
+      _animateTo(opensBorrar ? -_kSwipeActionWidth : _kSwipeActionWidth);
+    } else {
+      if (ref.read(_playlistSwipeOpenRowProvider) == widget.playlist.id) {
+        ref.read(_playlistSwipeOpenRowProvider.notifier).state = null;
+      }
+      _animateTo(0);
+    }
+  }
+
+  Future<void> _handleDeleteTapped() async {
+    // Tapping Borrar here IS the confirmation (spec): unlike the bulk-delete
+    // bar's Borrar, which deletes several at once and asks first, this
+    // deletes just this one playlist and shows no dialog after the tap.
+    final notifier = ref.read(playlistsProvider.notifier);
+    _forceClose();
+    await notifier.delete(widget.playlist.id);
+  }
+
+  void _handleRenameTapped() {
+    _forceClose();
+    _renamePlaylist(context, ref, widget.playlist);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -263,6 +421,16 @@ class _PlaylistRowState extends ConsumerState<_PlaylistRow> {
     final selectionIds = ref.watch(playlistsSelectionProvider);
     final selecting = selectionIds.isNotEmpty;
     final selected = selectionIds.contains(playlist.id);
+
+    // Closes this row's swipe reveal the moment another row's opens, or the
+    // moment multi-select marking starts: two competing gestures on one row
+    // is confusing, and only one row's actions should ever be visible.
+    ref.listen<String?>(_playlistSwipeOpenRowProvider, (previous, next) {
+      if (next != playlist.id && _offset != 0) _animateTo(0);
+    });
+    ref.listen<Set<String>>(playlistsSelectionProvider, (previous, next) {
+      if (next.isNotEmpty) _forceClose();
+    });
 
     // Resolves this one playlist against the raw media index. See
     // resolvedPlaylistProvider's doc for why the raw index, not the
@@ -287,6 +455,16 @@ class _PlaylistRowState extends ConsumerState<_PlaylistRow> {
         : '$videos · $missing no ${missing == 1 ? 'disponible' : 'disponibles'}';
 
     void handleTap() {
+      final openRowId = ref.read(_playlistSwipeOpenRowProvider);
+      if (openRowId != null) {
+        // A tap anywhere while a row's actions are showing — this row's own
+        // content or another row's — closes them first rather than also
+        // opening the playlist or toggling a mark (spec: swiping the row
+        // back or touching another row is how the reveal goes away).
+        ref.read(_playlistSwipeOpenRowProvider.notifier).state = null;
+        if (_offset != 0) _animateTo(0);
+        return;
+      }
       if (selecting) {
         ref.read(playlistsSelectionProvider.notifier).toggle(playlist.id);
         return;
@@ -296,21 +474,21 @@ class _PlaylistRowState extends ConsumerState<_PlaylistRow> {
       ));
     }
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onLongPress: () => ref.read(playlistsSelectionProvider.notifier).toggle(playlist.id),
-        onLongPressDown: (_) => setState(() => _pressing = true),
-        onLongPressCancel: () => setState(() => _pressing = false),
-        onLongPressUp: () => setState(() => _pressing = false),
-        child: AnimatedScale(
-          scale: _pressing ? 0.97 : 1.0,
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOut,
-          child: PressBounce(
-            onTap: handleTap,
-            child: Container(
+    final row = GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onLongPress: selecting || _offset != 0
+          ? null
+          : () => ref.read(playlistsSelectionProvider.notifier).toggle(playlist.id),
+      onLongPressDown: (_) => setState(() => _pressing = true),
+      onLongPressCancel: () => setState(() => _pressing = false),
+      onLongPressUp: () => setState(() => _pressing = false),
+      child: AnimatedScale(
+        scale: _pressing ? 0.97 : 1.0,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+        child: PressBounce(
+          onTap: handleTap,
+          child: Container(
               decoration: BoxDecoration(
                 color: cs.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(10),
@@ -403,6 +581,46 @@ class _PlaylistRowState extends ConsumerState<_PlaylistRow> {
             ),
           ),
         ),
+      );
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Stack(
+          children: [
+            // Swipe actions live behind the row content, uncovered only by
+            // `_offset` — they don't need to exist at all (and shouldn't be
+            // tappable) while multi-select marking owns the gesture.
+            if (!selecting)
+              Positioned.fill(
+                child: _SwipeActionsBackground(
+                  playlistId: playlist.id,
+                  onRename: _handleRenameTapped,
+                  onDelete: _handleDeleteTapped,
+                ),
+              ),
+            // behavior is deliberately left at the default (deferToChild),
+            // NOT opaque: opaque would claim this detector's own untranslated
+            // bounds unconditionally, which — since Transform.translate moves
+            // where the CHILD paints/hit-tests but not this detector's own
+            // bounds — would permanently block the swipe buttons behind it
+            // from ever being reachable, at any offset. deferToChild instead
+            // asks the translated `row` whether the (inverse-transformed)
+            // point is still within ITS bounds, so a point over the strip
+            // `_offset` has uncovered correctly falls through to the
+            // background beneath.
+            GestureDetector(
+              onHorizontalDragStart: selecting ? null : _onDragStart,
+              onHorizontalDragUpdate: selecting ? null : _onDragUpdate,
+              onHorizontalDragEnd: selecting ? null : _onDragEnd,
+              child: Transform.translate(
+                offset: Offset(_offset, 0),
+                child: row,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -417,4 +635,107 @@ class _PlaylistRowState extends ConsumerState<_PlaylistRow> {
         ),
         child: selected ? Icon(Icons.check, size: 14, color: onAccent(accent)) : null,
       );
+}
+
+/// The two swipe-revealed actions sitting behind a playlist row: Renombrar
+/// on the left (revealed swiping right) and Borrar on the right (revealed
+/// swiping left). Lives in a Positioned.fill behind the row's own
+/// Transform.translate, so it's only ever visible in the strip `_offset`
+/// uncovers.
+class _SwipeActionsBackground extends StatelessWidget {
+  const _SwipeActionsBackground({
+    required this.playlistId,
+    required this.onRename,
+    required this.onDelete,
+  });
+
+  final String playlistId;
+  final VoidCallback onRename;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _SwipeActionButton(
+          // Keyed by playlist id: a row's own "Borrar" collides on text
+          // with the bulk-select bar's, and "Renombrar" (this one) with
+          // nothing else — keyed anyway for symmetry and so tests never
+          // have to guess which row's button they hit.
+          key: ValueKey('playlist-swipe-renombrar-$playlistId'),
+          label: 'Renombrar',
+          icon: Icons.edit_rounded,
+          background: cs.secondaryContainer,
+          foreground: cs.onSecondaryContainer,
+          onTap: onRename,
+        ),
+        const Expanded(child: SizedBox()),
+        _SwipeActionButton(
+          key: ValueKey('playlist-swipe-borrar-$playlistId'),
+          label: 'Borrar',
+          icon: Icons.delete_outline_rounded,
+          background: cs.error,
+          foreground: cs.onError,
+          onTap: onDelete,
+        ),
+      ],
+    );
+  }
+}
+
+/// One swipe-action button: fixed-width, stretched to the row's full
+/// height — an easy thumb target. Tapping it fires immediately; Borrar's
+/// confirmation IS the tap (spec), no dialog after it.
+///
+/// The icon+label are wrapped in a FittedBox rather than sized to a
+/// guessed pixel budget: row height varies with content (a missing-videos
+/// second line, font metrics, …), and this content must never overflow
+/// whatever height a given row happens to be.
+class _SwipeActionButton extends StatelessWidget {
+  const _SwipeActionButton({
+    super.key,
+    required this.label,
+    required this.icon,
+    required this.background,
+    required this.foreground,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final Color background;
+  final Color foreground;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: _kSwipeActionWidth,
+      child: Material(
+        color: background,
+        child: InkWell(
+          onTap: onTap,
+          child: Center(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, color: foreground),
+                  const SizedBox(height: 4),
+                  Text(
+                    label,
+                    style:
+                        TextStyle(color: foreground, fontWeight: FontWeight.w700, fontSize: 12.5),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
