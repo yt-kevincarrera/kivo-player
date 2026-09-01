@@ -203,6 +203,64 @@ void main() {
     expect(store.all().single.entries, isEmpty);
   });
 
+  testWidgets('removing an entry offers Deshacer, which restores it at its original index',
+      (tester) async {
+    final store = InMemoryPlaylistStore();
+    final c = await _c(store, [_v('1', 'a.mkv'), _v('2', 'b.mkv'), _v('3', 'c.mkv')]);
+    addTearDown(c.dispose);
+    await c.read(mediaIndexProvider.future);
+    final p = await c.read(playlistsProvider.notifier).create('Serie');
+    await c.read(playlistsProvider.notifier).addVideos(
+        p.id, [_v('1', 'a.mkv'), _v('2', 'b.mkv'), _v('3', 'c.mkv')]);
+
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: c,
+      child: MaterialApp(home: PlaylistScreen(playlistId: p.id)),
+    ));
+    await tester.pumpAndSettle();
+
+    // Remove the MIDDLE entry — proves undo restores position, not just presence.
+    await tester.tap(find.byKey(const ValueKey('playlist-remove-1')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('b.mkv'), findsNothing);
+    expect(store.all().single.entries.map((e) => e.displayName), ['a.mkv', 'c.mkv']);
+    expect(find.text('Deshacer'), findsOneWidget);
+
+    await tester.tap(find.text('Deshacer'));
+    await tester.pumpAndSettle();
+
+    expect(store.all().single.entries.map((e) => e.displayName),
+        ['a.mkv', 'b.mkv', 'c.mkv']);
+  });
+
+  testWidgets('removing entries quickly does not queue multiple snackbars',
+      (tester) async {
+    final store = InMemoryPlaylistStore();
+    final c = await _c(store, [_v('1', 'a.mkv'), _v('2', 'b.mkv'), _v('3', 'c.mkv')]);
+    addTearDown(c.dispose);
+    await c.read(mediaIndexProvider.future);
+    final p = await c.read(playlistsProvider.notifier).create('Serie');
+    await c.read(playlistsProvider.notifier).addVideos(
+        p.id, [_v('1', 'a.mkv'), _v('2', 'b.mkv'), _v('3', 'c.mkv')]);
+
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: c,
+      child: MaterialApp(home: PlaylistScreen(playlistId: p.id)),
+    ));
+    await tester.pumpAndSettle();
+
+    // Remove three entries back-to-back without letting any snackbar settle.
+    await tester.tap(find.byKey(const ValueKey('playlist-remove-0')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('playlist-remove-0')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('playlist-remove-0')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SnackBar), findsOneWidget);
+  });
+
   group('reorder — both drag directions', () {
     // Flutter's ReorderableListView reports newIndex as the position in the
     // list BEFORE the dragged item is removed. Dragging item 0 to the very
