@@ -103,7 +103,16 @@ void main() {
     expect(find.byKey(const Key('pin-key-1')), findsOneWidget);
   });
 
-  testWidgets('resuming from background re-attempts biometric', (tester) async {
+  testWidgets(
+      'cancelling the biometric prompt (resolves false) does not re-prompt on the '
+      'next resume and leaves PinPad reachable — KV bug: Cancel used to force '
+      'another fingerprint attempt', (tester) async {
+    // local_auth reports a user cancel the same way it reports a failed
+    // attempt: authenticate() resolves to `false`, no exception. From
+    // VaultGate's perspective these are the same outcome, and once resolved
+    // (not merely in flight) a later app pause/resume — which is exactly
+    // what fires around the OS sheet's own dismissal after Cancel — must
+    // not be treated as "come back and try biometric again".
     final bio = FakeBiometricAuth(available: true, willSucceed: false);
     final c = await _container(biometricEnabled: true, bio: bio);
     addTearDown(c.dispose);
@@ -113,9 +122,46 @@ void main() {
     expect(bio.authCalls, 1);
     expect(find.byKey(const Key('pin-key-1')), findsOneWidget);
 
-    // Simulate the app going to background and coming back.
+    // Simulate the pause/resume blip that follows the OS sheet being
+    // dismissed (whether via Cancel or the sheet settling after a failed
+    // attempt) — this is indistinguishable, at the Flutter lifecycle level,
+    // from the app being genuinely backgrounded and brought back.
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
     await tester.pump();
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+
+    // No re-prompt, no loop: still exactly one authenticate() call, and the
+    // user is left on PinPad — not stuck, not thrown back into the sheet.
+    expect(bio.authCalls, 1);
+    expect(find.byKey(const Key('pin-key-1')), findsOneWidget);
+    expect(find.text('VAULT-CONTENT'), findsNothing);
+  });
+
+  testWidgets('backgrounding mid-attempt (genuinely interrupted) then resuming '
+      'still re-attempts biometric', (tester) async {
+    // Distinguishes the case above from a real interruption: the app was
+    // backgrounded WHILE the OS sheet/authenticate() call was still
+    // pending (nothing resolved it), so on return it's worth trying again
+    // rather than silently downgrading to PIN-only.
+    final gate = Completer<bool>();
+    final bio = FakeBiometricAuth(available: true, gate: gate);
+    final c = await _container(biometricEnabled: true, bio: bio);
+    addTearDown(c.dispose);
+    await tester.pumpWidget(_app(c));
+    await tester.pump();
+    await tester.pump();
+
+    expect(bio.authCalls, 1);
+
+    // Backgrounded while the first attempt is still unresolved...
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump();
+    // ...and only now does that in-flight attempt resolve negatively (e.g.
+    // the OS tore down the sheet because the app lost foreground).
+    gate.complete(false);
+    await tester.pump();
+
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await tester.pumpAndSettle();
 
