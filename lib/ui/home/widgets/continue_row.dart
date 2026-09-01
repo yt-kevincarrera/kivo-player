@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../platform/interfaces/media_indexer.dart';
 import '../../../player/library/continue_watching.dart';
+import 'video_options_sheet.dart';
 import 'video_tile.dart';
 
 class ContinueRow extends ConsumerWidget {
@@ -33,13 +34,20 @@ class ContinueRow extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           itemCount: items.length,
           separatorBuilder: (_, __) => const SizedBox(width: 12),
-          itemBuilder: (_, i) => SizedBox(
+          itemBuilder: (tileContext, i) => SizedBox(
             width: 200,
             child: VideoTile(
               video: items[i].video,
               progress: items[i].fraction,
               listRow: false,
               onTap: (origin) => onOpen(items[i].video, origin),
+              // Same options sheet the library uses — long-pressing here must
+              // offer info/rename/delete/etc, not a second, cut-down menu.
+              // VideoTile's GestureDetector already loses the arena to the
+              // row's HorizontalDragGestureRecognizer once the pointer moves
+              // past the touch slop, so this doesn't eat the scroll gesture.
+              onLongPress: () =>
+                  showVideoOptions(tileContext, ref, items[i].video),
             ),
           ),
         ),
