@@ -202,7 +202,7 @@ void main() {
       perm: _Perm(MediaAccess.granted),
     );
 
-    await tester.tap(find.text('Carpetas'));
+    await tester.tap(find.byIcon(Icons.folder_outlined));
     await tester.pumpAndSettle();
 
     expect(find.text('No hay carpetas'), findsOneWidget);

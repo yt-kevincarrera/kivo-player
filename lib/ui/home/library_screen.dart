@@ -99,6 +99,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     if (path != null) _openPath(path);
   }
 
+  /// 1→2→3→1, the same cycle the button's tooltip announces.
+  int get _nextColumns => (ref.read(settingsProvider).libraryColumns % 3) + 1;
+
   void _cycleDensity() {
     final s = ref.read(settingsProvider);
     final next = (s.libraryColumns % 3) + 1; // 1→2→3→1
@@ -199,9 +202,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                         },
                         child: Text(
                           'Kivo',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ),
               ),
@@ -234,7 +236,11 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                   // nothing.
                   if (_tab != 2)
                     IconButton(
-                      tooltip: 'Cambiar densidad',
+                      // Says what the tap DOES, not what the feature is
+                      // called: "densidad" told the user nothing.
+                      tooltip: _nextColumns == 1
+                          ? 'Ver en 1 columna'
+                          : 'Ver en $_nextColumns columnas',
                       icon: const Icon(Icons.grid_view),
                       onPressed: _cycleDensity,
                     ),
@@ -318,10 +324,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                     key: const ValueKey(1),
                     child: _foldersTab(videos),
                   ),
-                  const _KeepAlivePage(
-                    key: ValueKey(2),
-                    child: PlaylistsTab(),
-                  ),
+                  const _KeepAlivePage(key: ValueKey(2), child: PlaylistsTab()),
                 ],
               ),
             ),
@@ -498,9 +501,9 @@ class _FilterChips extends StatelessWidget {
         children: [
           _chip(context, cs, 'Todo', 0),
           const SizedBox(width: 8),
-          _chip(context, cs, 'Carpetas', 1),
+          _chip(context, cs, 'Carpetas', 1, icon: Icons.folder_outlined),
           const SizedBox(width: 8),
-          _chip(context, cs, 'Listas', 2),
+          _chip(context, cs, 'Listas', 2, icon: Icons.queue_music_outlined),
           if (showUnwatchedToggle) ...[
             const SizedBox(width: 8),
             _UnwatchedChip(active: unwatchedOnly, onTap: onToggleUnwatched),
@@ -510,27 +513,66 @@ class _FilterChips extends StatelessWidget {
     );
   }
 
-  Widget _chip(BuildContext context, ColorScheme cs, String label, int i) {
+  /// A chip with an [icon] carries its label only while it is the selected
+  /// one: four full-width chips ate the row, and the three that are not
+  /// selected do not need to spell themselves out to stay recognisable.
+  /// "Todo" keeps its text always — it has no icon that would read as
+  /// "everything" without one.
+  Widget _chip(
+    BuildContext context,
+    ColorScheme cs,
+    String label,
+    int i, {
+    IconData? icon,
+  }) {
     return Consumer(
       builder: (context, ref, _) {
         final accent = Color(ref.watch(settingsProvider).accentColor);
         final active = selected == i;
-        return GestureDetector(
-          onTap: () => onChanged(i),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            curve: Curves.easeOut,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            decoration: BoxDecoration(
-              color: active ? accent : cs.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              label,
-              style: TextStyle(
-                color: active ? onAccent(accent) : cs.onSurfaceVariant,
-                fontSize: 13,
-                fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+        final showLabel = icon == null || active;
+        final fg = active ? onAccent(accent) : cs.onSurfaceVariant;
+        return Semantics(
+          // The unselected chips are icon-only, so the label has to live
+          // here or a screen reader gets nothing to read.
+          label: label,
+          button: true,
+          selected: active,
+          child: GestureDetector(
+            onTap: () => onChanged(i),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              curve: Curves.easeOut,
+              padding: EdgeInsets.symmetric(
+                horizontal: showLabel ? 14 : 10,
+                vertical: 6,
+              ),
+              decoration: BoxDecoration(
+                color: active ? accent : cs.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              // The label appearing changes the chip's width, which
+              // AnimatedContainer does not animate on its own.
+              child: AnimatedSize(
+                duration: const Duration(milliseconds: 150),
+                curve: Curves.easeOut,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (icon != null) Icon(icon, size: 15, color: fg),
+                    if (icon != null && showLabel) const SizedBox(width: 5),
+                    if (showLabel)
+                      Text(
+                        label,
+                        style: TextStyle(
+                          color: fg,
+                          fontSize: 13,
+                          fontWeight: active
+                              ? FontWeight.w600
+                              : FontWeight.w500,
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -552,34 +594,47 @@ class _UnwatchedChip extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
     final accent = Color(ref.watch(settingsProvider).accentColor);
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOut,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        decoration: BoxDecoration(
-          color: active ? accent : cs.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.visibility_off_outlined,
-              size: 14,
-              color: active ? onAccent(accent) : cs.onSurfaceVariant,
+    final fg = active ? onAccent(accent) : cs.onSurfaceVariant;
+    return Semantics(
+      label: 'No vistos',
+      button: true,
+      selected: active,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+          padding: EdgeInsets.symmetric(
+            horizontal: active ? 14 : 10,
+            vertical: 6,
+          ),
+          decoration: BoxDecoration(
+            color: active ? accent : cs.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          // Same rule as the tabs: the label shows only while the filter is on,
+          // which is also when it is worth saying out loud.
+          child: AnimatedSize(
+            duration: const Duration(milliseconds: 150),
+            curve: Curves.easeOut,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.visibility_off_outlined, size: 15, color: fg),
+                if (active) ...[
+                  const SizedBox(width: 5),
+                  Text(
+                    'No vistos',
+                    style: TextStyle(
+                      color: fg,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ],
             ),
-            const SizedBox(width: 4),
-            Text(
-              'No vistos',
-              style: TextStyle(
-                color: active ? onAccent(accent) : cs.onSurfaceVariant,
-                fontSize: 13,
-                fontWeight: active ? FontWeight.w600 : FontWeight.w500,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
