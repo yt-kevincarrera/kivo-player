@@ -148,7 +148,7 @@ void main() {
   });
 
   group('marking playlists for bulk delete', () {
-    Future<ProviderContainer> _twoPlaylists() async {
+    Future<ProviderContainer> twoPlaylists() async {
       final store = InMemoryPlaylistStore();
       final c = await _c(store, const []);
       await c.read(mediaIndexProvider.future);
@@ -159,7 +159,7 @@ void main() {
 
     testWidgets('long-pressing a row marks it and brings up the selection bar',
         (tester) async {
-      final c = await _twoPlaylists();
+      final c = await twoPlaylists();
       addTearDown(c.dispose);
       await _pump(tester, c);
 
@@ -174,7 +174,7 @@ void main() {
 
     testWidgets('while selecting, tapping a row toggles its mark instead of opening it',
         (tester) async {
-      final c = await _twoPlaylists();
+      final c = await twoPlaylists();
       addTearDown(c.dispose);
       await _pump(tester, c);
 
@@ -199,7 +199,7 @@ void main() {
 
     testWidgets('unmarking the last selected row hides the selection bar again',
         (tester) async {
-      final c = await _twoPlaylists();
+      final c = await twoPlaylists();
       addTearDown(c.dispose);
       await _pump(tester, c);
 
@@ -215,7 +215,7 @@ void main() {
 
     testWidgets('the Nueva lista FAB is hidden while the selection bar is up',
         (tester) async {
-      final c = await _twoPlaylists();
+      final c = await twoPlaylists();
       addTearDown(c.dispose);
       await _pump(tester, c);
 
@@ -292,7 +292,7 @@ void main() {
     });
 
     testWidgets('leaving the Listas tab clears the selection', (tester) async {
-      final c = await _twoPlaylists();
+      final c = await twoPlaylists();
       addTearDown(c.dispose);
       final controller = await _pumpWithRealPager(tester, c);
 
