@@ -1,12 +1,17 @@
-import 'package:flutter/material.dart';
+// Flutter's own animation package also defines a `RepeatMode` — hide it so
+// the queue's RepeatMode (repeat off/list/video) is the one in scope here.
+import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/format.dart';
+import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
 import '../../../player/engine/playback_engine.dart';
 import '../../../player/engine/playback_provider.dart';
 import '../../../core/errors/kivo_failure.dart';
 import '../../../player/capture/frame_capture_controller.dart';
 import '../../../player/loop/ab_loop.dart';
+import '../../../player/open/video_source.dart';
+import '../../../player/queue/queue_order.dart';
 import '../chapters/chapters_sheet.dart';
 import '../sleep/sleep_timer_panel.dart';
 import '../state/controls_visibility.dart';
@@ -44,6 +49,19 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                   AbLoopPhase.active =>
                     'Activo · ${fmtDuration(loop!.a!)}–${fmtDuration(loop.b!)}',
                 };
+                final settings = sheetRef.watch(settingsProvider);
+                final accent = Color(settings.accentColor);
+                final repeatMode = repeatModeFor(settings.repeatMode);
+                final repeatSubtitle = switch (repeatMode) {
+                  RepeatMode.off => 'Desactivado',
+                  RepeatMode.list => 'Toda la lista',
+                  RepeatMode.video => 'Este video',
+                };
+                final repeatIcon = repeatMode == RepeatMode.video
+                    ? Icons.repeat_one_rounded
+                    : Icons.repeat_rounded;
+                final repeatIconColor =
+                    repeatMode == RepeatMode.off ? Colors.white70 : accent;
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -86,6 +104,37 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                         } else {
                           ref.read(abLoopProvider.notifier).cancel();
                         }
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    _MenuRow(
+                      icon: repeatIcon,
+                      iconColor: repeatIconColor,
+                      title: 'Repetir',
+                      subtitle: repeatSubtitle,
+                      onTap: () {
+                        final next = switch (repeatMode) {
+                          RepeatMode.off => RepeatMode.list,
+                          RepeatMode.list => RepeatMode.video,
+                          RepeatMode.video => RepeatMode.off,
+                        };
+                        ref.read(settingsProvider.notifier).set(
+                            settings.copyWith(repeatMode: next.name));
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    // Stays visible and toggleable even with a single-video
+                    // queue — hiding/showing it depending on the list would
+                    // confuse more than an inert toggle does.
+                    _MenuRow(
+                      icon: Icons.shuffle_rounded,
+                      iconColor: settings.shuffle ? accent : Colors.white70,
+                      title: 'Aleatorio',
+                      subtitle: settings.shuffle ? 'Activado' : 'Desactivado',
+                      onTap: () {
+                        ref
+                            .read(currentVideoProvider.notifier)
+                            .setShuffle(!settings.shuffle);
                       },
                     ),
                     const SizedBox(height: 8),
@@ -208,12 +257,14 @@ void _reportCapture(
 
 class _MenuRow extends StatelessWidget {
   final IconData icon;
+  final Color? iconColor;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
 
   const _MenuRow({
     required this.icon,
+    this.iconColor,
     required this.title,
     required this.subtitle,
     required this.onTap,
@@ -239,7 +290,7 @@ class _MenuRow extends StatelessWidget {
                 color: Colors.white.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(9),
               ),
-              child: Icon(icon, size: 16, color: Colors.white70),
+              child: Icon(icon, size: 16, color: iconColor ?? Colors.white70),
             ),
             const SizedBox(width: 12),
             Expanded(

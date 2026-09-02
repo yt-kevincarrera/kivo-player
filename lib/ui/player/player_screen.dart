@@ -324,7 +324,14 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     final onScreen = WidgetsBinding.instance.lifecycleState ==
             AppLifecycleState.resumed &&
         !ref.read(pipModeProvider);
-    if (onScreen) {
+    // Repeat-video: peekNext() returns the SAME session (same index) as the
+    // one that just finished — a "next in 5 s" countdown to watch the same
+    // video again is absurd, so skip the overlay and restart directly no
+    // matter whether the player is on-screen. Every other case (repeat-list,
+    // shuffle, plain next) keeps the overlay flow untouched.
+    final current = ref.read(currentVideoProvider);
+    final isRepeatVideo = current != null && next!.index == current.index;
+    if (onScreen && !isRepeatVideo) {
       ref.read(autoplayPendingProvider.notifier).state = next;
     } else {
       _advance(next!);

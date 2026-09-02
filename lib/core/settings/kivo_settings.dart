@@ -31,6 +31,8 @@ class KivoSettings {
   final String librarySort; // LibrarySort enum name — see lib/player/library/library_filter.dart
   final bool subtitlesEnabledByDefault;
   final bool autoplayNext;
+  final String repeatMode; // RepeatMode enum name — see lib/player/queue/queue_order.dart
+  final bool shuffle;
   final String? preferredSubtitleLanguage;
   final String? preferredAudioLanguage;
   final double subtitleFontSize;
@@ -95,6 +97,8 @@ class KivoSettings {
     required this.librarySort,
     required this.subtitlesEnabledByDefault,
     required this.autoplayNext,
+    required this.repeatMode,
+    required this.shuffle,
     required this.preferredSubtitleLanguage,
     required this.preferredAudioLanguage,
     required this.subtitleFontSize,
@@ -154,6 +158,8 @@ class KivoSettings {
         librarySort: 'recent',
         subtitlesEnabledByDefault: true,
         autoplayNext: true,
+        repeatMode: 'off',
+        shuffle: false,
         preferredSubtitleLanguage: null,
         preferredAudioLanguage: null,
         subtitleFontSize: 26.0,
@@ -215,6 +221,8 @@ class KivoSettings {
     String? librarySort,
     bool? subtitlesEnabledByDefault,
     bool? autoplayNext,
+    String? repeatMode,
+    bool? shuffle,
     Object? preferredSubtitleLanguage = _unset,
     Object? preferredAudioLanguage = _unset,
     double? subtitleFontSize,
@@ -273,6 +281,8 @@ class KivoSettings {
       librarySort: librarySort ?? this.librarySort,
       subtitlesEnabledByDefault: subtitlesEnabledByDefault ?? this.subtitlesEnabledByDefault,
       autoplayNext: autoplayNext ?? this.autoplayNext,
+      repeatMode: repeatMode ?? this.repeatMode,
+      shuffle: shuffle ?? this.shuffle,
       preferredSubtitleLanguage: identical(preferredSubtitleLanguage, _unset)
           ? this.preferredSubtitleLanguage
           : preferredSubtitleLanguage as String?,
@@ -342,6 +352,8 @@ class KivoSettings {
         'librarySort': librarySort,
         'subtitlesEnabledByDefault': subtitlesEnabledByDefault,
         'autoplayNext': autoplayNext,
+        'repeatMode': repeatMode,
+        'shuffle': shuffle,
         'preferredSubtitleLanguage': preferredSubtitleLanguage,
         'preferredAudioLanguage': preferredAudioLanguage,
         'subtitleFontSize': subtitleFontSize,
@@ -403,6 +415,8 @@ class KivoSettings {
       librarySort: m['librarySort'] ?? d.librarySort,
       subtitlesEnabledByDefault: m['subtitlesEnabledByDefault'] ?? d.subtitlesEnabledByDefault,
       autoplayNext: m['autoplayNext'] ?? d.autoplayNext,
+      repeatMode: m['repeatMode'] ?? d.repeatMode,
+      shuffle: m['shuffle'] ?? d.shuffle,
       preferredSubtitleLanguage: m['preferredSubtitleLanguage'] ?? d.preferredSubtitleLanguage,
       preferredAudioLanguage: m['preferredAudioLanguage'] ?? d.preferredAudioLanguage,
       subtitleFontSize: (m['subtitleFontSize'] ?? d.subtitleFontSize).toDouble(),
