@@ -134,6 +134,12 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
   void _openSearch() {
     ref.read(librarySearchActiveProvider.notifier).state = true;
+    // Same reason _FilterChips' onChanged below clears it on a sub-tab
+    // switch: opening search over Listas swaps the visible rows to the
+    // filtered set, and a selection left pointing at rows no longer shown
+    // is the bug — not just orphaned, actionable-but-wrong (the bulk bar's
+    // Borrar would otherwise still see the hidden ones).
+    ref.read(playlistsSelectionProvider.notifier).clear();
   }
 
   void _closeSearch() {
@@ -204,8 +210,12 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.onSurface,
                         ),
-                        decoration: const InputDecoration(
-                          hintText: 'Buscar videos o carpetas',
+                        decoration: InputDecoration(
+                          // Listas' search filters playlists (by name, and
+                          // by member-video name), not videos or folders —
+                          // say so, or the hint just lies on that tab.
+                          hintText:
+                              tab == 2 ? 'Buscar listas' : 'Buscar videos o carpetas',
                           border: InputBorder.none,
                         ),
                         onChanged: (q) =>
@@ -308,7 +318,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           // itself reads the same query/active providers (see its build) and
           // switches to `applyPlaylistFilters` when active, so re-showing it
           // here is enough; there is no separate playlist search view.
-          if (tab == 2) return const PlaylistsTab();
+          if (tab == 2) return PlaylistsTab(onClearSearch: _closeSearch);
           return _searchResults(videos);
         }
         return Column(
@@ -355,7 +365,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                     key: const ValueKey(1),
                     child: _foldersTab(videos),
                   ),
-                  const _KeepAlivePage(key: ValueKey(2), child: PlaylistsTab()),
+                  _KeepAlivePage(
+                    key: const ValueKey(2),
+                    child: PlaylistsTab(onClearSearch: _closeSearch),
+                  ),
                 ],
               ),
             ),

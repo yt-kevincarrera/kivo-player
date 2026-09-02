@@ -13,6 +13,7 @@ import 'package:kivo_player/player/playlists/playlist_controller.dart';
 import 'package:kivo_player/player/playlists/playlist_store.dart';
 import 'package:kivo_player/ui/home/playlists/playlist_screen.dart';
 import 'package:kivo_player/ui/home/playlists/playlists_tab.dart';
+import 'package:kivo_player/ui/home/state/library_filter_state.dart';
 import '../../fakes/fakes.dart';
 
 VideoItem _v(String id, String name) => VideoItem(
@@ -388,6 +389,76 @@ void main() {
       // Nothing about the mark itself was disturbed by the failed drag.
       expect(find.byKey(const Key('playlists-bulk-borrar')), findsOneWidget);
       expect(store.all().length, 2);
+    });
+  });
+
+  group('searching playlists', () {
+    testWidgets(
+        'Borrar in the selection bar only deletes lists a search query still shows',
+        (tester) async {
+      // Marking survives typing in the search box — the mark and the filter
+      // are independent state — so a query narrowing the visible rows must
+      // not let bulk delete reach a row it just hid.
+      final store = InMemoryPlaylistStore();
+      final c = await _c(store, const []);
+      addTearDown(c.dispose);
+      await c.read(mediaIndexProvider.future);
+      await c.read(playlistsProvider.notifier).create('Serie');
+      await c.read(playlistsProvider.notifier).create('Curso');
+      await _pump(tester, c);
+
+      await tester.longPress(find.text('Serie'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Curso'));
+      await tester.pumpAndSettle();
+      expect(c.read(playlistsSelectionProvider).length, 2);
+
+      c.read(librarySearchActiveProvider.notifier).state = true;
+      c.read(librarySearchQueryProvider.notifier).state = 'serie';
+      await tester.pumpAndSettle();
+      expect(find.text('Serie'), findsOneWidget);
+      expect(find.text('Curso'), findsNothing);
+      // The mark on the now-hidden Curso survives the query change.
+      expect(c.read(playlistsSelectionProvider).length, 2);
+
+      await tester.tap(find.byKey(const Key('playlists-bulk-borrar')));
+      await tester.pumpAndSettle();
+      // Names only the one still on screen, not both marked.
+      expect(find.textContaining('¿Borrar 1 lista?'), findsOneWidget);
+      await tester.tap(find.descendant(
+          of: find.byType(AlertDialog), matching: find.text('Borrar')));
+      await tester.pumpAndSettle();
+
+      expect(store.all().map((p) => p.name).toList(), ['Curso']);
+    });
+
+    testWidgets(
+        'a query matching no list offers Borrar búsqueda, which clears it',
+        (tester) async {
+      final store = InMemoryPlaylistStore();
+      final c = await _c(store, const []);
+      addTearDown(c.dispose);
+      await c.read(mediaIndexProvider.future);
+      await c.read(playlistsProvider.notifier).create('Serie');
+      await _pump(tester, c);
+
+      c.read(librarySearchActiveProvider.notifier).state = true;
+      c.read(librarySearchQueryProvider.notifier).state = 'zzz';
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Ninguna lista coincide con "zzz"'),
+          findsOneWidget);
+      expect(find.text('Borrar búsqueda'), findsOneWidget);
+
+      await tester.tap(find.text('Borrar búsqueda'));
+      await tester.pumpAndSettle();
+
+      // No owner was wired in (this widget is standalone here), so the
+      // built-in fallback fires: both filter providers reset and the full
+      // list is back.
+      expect(c.read(librarySearchQueryProvider), isEmpty);
+      expect(c.read(librarySearchActiveProvider), isFalse);
+      expect(find.text('Serie'), findsOneWidget);
     });
   });
 }

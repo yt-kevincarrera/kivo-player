@@ -342,6 +342,125 @@ void main() {
     },
   );
 
+  testWidgets('search hint says "listas" on the Listas tab, videos elsewhere',
+      (tester) async {
+    await _buildApp(tester);
+
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).decoration?.hintText,
+      'Buscar videos o carpetas',
+    );
+
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.queue_music_outlined));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).decoration?.hintText,
+      'Buscar listas',
+    );
+  });
+
+  testWidgets('opening search from the Listas tab clears any playlist marks',
+      (tester) async {
+    // Mirrors the sub-tab-switch test above: search replaces the visible
+    // rows with a filtered set too, so a mark left behind is the same
+    // orphaned-selection bug, just reached from the search icon instead.
+    final container = await _buildApp(tester);
+    addTearDown(container.dispose);
+    await container.read(playlistsProvider.notifier).create('Serie');
+
+    await tester.tap(find.byIcon(Icons.queue_music_outlined));
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.text('Serie'));
+    await tester.pumpAndSettle();
+    expect(container.read(playlistsSelectionProvider), isNotEmpty);
+
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+
+    expect(container.read(playlistsSelectionProvider), isEmpty);
+  });
+
+  testWidgets(
+      'bulk Borrar on Listas only deletes playlists a search query still shows',
+      (tester) async {
+    final container = await _buildApp(tester);
+    addTearDown(container.dispose);
+    await container.read(playlistsProvider.notifier).create('Serie');
+    await container.read(playlistsProvider.notifier).create('Curso');
+
+    await tester.tap(find.byIcon(Icons.queue_music_outlined));
+    await tester.pumpAndSettle();
+
+    // Open search first (selection is already empty, so nothing to clear),
+    // THEN mark both rows while the query is still empty — search shows
+    // every playlist until something is typed.
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.text('Serie'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Curso'));
+    await tester.pumpAndSettle();
+    expect(container.read(playlistsSelectionProvider).length, 2);
+
+    // Narrowing the query hides Curso's row without touching its mark.
+    await tester.enterText(find.byType(TextField), 'serie');
+    await tester.pump();
+    expect(find.text('Serie'), findsOneWidget);
+    expect(find.text('Curso'), findsNothing);
+
+    await tester.tap(find.byKey(const Key('playlists-bulk-borrar')));
+    await tester.pumpAndSettle();
+    // The confirm dialog names only the one still visible, not both marked.
+    expect(find.textContaining('¿Borrar 1 lista?'), findsOneWidget);
+    await tester.tap(find.descendant(
+        of: find.byType(AlertDialog), matching: find.text('Borrar')));
+    await tester.pumpAndSettle();
+
+    // Curso survives — it was marked but never shown once the query hid it.
+    expect(
+      container.read(playlistsProvider).map((p) => p.name).toList(),
+      ['Curso'],
+    );
+  });
+
+  testWidgets(
+      'Borrar búsqueda on the Listas empty state fully closes search, like the videos one',
+      (tester) async {
+    final container = await _buildApp(tester);
+    addTearDown(container.dispose);
+    await container.read(playlistsProvider.notifier).create('Serie');
+
+    await tester.tap(find.byIcon(Icons.queue_music_outlined));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'zzz-no-match');
+    await tester.pump();
+
+    expect(find.textContaining('Ninguna lista coincide con "zzz-no-match"'),
+        findsOneWidget);
+
+    await tester.tap(find.text('Borrar búsqueda'));
+    await tester.pumpAndSettle();
+
+    // Same escape hatch as the videos search empty state: the field is
+    // gone, the title is back, and the full playlist list is showing again
+    // (not just an emptied query with the field still open).
+    expect(find.text('Kivo'), findsOneWidget);
+    expect(find.byType(TextField), findsNothing);
+    expect(find.text('Serie'), findsOneWidget);
+  });
+
   testWidgets('changing the sort menu on Listas reorders the rows',
       (tester) async {
     final container = await _buildApp(tester);

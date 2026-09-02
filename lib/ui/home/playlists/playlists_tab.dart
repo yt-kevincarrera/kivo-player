@@ -54,7 +54,17 @@ final playlistsSelectionProvider =
 /// a plain tap toggles the mark instead of opening the playlist (spec: "me
 /// gustaria poder borrar la lista sin tener que entrar a ella").
 class PlaylistsTab extends ConsumerWidget {
-  const PlaylistsTab({super.key});
+  const PlaylistsTab({super.key, this.onClearSearch});
+
+  /// Fires from the search-empty state's «Borrar búsqueda» action (mirroring
+  /// library_screen.dart's own video-search empty state). Passed in by that
+  /// file as its private `_closeSearch` — which also resets its
+  /// TextEditingController, something this widget has no way to reach —
+  /// so a real owner is always wired in from there. Falls back to clearing
+  /// just the two filter providers below when none is given (e.g. this
+  /// widget built standalone under test), which is still correct, just
+  /// without the controller reset.
+  final VoidCallback? onClearSearch;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -93,6 +103,12 @@ class PlaylistsTab extends ConsumerWidget {
       return LibraryEmptyState(
         icon: Icons.search_off,
         title: 'Ninguna lista coincide con "$query"',
+        primaryLabel: 'Borrar búsqueda',
+        onPrimary: onClearSearch ??
+            () {
+              ref.read(librarySearchActiveProvider.notifier).state = false;
+              ref.read(librarySearchQueryProvider.notifier).state = '';
+            },
       );
     }
 
@@ -113,7 +129,18 @@ class PlaylistsTab extends ConsumerWidget {
         // never both at once, so marking a row doesn't leave a control fighting
         // the bar for space.
         if (selecting)
-          const Positioned(left: 0, right: 0, bottom: 0, child: _PlaylistsSelectionBar())
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            // Ids of the rows actually on screen right now — a search query
+            // can hide marked rows without unmarking them (marking survives
+            // typing since both live in the same tab), so the bar's own
+            // delete needs this to know which marked ids it may act on.
+            child: _PlaylistsSelectionBar(
+              visibleIds: {for (final p in playlists) p.id},
+            ),
+          )
         else
           Positioned(
             right: 16,
@@ -185,7 +212,14 @@ class _NewPlaylistButton extends ConsumerWidget {
 /// SelectionBottomBar's visual register (full-width, top border, safe-area)
 /// without touching that file — this one is local to the Listas tab.
 class _PlaylistsSelectionBar extends ConsumerWidget {
-  const _PlaylistsSelectionBar();
+  const _PlaylistsSelectionBar({required this.visibleIds});
+
+  /// Ids of the rows the current search query (if any) is actually
+  /// rendering. `_delete` below intersects the marked set with this before
+  /// acting — a search can narrow the visible rows without touching the
+  /// marks (they're independent state), and deleting a marked-but-hidden
+  /// playlist the user can no longer see would be a silent surprise.
+  final Set<String> visibleIds;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -241,7 +275,13 @@ class _PlaylistsSelectionBar extends ConsumerWidget {
     // act on outlive whatever happens to `context` while the dialog is up.
     final notifier = ref.read(playlistsProvider.notifier);
     final selectionNotifier = ref.read(playlistsSelectionProvider.notifier);
-    final ids = ref.read(playlistsSelectionProvider).toList();
+    // Only the ids a search query, if any, is still showing — see
+    // `visibleIds`'s doc above for why marked-but-hidden ids must not reach
+    // `notifier.delete` below.
+    final ids = ref
+        .read(playlistsSelectionProvider)
+        .where(visibleIds.contains)
+        .toList();
     final n = ids.length;
 
     final confirmed = await showDialog<bool>(
