@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../platform/interfaces/media_file_ops.dart';
 import '../../platform/interfaces/media_indexer.dart';
 import '../../platform/media_file_ops_provider.dart';
+import '../bookmarks/bookmark_store.dart';
 import '../open/video_source.dart'; // resumeServiceProvider
 import '../playlists/playlist_controller.dart';
 import '../tracks/subtitle_importer.dart';
@@ -13,10 +14,11 @@ import 'played.dart';
 /// Orchestrates a library video's file operations and their side effects:
 /// refreshing the media index, and keeping the resume, played, subtitle
 /// prefs, and playlist stores (keyed by file name) consistent — migrating
-/// them on rename, clearing them on delete. Playlists are the one exception:
-/// delete deliberately does NOT touch them, so a video's entry survives its
-/// own deletion and renders greyed — an SD card unplugged for an afternoon
-/// must not destroy a playlist.
+/// them on rename, clearing them on delete. Playlists and bookmarks are the
+/// exception: delete deliberately does NOT touch them, so a video's entry
+/// (or its bookmarks) survives its own deletion — an SD card unplugged for
+/// an afternoon must not destroy either, and a video deleted by mistake and
+/// restored keeps whatever was marked in it.
 class VideoActionsController {
   final Ref _ref;
   VideoActionsController(this._ref);
@@ -57,6 +59,7 @@ class VideoActionsController {
     await _ref.read(resumeServiceProvider).rename(v.name, newName);
     await _ref.read(trackPrefsStoreProvider).rename(v.name, newName);
     await _ref.read(playlistsProvider.notifier).renameEntry(v.id, v.name, newName);
+    await _ref.read(bookmarkStoreProvider).rename(v.name, newName);
     final played = _ref.read(playedStoreProvider);
     if (played.isPlayed(v.name)) {
       await played.markPlayed(newName);

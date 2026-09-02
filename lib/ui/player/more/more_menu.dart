@@ -8,10 +8,13 @@ import '../../../core/theme/kivo_theme.dart';
 import '../../../player/engine/playback_engine.dart';
 import '../../../player/engine/playback_provider.dart';
 import '../../../core/errors/kivo_failure.dart';
+import '../../../player/bookmarks/bookmark.dart';
+import '../../../player/bookmarks/bookmarks_provider.dart';
 import '../../../player/capture/frame_capture_controller.dart';
 import '../../../player/loop/ab_loop.dart';
 import '../../../player/open/video_source.dart';
 import '../../../player/queue/queue_order.dart';
+import '../bookmarks/bookmarks_sheet.dart';
 import '../chapters/chapters_sheet.dart';
 import '../sleep/sleep_timer_panel.dart';
 import '../state/controls_visibility.dart';
@@ -153,6 +156,35 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                     ),
                     const SizedBox(height: 8),
                     _MenuRow(
+                      icon: Icons.bookmark_add_outlined,
+                      title: 'Marcar aquí',
+                      subtitle: 'Guardar este momento del video',
+                      onTap: () {
+                        // Popped first, then acted on — same rule as frame
+                        // capture below.
+                        Navigator.of(sheetContext).pop();
+                        _addBookmarkHere(context, ref);
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    // Always listed, same reasoning as Capítulos above: count
+                    // is only known from the store, and this row is what
+                    // shows it.
+                    _MenuRow(
+                      icon: Icons.bookmark_outline_rounded,
+                      title: 'Marcadores',
+                      subtitle: switch (sheetRef.watch(bookmarksProvider).length) {
+                        0 => 'Sin marcadores',
+                        1 => '1 marcador',
+                        final n => '$n marcadores',
+                      },
+                      onTap: () {
+                        Navigator.of(sheetContext).pop();
+                        showBookmarksSheet(context);
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    _MenuRow(
                       icon: Icons.photo_camera_outlined,
                       title: 'Capturar fotograma',
                       subtitle: 'Guardar esta imagen en la galería',
@@ -197,6 +229,54 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
       ),
     ),
   );
+}
+
+/// Saves the current position as an unnamed bookmark and reports it with a
+/// SnackBar offering to name it. Asking for a name up front is what makes
+/// people never bookmark anything, so the save happens first, no dialog.
+///
+/// [context] here is the screen showMoreMenu was opened from, not the sheet's
+/// own — the sheet was already popped by the caller before this runs — so it
+/// stays mounted for as long as the player screen itself does, well past the
+/// SnackBar's own lifetime. Messenger and position are captured before the
+/// await regardless, same rule as [_captureFrame] below.
+Future<void> _addBookmarkHere(BuildContext context, WidgetRef ref) async {
+  final messenger = ScaffoldMessenger.of(context);
+  final position = ref.read(positionProvider).value ?? Duration.zero;
+  final bookmark = await ref.read(bookmarksProvider.notifier).add(
+        position.inMilliseconds,
+      );
+
+  messenger.hideCurrentSnackBar();
+  messenger.showSnackBar(
+    SnackBar(
+      content: Text('Marcador guardado · ${fmtDuration(position)}'),
+      action: SnackBarAction(
+        label: 'Nombrar',
+        onPressed: () => _nameBookmark(context, ref, bookmark),
+      ),
+    ),
+  );
+}
+
+/// Names a just-saved bookmark, from the SnackBar's "Nombrar" action.
+///
+/// Guarded by `context.mounted`: this fires from a user tap that can land
+/// well after the SnackBar first showed, so the screen it belongs to may be
+/// gone by then. Looked up again by identity ([bookmark] is unrenamed at
+/// this point, so value equality still finds it) rather than trusting a
+/// stored index: other bookmarks may have been added or removed meanwhile.
+Future<void> _nameBookmark(
+  BuildContext context,
+  WidgetRef ref,
+  Bookmark bookmark,
+) async {
+  if (!context.mounted) return;
+  final name = await promptBookmarkName(context);
+  if (name == null) return;
+  final index = ref.read(bookmarksProvider).indexOf(bookmark);
+  if (index < 0) return;
+  await ref.read(bookmarksProvider.notifier).rename(index, name);
 }
 
 /// Captures the current frame and reports the outcome.

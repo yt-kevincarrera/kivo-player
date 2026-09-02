@@ -11,6 +11,7 @@ import 'core/errors/error_log_provider.dart';
 import 'core/settings/settings_store.dart';
 import 'core/settings/settings_service.dart';
 import 'core/settings/settings_provider.dart';
+import 'player/bookmarks/bookmark_store.dart';
 import 'player/engine/media_kit_engine.dart';
 import 'player/engine/playback_provider.dart';
 import 'player/playlists/playlist_store.dart';
@@ -64,6 +65,7 @@ Future<void> main() async {
   // state: renaming it would strand every 1.6.x install's saved offsets.
   final trackPrefsBox = await Hive.openBox('subtitlePrefs');
   final playlistsBox = await Hive.openBox('playlists');
+  final bookmarksBox = await Hive.openBox('bookmarks');
 
   // The app version and API level are captured once and stamped on every
   // recorded failure: a reported code is only useful with the device it came
@@ -95,6 +97,7 @@ Future<void> main() async {
       resumeServiceProvider.overrideWithValue(resumeService),
       playedStoreProvider.overrideWithValue(HivePlayedStore(playedBox)),
       playlistStoreProvider.overrideWithValue(HivePlaylistStore(playlistsBox)),
+      bookmarkStoreProvider.overrideWithValue(HiveBookmarkStore(bookmarksBox)),
       frameExtractorProvider.overrideWithValue(AndroidFrameExtractor()),
       mediaIndexerProvider.overrideWithValue(AndroidMediaIndexer(errorLog)),
       mediaFileOpsProvider.overrideWithValue(AndroidMediaFileOps(errorLog)),
