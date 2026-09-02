@@ -43,23 +43,23 @@ Future<ProviderContainer> _pump(WidgetTester tester, {required bool viaMenu}) as
 }
 
 void main() {
-  testWidgets('more menu shows the timer entry and navigates to the panel', (tester) async {
+  testWidgets('more menu shows the timer tile and navigates to the panel', (tester) async {
     await _pump(tester, viaMenu: true);
-    expect(find.text('Temporizador de apagado'), findsOneWidget);
-    await tester.tap(find.text('Temporizador de apagado'));
+    expect(find.text('Temporizador'), findsOneWidget);
+    await tester.tap(find.text('Temporizador'));
     await tester.pumpAndSettle();
     expect(find.textContaining('Iniciar ·'), findsOneWidget);
   });
 
   testWidgets('the panel back arrow returns to the more menu', (tester) async {
     await _pump(tester, viaMenu: true);
-    await tester.tap(find.text('Temporizador de apagado'));
+    await tester.tap(find.text('Temporizador'));
     await tester.pumpAndSettle();
     expect(find.textContaining('Iniciar ·'), findsOneWidget);
     await tester.tap(find.byIcon(Icons.arrow_back_rounded));
     await tester.pumpAndSettle();
-    // Back in the menu: the timer entry row is visible again, the panel is gone.
-    expect(find.text('Detener la reproducción automáticamente'), findsOneWidget);
+    // Back in the menu: the timer tile is visible again, the panel is gone.
+    expect(find.text('Temporizador'), findsOneWidget);
     expect(find.textContaining('Iniciar ·'), findsNothing);
   });
 
