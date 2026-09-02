@@ -60,7 +60,11 @@ class PlaylistScreen extends ConsumerWidget {
               ],
             )
           : AppBar(
-              title: Text(playlist.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+              title: Text(
+                playlist.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
               actions: [
                 PopupMenuButton<String>(
                   onSelected: (value) {
@@ -68,7 +72,10 @@ class PlaylistScreen extends ConsumerWidget {
                     if (value == 'delete') _delete(context, ref, playlist!);
                   },
                   itemBuilder: (_) => const [
-                    PopupMenuItem(value: 'rename', child: Text('Renombrar lista')),
+                    PopupMenuItem(
+                      value: 'rename',
+                      child: Text('Renombrar lista'),
+                    ),
                     PopupMenuItem(value: 'delete', child: Text('Borrar lista')),
                   ],
                 ),
@@ -91,13 +98,52 @@ class PlaylistScreen extends ConsumerWidget {
           ? const LibraryEmptyState(
               icon: Icons.playlist_play_rounded,
               title: 'Esta lista está vacía',
-              subtitle: 'Añade videos desde la selección o desde el menú de '
+              subtitle:
+                  'Añade videos desde la selección o desde el menú de '
                   'un video, con «Añadir a lista».',
             )
           : ReorderableListView.builder(
               padding: const EdgeInsets.fromLTRB(4, 8, 4, 96),
               buildDefaultDragHandles: false,
               itemCount: resolved.length,
+              // Two taps of the motor say "you have it" and "it landed".
+              // Without them the grab was silent, and nothing told the user
+              // the row was already following the thumb.
+              onReorderStart: (_) => HapticFeedback.mediumImpact(),
+              onReorderEnd: (_) => HapticFeedback.lightImpact(),
+              // The row in flight lifts, grows a hair and takes the accent
+              // as a border, so it is obviously the one being carried.
+              proxyDecorator: (child, _, animation) => AnimatedBuilder(
+                animation: animation,
+                builder: (context, _) {
+                  final t = Curves.easeOut.transform(animation.value);
+                  final cs = Theme.of(context).colorScheme;
+                  return Transform.scale(
+                    scale: 1 + 0.02 * t,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: cs.surfaceContainerHigh,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: accent.withValues(alpha: t),
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              blurRadius: 18 * t,
+                              offset: Offset(0, 6 * t),
+                              color: Colors.black.withValues(alpha: 0.4 * t),
+                            ),
+                          ],
+                        ),
+                        child: child,
+                      ),
+                    ),
+                  );
+                },
+              ),
               onReorder: (oldIndex, newIndex) {
                 // Flutter reports newIndex as the position BEFORE the
                 // dragged item is removed from the list, so dragging item 0
@@ -108,7 +154,9 @@ class PlaylistScreen extends ConsumerWidget {
                 // through. Dragging up needs no adjustment: the reported
                 // index is already the final one.
                 final adjusted = newIndex > oldIndex ? newIndex - 1 : newIndex;
-                ref.read(playlistsProvider.notifier).reorder(playlistId, oldIndex, adjusted);
+                ref
+                    .read(playlistsProvider.notifier)
+                    .reorder(playlistId, oldIndex, adjusted);
               },
               itemBuilder: (context, i) {
                 final re = resolved[i];
@@ -179,7 +227,9 @@ class PlaylistScreen extends ConsumerWidget {
             onTap: (origin) {
               if (selecting) {
                 HapticFeedback.selectionClick();
-                ref.read(librarySelectionProvider.notifier).toggle(re.video!.uri);
+                ref
+                    .read(librarySelectionProvider.notifier)
+                    .toggle(re.video!.uri);
                 return;
               }
               _openEntry(context, ref, i);
@@ -193,17 +243,33 @@ class PlaylistScreen extends ConsumerWidget {
     return Padding(
       key: ValueKey('playlist-entry-$i'),
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-      child: Row(
-        children: [
-          ReorderableDragStartListener(
-            index: i,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              child: Icon(Icons.drag_handle, color: cs.onSurfaceVariant),
+      // IntrinsicHeight so the grip can stretch to the tile's height: the
+      // list item arrives with unbounded height, and a stretched Row alone
+      // would take that literally.
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ReorderableDragStartListener(
+              index: i,
+              // Starts on the first move, no press-and-hold. The target is a
+              // 44-wide column the full height of the row rather than the
+              // 24-px glyph: a grip is grabbed with a thumb, and a miss landed
+              // on the tile, where a hold starts selection instead — which is
+              // how "you have to hold it" got learned.
+              child: ColoredBox(
+                color: Colors.transparent,
+                child: SizedBox(
+                  width: 44,
+                  child: Center(
+                    child: Icon(Icons.drag_handle, color: cs.onSurfaceVariant),
+                  ),
+                ),
+              ),
             ),
-          ),
-          Expanded(child: content),
-        ],
+            Expanded(child: content),
+          ],
+        ),
       ),
     );
   }
@@ -212,7 +278,12 @@ class PlaylistScreen extends ConsumerWidget {
   /// before anything else, matching this branch's rule of grabbing the
   /// messenger and the notifier BEFORE any await, so neither ever touches a
   /// BuildContext that may no longer be mounted.
-  void _removeEntry(BuildContext context, WidgetRef ref, int index, ResolvedEntry re) {
+  void _removeEntry(
+    BuildContext context,
+    WidgetRef ref,
+    int index,
+    ResolvedEntry re,
+  ) {
     final messenger = ScaffoldMessenger.of(context);
     final notifier = ref.read(playlistsProvider.notifier);
     final entry = re.entry;
@@ -225,13 +296,15 @@ class PlaylistScreen extends ConsumerWidget {
     // Hide any snackbar already up first — removing several entries quickly
     // must not queue a snackbar per removal.
     messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(SnackBar(
-      content: Text('«$name» quitado de la lista'),
-      action: SnackBarAction(
-        label: 'Deshacer',
-        onPressed: () => notifier.insertEntryAt(playlistId, index, entry),
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text('«$name» quitado de la lista'),
+        action: SnackBarAction(
+          label: 'Deshacer',
+          onPressed: () => notifier.insertEntryAt(playlistId, index, entry),
+        ),
       ),
-    ));
+    );
   }
 
   void _openEntry(BuildContext context, WidgetRef ref, int index) {
@@ -247,7 +320,9 @@ class PlaylistScreen extends ConsumerWidget {
     final ok = ref.read(playlistPlaybackProvider).play(playlistId);
     if (!ok) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nada disponible para reproducir ahora mismo')),
+        const SnackBar(
+          content: Text('Nada disponible para reproducir ahora mismo'),
+        ),
       );
       return;
     }
@@ -257,7 +332,11 @@ class PlaylistScreen extends ConsumerWidget {
     });
   }
 
-  Future<void> _rename(BuildContext context, WidgetRef ref, Playlist playlist) async {
+  Future<void> _rename(
+    BuildContext context,
+    WidgetRef ref,
+    Playlist playlist,
+  ) async {
     // Captured before the confirm dialog's await — the notifier belongs to
     // the container and outlives whatever happens to `context`.
     final notifier = ref.read(playlistsProvider.notifier);
@@ -296,7 +375,11 @@ class PlaylistScreen extends ConsumerWidget {
     await notifier.rename(playlist.id, name);
   }
 
-  Future<void> _delete(BuildContext context, WidgetRef ref, Playlist playlist) async {
+  Future<void> _delete(
+    BuildContext context,
+    WidgetRef ref,
+    Playlist playlist,
+  ) async {
     // Captured BEFORE the confirm dialog's await. Deleting is not undoable,
     // so once the user confirms we pop this screen immediately — before the
     // write — rather than after: the write is async, and popping after it
@@ -320,7 +403,10 @@ class PlaylistScreen extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text('Borrar', style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
+            child: Text(
+              'Borrar',
+              style: TextStyle(color: Theme.of(ctx).colorScheme.error),
+            ),
           ),
         ],
       ),
@@ -379,7 +465,11 @@ class _UnavailableEntryRow extends StatelessWidget {
                     Positioned(
                       top: 4,
                       right: 4,
-                      child: Icon(Icons.error_outline, size: 16, color: cs.error),
+                      child: Icon(
+                        Icons.error_outline,
+                        size: 16,
+                        color: cs.error,
+                      ),
                     ),
                   ],
                 ),

@@ -244,4 +244,29 @@ void main() {
 
     expect(store.all(), isEmpty);
   });
+
+  test('a reorder shows in state before the write lands', () async {
+    // ReorderableListView drops the row into its new slot and expects the
+    // very next build to agree. If state only changed after the store write,
+    // one frame rendered the OLD order and the rows visibly jumped back
+    // before settling. So the update is synchronous; the write follows.
+    final store = InMemoryPlaylistStore();
+    final c = _c(store);
+    addTearDown(c.dispose);
+    final p = await c.read(playlistsProvider.notifier).create('A');
+    await c.read(playlistsProvider.notifier)
+        .addVideos(p.id, [_v('1', 'a.mkv'), _v('2', 'b.mkv'), _v('3', 'c.mkv')]);
+
+    final pending = c.read(playlistsProvider.notifier).reorder(p.id, 0, 2);
+    // Deliberately not awaited yet.
+    expect(
+      c.read(playlistsProvider).single.entries.map((e) => e.displayName),
+      ['b.mkv', 'c.mkv', 'a.mkv'],
+    );
+    await pending;
+    expect(
+      store.all().single.entries.map((e) => e.displayName),
+      ['b.mkv', 'c.mkv', 'a.mkv'],
+    );
+  });
 }

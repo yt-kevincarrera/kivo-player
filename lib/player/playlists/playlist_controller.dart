@@ -6,7 +6,9 @@ import 'playlist_store.dart';
 
 /// Injected so playlist ids are deterministic under test. Ids are creation
 /// timestamps, so without this every test would produce a different one.
-final playlistClockProvider = Provider<DateTime Function()>((ref) => DateTime.now);
+final playlistClockProvider = Provider<DateTime Function()>(
+  (ref) => DateTime.now,
+);
 
 /// Every playlist, newest first. The single writer for the store.
 class PlaylistsNotifier extends Notifier<List<Playlist>> {
@@ -37,19 +39,21 @@ class PlaylistsNotifier extends Notifier<List<Playlist>> {
       _update(id, (p) => p.copyWith(name: name));
 
   Future<void> addVideos(String id, List<VideoItem> videos) => _update(
-        id,
-        (p) => p.copyWith(entries: [
-          ...p.entries,
-          for (final v in videos)
-            PlaylistEntry(mediaId: v.id, displayName: v.name),
-        ]),
-      );
+    id,
+    (p) => p.copyWith(
+      entries: [
+        ...p.entries,
+        for (final v in videos)
+          PlaylistEntry(mediaId: v.id, displayName: v.name),
+      ],
+    ),
+  );
 
   Future<void> removeEntryAt(String id, int index) => _update(id, (p) {
-        if (index < 0 || index >= p.entries.length) return p;
-        final entries = [...p.entries]..removeAt(index);
-        return p.copyWith(entries: entries);
-      });
+    if (index < 0 || index >= p.entries.length) return p;
+    final entries = [...p.entries]..removeAt(index);
+    return p.copyWith(entries: entries);
+  });
 
   /// Undo for [removeEntryAt]: puts [entry] back at [index], clamped to the
   /// current bounds rather than thrown on — the list may have changed shape
@@ -63,7 +67,8 @@ class PlaylistsNotifier extends Notifier<List<Playlist>> {
         return p.copyWith(entries: entries);
       });
 
-  Future<void> reorder(String id, int oldIndex, int newIndex) => _update(id, (p) {
+  Future<void> reorder(String id, int oldIndex, int newIndex) =>
+      _update(id, (p) {
         if (oldIndex < 0 || oldIndex >= p.entries.length) return p;
         final entries = [...p.entries];
         final moved = entries.removeAt(oldIndex);
@@ -82,29 +87,46 @@ class PlaylistsNotifier extends Notifier<List<Playlist>> {
   /// entry — that would leave it labelled with a name it does not have and,
   /// worse, pointing its name fallback at somebody else's video. An entry
   /// with no id stored falls back to the name, which is all it has.
-  Future<void> renameEntry(String mediaId, String oldName, String newName) async {
+  Future<void> renameEntry(
+    String mediaId,
+    String oldName,
+    String newName,
+  ) async {
     bool isTheRenamed(PlaylistEntry e) =>
         e.mediaId.isEmpty ? e.displayName == oldName : e.mediaId == mediaId;
 
     for (final p in _store.all()) {
       if (!p.entries.any(isTheRenamed)) continue;
-      await _store.put(p.copyWith(
-        entries: p.entries
-            .map((e) => isTheRenamed(e)
-                ? PlaylistEntry(mediaId: e.mediaId, displayName: newName)
-                : e)
-            .toList(),
-      ));
+      await _store.put(
+        p.copyWith(
+          entries: p.entries
+              .map(
+                (e) => isTheRenamed(e)
+                    ? PlaylistEntry(mediaId: e.mediaId, displayName: newName)
+                    : e,
+              )
+              .toList(),
+        ),
+      );
     }
     state = _store.all();
   }
 
   /// Reads, transforms, writes. An unknown id falls through untouched rather
   /// than creating a playlist nobody asked for.
+  ///
+  /// The in-memory state changes SYNCHRONOUSLY, before the write. This is
+  /// what ReorderableListView needs from onReorder: it drops the row into its
+  /// new slot and expects the very next build to agree. Waiting for the store
+  /// first left one frame in the old order, so the rows visibly jumped back
+  /// and then settled. Spec §8 already wanted this shape — a failed write
+  /// leaves the session's list right and the next write retries.
   Future<void> _update(String id, Playlist Function(Playlist) change) async {
     final current = _findById(id);
     if (current == null) return;
-    await _store.put(change(current));
+    final next = change(current);
+    state = [for (final p in state) p.id == id ? next : p];
+    await _store.put(next);
     state = _store.all();
   }
 
@@ -118,5 +140,6 @@ class PlaylistsNotifier extends Notifier<List<Playlist>> {
   }
 }
 
-final playlistsProvider =
-    NotifierProvider<PlaylistsNotifier, List<Playlist>>(PlaylistsNotifier.new);
+final playlistsProvider = NotifierProvider<PlaylistsNotifier, List<Playlist>>(
+  PlaylistsNotifier.new,
+);
