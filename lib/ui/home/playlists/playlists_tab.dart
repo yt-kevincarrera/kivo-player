@@ -44,8 +44,8 @@ class PlaylistsSelectionNotifier extends StateNotifier<Set<String>> {
 /// letting the screen that owns the pager say so.
 final playlistsSelectionProvider =
     StateNotifierProvider<PlaylistsSelectionNotifier, Set<String>>(
-  (ref) => PlaylistsSelectionNotifier(),
-);
+      (ref) => PlaylistsSelectionNotifier(),
+    );
 
 /// The third sub-tab in Videos (spec §7): user-made playlists, each shown
 /// with a cover (the first AVAILABLE entry's thumbnail) and a count.
@@ -69,7 +69,7 @@ class PlaylistsTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final allPlaylists = ref.watch(playlistsProvider);
-    final selecting = ref.watch(playlistsSelectionProvider).isNotEmpty;
+    final marked = ref.watch(playlistsSelectionProvider);
 
     if (allPlaylists.isEmpty) {
       return LibraryEmptyState(
@@ -93,7 +93,15 @@ class PlaylistsTab extends ConsumerWidget {
     final searching = ref.watch(librarySearchActiveProvider);
     final query = searching ? ref.watch(librarySearchQueryProvider) : '';
     final sort = playlistSortFor(ref.watch(settingsProvider).playlistSort);
-    final playlists = applyPlaylistFilters(allPlaylists, query: query, sort: sort);
+    final playlists = applyPlaylistFilters(
+      allPlaylists,
+      query: query,
+      sort: sort,
+    );
+    // Only marks on rows the user can SEE count: a search can hide a marked
+    // row, and a bar that says «3» while the delete reaches 2 is a lie. Same
+    // set the bar itself intersects with before deleting.
+    final selecting = marked.any((id) => playlists.any((p) => p.id == id));
 
     // A non-empty library of playlists that a search query narrowed to
     // nothing — distinct from the "no playlists at all" state above, same
@@ -104,7 +112,8 @@ class PlaylistsTab extends ConsumerWidget {
         icon: Icons.search_off,
         title: 'Ninguna lista coincide con "$query"',
         primaryLabel: 'Borrar búsqueda',
-        onPrimary: onClearSearch ??
+        onPrimary:
+            onClearSearch ??
             () {
               ref.read(librarySearchActiveProvider.notifier).state = false;
               ref.read(librarySearchQueryProvider.notifier).state = '';
@@ -121,6 +130,7 @@ class PlaylistsTab extends ConsumerWidget {
           // (_offset) that must stay with the right playlist across
           // reorders/deletes, not get silently reused by list position.
           itemBuilder: (context, i) => _PlaylistRow(
+            selecting: selecting,
             key: ValueKey(playlists[i].id),
             playlist: playlists[i],
           ),
@@ -145,7 +155,9 @@ class PlaylistsTab extends ConsumerWidget {
           Positioned(
             right: 16,
             bottom: 16,
-            child: _NewPlaylistButton(onTap: () => _createPlaylist(context, ref)),
+            child: _NewPlaylistButton(
+              onTap: () => _createPlaylist(context, ref),
+            ),
           ),
       ],
     );
@@ -225,13 +237,18 @@ class _PlaylistsSelectionBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selected = ref.watch(playlistsSelectionProvider);
     final cs = Theme.of(context).colorScheme;
-    final count = selected.length;
-    final label = count == 1 ? '1 lista seleccionada' : '$count listas seleccionadas';
+    // Same intersection _delete applies, so the label and the confirm agree.
+    final count = selected.where(visibleIds.contains).length;
+    final label = count == 1
+        ? '1 lista seleccionada'
+        : '$count listas seleccionadas';
 
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
-        border: Border(top: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.5))),
+        border: Border(
+          top: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.5)),
+        ),
       ),
       child: SafeArea(
         top: false,
@@ -243,11 +260,16 @@ class _PlaylistsSelectionBar extends ConsumerWidget {
               Expanded(
                 child: Text(
                   label,
-                  style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.w600, fontSize: 14),
+                  style: TextStyle(
+                    color: cs.onSurface,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
                 ),
               ),
               TextButton(
-                onPressed: () => ref.read(playlistsSelectionProvider.notifier).clear(),
+                onPressed: () =>
+                    ref.read(playlistsSelectionProvider.notifier).clear(),
                 child: const Text('Cancelar'),
               ),
               TextButton(
@@ -258,7 +280,10 @@ class _PlaylistsSelectionBar extends ConsumerWidget {
                 onPressed: () => _delete(context, ref),
                 child: Text(
                   'Borrar',
-                  style: TextStyle(color: cs.error, fontWeight: FontWeight.w700),
+                  style: TextStyle(
+                    color: cs.error,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -291,9 +316,9 @@ class _PlaylistsSelectionBar extends ConsumerWidget {
         content: Text(
           n == 1
               ? '¿Borrar 1 lista? Esta acción no se puede deshacer. '
-                  'Los videos no se borran, solo las listas.'
+                    'Los videos no se borran, solo las listas.'
               : '¿Borrar $n listas? Esta acción no se puede deshacer. '
-                  'Los videos no se borran, solo las listas.',
+                    'Los videos no se borran, solo las listas.',
         ),
         actions: [
           TextButton(
@@ -302,7 +327,10 @@ class _PlaylistsSelectionBar extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text('Borrar', style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
+            child: Text(
+              'Borrar',
+              style: TextStyle(color: Theme.of(ctx).colorScheme.error),
+            ),
           ),
         ],
       ),
@@ -336,7 +364,11 @@ const double _kSwipeActionWidth = 96;
 /// dispose). Duplicated here because that method is private to that file,
 /// which this branch must not edit — keep the two in sync by hand if either
 /// one changes.
-Future<void> _renamePlaylist(BuildContext context, WidgetRef ref, Playlist playlist) async {
+Future<void> _renamePlaylist(
+  BuildContext context,
+  WidgetRef ref,
+  Playlist playlist,
+) async {
   final notifier = ref.read(playlistsProvider.notifier);
   final controller = TextEditingController(text: playlist.name);
   String? name;
@@ -374,7 +406,16 @@ Future<void> _renamePlaylist(BuildContext context, WidgetRef ref, Playlist playl
 }
 
 class _PlaylistRow extends ConsumerStatefulWidget {
-  const _PlaylistRow({super.key, required this.playlist});
+  const _PlaylistRow({
+    super.key,
+    required this.playlist,
+    required this.selecting,
+  });
+
+  /// Whether the tab is in mark mode — decided by the parent from the marks
+  /// on VISIBLE rows, so a mark hidden by the search does not leave every
+  /// other row toggling instead of opening while the bar is gone.
+  final bool selecting;
   final Playlist playlist;
 
   @override
@@ -445,8 +486,10 @@ class _PlaylistRowState extends ConsumerState<_PlaylistRow>
 
   void _onDragUpdate(DragUpdateDetails details) {
     setState(() {
-      _offset =
-          (_offset + details.delta.dx).clamp(-_kSwipeActionWidth, _kSwipeActionWidth);
+      _offset = (_offset + details.delta.dx).clamp(
+        -_kSwipeActionWidth,
+        _kSwipeActionWidth,
+      );
     });
   }
 
@@ -454,7 +497,8 @@ class _PlaylistRowState extends ConsumerState<_PlaylistRow>
     final opensBorrar = _offset < -_kSwipeActionWidth / 2;
     final opensRenombrar = _offset > _kSwipeActionWidth / 2;
     if (opensBorrar || opensRenombrar) {
-      ref.read(_playlistSwipeOpenRowProvider.notifier).state = widget.playlist.id;
+      ref.read(_playlistSwipeOpenRowProvider.notifier).state =
+          widget.playlist.id;
       _animateTo(opensBorrar ? -_kSwipeActionWidth : _kSwipeActionWidth);
     } else {
       if (ref.read(_playlistSwipeOpenRowProvider) == widget.playlist.id) {
@@ -484,7 +528,7 @@ class _PlaylistRowState extends ConsumerState<_PlaylistRow>
     final cs = Theme.of(context).colorScheme;
     final accent = Color(ref.watch(settingsProvider).accentColor);
     final selectionIds = ref.watch(playlistsSelectionProvider);
-    final selecting = selectionIds.isNotEmpty;
+    final selecting = widget.selecting;
     final selected = selectionIds.contains(playlist.id);
 
     // Closes this row's swipe reveal the moment another row's opens, or the
@@ -534,16 +578,20 @@ class _PlaylistRowState extends ConsumerState<_PlaylistRow>
         ref.read(playlistsSelectionProvider.notifier).toggle(playlist.id);
         return;
       }
-      Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => PlaylistScreen(playlistId: playlist.id),
-      ));
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => PlaylistScreen(playlistId: playlist.id),
+        ),
+      );
     }
 
     final row = GestureDetector(
       behavior: HitTestBehavior.opaque,
       onLongPress: selecting || _offset != 0
           ? null
-          : () => ref.read(playlistsSelectionProvider.notifier).toggle(playlist.id),
+          : () => ref
+                .read(playlistsSelectionProvider.notifier)
+                .toggle(playlist.id),
       onLongPressDown: (_) => setState(() => _pressing = true),
       onLongPressCancel: () => setState(() => _pressing = false),
       onLongPressUp: () => setState(() => _pressing = false),
@@ -554,99 +602,106 @@ class _PlaylistRowState extends ConsumerState<_PlaylistRow>
         child: PressBounce(
           onTap: handleTap,
           child: Container(
-              decoration: BoxDecoration(
-                color: cs.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(10),
-                // Marked is a clearly different border, not a shade
-                // difference — the app has rejected too-subtle selection
-                // cues before.
-                border: Border.all(
-                  color: selected ? accent : cs.onSurface.withValues(alpha: 0.08),
-                  width: selected ? 2 : 0.5,
-                ),
+            decoration: BoxDecoration(
+              color: cs.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(10),
+              // Marked is a clearly different border, not a shade
+              // difference — the app has rejected too-subtle selection
+              // cues before.
+              border: Border.all(
+                color: selected ? accent : cs.onSurface.withValues(alpha: 0.08),
+                width: selected ? 2 : 0.5,
               ),
-              clipBehavior: Clip.antiAlias,
-              child: Stack(
-                children: [
-                  Row(
-                    children: [
-                      SizedBox(
-                        width: 96,
-                        child: AspectRatio(
-                          aspectRatio: 16 / 9,
-                          child: coverId == null
-                              ? Container(
-                                  color: cs.surfaceContainerHigh,
-                                  alignment: Alignment.center,
-                                  child: Icon(
-                                    Icons.playlist_play_rounded,
-                                    color: cs.onSurfaceVariant,
-                                  ),
-                                )
-                              : ThumbnailImage(coverId, fit: BoxFit.cover),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                playlist.name,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: cs.onSurface,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Stack(
+              children: [
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 96,
+                      child: AspectRatio(
+                        aspectRatio: 16 / 9,
+                        child: coverId == null
+                            ? Container(
+                                color: cs.surfaceContainerHigh,
+                                alignment: Alignment.center,
+                                child: Icon(
+                                  Icons.playlist_play_rounded,
+                                  color: cs.onSurfaceVariant,
                                 ),
+                              )
+                            : ThumbnailImage(coverId, fit: BoxFit.cover),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              playlist.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: cs.onSurface,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
                               ),
-                              const SizedBox(height: 2),
-                              Text(
-                                countLabel,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12.5),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              countLabel,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: cs.onSurfaceVariant,
+                                fontSize: 12.5,
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      if (!selecting) ...[
-                        Icon(Icons.chevron_right, color: cs.onSurfaceVariant),
-                        const SizedBox(width: 4),
-                      ] else
-                        const SizedBox(width: 44),
-                    ],
+                    ),
+                    const SizedBox(width: 8),
+                    if (!selecting) ...[
+                      Icon(Icons.chevron_right, color: cs.onSurfaceVariant),
+                      const SizedBox(width: 4),
+                    ] else
+                      const SizedBox(width: 44),
+                  ],
+                ),
+                if (selected)
+                  Positioned.fill(
+                    // IgnorePointer: this is a purely visual tint sitting on
+                    // top of the row in the Stack's paint order — without
+                    // it, hit testing lands on this box instead of passing
+                    // through to the Row underneath.
+                    child: IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: accent.withValues(alpha: 0.22),
+                        ),
+                      ),
+                    ),
                   ),
-                  if (selected)
-                    Positioned.fill(
-                      // IgnorePointer: this is a purely visual tint sitting on
-                      // top of the row in the Stack's paint order — without
-                      // it, hit testing lands on this box instead of passing
-                      // through to the Row underneath.
-                      child: IgnorePointer(
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(color: accent.withValues(alpha: 0.22)),
-                        ),
-                      ),
+                if (selecting)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: IgnorePointer(
+                      child: _selectionBadge(accent, selected),
                     ),
-                  if (selecting)
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: IgnorePointer(child: _selectionBadge(accent, selected)),
-                    ),
-                ],
-              ),
+                  ),
+              ],
             ),
           ),
         ),
-      );
+      ),
+    );
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -691,15 +746,17 @@ class _PlaylistRowState extends ConsumerState<_PlaylistRow>
   }
 
   Widget _selectionBadge(Color accent, bool selected) => Container(
-        width: 22,
-        height: 22,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: selected ? accent : Colors.black.withValues(alpha: 0.35),
-          border: Border.all(color: Colors.white, width: 2),
-        ),
-        child: selected ? Icon(Icons.check, size: 14, color: onAccent(accent)) : null,
-      );
+    width: 22,
+    height: 22,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: selected ? accent : Colors.black.withValues(alpha: 0.35),
+      border: Border.all(color: Colors.white, width: 2),
+    ),
+    child: selected
+        ? Icon(Icons.check, size: 14, color: onAccent(accent))
+        : null,
+  );
 }
 
 /// The two swipe-revealed actions sitting behind a playlist row: Renombrar
@@ -792,8 +849,11 @@ class _SwipeActionButton extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     label,
-                    style:
-                        TextStyle(color: foreground, fontWeight: FontWeight.w700, fontSize: 12.5),
+                    style: TextStyle(
+                      color: foreground,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12.5,
+                    ),
                   ),
                 ],
               ),

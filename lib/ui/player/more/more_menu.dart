@@ -153,11 +153,11 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                       },
                     ),
                     const SizedBox(height: 8),
+                    const _MenuDivider(),
                     // Always listed. Whether this video has chapters is only known
                     // after they are read, and reading them just to decide whether
                     // to show a row would defeat the deferred read entirely — so
                     // the sheet answers instead.
-                    const _MenuDivider(),
                     _MenuRow(
                       icon: Icons.format_list_numbered_rounded,
                       title: 'Capítulos',
@@ -381,12 +381,17 @@ class _MenuDivider extends StatelessWidget {
   const _MenuDivider();
 
   @override
-  Widget build(BuildContext context) => Divider(
-    height: 1,
-    thickness: 1,
-    indent: 20,
-    endIndent: 20,
-    color: Colors.white.withValues(alpha: 0.08),
+  Widget build(BuildContext context) => Padding(
+    // The card above already leaves 8 px; this mirrors it below so the
+    // hairline sits between the groups, not glued to the next card.
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Divider(
+      height: 1,
+      thickness: 1,
+      indent: 20,
+      endIndent: 20,
+      color: Colors.white.withValues(alpha: 0.08),
+    ),
   );
 }
 

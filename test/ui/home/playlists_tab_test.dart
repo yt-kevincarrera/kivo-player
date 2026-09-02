@@ -420,6 +420,9 @@ void main() {
       expect(find.text('Curso'), findsNothing);
       // The mark on the now-hidden Curso survives the query change.
       expect(c.read(playlistsSelectionProvider).length, 2);
+      // …but the bar counts only what is on screen, so it agrees with the
+      // delete it is about to offer.
+      expect(find.text('1 lista seleccionada'), findsOneWidget);
 
       await tester.tap(find.byKey(const Key('playlists-bulk-borrar')));
       await tester.pumpAndSettle();
