@@ -7,22 +7,55 @@ import '../open/video_source.dart';
 import 'playlist.dart';
 import 'playlist_controller.dart';
 
+/// The media index built into shared lookup maps once per index change,
+/// instead of every playlist resolution rebuilding its own — see
+/// [MediaLookup]'s doc.
+///
+/// Reads `mediaIndexProvider` — the RAW scan — rather than the
+/// folder-filtered `libraryIndexProvider`. A video the user put in a playlist
+/// by hand outranks a view filter: hiding its folder must not silently empty
+/// the playlist. This is the only place in the app that reads past that
+/// filter, and it is deliberate (mirrored by [resolvedPlaylistProvider]'s own
+/// copy of this note, since that's the provider callers actually watch).
+final mediaLookupProvider = Provider<MediaLookup>((ref) {
+  final index = ref.watch(mediaIndexProvider).valueOrNull ?? const [];
+  return MediaLookup.build(index);
+});
+
 /// One playlist's entries paired with the videos they point at.
 ///
-/// Reads `mediaIndexProvider` — the RAW scan — rather than the folder-filtered
-/// `libraryIndexProvider`. A video the user put in a playlist by hand outranks
-/// a view filter: hiding its folder must not silently empty the playlist. This
-/// is the only place in the app that reads past that filter, and it is
-/// deliberate.
+/// `autoDispose`: nothing keeps a resolution alive once nobody is watching
+/// it — a playlist screen closes, or `PlaylistPlayback` finishes the
+/// transient `ref.read` it uses to start playback.
+///
+/// Watches `playlistsProvider` through `.select`, not the whole list: editing
+/// playlist A rebuilds only playlist A's `Playlist` in the provider's state
+/// (see `PlaylistsNotifier._update`), and `select` compares the selected
+/// value with `==` before deciding whether to recompute — so playlist B's
+/// resolution is untouched. That only works because [Playlist] now has
+/// value equality (see its `==` there for why identity alone is not enough
+/// once `HivePlaylistStore` is in play).
+///
+/// Reads `mediaIndexProvider` — the RAW scan — rather than the
+/// folder-filtered `libraryIndexProvider`. A video the user put in a playlist
+/// by hand outranks a view filter: hiding its folder must not silently empty
+/// the playlist. This is the only place in the app that reads past that
+/// filter, and it is deliberate.
 final resolvedPlaylistProvider =
-    Provider.family<List<ResolvedEntry>, String>((ref, playlistId) {
-  final playlists = ref.watch(playlistsProvider);
-  final index = ref.watch(mediaIndexProvider).valueOrNull ?? const [];
-  for (final p in playlists) {
-    if (p.id == playlistId) return resolvePlaylist(p, index);
-  }
-  return const [];
+    Provider.autoDispose.family<List<ResolvedEntry>, String>((ref, playlistId) {
+  final playlist = ref.watch(
+    playlistsProvider.select((list) => _findPlaylist(list, playlistId)),
+  );
+  if (playlist == null) return const [];
+  return resolvePlaylist(playlist, ref.watch(mediaLookupProvider));
 });
+
+Playlist? _findPlaylist(List<Playlist> playlists, String id) {
+  for (final p in playlists) {
+    if (p.id == id) return p;
+  }
+  return null;
+}
 
 /// Starts a playlist as the player's queue.
 ///
