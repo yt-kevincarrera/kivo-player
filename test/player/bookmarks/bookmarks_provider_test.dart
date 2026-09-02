@@ -236,7 +236,7 @@ void main() {
     videos.open(_session('a.mkv'));
     await c.read(bookmarksProvider.notifier).add(1000);
     final removed = c.read(bookmarksProvider).single;
-    final capturedKey = 'a.mkv';
+    const capturedKey = 'a.mkv';
     final removedOk =
         await c.read(bookmarksProvider.notifier).removeAt(0, key: capturedKey);
     expect(removedOk, isTrue);
@@ -269,7 +269,7 @@ void main() {
     final videos = c.read(currentVideoProvider.notifier);
 
     videos.open(_session('a.mkv'));
-    final capturedKey = 'a.mkv'; // captured when a rename dialog opened on A
+    const capturedKey = 'a.mkv'; // captured when a rename dialog opened on A
 
     // The video changes underneath the still-open dialog.
     videos.open(_session('b.mkv'));

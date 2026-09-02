@@ -146,6 +146,19 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     ref.read(librarySearchActiveProvider.notifier).state = false;
     ref.read(librarySearchQueryProvider.notifier).state = '';
     _searchController.clear();
+    _syncPagerToTab();
+  }
+
+  /// Search replaces the whole chips+pager column, so closing it REMOUNTS the
+  /// PageView — and a re-attached PageController starts at its initialPage
+  /// (0), not where the user was. Without this, closing search from Carpetas
+  /// or Listas showed Todo under a chip that still said otherwise.
+  void _syncPagerToTab() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_pageController.hasClients) return;
+      final i = ref.read(librarySubTabProvider);
+      if (_pageController.page?.round() != i) _pageController.jumpToPage(i);
+    });
   }
 
   /// The video list currently fed to [VideoDensityFeed] — used both by the
