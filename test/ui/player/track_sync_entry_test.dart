@@ -56,17 +56,9 @@ void main() {
 
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
-    expect(find.text('Sincronizar audio y subtítulos'), findsOneWidget);
+    expect(find.text('Sincronizar'), findsOneWidget);
 
-    // The menu has grown past what fits on screen without scrolling (the
-    // equalizer entry now follows this one) — scroll it into view the same
-    // way a real user would before tapping it.
-    await tester.dragUntilVisible(
-      find.text('Sincronizar audio y subtítulos'),
-      find.byType(Scrollable),
-      const Offset(0, -80),
-    );
-    await tester.tap(find.text('Sincronizar audio y subtítulos'));
+    await tester.tap(find.text('Sincronizar'));
     await tester.pumpAndSettle();
 
     // A subtitle is showing, so the capsule opens on that side.
@@ -90,17 +82,9 @@ void main() {
     addTearDown(c.dispose);
 
     await _pumpMenu(tester, c);
-    expect(find.text('Sincronizar audio y subtítulos'), findsOneWidget);
+    expect(find.text('Sincronizar'), findsOneWidget);
 
-    // The menu has grown past what fits on screen without scrolling (the
-    // equalizer entry now follows this one) — scroll it into view the same
-    // way a real user would before tapping it.
-    await tester.dragUntilVisible(
-      find.text('Sincronizar audio y subtítulos'),
-      find.byType(Scrollable),
-      const Offset(0, -80),
-    );
-    await tester.tap(find.text('Sincronizar audio y subtítulos'));
+    await tester.tap(find.text('Sincronizar'));
     await tester.pumpAndSettle();
 
     expect(c.read(syncHudProvider), SyncTarget.audio);
@@ -122,15 +106,7 @@ void main() {
     engine.emitCurrentSubtitle(const MediaTrack(id: 'sub1'));
     await tester.pumpAndSettle();
 
-    // The menu has grown past what fits on screen without scrolling (the
-    // equalizer entry now follows this one) — scroll it into view the same
-    // way a real user would before tapping it.
-    await tester.dragUntilVisible(
-      find.text('Sincronizar audio y subtítulos'),
-      find.byType(Scrollable),
-      const Offset(0, -80),
-    );
-    await tester.tap(find.text('Sincronizar audio y subtítulos'));
+    await tester.tap(find.text('Sincronizar'));
     await tester.pumpAndSettle();
     expect(c.read(syncHudProvider), SyncTarget.subtitles);
   });
