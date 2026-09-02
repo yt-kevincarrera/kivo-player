@@ -65,5 +65,5 @@ class _BookmarkMarksPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_BookmarkMarksPainter old) =>
-      old.marks != marks || old.color != color;
+      !listEquals(old.marks, marks) || old.color != color;
 }

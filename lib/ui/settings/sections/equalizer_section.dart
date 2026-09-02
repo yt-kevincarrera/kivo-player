@@ -8,7 +8,7 @@ import '../../../player/audio/equalizer_controller.dart';
 import '../widgets/setting_tiles.dart';
 
 /// The equalizer screen: an enable switch, four presets, ten band sliders and
-/// a preamp slider. Reachable from Ajustes → Reproducción avanzada, and from
+/// a preamp slider. Reachable from Ajustes (its own row), and from
 /// the player's ⋮ menu for adjusting while listening — same screen either
 /// way, same [equalizerProvider].
 class EqualizerSection extends ConsumerStatefulWidget {

@@ -33,9 +33,11 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
-    // The menu has outgrown a fixed sheet: five rows do not fit a landscape
-    // player, which is the orientation it is used in. Scroll-controlled and
-    // bounded so adding a sixth is a non-event instead of an overflow.
+    // The menu has outgrown a fixed sheet: ten rows in four groups (playback
+    // modes, marks, capture, audio) are about two and a half landscape
+    // screens, which is the orientation the player is used in.
+    // Scroll-controlled and bounded so adding a row is a non-event instead
+    // of an overflow — it overflowed twice before this.
     isScrollControlled: true,
     builder: (sheetContext) => SafeArea(
       child: ConstrainedBox(
@@ -67,8 +69,9 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                 final repeatIcon = repeatMode == RepeatMode.video
                     ? Icons.repeat_one_rounded
                     : Icons.repeat_rounded;
-                final repeatIconColor =
-                    repeatMode == RepeatMode.off ? Colors.white70 : accent;
+                final repeatIconColor = repeatMode == RepeatMode.off
+                    ? Colors.white70
+                    : accent;
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -99,7 +102,9 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                     ),
                     const SizedBox(height: 8),
                     _MenuRow(
-                      icon: Icons.repeat_rounded,
+                      icon: Icons
+                          .linear_scale_rounded, // two points on a line: a range, not a repeat
+
                       title: 'Bucle A-B',
                       subtitle: loopSubtitle,
                       onTap: () {
@@ -118,6 +123,7 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                       icon: repeatIcon,
                       iconColor: repeatIconColor,
                       title: 'Repetir',
+                      chevron: false,
                       subtitle: repeatSubtitle,
                       onTap: () {
                         final next = switch (repeatMode) {
@@ -125,8 +131,9 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                           RepeatMode.list => RepeatMode.video,
                           RepeatMode.video => RepeatMode.off,
                         };
-                        ref.read(settingsProvider.notifier).set(
-                            settings.copyWith(repeatMode: next.name));
+                        ref
+                            .read(settingsProvider.notifier)
+                            .set(settings.copyWith(repeatMode: next.name));
                       },
                     ),
                     const SizedBox(height: 8),
@@ -137,6 +144,7 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                       icon: Icons.shuffle_rounded,
                       iconColor: settings.shuffle ? accent : Colors.white70,
                       title: 'Aleatorio',
+                      chevron: false,
                       subtitle: settings.shuffle ? 'Activado' : 'Desactivado',
                       onTap: () {
                         ref
@@ -149,6 +157,7 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                     // after they are read, and reading them just to decide whether
                     // to show a row would defeat the deferred read entirely — so
                     // the sheet answers instead.
+                    const _MenuDivider(),
                     _MenuRow(
                       icon: Icons.format_list_numbered_rounded,
                       title: 'Capítulos',
@@ -177,7 +186,9 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                     _MenuRow(
                       icon: Icons.bookmark_outline_rounded,
                       title: 'Marcadores',
-                      subtitle: switch (sheetRef.watch(bookmarksProvider).length) {
+                      subtitle: switch (sheetRef
+                          .watch(bookmarksProvider)
+                          .length) {
                         0 => 'Sin marcadores',
                         1 => '1 marcador',
                         final n => '$n marcadores',
@@ -188,6 +199,7 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                       },
                     ),
                     const SizedBox(height: 8),
+                    const _MenuDivider(),
                     _MenuRow(
                       icon: Icons.photo_camera_outlined,
                       title: 'Capturar fotograma',
@@ -198,6 +210,7 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                       },
                     ),
                     const SizedBox(height: 8),
+                    const _MenuDivider(),
                     // Always enabled now that audio delay exists: even with subs
                     // off there is something to adjust. The capsule opens on
                     // whichever side is actually usable, and its own Sub|Audio
@@ -262,9 +275,9 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
 Future<void> _addBookmarkHere(BuildContext context, WidgetRef ref) async {
   final messenger = ScaffoldMessenger.of(context);
   final position = ref.read(positionProvider).value ?? Duration.zero;
-  final bookmark = await ref.read(bookmarksProvider.notifier).add(
-        position.inMilliseconds,
-      );
+  final bookmark = await ref
+      .read(bookmarksProvider.notifier)
+      .add(position.inMilliseconds);
 
   messenger.hideCurrentSnackBar();
   messenger.showSnackBar(
@@ -354,6 +367,21 @@ void _reportCapture(
   );
 }
 
+/// A hairline between the menu's groups (playback modes · marks · capture ·
+/// audio). Ten rows with no seams read as one undifferentiated list.
+class _MenuDivider extends StatelessWidget {
+  const _MenuDivider();
+
+  @override
+  Widget build(BuildContext context) => Divider(
+    height: 1,
+    thickness: 1,
+    indent: 20,
+    endIndent: 20,
+    color: Colors.white.withValues(alpha: 0.08),
+  );
+}
+
 class _MenuRow extends StatelessWidget {
   final IconData icon;
   final Color? iconColor;
@@ -361,12 +389,17 @@ class _MenuRow extends StatelessWidget {
   final String subtitle;
   final VoidCallback onTap;
 
+  /// False for rows that toggle in place: a chevron promises navigation,
+  /// and these go nowhere.
+  final bool chevron;
+
   const _MenuRow({
     required this.icon,
     this.iconColor,
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.chevron = true,
   });
 
   @override
@@ -416,11 +449,12 @@ class _MenuRow extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(
-              Icons.chevron_right_rounded,
-              size: 18,
-              color: Colors.white.withValues(alpha: 0.42),
-            ),
+            if (chevron)
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 18,
+                color: Colors.white.withValues(alpha: 0.42),
+              ),
           ],
         ),
       ),
