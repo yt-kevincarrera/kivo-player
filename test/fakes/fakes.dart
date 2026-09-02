@@ -203,6 +203,15 @@ class FakePlaybackEngine implements PlaybackEngine {
   @override
   Future<void> setAudioDelay(double seconds) async => audioDelays.add(seconds);
 
+  final List<String> audioFilters = [];
+  String? lastAudioFilter;
+
+  @override
+  Future<void> setAudioFilter(String af) async {
+    lastAudioFilter = af;
+    audioFilters.add(af);
+  }
+
   double? lastSubtitleFontSize;
   int? lastSubtitleTextColorArgb;
   int? lastSubtitleBackgroundColorArgb;

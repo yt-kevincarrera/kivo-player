@@ -1,3 +1,5 @@
+import '../../player/audio/equalizer.dart';
+
 class KivoSettings {
   final int doubleTapSkipLeft;
   final int doubleTapSkipRight;
@@ -64,6 +66,7 @@ class KivoSettings {
   /// Bucket display names hidden from the library. A view filter only — the
   /// files are never touched, unlike the vault.
   final List<String> excludedFolders;
+  final EqualizerSettings equalizer;
 
   const KivoSettings({
     required this.doubleTapSkipLeft,
@@ -125,6 +128,7 @@ class KivoSettings {
     required this.pendingUpdateDownloadId,
     required this.pendingUpdateVersion,
     required this.excludedFolders,
+    required this.equalizer,
   });
 
   factory KivoSettings.defaults() => const KivoSettings(
@@ -187,6 +191,11 @@ class KivoSettings {
         pendingUpdateDownloadId: -1,
         pendingUpdateVersion: null,
         excludedFolders: [],
+        equalizer: EqualizerSettings(
+          enabled: false,
+          preampDb: 0,
+          gainsDb: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ),
       );
 
   static const Object _unset = Object();
@@ -251,6 +260,7 @@ class KivoSettings {
     int? pendingUpdateDownloadId,
     Object? pendingUpdateVersion = _unset,
     List<String>? excludedFolders,
+    EqualizerSettings? equalizer,
   }) {
     return KivoSettings(
       doubleTapSkipLeft: doubleTapSkipLeft ?? this.doubleTapSkipLeft,
@@ -321,6 +331,7 @@ class KivoSettings {
           ? this.pendingUpdateVersion
           : pendingUpdateVersion as String?,
       excludedFolders: excludedFolders ?? this.excludedFolders,
+      equalizer: equalizer ?? this.equalizer,
     );
   }
 
@@ -384,6 +395,7 @@ class KivoSettings {
         'pendingUpdateDownloadId': pendingUpdateDownloadId,
         'pendingUpdateVersion': pendingUpdateVersion,
         'excludedFolders': excludedFolders,
+        'equalizer': equalizer.toMap(),
       };
 
   factory KivoSettings.fromMap(Map<String, dynamic> m) {
@@ -453,6 +465,7 @@ class KivoSettings {
           m['pendingUpdateVersion'] ?? d.pendingUpdateVersion,
       excludedFolders: (m['excludedFolders'] as List?)?.cast<String>() ??
           d.excludedFolders,
+      equalizer: EqualizerSettings.fromMap(m['equalizer']),
     );
   }
 }

@@ -8,6 +8,8 @@ import '../../../core/theme/kivo_theme.dart';
 import '../../../player/engine/playback_engine.dart';
 import '../../../player/engine/playback_provider.dart';
 import '../../../core/errors/kivo_failure.dart';
+import '../../../player/audio/equalizer.dart';
+import '../../../player/audio/equalizer_controller.dart';
 import '../../../player/bookmarks/bookmark.dart';
 import '../../../player/bookmarks/bookmarks_provider.dart';
 import '../../../player/capture/frame_capture_controller.dart';
@@ -18,6 +20,7 @@ import '../bookmarks/bookmarks_sheet.dart';
 import '../chapters/chapters_sheet.dart';
 import '../sleep/sleep_timer_panel.dart';
 import '../state/controls_visibility.dart';
+import '../../settings/sections/equalizer_section.dart';
 import '../../widgets/failure_snack_bar.dart';
 import '../tracks/track_sync_hud.dart';
 
@@ -54,6 +57,7 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                 };
                 final settings = sheetRef.watch(settingsProvider);
                 final accent = Color(settings.accentColor);
+                final eq = sheetRef.watch(equalizerProvider);
                 final repeatMode = repeatModeFor(settings.repeatMode);
                 final repeatSubtitle = switch (repeatMode) {
                   RepeatMode.off => 'Desactivado',
@@ -217,6 +221,21 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                                       : SyncTarget.audio,
                                 );
                           },
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    _MenuRow(
+                      icon: Icons.equalizer_rounded,
+                      iconColor: eq.enabled ? accent : Colors.white70,
+                      title: 'Ecualizador',
+                      subtitle: presetNameFor(eq),
+                      onTap: () {
+                        Navigator.of(sheetContext).pop();
+                        Navigator.of(context, rootNavigator: true).push(
+                          MaterialPageRoute(
+                            builder: (_) => const EqualizerSection(),
+                          ),
                         );
                       },
                     ),

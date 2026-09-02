@@ -5,6 +5,7 @@ import '../../core/settings/settings_provider.dart';
 import '../vault/vault_entry_actions.dart';
 import 'sections/about_section.dart';
 import 'sections/advanced_playback_section.dart';
+import 'sections/equalizer_section.dart';
 import 'sections/general_section.dart';
 import 'sections/interface_section.dart';
 import 'sections/playback_gestures_section.dart';
@@ -43,6 +44,12 @@ class SettingsScreen extends ConsumerWidget {
               subtitle: 'Continuar, autoplay, subtítulos, PiP',
               onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const AdvancedPlaybackSection()))),
+            SettingNavRow(
+              icon: Icons.equalizer_rounded,
+              title: 'Ecualizador',
+              subtitle: 'Graves, voz, agudos y preamplificación',
+              onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const EqualizerSection()))),
             SettingNavRow(
               icon: Icons.info_outline, title: 'Acerca de', subtitle: 'Versión y actualizaciones',
               onTap: () => Navigator.of(context).push(

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kivo_player/core/settings/kivo_settings.dart';
+import 'package:kivo_player/player/audio/equalizer.dart';
 import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/tracks/apply_default_tracks.dart';
 import 'package:kivo_player/player/tracks/track_prefs_store.dart';
@@ -180,6 +181,84 @@ void main() {
     expect(engine.audioDelays, [0.0]);
   });
 
+  // `af` is the same kind of global mpv option as sub-delay/audio-delay on
+  // the process-lifetime Player: this call has to be unconditional, or a
+  // video whose own equalizer is off keeps playing through the previous
+  // video's (possibly enabled) filter graph.
+  test('a disabled/flat equalizer still sends the empty filter on open', () async {
+    final engine = FakePlaybackEngine();
+    applyDefaultTracks(
+      engine: engine,
+      settings: KivoSettings.defaults(),
+      session: _session(),
+      subtitleFinder: FakeSubtitleFinder(),
+      subtitlePrefs: InMemoryTrackPrefsStore(),
+    );
+    await _drainTrackStreams(engine);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    expect(engine.audioFilters, ['']);
+  });
+
+  test('an enabled equalizer sends its filter graph on open', () async {
+    final engine = FakePlaybackEngine();
+    final settings = KivoSettings.defaults().copyWith(
+      equalizer: EqualizerSettings(
+        enabled: true,
+        preampDb: 0,
+        gainsDb: equalizerPresetCurves['Graves']!,
+      ),
+    );
+    applyDefaultTracks(
+      engine: engine,
+      settings: settings,
+      session: _session(),
+      subtitleFinder: FakeSubtitleFinder(),
+      subtitlePrefs: InMemoryTrackPrefsStore(),
+    );
+    await _drainTrackStreams(engine);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    expect(engine.audioFilters, [mpvAudioFilter(settings.equalizer)]);
+    expect(engine.audioFilters.single, isNot(''));
+  });
+
+  test('the previous video\'s equalizer filter does not leak onto a video with none',
+      () async {
+    final engine = FakePlaybackEngine();
+    final onSettings = KivoSettings.defaults().copyWith(
+      equalizer: EqualizerSettings(
+        enabled: true,
+        preampDb: 0,
+        gainsDb: equalizerPresetCurves['Agudos']!,
+      ),
+    );
+    applyDefaultTracks(
+      engine: engine,
+      settings: onSettings,
+      session: _session(),
+      subtitleFinder: FakeSubtitleFinder(),
+      subtitlePrefs: InMemoryTrackPrefsStore(),
+    );
+    await _drainTrackStreams(engine);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    applyDefaultTracks(
+      engine: engine,
+      settings: KivoSettings.defaults(), // equalizer off
+      session: const VideoSession(
+          playbackPath: '/v/ep2.mkv',
+          displayName: 'ep2.mkv',
+          queue: ['/v/ep2.mkv'],
+          index: 0),
+      subtitleFinder: FakeSubtitleFinder(),
+      subtitlePrefs: InMemoryTrackPrefsStore(),
+    );
+    await _drainTrackStreams(engine);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    expect(engine.audioFilters, [mpvAudioFilter(onSettings.equalizer), '']);
+  });
 }
 
 /// A Hive record that cannot be decoded: [forKey] throwing must not escape

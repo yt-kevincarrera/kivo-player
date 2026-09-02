@@ -58,6 +58,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Sincronizar audio y subtítulos'), findsOneWidget);
 
+    // The menu has grown past what fits on screen without scrolling (the
+    // equalizer entry now follows this one) — scroll it into view the same
+    // way a real user would before tapping it.
+    await tester.dragUntilVisible(
+      find.text('Sincronizar audio y subtítulos'),
+      find.byType(Scrollable),
+      const Offset(0, -80),
+    );
     await tester.tap(find.text('Sincronizar audio y subtítulos'));
     await tester.pumpAndSettle();
 
@@ -84,6 +92,14 @@ void main() {
     await _pumpMenu(tester, c);
     expect(find.text('Sincronizar audio y subtítulos'), findsOneWidget);
 
+    // The menu has grown past what fits on screen without scrolling (the
+    // equalizer entry now follows this one) — scroll it into view the same
+    // way a real user would before tapping it.
+    await tester.dragUntilVisible(
+      find.text('Sincronizar audio y subtítulos'),
+      find.byType(Scrollable),
+      const Offset(0, -80),
+    );
     await tester.tap(find.text('Sincronizar audio y subtítulos'));
     await tester.pumpAndSettle();
 
@@ -106,6 +122,14 @@ void main() {
     engine.emitCurrentSubtitle(const MediaTrack(id: 'sub1'));
     await tester.pumpAndSettle();
 
+    // The menu has grown past what fits on screen without scrolling (the
+    // equalizer entry now follows this one) — scroll it into view the same
+    // way a real user would before tapping it.
+    await tester.dragUntilVisible(
+      find.text('Sincronizar audio y subtítulos'),
+      find.byType(Scrollable),
+      const Offset(0, -80),
+    );
     await tester.tap(find.text('Sincronizar audio y subtítulos'));
     await tester.pumpAndSettle();
     expect(c.read(syncHudProvider), SyncTarget.subtitles);
