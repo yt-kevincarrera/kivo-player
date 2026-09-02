@@ -274,10 +274,14 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
 /// await regardless, same rule as [_captureFrame] below.
 Future<void> _addBookmarkHere(BuildContext context, WidgetRef ref) async {
   final messenger = ScaffoldMessenger.of(context);
+  // The video this mark belongs to, captured NOW: «Nombrar» fires from a
+  // SnackBar that can outlive the video, and a rename must never land on
+  // whatever opened next.
+  final videoKey = ref.read(currentVideoProvider)?.resumeKey;
   final position = ref.read(positionProvider).value ?? Duration.zero;
   final bookmark = await ref
       .read(bookmarksProvider.notifier)
-      .add(position.inMilliseconds);
+      .add(position.inMilliseconds, key: videoKey);
 
   messenger.hideCurrentSnackBar();
   messenger.showSnackBar(
@@ -285,7 +289,7 @@ Future<void> _addBookmarkHere(BuildContext context, WidgetRef ref) async {
       content: Text('Marcador guardado · ${fmtDuration(position)}'),
       action: SnackBarAction(
         label: 'Nombrar',
-        onPressed: () => _nameBookmark(context, ref, bookmark),
+        onPressed: () => _nameBookmark(context, ref, bookmark, videoKey),
       ),
     ),
   );
@@ -302,13 +306,17 @@ Future<void> _nameBookmark(
   BuildContext context,
   WidgetRef ref,
   Bookmark bookmark,
+  String? videoKey,
 ) async {
   if (!context.mounted) return;
   final name = await promptBookmarkName(context);
   if (name == null) return;
+  // Same video still? Otherwise the mark is not in this list and the
+  // notifier would refuse the stale key anyway — bail before looking.
+  if (ref.read(currentVideoProvider)?.resumeKey != videoKey) return;
   final index = ref.read(bookmarksProvider).indexOf(bookmark);
   if (index < 0) return;
-  await ref.read(bookmarksProvider.notifier).rename(index, name);
+  await ref.read(bookmarksProvider.notifier).rename(index, name, key: videoKey);
 }
 
 /// Captures the current frame and reports the outcome.
