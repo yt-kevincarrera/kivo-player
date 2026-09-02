@@ -57,8 +57,41 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
   @override
   VideoSession? build() => null;
 
-  /// Direct session open (used by tests and future callers that construct their own session).
-  void open(VideoSession session) => state = session;
+  /// Direct session open (used by tests and future callers that construct
+  /// their own session, e.g. the vault's multi-item queue).
+  ///
+  /// The single choke point that turns `settings.shuffle` into
+  /// [VideoSession.order]: when the caller hands over a multi-item session
+  /// with no order already drawn, and shuffle is on, one is drawn here —
+  /// current video first — before the session lands in state. A caller that
+  /// already supplied an [VideoSession.order] (or a 1-item queue, where
+  /// shuffle is a no-op) is passed through unchanged. [openFromList] goes
+  /// through this same path so there is exactly one place that decides.
+  ///
+  /// The queue-length check runs before reading [settingsProvider] so a
+  /// single-item open (file picker, or any test session with no shuffle
+  /// concerns) never requires a settings override.
+  void open(VideoSession session) {
+    if (session.order != null || session.queue.length <= 1) {
+      state = session;
+      return;
+    }
+    final shuffle = ref.read(settingsProvider).shuffle;
+    if (!shuffle) {
+      state = session;
+      return;
+    }
+    state = VideoSession(
+      playbackPath: session.playbackPath,
+      displayName: session.displayName,
+      queue: session.queue,
+      queueNames: session.queueNames,
+      queueIds: session.queueIds,
+      index: session.index,
+      folder: session.folder,
+      order: shuffledOrder(session.queue.length, session.index, ref.read(queueRandomProvider)),
+    );
+  }
 
   /// File-picker open: single-item queue (the picker gives a cache copy, no folder).
   void openPath(String path) {
@@ -85,8 +118,10 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
         : shown.indexWhere((v) => v.uri == current.uri);
     final list = idx < 0 ? <VideoItem>[current] : shown;
     if (idx < 0) idx = 0;
-    final shuffle = ref.read(settingsProvider).shuffle;
-    state = VideoSession(
+    // No order here — [open] is the single place that draws one from
+    // settings.shuffle, so this and any other multi-item entry point (the
+    // vault's direct open(), for one) can never disagree about shuffle.
+    open(VideoSession(
       playbackPath: current.uri,
       displayName: current.name,
       queue: list.map((v) => v.uri).toList(),
@@ -94,8 +129,7 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
       queueIds: list.map((v) => v.id).toList(),
       index: idx,
       folder: current.folder, // still the tapped video's folder — for subtitle discovery
-      order: shuffle ? shuffledOrder(list.length, idx, ref.read(queueRandomProvider)) : null,
-    );
+    ));
   }
 
   /// Builds (without mutating) the session for any valid queue [index], or

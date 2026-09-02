@@ -235,5 +235,60 @@ void main() {
       n.openFromList(_item('solo.mkv', 'A'), [_item('solo.mkv', 'A')]);
       expect(n.peekNext(), isNull);
     });
+
+    group('open() applies shuffle directly (the vault path, and any other '
+        'caller that builds its own multi-item session)', () {
+      test('shuffle on: a direct multi-item open() draws an order — current first, permutation complete', () async {
+        final c = await makeC(shuffle: true, random: Random(5));
+        final n = c.read(currentVideoProvider.notifier);
+        n.open(const VideoSession(
+          playbackPath: '/v/2.mkv',
+          displayName: '2.mkv',
+          queue: ['/v/1.mkv', '/v/2.mkv', '/v/3.mkv', '/v/4.mkv'],
+          index: 1,
+        ));
+        final s = c.read(currentVideoProvider)!;
+        expect(s.order, isNotNull);
+        expect(s.order!.first, 1); // current video first
+        expect(s.order!.toSet(), {0, 1, 2, 3});
+      });
+
+      test('shuffle on: a direct open() with a 1-item queue stays null (shuffle is a no-op)', () async {
+        final c = await makeC(shuffle: true, random: Random(6));
+        final n = c.read(currentVideoProvider.notifier);
+        n.open(const VideoSession(
+          playbackPath: '/v/solo.mkv',
+          displayName: 'solo.mkv',
+          queue: ['/v/solo.mkv'],
+          index: 0,
+        ));
+        expect(c.read(currentVideoProvider)!.order, isNull);
+      });
+
+      test('shuffle off: a direct multi-item open() leaves order null', () async {
+        final c = await makeC(); // shuffle defaults to false
+        final n = c.read(currentVideoProvider.notifier);
+        n.open(const VideoSession(
+          playbackPath: '/v/1.mkv',
+          displayName: '1.mkv',
+          queue: ['/v/1.mkv', '/v/2.mkv', '/v/3.mkv'],
+          index: 0,
+        ));
+        expect(c.read(currentVideoProvider)!.order, isNull);
+      });
+
+      test('a caller-supplied order is never overwritten, even with shuffle on', () async {
+        final c = await makeC(shuffle: true, random: Random(7));
+        final n = c.read(currentVideoProvider.notifier);
+        n.open(const VideoSession(
+          playbackPath: '/v/1.mkv',
+          displayName: '1.mkv',
+          queue: ['/v/1.mkv', '/v/2.mkv', '/v/3.mkv'],
+          index: 0,
+          order: [2, 0, 1],
+        ));
+        expect(c.read(currentVideoProvider)!.order, [2, 0, 1]);
+      });
+    });
   });
 }

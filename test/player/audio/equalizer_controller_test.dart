@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -112,6 +114,69 @@ void main() {
 
     expect(engine.audioFilters, hasLength(1));
     expect(c.read(settingsProvider).equalizer.gainsDb[0], 3.0);
+  });
+
+  test(
+      'a drag that lands during the debounced apply\'s awaited engine call is '
+      'not lost — the final value wins and the engine is called with it', () async {
+    final engine = FakePlaybackEngine();
+    final c = await _container(engine);
+    addTearDown(c.dispose);
+
+    fakeAsync((async) {
+      final n = c.read(equalizerProvider.notifier);
+      n.setEnabled(true);
+      async.elapse(const Duration(milliseconds: 200));
+      expect(engine.audioFilters, hasLength(1)); // setEnabled's own apply landed
+
+      // Hold the next engine round trip open so a second drag can land
+      // while it's still in flight.
+      engine.audioFilterGate = Completer<void>();
+      n.setBand(0, 4.0); // first value ("A")
+      async.elapse(const Duration(milliseconds: 200)); // debounce fires, _apply awaits the gate
+      expect(engine.audioFilters, hasLength(1)); // A hasn't reached the engine yet — still blocked on the gate
+
+      n.setBand(0, 9.0); // second value ("B") lands mid-flight
+      expect(c.read(equalizerProvider).gainsDb[0], 9.0); // UI reflects B immediately
+
+      // Let A's engine call (and settings write) land.
+      engine.audioFilterGate!.complete();
+      engine.audioFilterGate = null;
+      async.flushMicrotasks();
+
+      // The settings write for A must not have reverted the slider to A.
+      expect(c.read(equalizerProvider).gainsDb[0], 9.0);
+      expect(engine.audioFilters, hasLength(2)); // A did reach the engine...
+      expect(engine.audioFilters.last, contains('g=4.0'));
+
+      // B's own debounce (scheduled when it landed) now fires.
+      async.elapse(const Duration(milliseconds: 200));
+
+      expect(c.read(equalizerProvider).gainsDb[0], 9.0);
+      expect(engine.audioFilters, hasLength(3)); // ...and so did B, last
+      expect(engine.audioFilters.last, contains('g=9.0'));
+      expect(c.read(settingsProvider).equalizer.gainsDb[0], 9.0);
+    });
+  });
+
+  test('an external settings change while idle is adopted (e.g. Ajustes → Restablecer valores)', () async {
+    final engine = FakePlaybackEngine();
+    final c = await _container(engine);
+    addTearDown(c.dispose);
+
+    // Establish the watch dependency first.
+    c.read(equalizerProvider);
+
+    final reset = EqualizerSettings(
+      enabled: true,
+      preampDb: 2.0,
+      gainsDb: List.filled(equalizerBandsHz.length, 3.0),
+    );
+    await c.read(settingsProvider.notifier).set(
+          c.read(settingsProvider).copyWith(equalizer: reset),
+        );
+
+    expect(c.read(equalizerProvider), reset);
   });
 
   test('is seeded from whatever equalizer settings already exist', () async {
