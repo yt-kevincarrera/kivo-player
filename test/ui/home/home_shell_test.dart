@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kivo_player/player/bookmarks/bookmark_store.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/core/theme/kivo_theme.dart';
@@ -17,6 +18,7 @@ Future<void> _pump(WidgetTester t) async {
       settingsServiceProvider.overrideWithValue(s),
       mediaIndexerProvider.overrideWithValue(FakeMediaIndexer()),
       playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
+      bookmarkStoreProvider.overrideWithValue(InMemoryBookmarkStore()),
     ],
     child: MaterialApp(theme: KivoTheme.dark(), home: const HomeShell()),
   ));
@@ -60,6 +62,13 @@ void main() {
     await _pump(t);
     await t.tap(find.text('Ajustes'));
     await t.pumpAndSettle();
+    // The reset tile sits at the bottom of a ListView that has since grown
+    // (Ecualizador joined it), so it is not built until scrolled into view.
+    await t.dragUntilVisible(
+      find.text('Restablecer valores'),
+      find.byType(ListView),
+      const Offset(0, -200),
+    );
     expect(find.text('Restablecer valores'), findsOneWidget);
     expect(find.text('General'), findsOneWidget);
 

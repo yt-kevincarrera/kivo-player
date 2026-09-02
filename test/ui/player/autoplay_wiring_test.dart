@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kivo_player/player/bookmarks/bookmark_store.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/platform/device_controls_provider.dart';
@@ -59,6 +60,7 @@ void main() {
       deviceControlsProvider.overrideWithValue(NoopControls()),
       resumeServiceProvider.overrideWithValue(ResumeService(InMemoryResumeStore())),
       playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
+      bookmarkStoreProvider.overrideWithValue(InMemoryBookmarkStore()),
       frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
       subtitleFinderProvider.overrideWithValue(FakeSubtitleFinder()),
       pipControllerProvider.overrideWithValue(FakePipController()),

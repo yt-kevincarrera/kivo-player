@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kivo_player/player/bookmarks/bookmark_store.dart';
 import 'package:kivo_player/core/navigation.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
@@ -44,6 +45,7 @@ Future<ProviderContainer> _pumpBar(WidgetTester tester, {required bool minimized
     deviceControlsProvider.overrideWithValue(_NoopControls()),
     resumeServiceProvider.overrideWithValue(ResumeService(InMemoryResumeStore())),
     playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
+      bookmarkStoreProvider.overrideWithValue(InMemoryBookmarkStore()),
     frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
     subtitleFinderProvider.overrideWithValue(FakeSubtitleFinder()),
     pipControllerProvider.overrideWithValue(FakePipController()),
