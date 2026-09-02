@@ -15,9 +15,21 @@
          releases API. Flutter adds INTERNET to the debug/profile manifests only,
          so without this line every check silently fails in a RELEASE build. -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!--
+      Back takes the classic onBackPressed path on purpose. On Android 13+
+      the OnBackInvokedCallback door only opens when Flutter has told the
+      system "I handle back", and Flutter derives that from what the nested
+      Navigators inside HomeShell report: with nothing pushed on any of them
+      they all say "cannot pop", and that report overrides the root PopScope
+      that would have handled it — so the system closed the Activity without
+      asking. Deterministic, not a race: it only worked while some tab had a
+      route stacked. The classic path always reaches popRoute. Costs the
+      predictive-back preview animation, which Kivo does not use.
+    -->
     <application
         android:label="Kivo"
         android:name=".KivoApplication"
+        android:enableOnBackInvokedCallback="false"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
