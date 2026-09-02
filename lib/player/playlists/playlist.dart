@@ -36,6 +36,7 @@ class Playlist {
     required this.name,
     required this.createdAtMs,
     required this.entries,
+    this.lastPlayedAtMs = 0,
   });
 
   /// The creation timestamp in milliseconds, as a string. This is the
@@ -45,11 +46,23 @@ class Playlist {
   final int createdAtMs;
   final List<PlaylistEntry> entries;
 
-  Playlist copyWith({String? name, List<PlaylistEntry>? entries}) => Playlist(
+  /// When this playlist last actually opened something, in epoch ms — 0 if
+  /// never. Set only by [PlaylistsNotifier.touchLastPlayed], which
+  /// `PlaylistPlayback.play`/`playAt` call after a play actually starts (not
+  /// on a refused play). Drives `PlaylistSort.lastPlayed`.
+  final int lastPlayedAtMs;
+
+  Playlist copyWith({
+    String? name,
+    List<PlaylistEntry>? entries,
+    int? lastPlayedAtMs,
+  }) =>
+      Playlist(
         id: id,
         name: name ?? this.name,
         createdAtMs: createdAtMs,
         entries: entries ?? this.entries,
+        lastPlayedAtMs: lastPlayedAtMs ?? this.lastPlayedAtMs,
       );
 
   Map<String, dynamic> toMap() => {
@@ -57,6 +70,7 @@ class Playlist {
         'name': name,
         'created': createdAtMs,
         'entries': entries.map((e) => e.toMap()).toList(),
+        'lp': lastPlayedAtMs,
       };
 
   factory Playlist.fromMap(Map m) => Playlist(
@@ -67,6 +81,9 @@ class Playlist {
             .whereType<Map>()
             .map(PlaylistEntry.fromMap)
             .toList(),
+        // Absent on a playlist stored before this field existed — reads as
+        // "never played", which is correct rather than merely harmless.
+        lastPlayedAtMs: (m['lp'] as num?)?.toInt() ?? 0,
       );
 
   // Value equality, entries included, so `playlistsProvider.select` (see
@@ -83,7 +100,10 @@ class Playlist {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! Playlist) return false;
-    if (other.id != id || other.name != name || other.createdAtMs != createdAtMs) {
+    if (other.id != id ||
+        other.name != name ||
+        other.createdAtMs != createdAtMs ||
+        other.lastPlayedAtMs != lastPlayedAtMs) {
       return false;
     }
     if (other.entries.length != entries.length) return false;
@@ -94,7 +114,8 @@ class Playlist {
   }
 
   @override
-  int get hashCode => Object.hash(id, name, createdAtMs, Object.hashAll(entries));
+  int get hashCode =>
+      Object.hash(id, name, createdAtMs, lastPlayedAtMs, Object.hashAll(entries));
 }
 
 /// The media index built into O(1) lookup maps once and shared by every

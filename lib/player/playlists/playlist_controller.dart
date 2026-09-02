@@ -38,6 +38,17 @@ class PlaylistsNotifier extends Notifier<List<Playlist>> {
   Future<void> rename(String id, String name) =>
       _update(id, (p) => p.copyWith(name: name));
 
+  /// Stamps "now" as this playlist's last-played time. Called only by
+  /// [PlaylistPlayback] after a play actually opens something — never on a
+  /// refused play — so `PlaylistSort.lastPlayed` reflects real playback, not
+  /// an attempt.
+  Future<void> touchLastPlayed(String id) => _update(
+        id,
+        (p) => p.copyWith(
+          lastPlayedAtMs: ref.read(playlistClockProvider)().millisecondsSinceEpoch,
+        ),
+      );
+
   Future<void> addVideos(String id, List<VideoItem> videos) => _update(
     id,
     (p) => p.copyWith(

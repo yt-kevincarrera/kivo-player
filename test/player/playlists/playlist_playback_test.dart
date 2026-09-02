@@ -54,6 +54,15 @@ Future<ProviderContainer> _c(List<VideoItem> index, PlayedStore played) async {
   ]);
 }
 
+/// Explicit loop rather than `firstWhere`/`package:collection` — same reason
+/// PlaylistsNotifier._findById gives for not adding the dependency.
+Playlist _findPlaylist(ProviderContainer c, String id) {
+  for (final p in c.read(playlistsProvider)) {
+    if (p.id == id) return p;
+  }
+  throw StateError('no playlist with id $id');
+}
+
 void main() {
   test('playing a playlist opens the first unplayed entry', () async {
     final played = InMemoryPlayedStore()..markPlayed('a.mkv');
@@ -101,6 +110,34 @@ void main() {
     expect(c.read(currentVideoProvider), isNull);
   });
 
+  test('a successful play() stamps lastPlayedAtMs', () async {
+    final c = await _c([_v('1', 'a.mkv')], InMemoryPlayedStore());
+    addTearDown(c.dispose);
+    await c.read(mediaIndexProvider.future);
+
+    final p = await c.read(playlistsProvider.notifier).create('Serie');
+    await c.read(playlistsProvider.notifier).addVideos(p.id, [_v('1', 'a.mkv')]);
+    expect(_findPlaylist(c, p.id).lastPlayedAtMs, 0);
+
+    expect(c.read(playlistPlaybackProvider).play(p.id), true);
+
+    expect(_findPlaylist(c, p.id).lastPlayedAtMs, isNot(0));
+  });
+
+  test('a refused play() (nothing playable) does not touch lastPlayedAtMs',
+      () async {
+    final c = await _c(const [], InMemoryPlayedStore());
+    addTearDown(c.dispose);
+    await c.read(mediaIndexProvider.future);
+
+    final p = await c.read(playlistsProvider.notifier).create('Serie');
+    await c.read(playlistsProvider.notifier).addVideos(p.id, [_v('1', 'a.mkv')]);
+
+    expect(c.read(playlistPlaybackProvider).play(p.id), false);
+
+    expect(_findPlaylist(c, p.id).lastPlayedAtMs, 0);
+  });
+
   test('playAt opens the entry that was tapped', () async {
     final c = await _c([_v('1', 'a.mkv'), _v('2', 'b.mkv')], InMemoryPlayedStore());
     addTearDown(c.dispose);
@@ -125,6 +162,36 @@ void main() {
 
     expect(c.read(playlistPlaybackProvider).playAt(p.id, 0), false);
     expect(c.read(currentVideoProvider), isNull);
+  });
+
+  test('a successful playAt() stamps lastPlayedAtMs', () async {
+    final c = await _c([_v('1', 'a.mkv'), _v('2', 'b.mkv')], InMemoryPlayedStore());
+    addTearDown(c.dispose);
+    await c.read(mediaIndexProvider.future);
+
+    final p = await c.read(playlistsProvider.notifier).create('Serie');
+    await c.read(playlistsProvider.notifier)
+        .addVideos(p.id, [_v('1', 'a.mkv'), _v('2', 'b.mkv')]);
+    expect(_findPlaylist(c, p.id).lastPlayedAtMs, 0);
+
+    expect(c.read(playlistPlaybackProvider).playAt(p.id, 1), true);
+
+    expect(_findPlaylist(c, p.id).lastPlayedAtMs, isNot(0));
+  });
+
+  test('a refused playAt() (unavailable entry) does not touch lastPlayedAtMs',
+      () async {
+    final c = await _c([_v('2', 'b.mkv')], InMemoryPlayedStore());
+    addTearDown(c.dispose);
+    await c.read(mediaIndexProvider.future);
+
+    final p = await c.read(playlistsProvider.notifier).create('Serie');
+    await c.read(playlistsProvider.notifier)
+        .addVideos(p.id, [_v('1', 'a.mkv'), _v('2', 'b.mkv')]);
+
+    expect(c.read(playlistPlaybackProvider).playAt(p.id, 0), false);
+
+    expect(_findPlaylist(c, p.id).lastPlayedAtMs, 0);
   });
 
   test('resolution reads the raw index, past the hidden-folders filter',

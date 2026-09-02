@@ -143,6 +143,49 @@ void main() {
     });
   });
 
+  group('lastPlayedAtMs', () {
+    test('defaults to 0 (never played)', () {
+      const p = Playlist(id: '1', name: 'Serie', createdAtMs: 0, entries: []);
+      expect(p.lastPlayedAtMs, 0);
+    });
+
+    test('round-trips through toMap/fromMap under its own key', () {
+      const p = Playlist(
+        id: '1',
+        name: 'Serie',
+        createdAtMs: 1000,
+        entries: [],
+        lastPlayedAtMs: 5000,
+      );
+      final map = p.toMap();
+      expect(map['lp'], 5000);
+      expect(Playlist.fromMap(map).lastPlayedAtMs, 5000);
+    });
+
+    test('a playlist stored before this field existed reads as never played',
+        () {
+      // No 'lp' key at all — the shape Hive already holds for every playlist
+      // made before this feature shipped.
+      final p = Playlist.fromMap(const {
+        'id': '1',
+        'name': 'Serie',
+        'created': 1000,
+        'entries': <dynamic>[],
+      });
+      expect(p.lastPlayedAtMs, 0);
+    });
+
+    test('copyWith updates lastPlayedAtMs and leaves everything else alone',
+        () {
+      const p = Playlist(id: '1', name: 'Serie', createdAtMs: 1000, entries: []);
+      final touched = p.copyWith(lastPlayedAtMs: 4242);
+      expect(touched.lastPlayedAtMs, 4242);
+      expect(touched.id, p.id);
+      expect(touched.name, p.name);
+      expect(touched.createdAtMs, p.createdAtMs);
+    });
+  });
+
   // Value equality (not identity) is what makes `playlistsProvider.select`
   // safe in playlist_playback.dart: HivePlaylistStore.all() deserializes a
   // fresh Playlist for every row on every read, touched or not, so identity
@@ -178,6 +221,18 @@ void main() {
         entries: [PlaylistEntry(mediaId: '7', displayName: 'ep1.mkv')],
       );
       const b = Playlist(id: '1', name: 'Serie', createdAtMs: 1000, entries: []);
+      expect(a == b, false);
+    });
+
+    test('a different lastPlayedAtMs makes playlists unequal', () {
+      const a = Playlist(id: '1', name: 'Serie', createdAtMs: 1000, entries: []);
+      const b = Playlist(
+        id: '1',
+        name: 'Serie',
+        createdAtMs: 1000,
+        entries: [],
+        lastPlayedAtMs: 5000,
+      );
       expect(a == b, false);
     });
 

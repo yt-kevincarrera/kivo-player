@@ -29,6 +29,7 @@ class KivoSettings {
   final int libraryColumns;
   final String themeMode; // 'auto' | 'light' | 'dark'
   final String librarySort; // LibrarySort enum name — see lib/player/library/library_filter.dart
+  final String playlistSort; // PlaylistSort enum name — see lib/player/playlists/playlist_filter.dart
   final bool subtitlesEnabledByDefault;
   final bool autoplayNext;
   final String repeatMode; // RepeatMode enum name — see lib/player/queue/queue_order.dart
@@ -95,6 +96,7 @@ class KivoSettings {
     required this.libraryColumns,
     required this.themeMode,
     required this.librarySort,
+    required this.playlistSort,
     required this.subtitlesEnabledByDefault,
     required this.autoplayNext,
     required this.repeatMode,
@@ -156,6 +158,7 @@ class KivoSettings {
         libraryColumns: 1,
         themeMode: 'auto',
         librarySort: 'recent',
+        playlistSort: 'recent',
         subtitlesEnabledByDefault: true,
         autoplayNext: true,
         repeatMode: 'off',
@@ -219,6 +222,7 @@ class KivoSettings {
     int? libraryColumns,
     String? themeMode,
     String? librarySort,
+    String? playlistSort,
     bool? subtitlesEnabledByDefault,
     bool? autoplayNext,
     String? repeatMode,
@@ -279,6 +283,7 @@ class KivoSettings {
       libraryColumns: libraryColumns ?? this.libraryColumns,
       themeMode: themeMode ?? this.themeMode,
       librarySort: librarySort ?? this.librarySort,
+      playlistSort: playlistSort ?? this.playlistSort,
       subtitlesEnabledByDefault: subtitlesEnabledByDefault ?? this.subtitlesEnabledByDefault,
       autoplayNext: autoplayNext ?? this.autoplayNext,
       repeatMode: repeatMode ?? this.repeatMode,
@@ -350,6 +355,7 @@ class KivoSettings {
         'libraryColumns': libraryColumns,
         'themeMode': themeMode,
         'librarySort': librarySort,
+        'playlistSort': playlistSort,
         'subtitlesEnabledByDefault': subtitlesEnabledByDefault,
         'autoplayNext': autoplayNext,
         'repeatMode': repeatMode,
@@ -413,6 +419,7 @@ class KivoSettings {
       libraryColumns: m['libraryColumns'] ?? d.libraryColumns,
       themeMode: m['themeMode'] ?? d.themeMode,
       librarySort: m['librarySort'] ?? d.librarySort,
+      playlistSort: m['playlistSort'] ?? d.playlistSort,
       subtitlesEnabledByDefault: m['subtitlesEnabledByDefault'] ?? d.subtitlesEnabledByDefault,
       autoplayNext: m['autoplayNext'] ?? d.autoplayNext,
       repeatMode: m['repeatMode'] ?? d.repeatMode,

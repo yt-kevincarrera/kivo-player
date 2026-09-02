@@ -71,7 +71,11 @@ class PlaylistPlayback {
     final resolved = _ref.read(resolvedPlaylistProvider(playlistId));
     final start = playlistStartIndex(resolved, _ref.read(playedKeysProvider));
     if (start < 0) return false;
-    return _open(resolved, start);
+    final opened = _open(resolved, start);
+    // Only a play that actually opens something touches lastPlayedAtMs — a
+    // refused play (nothing playable) must not count as "played".
+    if (opened) _ref.read(playlistsProvider.notifier).touchLastPlayed(playlistId);
+    return opened;
   }
 
   /// Starts at a specific entry. False when that entry is unavailable.
@@ -79,7 +83,9 @@ class PlaylistPlayback {
     final resolved = _ref.read(resolvedPlaylistProvider(playlistId));
     if (entryIndex < 0 || entryIndex >= resolved.length) return false;
     if (!resolved[entryIndex].available) return false;
-    return _open(resolved, entryIndex);
+    final opened = _open(resolved, entryIndex);
+    if (opened) _ref.read(playlistsProvider.notifier).touchLastPlayed(playlistId);
+    return opened;
   }
 
   bool _open(List<ResolvedEntry> resolved, int entryIndex) {

@@ -5,8 +5,10 @@ import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
 import '../../../player/playlists/playlist.dart';
 import '../../../player/playlists/playlist_controller.dart';
+import '../../../player/playlists/playlist_filter.dart';
 import '../../../player/playlists/playlist_playback.dart';
 import '../../widgets/press_bounce.dart';
+import '../state/library_filter_state.dart';
 import '../widgets/library_empty_state.dart';
 import '../widgets/thumbnail_image.dart';
 import 'playlist_screen.dart';
@@ -56,10 +58,10 @@ class PlaylistsTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final playlists = ref.watch(playlistsProvider);
+    final allPlaylists = ref.watch(playlistsProvider);
     final selecting = ref.watch(playlistsSelectionProvider).isNotEmpty;
 
-    if (playlists.isEmpty) {
+    if (allPlaylists.isEmpty) {
       return LibraryEmptyState(
         icon: Icons.playlist_play_rounded,
         title: 'Todavía no tienes listas',
@@ -68,6 +70,29 @@ class PlaylistsTab extends ConsumerWidget {
             'desde la selección o desde el menú de un video.',
         primaryLabel: 'Nueva lista',
         onPrimary: () => _createPlaylist(context, ref),
+      );
+    }
+
+    // library_screen.dart's search field is shared with the video tabs, but
+    // while THIS tab is showing (normally, or via its search branch — see
+    // that file's `_body`) it filters playlists instead: by the playlist's
+    // own name first, and by any entry's display name as a second criterion
+    // ("which list did I put episode 4 in?"). Sort applies unconditionally,
+    // searching or not — it's the persisted Listas-tab order, not a search
+    // option.
+    final searching = ref.watch(librarySearchActiveProvider);
+    final query = searching ? ref.watch(librarySearchQueryProvider) : '';
+    final sort = playlistSortFor(ref.watch(settingsProvider).playlistSort);
+    final playlists = applyPlaylistFilters(allPlaylists, query: query, sort: sort);
+
+    // A non-empty library of playlists that a search query narrowed to
+    // nothing — distinct from the "no playlists at all" state above, same
+    // way _searchResults' own empty state differs from _videosEmptyState in
+    // library_screen.dart.
+    if (playlists.isEmpty) {
+      return LibraryEmptyState(
+        icon: Icons.search_off,
+        title: 'Ninguna lista coincide con "$query"',
       );
     }
 
