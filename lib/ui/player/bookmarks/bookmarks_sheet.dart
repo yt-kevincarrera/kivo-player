@@ -7,6 +7,7 @@ import '../../../core/theme/kivo_theme.dart';
 import '../../../player/bookmarks/bookmark.dart';
 import '../../../player/bookmarks/bookmarks_provider.dart';
 import '../../../player/control/player_controller.dart';
+import '../../../player/open/video_source.dart';
 
 Future<void> showBookmarksSheet(BuildContext context) {
   return showModalBottomSheet(
@@ -27,6 +28,13 @@ class _BookmarksSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final bookmarks = ref.watch(bookmarksProvider);
     final accent = Color(ref.watch(settingsProvider).accentColor);
+    // Captured here, not re-read inside the async callbacks below: rename's
+    // dialog await and delete's few-second SnackBar both cross an async gap
+    // during which the open video can change (autoplay advancing, repeat
+    // video, shuffle). Every callback wired up in this build must keep
+    // writing to the video this build is showing, never whatever happens to
+    // be open when the callback actually runs.
+    final videoKey = ref.watch(currentVideoProvider.select((s) => s?.resumeKey));
 
     return SafeArea(
       child: Padding(
@@ -89,9 +97,9 @@ class _BookmarksSheet extends ConsumerWidget {
                           );
                     },
                     onRename: () =>
-                        _renameBookmark(context, ref, i, bookmarks[i]),
+                        _renameBookmark(context, ref, videoKey, i, bookmarks[i]),
                     onDelete: () =>
-                        _deleteBookmark(context, ref, i, bookmarks[i]),
+                        _deleteBookmark(context, ref, videoKey, i, bookmarks[i]),
                   ),
                 ),
               ),
@@ -140,6 +148,7 @@ Future<String?> promptBookmarkName(BuildContext context, {String initial = ''}) 
 Future<void> _renameBookmark(
   BuildContext context,
   WidgetRef ref,
+  String? videoKey,
   int index,
   Bookmark bookmark,
 ) async {
@@ -148,22 +157,30 @@ Future<void> _renameBookmark(
   final notifier = ref.read(bookmarksProvider.notifier);
   final name = await promptBookmarkName(context, initial: bookmark.name);
   if (name == null) return;
-  await notifier.rename(index, name);
+  // [videoKey] is the video this row belonged to when the dialog opened. If
+  // the video changed while it was up, this is a no-op — never rename a
+  // bookmark in whatever video is now open.
+  await notifier.rename(index, name, key: videoKey);
 }
 
 /// Removes the bookmark at [index] immediately and offers a few seconds to
 /// undo it. Messenger and notifier are captured before anything else, so
 /// neither ever touches a BuildContext that may no longer be mounted.
+/// [videoKey] is the video this row belonged to when the delete happened; the
+/// SnackBar's "Deshacer" reuses it, so if the video changes before the user
+/// taps undo, undo silently does nothing rather than writing into whatever
+/// video is open by then.
 void _deleteBookmark(
   BuildContext context,
   WidgetRef ref,
+  String? videoKey,
   int index,
   Bookmark bookmark,
 ) {
   final messenger = ScaffoldMessenger.of(context);
   final notifier = ref.read(bookmarksProvider.notifier);
 
-  notifier.removeAt(index);
+  notifier.removeAt(index, key: videoKey);
 
   messenger.hideCurrentSnackBar();
   messenger.showSnackBar(
@@ -175,7 +192,7 @@ void _deleteBookmark(
       ),
       action: SnackBarAction(
         label: 'Deshacer',
-        onPressed: () => notifier.insert(bookmark),
+        onPressed: () => notifier.insert(bookmark, key: videoKey),
       ),
     ),
   );

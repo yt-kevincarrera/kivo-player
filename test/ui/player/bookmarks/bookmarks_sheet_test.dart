@@ -136,4 +136,38 @@ void main() {
 
     expect(c.read(bookmarksProvider).map((b) => b.name), ['Uno', 'Dos']);
   });
+
+  testWidgets(
+      'video changing while Deshacer is pending drops the undo — it never '
+      'writes into the newly-open video', (tester) async {
+    final store = InMemoryBookmarkStore();
+    await store.put('a.mkv', const [
+      Bookmark(positionMs: 10000, name: 'Uno', createdAtMs: 1),
+    ]);
+    final c = await _pump(tester, bookmarkStore: store);
+
+    await tester.tap(find.byKey(const ValueKey('bookmark-delete-0')));
+    await tester.pump();
+    expect(find.text('Uno'), findsNothing);
+
+    // A ends, autoplay advances, B opens — while the sheet (and its
+    // SnackBar) are still up.
+    c.read(currentVideoProvider.notifier).open(const VideoSession(
+          playbackPath: '/v/b.mkv',
+          displayName: 'b.mkv',
+          queue: ['/v/b.mkv'],
+          index: 0,
+        ));
+    await tester.pump();
+
+    final action = tester.widget<SnackBarAction>(find.byType(SnackBarAction));
+    action.onPressed();
+    await tester.pumpAndSettle();
+
+    // B never receives A's bookmark, and A's is not silently restored
+    // either — the undo is simply dropped.
+    expect(c.read(bookmarksProvider), isEmpty);
+    expect(store.forVideo('a.mkv'), isEmpty);
+    expect(store.forVideo('b.mkv'), isEmpty);
+  });
 }
