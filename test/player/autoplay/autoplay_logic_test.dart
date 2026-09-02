@@ -9,4 +9,12 @@ void main() {
     expect(shouldAutoplay(enabled: true, hasNext: true, loopActive: true, sleepStopsHere: false), false);
     expect(shouldAutoplay(enabled: true, hasNext: true, loopActive: false, sleepStopsHere: true), false);
   });
+
+  test('repeat-list keeps hasNext true forever, but sleepStopsHere still wins', () {
+    // Under repeat-list, peekNext() never returns null (it wraps to the
+    // start), so hasNext is always true — that must not let the sleep
+    // timer's "stop here" be overridden. Same for an active A-B loop.
+    expect(shouldAutoplay(enabled: true, hasNext: true, loopActive: false, sleepStopsHere: true), false);
+    expect(shouldAutoplay(enabled: true, hasNext: true, loopActive: true, sleepStopsHere: false), false);
+  });
 }

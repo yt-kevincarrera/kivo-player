@@ -36,6 +36,7 @@ class Playlist {
     required this.name,
     required this.createdAtMs,
     required this.entries,
+    this.lastPlayedAtMs = 0,
   });
 
   /// The creation timestamp in milliseconds, as a string. This is the
@@ -45,11 +46,23 @@ class Playlist {
   final int createdAtMs;
   final List<PlaylistEntry> entries;
 
-  Playlist copyWith({String? name, List<PlaylistEntry>? entries}) => Playlist(
+  /// When this playlist last actually opened something, in epoch ms — 0 if
+  /// never. Set only by [PlaylistsNotifier.touchLastPlayed], which
+  /// `PlaylistPlayback.play`/`playAt` call after a play actually starts (not
+  /// on a refused play). Drives `PlaylistSort.lastPlayed`.
+  final int lastPlayedAtMs;
+
+  Playlist copyWith({
+    String? name,
+    List<PlaylistEntry>? entries,
+    int? lastPlayedAtMs,
+  }) =>
+      Playlist(
         id: id,
         name: name ?? this.name,
         createdAtMs: createdAtMs,
         entries: entries ?? this.entries,
+        lastPlayedAtMs: lastPlayedAtMs ?? this.lastPlayedAtMs,
       );
 
   Map<String, dynamic> toMap() => {
@@ -57,6 +70,7 @@ class Playlist {
         'name': name,
         'created': createdAtMs,
         'entries': entries.map((e) => e.toMap()).toList(),
+        'lp': lastPlayedAtMs,
       };
 
   factory Playlist.fromMap(Map m) => Playlist(
@@ -67,7 +81,69 @@ class Playlist {
             .whereType<Map>()
             .map(PlaylistEntry.fromMap)
             .toList(),
+        // Absent on a playlist stored before this field existed — reads as
+        // "never played", which is correct rather than merely harmless.
+        lastPlayedAtMs: (m['lp'] as num?)?.toInt() ?? 0,
       );
+
+  // Value equality, entries included, so `playlistsProvider.select` (see
+  // playlist_playback.dart) can tell "this one playlist's content is
+  // unchanged" from "a sibling playlist changed and the list was rebuilt"
+  // without it, `select` would compare object identity, which
+  // HivePlaylistStore.all() breaks on every read — it deserializes a fresh
+  // Playlist for every row, touched or not, so an untouched playlist would
+  // look "new" every time and select would never filter anything out. No
+  // package:collection for the entries comparison, same call as
+  // PlaylistEntry's own == above: one list-equality check isn't worth adding
+  // the dependency for.
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! Playlist) return false;
+    if (other.id != id ||
+        other.name != name ||
+        other.createdAtMs != createdAtMs ||
+        other.lastPlayedAtMs != lastPlayedAtMs) {
+      return false;
+    }
+    if (other.entries.length != entries.length) return false;
+    for (var i = 0; i < entries.length; i++) {
+      if (other.entries[i] != entries[i]) return false;
+    }
+    return true;
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, name, createdAtMs, lastPlayedAtMs, Object.hashAll(entries));
+}
+
+/// The media index built into O(1) lookup maps once and shared by every
+/// playlist's resolution, instead of every `resolvePlaylist` call rebuilding
+/// both maps over the whole index. See `mediaLookupProvider` in
+/// playlist_playback.dart for where this gets built and shared.
+class MediaLookup {
+  const MediaLookup({required this.byId, required this.byName});
+
+  final Map<String, VideoItem> byId;
+  final Map<String, VideoItem> byName;
+
+  factory MediaLookup.build(List<VideoItem> index) {
+    final byId = <String, VideoItem>{};
+    final byName = <String, VideoItem>{};
+    for (final v in index) {
+      byId[v.id] = v;
+      // First wins: two files can share a name in different folders, and the
+      // earlier one is as good a guess as any when the id is already gone.
+      byName.putIfAbsent(v.name, () => v);
+    }
+    return MediaLookup(byId: byId, byName: byName);
+  }
+
+  /// Matches by [PlaylistEntry.mediaId] first and falls back to the display
+  /// name — same order resolvePlaylist has always used.
+  VideoItem? resolve(PlaylistEntry entry) =>
+      byId[entry.mediaId] ?? byName[entry.displayName];
 }
 
 /// An entry paired with the video it points at, or null when that video is
@@ -84,20 +160,14 @@ class ResolvedEntry {
 /// Pairs each entry with its video, in playlist order.
 ///
 /// Matches by [PlaylistEntry.mediaId] first and falls back to the display
-/// name. Callers pass the RAW media index: a video the user put in a playlist
-/// by hand outranks the hidden-folders view filter.
-List<ResolvedEntry> resolvePlaylist(Playlist playlist, List<VideoItem> index) {
-  final byId = <String, VideoItem>{};
-  final byName = <String, VideoItem>{};
-  for (final v in index) {
-    byId[v.id] = v;
-    // First wins: two files can share a name in different folders, and the
-    // earlier one is as good a guess as any when the id is already gone.
-    byName.putIfAbsent(v.name, () => v);
-  }
-
+/// name. Callers pass a [MediaLookup] built from the RAW media index: a video
+/// the user put in a playlist by hand outranks the hidden-folders view
+/// filter. Pure and Riverpod-free — [lookup] is built once by the caller
+/// (see `mediaLookupProvider`) and shared across every playlist's resolution
+/// rather than rebuilt here on every call.
+List<ResolvedEntry> resolvePlaylist(Playlist playlist, MediaLookup lookup) {
   return playlist.entries
-      .map((e) => ResolvedEntry(e, byId[e.mediaId] ?? byName[e.displayName]))
+      .map((e) => ResolvedEntry(e, lookup.resolve(e)))
       .toList();
 }
 

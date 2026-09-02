@@ -1,5 +1,6 @@
 import '../../core/settings/kivo_settings.dart';
 import '../../platform/interfaces/subtitle_finder.dart';
+import '../audio/equalizer.dart';
 import '../engine/playback_engine.dart';
 import '../open/video_source.dart';
 import 'track_prefs_store.dart';
@@ -84,6 +85,22 @@ void applyDefaultTracks({
       await engine.setAudioDelay(audioDelayMs / 1000);
     } catch (_) {
       // Separate try: a failure applying one offset must not skip the other.
+    }
+
+    // Same trap, same fix, third time: `af` is a global mpv option on the
+    // same process-lifetime Player, so it survives loadfile exactly like
+    // sub-delay/audio-delay do. This call is UNCONDITIONAL even when the
+    // equalizer is off or perfectly flat — mpvAudioFilter returns '' for
+    // that case, and sending '' is what actually clears whatever graph the
+    // previous video's (possibly enabled) equalizer left running. Skipping
+    // this call when "there's nothing to apply" is exactly the bug that bit
+    // sub-delay/audio-delay before: the previous video's filter would keep
+    // coloring a video whose own equalizer setting is off.
+    try {
+      await engine.setAudioFilter(mpvAudioFilter(settings.equalizer));
+    } catch (_) {
+      // Separate try: a failure applying the filter must not skip playback
+      // start, and must not be masked by (or mask) the two offsets above.
     }
   }();
 }

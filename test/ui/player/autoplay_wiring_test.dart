@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kivo_player/player/bookmarks/bookmark_store.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/platform/device_controls_provider.dart';
@@ -44,10 +45,14 @@ void main() {
     WidgetTester tester, {
     required FakePlaybackEngine engine,
     bool autoplayNext = true,
+    String? repeatMode,
   }) async {
     final s = await SettingsService.load(InMemorySettingsStore());
-    if (!autoplayNext) {
-      await s.update(s.current.copyWith(autoplayNext: false));
+    if (!autoplayNext || repeatMode != null) {
+      await s.update(s.current.copyWith(
+        autoplayNext: autoplayNext,
+        repeatMode: repeatMode,
+      ));
     }
     final c = ProviderContainer(overrides: [
       settingsServiceProvider.overrideWithValue(s),
@@ -55,6 +60,7 @@ void main() {
       deviceControlsProvider.overrideWithValue(NoopControls()),
       resumeServiceProvider.overrideWithValue(ResumeService(InMemoryResumeStore())),
       playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
+      bookmarkStoreProvider.overrideWithValue(InMemoryBookmarkStore()),
       frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
       subtitleFinderProvider.overrideWithValue(FakeSubtitleFinder()),
       pipControllerProvider.overrideWithValue(FakePipController()),
@@ -161,6 +167,30 @@ void main() {
 
     expect(c.read(autoplayPendingProvider), isNull);
 
+    await tester.pump(const Duration(seconds: 4));
+  });
+
+  testWidgets('repeat-video: foreground completion skips the overlay and restarts directly',
+      (tester) async {
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    final engine = FakePlaybackEngine();
+    addTearDown(engine.dispose);
+    final c = await pumpPlayer(tester, engine: engine, repeatMode: 'video');
+    expect(engine.openCount, 1); // initial open
+
+    // Same video repeating on completion: a "next in 5s" countdown to watch
+    // it again would be absurd, so this must restart immediately even though
+    // the player is on-screen (unlike the plain-next case above).
+    engine.emitCompleted(true);
+    await tester.pump();
+
+    expect(c.read(autoplayPendingProvider), isNull); // no countdown
+    expect(engine.openCount, 2); // advanced (reopened) right away
+    expect(engine.openedPath, '/v/ep1.mkv'); // the SAME video
+    expect(c.read(currentVideoProvider)!.index, 0);
+
+    engine.emitAudioTracks(const []);
+    engine.emitSubtitleTracks(const []);
     await tester.pump(const Duration(seconds: 4));
   });
 }

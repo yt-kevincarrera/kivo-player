@@ -1,3 +1,5 @@
+import '../../player/audio/equalizer.dart';
+
 class KivoSettings {
   final int doubleTapSkipLeft;
   final int doubleTapSkipRight;
@@ -29,8 +31,11 @@ class KivoSettings {
   final int libraryColumns;
   final String themeMode; // 'auto' | 'light' | 'dark'
   final String librarySort; // LibrarySort enum name — see lib/player/library/library_filter.dart
+  final String playlistSort; // PlaylistSort enum name — see lib/player/playlists/playlist_filter.dart
   final bool subtitlesEnabledByDefault;
   final bool autoplayNext;
+  final String repeatMode; // RepeatMode enum name — see lib/player/queue/queue_order.dart
+  final bool shuffle;
   final String? preferredSubtitleLanguage;
   final String? preferredAudioLanguage;
   final double subtitleFontSize;
@@ -61,6 +66,7 @@ class KivoSettings {
   /// Bucket display names hidden from the library. A view filter only — the
   /// files are never touched, unlike the vault.
   final List<String> excludedFolders;
+  final EqualizerSettings equalizer;
 
   const KivoSettings({
     required this.doubleTapSkipLeft,
@@ -93,8 +99,11 @@ class KivoSettings {
     required this.libraryColumns,
     required this.themeMode,
     required this.librarySort,
+    required this.playlistSort,
     required this.subtitlesEnabledByDefault,
     required this.autoplayNext,
+    required this.repeatMode,
+    required this.shuffle,
     required this.preferredSubtitleLanguage,
     required this.preferredAudioLanguage,
     required this.subtitleFontSize,
@@ -119,6 +128,7 @@ class KivoSettings {
     required this.pendingUpdateDownloadId,
     required this.pendingUpdateVersion,
     required this.excludedFolders,
+    required this.equalizer,
   });
 
   factory KivoSettings.defaults() => const KivoSettings(
@@ -152,8 +162,11 @@ class KivoSettings {
         libraryColumns: 1,
         themeMode: 'auto',
         librarySort: 'recent',
+        playlistSort: 'recent',
         subtitlesEnabledByDefault: true,
         autoplayNext: true,
+        repeatMode: 'off',
+        shuffle: false,
         preferredSubtitleLanguage: null,
         preferredAudioLanguage: null,
         subtitleFontSize: 26.0,
@@ -178,6 +191,11 @@ class KivoSettings {
         pendingUpdateDownloadId: -1,
         pendingUpdateVersion: null,
         excludedFolders: [],
+        equalizer: EqualizerSettings(
+          enabled: false,
+          preampDb: 0,
+          gainsDb: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ),
       );
 
   static const Object _unset = Object();
@@ -213,8 +231,11 @@ class KivoSettings {
     int? libraryColumns,
     String? themeMode,
     String? librarySort,
+    String? playlistSort,
     bool? subtitlesEnabledByDefault,
     bool? autoplayNext,
+    String? repeatMode,
+    bool? shuffle,
     Object? preferredSubtitleLanguage = _unset,
     Object? preferredAudioLanguage = _unset,
     double? subtitleFontSize,
@@ -239,6 +260,7 @@ class KivoSettings {
     int? pendingUpdateDownloadId,
     Object? pendingUpdateVersion = _unset,
     List<String>? excludedFolders,
+    EqualizerSettings? equalizer,
   }) {
     return KivoSettings(
       doubleTapSkipLeft: doubleTapSkipLeft ?? this.doubleTapSkipLeft,
@@ -271,8 +293,11 @@ class KivoSettings {
       libraryColumns: libraryColumns ?? this.libraryColumns,
       themeMode: themeMode ?? this.themeMode,
       librarySort: librarySort ?? this.librarySort,
+      playlistSort: playlistSort ?? this.playlistSort,
       subtitlesEnabledByDefault: subtitlesEnabledByDefault ?? this.subtitlesEnabledByDefault,
       autoplayNext: autoplayNext ?? this.autoplayNext,
+      repeatMode: repeatMode ?? this.repeatMode,
+      shuffle: shuffle ?? this.shuffle,
       preferredSubtitleLanguage: identical(preferredSubtitleLanguage, _unset)
           ? this.preferredSubtitleLanguage
           : preferredSubtitleLanguage as String?,
@@ -306,6 +331,7 @@ class KivoSettings {
           ? this.pendingUpdateVersion
           : pendingUpdateVersion as String?,
       excludedFolders: excludedFolders ?? this.excludedFolders,
+      equalizer: equalizer ?? this.equalizer,
     );
   }
 
@@ -340,8 +366,11 @@ class KivoSettings {
         'libraryColumns': libraryColumns,
         'themeMode': themeMode,
         'librarySort': librarySort,
+        'playlistSort': playlistSort,
         'subtitlesEnabledByDefault': subtitlesEnabledByDefault,
         'autoplayNext': autoplayNext,
+        'repeatMode': repeatMode,
+        'shuffle': shuffle,
         'preferredSubtitleLanguage': preferredSubtitleLanguage,
         'preferredAudioLanguage': preferredAudioLanguage,
         'subtitleFontSize': subtitleFontSize,
@@ -366,6 +395,7 @@ class KivoSettings {
         'pendingUpdateDownloadId': pendingUpdateDownloadId,
         'pendingUpdateVersion': pendingUpdateVersion,
         'excludedFolders': excludedFolders,
+        'equalizer': equalizer.toMap(),
       };
 
   factory KivoSettings.fromMap(Map<String, dynamic> m) {
@@ -401,8 +431,11 @@ class KivoSettings {
       libraryColumns: m['libraryColumns'] ?? d.libraryColumns,
       themeMode: m['themeMode'] ?? d.themeMode,
       librarySort: m['librarySort'] ?? d.librarySort,
+      playlistSort: m['playlistSort'] ?? d.playlistSort,
       subtitlesEnabledByDefault: m['subtitlesEnabledByDefault'] ?? d.subtitlesEnabledByDefault,
       autoplayNext: m['autoplayNext'] ?? d.autoplayNext,
+      repeatMode: m['repeatMode'] ?? d.repeatMode,
+      shuffle: m['shuffle'] ?? d.shuffle,
       preferredSubtitleLanguage: m['preferredSubtitleLanguage'] ?? d.preferredSubtitleLanguage,
       preferredAudioLanguage: m['preferredAudioLanguage'] ?? d.preferredAudioLanguage,
       subtitleFontSize: (m['subtitleFontSize'] ?? d.subtitleFontSize).toDouble(),
@@ -432,6 +465,7 @@ class KivoSettings {
           m['pendingUpdateVersion'] ?? d.pendingUpdateVersion,
       excludedFolders: (m['excludedFolders'] as List?)?.cast<String>() ??
           d.excludedFolders,
+      equalizer: EqualizerSettings.fromMap(m['equalizer']),
     );
   }
 }

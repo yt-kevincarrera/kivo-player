@@ -17,12 +17,15 @@ const _twoItem = VideoSession(
   queueIds: ['1', '2'], index: 0);
 
 Future<(ProviderContainer, FakePlaybackEngine)> _setup(WidgetTester t,
-    {bool minimized = true, bool autoplay = true}) async {
+    {bool minimized = true, bool autoplay = true, String? repeatMode}) async {
   TestWidgetsFlutterBinding.ensureInitialized();
   final engine = FakePlaybackEngine();
   addTearDown(engine.dispose);
   final s = await SettingsService.load(InMemorySettingsStore());
-  await s.update(s.current.copyWith(autoplayNext: autoplay));
+  await s.update(s.current.copyWith(
+    autoplayNext: autoplay,
+    repeatMode: repeatMode,
+  ));
   final c = ProviderContainer(overrides: [
     settingsServiceProvider.overrideWithValue(s),
     playbackEngineProvider.overrideWithValue(engine),
@@ -84,5 +87,31 @@ void main() {
     engine.emitCompleted(true);
     await _pump(t);
     expect(engine.openedPath, isNull);
+  });
+
+  testWidgets('minimized + repeat-list → completing the last video wraps to the first', (t) async {
+    final (c, engine) = await _setup(t, repeatMode: 'list');
+    c.read(currentVideoProvider.notifier).advanceTo(
+      c.read(currentVideoProvider.notifier).sessionAt(1)!); // move to last
+    engine.emitCompleted(true);
+    await t.pump();
+    engine.emitAudioTracks(const []);
+    await t.pump();
+    engine.emitSubtitleTracks(const []);
+    await _pump(t);
+    expect(engine.openedPath, '/v/ep1.mkv'); // wrapped, not stopped
+    expect(c.read(currentVideoProvider)!.index, 0);
+  });
+
+  testWidgets('minimized + repeat-video → completing restarts the SAME video', (t) async {
+    final (c, engine) = await _setup(t, repeatMode: 'video');
+    engine.emitCompleted(true);
+    await t.pump();
+    engine.emitAudioTracks(const []);
+    await t.pump();
+    engine.emitSubtitleTracks(const []);
+    await _pump(t);
+    expect(engine.openedPath, '/v/ep1.mkv'); // same video, not ep2
+    expect(c.read(currentVideoProvider)!.index, 0);
   });
 }

@@ -225,6 +225,13 @@ class MediaKitEngine implements PlaybackEngine {
   }
 
   @override
+  Future<void> setAudioFilter(String af) async {
+    final native = _player.platform as NativePlayer?;
+    if (native == null) return;
+    await native.setProperty('af', af);
+  }
+
+  @override
   Future<void> setVideoTrackEnabled(bool enabled) async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;

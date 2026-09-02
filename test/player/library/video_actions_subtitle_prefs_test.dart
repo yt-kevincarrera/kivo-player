@@ -6,6 +6,7 @@ import 'package:kivo_player/platform/interfaces/media_indexer.dart';
 import 'package:kivo_player/platform/media_indexer_provider.dart';
 import 'package:kivo_player/platform/interfaces/media_permission.dart';
 import 'package:kivo_player/platform/media_permission_provider.dart';
+import 'package:kivo_player/player/bookmarks/bookmark_store.dart';
 import 'package:kivo_player/player/library/played.dart';
 import 'package:kivo_player/player/library/video_actions.dart';
 import 'package:kivo_player/player/open/video_source.dart';
@@ -53,6 +54,7 @@ Future<ProviderContainer> buildVideoActionsContainer({
     mediaPermissionImplProvider.overrideWithValue(_Perm()),
     trackPrefsStoreProvider.overrideWithValue(subtitlePrefs),
     subtitleImporterProvider.overrideWithValue(importer ?? FakeSubtitleImporter()),
+    bookmarkStoreProvider.overrideWithValue(InMemoryBookmarkStore()),
   ]);
 }
 

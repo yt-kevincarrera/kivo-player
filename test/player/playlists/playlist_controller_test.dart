@@ -166,6 +166,31 @@ void main() {
     expect(store.all().single.entries.map((e) => e.mediaId), ['1', '1', '1']);
   });
 
+  test('touchLastPlayed stamps the clock and keeps everything else', () async {
+    final store = InMemoryPlaylistStore();
+    final c = _c(store, clock: () => DateTime.fromMillisecondsSinceEpoch(9999));
+    addTearDown(c.dispose);
+    final p = await c.read(playlistsProvider.notifier).create('Serie');
+    await c.read(playlistsProvider.notifier).addVideos(p.id, [_v('1', 'a.mkv')]);
+    expect(store.all().single.lastPlayedAtMs, 0);
+
+    await c.read(playlistsProvider.notifier).touchLastPlayed(p.id);
+
+    expect(store.all().single.lastPlayedAtMs, 9999);
+    expect(store.all().single.id, p.id);
+    expect(store.all().single.entries.length, 1);
+  });
+
+  test('touchLastPlayed on an unknown playlist id does nothing', () async {
+    final store = InMemoryPlaylistStore();
+    final c = _c(store);
+    addTearDown(c.dispose);
+
+    await c.read(playlistsProvider.notifier).touchLastPlayed('nope');
+
+    expect(store.all(), isEmpty);
+  });
+
   test('renaming a playlist keeps its entries and its id', () async {
     final store = InMemoryPlaylistStore();
     final c = _c(store);

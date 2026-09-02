@@ -20,7 +20,7 @@ void main() {
     test('matches by media id first', () {
       final p = _list([const PlaylistEntry(mediaId: '7', displayName: 'viejo.mkv')]);
       // The file was renamed: the id still matches, the stored name no longer does.
-      final resolved = resolvePlaylist(p, [_v('7', 'nuevo.mkv')]);
+      final resolved = resolvePlaylist(p, MediaLookup.build([_v('7', 'nuevo.mkv')]));
       expect(resolved.single.available, true);
       expect(resolved.single.video!.name, 'nuevo.mkv');
     });
@@ -28,14 +28,14 @@ void main() {
     test('falls back to the display name when the id is gone', () {
       final p = _list([const PlaylistEntry(mediaId: '7', displayName: 'ep1.mkv')]);
       // The file was moved: MediaStore gave it a new row, so a new id.
-      final resolved = resolvePlaylist(p, [_v('99', 'ep1.mkv')]);
+      final resolved = resolvePlaylist(p, MediaLookup.build([_v('99', 'ep1.mkv')]));
       expect(resolved.single.available, true);
       expect(resolved.single.video!.id, '99');
     });
 
     test('an entry matching neither stays unresolved', () {
       final p = _list([const PlaylistEntry(mediaId: '7', displayName: 'ep1.mkv')]);
-      final resolved = resolvePlaylist(p, [_v('99', 'otro.mkv')]);
+      final resolved = resolvePlaylist(p, MediaLookup.build([_v('99', 'otro.mkv')]));
       expect(resolved.single.available, false);
       expect(resolved.single.video, isNull);
     });
@@ -45,7 +45,8 @@ void main() {
         const PlaylistEntry(mediaId: '3', displayName: 'c.mkv'),
         const PlaylistEntry(mediaId: '1', displayName: 'a.mkv'),
       ]);
-      final resolved = resolvePlaylist(p, [_v('1', 'a.mkv'), _v('3', 'c.mkv')]);
+      final resolved = resolvePlaylist(
+          p, MediaLookup.build([_v('1', 'a.mkv'), _v('3', 'c.mkv')]));
       expect(resolved.map((r) => r.video!.id).toList(), ['3', '1']);
     });
 
@@ -54,7 +55,8 @@ void main() {
         const PlaylistEntry(mediaId: '1', displayName: 'a.mkv'),
         const PlaylistEntry(mediaId: '1', displayName: 'a.mkv'),
       ]);
-      expect(resolvePlaylist(p, [_v('1', 'a.mkv')]).length, 2);
+      expect(
+          resolvePlaylist(p, MediaLookup.build([_v('1', 'a.mkv')])).length, 2);
     });
   });
 
@@ -138,6 +140,122 @@ void main() {
     test('created reads as a num, so an int or a double both work', () {
       expect(Playlist.fromMap(const {'created': 1000.0}).createdAtMs, 1000);
       expect(Playlist.fromMap(const {'created': 1000}).createdAtMs, 1000);
+    });
+  });
+
+  group('lastPlayedAtMs', () {
+    test('defaults to 0 (never played)', () {
+      const p = Playlist(id: '1', name: 'Serie', createdAtMs: 0, entries: []);
+      expect(p.lastPlayedAtMs, 0);
+    });
+
+    test('round-trips through toMap/fromMap under its own key', () {
+      const p = Playlist(
+        id: '1',
+        name: 'Serie',
+        createdAtMs: 1000,
+        entries: [],
+        lastPlayedAtMs: 5000,
+      );
+      final map = p.toMap();
+      expect(map['lp'], 5000);
+      expect(Playlist.fromMap(map).lastPlayedAtMs, 5000);
+    });
+
+    test('a playlist stored before this field existed reads as never played',
+        () {
+      // No 'lp' key at all — the shape Hive already holds for every playlist
+      // made before this feature shipped.
+      final p = Playlist.fromMap(const {
+        'id': '1',
+        'name': 'Serie',
+        'created': 1000,
+        'entries': <dynamic>[],
+      });
+      expect(p.lastPlayedAtMs, 0);
+    });
+
+    test('copyWith updates lastPlayedAtMs and leaves everything else alone',
+        () {
+      const p = Playlist(id: '1', name: 'Serie', createdAtMs: 1000, entries: []);
+      final touched = p.copyWith(lastPlayedAtMs: 4242);
+      expect(touched.lastPlayedAtMs, 4242);
+      expect(touched.id, p.id);
+      expect(touched.name, p.name);
+      expect(touched.createdAtMs, p.createdAtMs);
+    });
+  });
+
+  // Value equality (not identity) is what makes `playlistsProvider.select`
+  // safe in playlist_playback.dart: HivePlaylistStore.all() deserializes a
+  // fresh Playlist for every row on every read, touched or not, so identity
+  // would make `select` see a "new" object every time and never filter out
+  // an unrelated playlist's rebuild.
+  group('value equality', () {
+    test('two playlists with the same content are equal, even as distinct instances', () {
+      const a = Playlist(
+        id: '1',
+        name: 'Serie',
+        createdAtMs: 1000,
+        entries: [PlaylistEntry(mediaId: '7', displayName: 'ep1.mkv')],
+      );
+      // Round-tripped through a map, like HivePlaylistStore.all() does on
+      // every read — a distinct instance, same content.
+      final b = Playlist.fromMap(a.toMap());
+      expect(identical(a, b), false);
+      expect(a, b);
+      expect(a.hashCode, b.hashCode);
+    });
+
+    test('a different name makes playlists unequal', () {
+      const a = Playlist(id: '1', name: 'Serie', createdAtMs: 1000, entries: []);
+      const b = Playlist(id: '1', name: 'Otra', createdAtMs: 1000, entries: []);
+      expect(a == b, false);
+    });
+
+    test('a different entry list makes playlists unequal', () {
+      const a = Playlist(
+        id: '1',
+        name: 'Serie',
+        createdAtMs: 1000,
+        entries: [PlaylistEntry(mediaId: '7', displayName: 'ep1.mkv')],
+      );
+      const b = Playlist(id: '1', name: 'Serie', createdAtMs: 1000, entries: []);
+      expect(a == b, false);
+    });
+
+    test('a different lastPlayedAtMs makes playlists unequal', () {
+      const a = Playlist(id: '1', name: 'Serie', createdAtMs: 1000, entries: []);
+      const b = Playlist(
+        id: '1',
+        name: 'Serie',
+        createdAtMs: 1000,
+        entries: [],
+        lastPlayedAtMs: 5000,
+      );
+      expect(a == b, false);
+    });
+
+    test('entry order matters', () {
+      const a = Playlist(
+        id: '1',
+        name: 'Serie',
+        createdAtMs: 1000,
+        entries: [
+          PlaylistEntry(mediaId: '7', displayName: 'ep1.mkv'),
+          PlaylistEntry(mediaId: '8', displayName: 'ep2.mkv'),
+        ],
+      );
+      const b = Playlist(
+        id: '1',
+        name: 'Serie',
+        createdAtMs: 1000,
+        entries: [
+          PlaylistEntry(mediaId: '8', displayName: 'ep2.mkv'),
+          PlaylistEntry(mediaId: '7', displayName: 'ep1.mkv'),
+        ],
+      );
+      expect(a == b, false);
     });
   });
 }

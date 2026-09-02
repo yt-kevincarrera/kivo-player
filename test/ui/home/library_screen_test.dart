@@ -11,6 +11,8 @@ import 'package:kivo_player/platform/media_permission_provider.dart';
 import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/player/library/played.dart';
 import 'package:kivo_player/player/open/video_source.dart';
+import 'package:kivo_player/player/playlists/playlist_controller.dart';
+import 'package:kivo_player/player/playlists/playlist_store.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/platform/frame_extractor_provider.dart';
 import 'package:kivo_player/ui/home/library_screen.dart';
@@ -55,6 +57,11 @@ Future<ProviderContainer> _buildApp(WidgetTester tester) async {
   final fake = FakeMediaIndexer(_videos);
   final resumeStore = InMemoryResumeStore();
   final engine = FakePlaybackEngine();
+  // Deterministic playlist ids/timestamps, same pattern as
+  // test/player/playlists/playlist_controller_test.dart — a couple of the
+  // tests below create playlists in quick succession and need distinct
+  // createdAtMs to assert on ordering.
+  var tick = 0;
 
   final container = ProviderContainer(
     overrides: [
@@ -65,6 +72,9 @@ Future<ProviderContainer> _buildApp(WidgetTester tester) async {
       playbackEngineProvider.overrideWithValue(engine),
       frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
       playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
+      playlistStoreProvider.overrideWithValue(InMemoryPlaylistStore()),
+      playlistClockProvider.overrideWithValue(
+          () => DateTime.fromMillisecondsSinceEpoch(1000 + tick++)),
     ],
   );
   await tester.pumpWidget(
@@ -301,5 +311,180 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(container.read(playlistsSelectionProvider), isEmpty);
+  });
+
+  testWidgets(
+    'typing in the search field while on Listas filters playlists and does not show video tiles',
+    (tester) async {
+      final container = await _buildApp(tester);
+      addTearDown(container.dispose);
+      await container.read(playlistsProvider.notifier).create('Series');
+      await container.read(playlistsProvider.notifier).create('Cursos');
+
+      // Switch to the Listas sub-tab first.
+      await tester.tap(find.byIcon(Icons.queue_music_outlined));
+      await tester.pumpAndSettle();
+      expect(find.text('Series'), findsOneWidget);
+      expect(find.text('Cursos'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.search));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'cur');
+      await tester.pump();
+
+      expect(find.text('Cursos'), findsOneWidget);
+      expect(find.text('Series'), findsNothing);
+      // The search view on Listas is the playlist list, not the video feed —
+      // no video tile should ever appear while it's showing.
+      expect(find.byType(VideoTile), findsNothing);
+      expect(find.text('Inception.mp4'), findsNothing);
+      expect(find.text('Avatar.mp4'), findsNothing);
+    },
+  );
+
+  testWidgets('search hint says "listas" on the Listas tab, videos elsewhere',
+      (tester) async {
+    await _buildApp(tester);
+
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).decoration?.hintText,
+      'Buscar videos o carpetas',
+    );
+
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.queue_music_outlined));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).decoration?.hintText,
+      'Buscar listas',
+    );
+  });
+
+  testWidgets('opening search from the Listas tab clears any playlist marks',
+      (tester) async {
+    // Mirrors the sub-tab-switch test above: search replaces the visible
+    // rows with a filtered set too, so a mark left behind is the same
+    // orphaned-selection bug, just reached from the search icon instead.
+    final container = await _buildApp(tester);
+    addTearDown(container.dispose);
+    await container.read(playlistsProvider.notifier).create('Serie');
+
+    await tester.tap(find.byIcon(Icons.queue_music_outlined));
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.text('Serie'));
+    await tester.pumpAndSettle();
+    expect(container.read(playlistsSelectionProvider), isNotEmpty);
+
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+
+    expect(container.read(playlistsSelectionProvider), isEmpty);
+  });
+
+  testWidgets(
+      'bulk Borrar on Listas only deletes playlists a search query still shows',
+      (tester) async {
+    final container = await _buildApp(tester);
+    addTearDown(container.dispose);
+    await container.read(playlistsProvider.notifier).create('Serie');
+    await container.read(playlistsProvider.notifier).create('Curso');
+
+    await tester.tap(find.byIcon(Icons.queue_music_outlined));
+    await tester.pumpAndSettle();
+
+    // Open search first (selection is already empty, so nothing to clear),
+    // THEN mark both rows while the query is still empty — search shows
+    // every playlist until something is typed.
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.text('Serie'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Curso'));
+    await tester.pumpAndSettle();
+    expect(container.read(playlistsSelectionProvider).length, 2);
+
+    // Narrowing the query hides Curso's row without touching its mark.
+    await tester.enterText(find.byType(TextField), 'serie');
+    await tester.pump();
+    expect(find.text('Serie'), findsOneWidget);
+    expect(find.text('Curso'), findsNothing);
+
+    await tester.tap(find.byKey(const Key('playlists-bulk-borrar')));
+    await tester.pumpAndSettle();
+    // The confirm dialog names only the one still visible, not both marked.
+    expect(find.textContaining('¿Borrar 1 lista?'), findsOneWidget);
+    await tester.tap(find.descendant(
+        of: find.byType(AlertDialog), matching: find.text('Borrar')));
+    await tester.pumpAndSettle();
+
+    // Curso survives — it was marked but never shown once the query hid it.
+    expect(
+      container.read(playlistsProvider).map((p) => p.name).toList(),
+      ['Curso'],
+    );
+  });
+
+  testWidgets(
+      'Borrar búsqueda on the Listas empty state fully closes search, like the videos one',
+      (tester) async {
+    final container = await _buildApp(tester);
+    addTearDown(container.dispose);
+    await container.read(playlistsProvider.notifier).create('Serie');
+
+    await tester.tap(find.byIcon(Icons.queue_music_outlined));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'zzz-no-match');
+    await tester.pump();
+
+    expect(find.textContaining('Ninguna lista coincide con "zzz-no-match"'),
+        findsOneWidget);
+
+    await tester.tap(find.text('Borrar búsqueda'));
+    await tester.pumpAndSettle();
+
+    // Same escape hatch as the videos search empty state: the field is
+    // gone, the title is back, and the full playlist list is showing again
+    // (not just an emptied query with the field still open).
+    expect(find.text('Kivo'), findsOneWidget);
+    expect(find.byType(TextField), findsNothing);
+    expect(find.text('Serie'), findsOneWidget);
+  });
+
+  testWidgets('changing the sort menu on Listas reorders the rows',
+      (tester) async {
+    final container = await _buildApp(tester);
+    addTearDown(container.dispose);
+    // Created in this order, so "recent" (the default) puts Zulu — made
+    // second — above Alfa, while "Nombre A-Z" would put Alfa above Zulu:
+    // the two sorts disagree, so a reorder actually proves the sort changed.
+    await container.read(playlistsProvider.notifier).create('Alfa');
+    await container.read(playlistsProvider.notifier).create('Zulu');
+
+    await tester.tap(find.byIcon(Icons.queue_music_outlined));
+    await tester.pumpAndSettle();
+
+    final beforeZulu = tester.getCenter(find.text('Zulu'));
+    final beforeAlfa = tester.getCenter(find.text('Alfa'));
+    expect(beforeZulu.dy, lessThan(beforeAlfa.dy));
+
+    await tester.tap(find.byIcon(Icons.sort));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Nombre A-Z'));
+    await tester.pumpAndSettle();
+
+    final afterZulu = tester.getCenter(find.text('Zulu'));
+    final afterAlfa = tester.getCenter(find.text('Alfa'));
+    expect(afterAlfa.dy, lessThan(afterZulu.dy));
   });
 }

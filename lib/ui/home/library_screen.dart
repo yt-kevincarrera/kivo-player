@@ -15,6 +15,7 @@ import '../../player/library/media_index.dart';
 import '../../player/library/media_permission.dart';
 import '../../player/library/played.dart';
 import '../../player/open/video_source.dart';
+import '../../player/playlists/playlist_filter.dart';
 import '../player/controls/resume_prompt.dart';
 import '../player/player_route.dart';
 import '../vault/vault_entry_actions.dart';
@@ -133,12 +134,31 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
   void _openSearch() {
     ref.read(librarySearchActiveProvider.notifier).state = true;
+    // Same reason _FilterChips' onChanged below clears it on a sub-tab
+    // switch: opening search over Listas swaps the visible rows to the
+    // filtered set, and a selection left pointing at rows no longer shown
+    // is the bug — not just orphaned, actionable-but-wrong (the bulk bar's
+    // Borrar would otherwise still see the hidden ones).
+    ref.read(playlistsSelectionProvider.notifier).clear();
   }
 
   void _closeSearch() {
     ref.read(librarySearchActiveProvider.notifier).state = false;
     ref.read(librarySearchQueryProvider.notifier).state = '';
     _searchController.clear();
+    _syncPagerToTab();
+  }
+
+  /// Search replaces the whole chips+pager column, so closing it REMOUNTS the
+  /// PageView — and a re-attached PageController starts at its initialPage
+  /// (0), not where the user was. Without this, closing search from Carpetas
+  /// or Listas showed Todo under a chip that still said otherwise.
+  void _syncPagerToTab() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_pageController.hasClients) return;
+      final i = ref.read(librarySubTabProvider);
+      if (_pageController.page?.round() != i) _pageController.jumpToPage(i);
+    });
   }
 
   /// The video list currently fed to [VideoDensityFeed] — used both by the
@@ -203,8 +223,12 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.onSurface,
                         ),
-                        decoration: const InputDecoration(
-                          hintText: 'Buscar videos o carpetas',
+                        decoration: InputDecoration(
+                          // Listas' search filters playlists (by name, and
+                          // by member-video name), not videos or folders —
+                          // say so, or the hint just lies on that tab.
+                          hintText:
+                              tab == 2 ? 'Buscar listas' : 'Buscar videos o carpetas',
                           border: InputBorder.none,
                         ),
                         onChanged: (q) =>
@@ -248,8 +272,12 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                           onPressed: _openSearch,
                         ),
                 ),
-                if (ref.watch(librarySearchActiveProvider) || tab == 0)
-                  const _SortMenuButton(),
+                if (ref.watch(librarySearchActiveProvider) || tab == 0 || tab == 2)
+                  // While searching, the search view (not `tab`) decides what
+                  // is being sorted — but the search view on Listas IS the
+                  // playlist list (see `_body`'s search branch above), so
+                  // `tab == 2` is still the right switch even mid-search.
+                  (tab == 2 ? const _PlaylistSortMenuButton() : const _SortMenuButton()),
                 if (!ref.watch(librarySearchActiveProvider)) ...[
                   // Density is a property of the Todo feed and the Carpetas
                   // grid; on Listas the button would respond and change
@@ -299,6 +327,11 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       ),
       data: (videos) {
         if (ref.watch(librarySearchActiveProvider)) {
+          // On Listas, search filters PLAYLISTS, not videos — PlaylistsTab
+          // itself reads the same query/active providers (see its build) and
+          // switches to `applyPlaylistFilters` when active, so re-showing it
+          // here is enough; there is no separate playlist search view.
+          if (tab == 2) return PlaylistsTab(onClearSearch: _closeSearch);
           return _searchResults(videos);
         }
         return Column(
@@ -345,7 +378,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                     key: const ValueKey(1),
                     child: _foldersTab(videos),
                   ),
-                  const _KeepAlivePage(key: ValueKey(2), child: PlaylistsTab()),
+                  _KeepAlivePage(
+                    key: const ValueKey(2),
+                    child: PlaylistsTab(onClearSearch: _closeSearch),
+                  ),
                 ],
               ),
             ),
@@ -720,6 +756,58 @@ class _SortMenuButton extends ConsumerWidget {
       },
       itemBuilder: (context) => _labels.entries.map((e) {
         return PopupMenuItem<LibrarySort>(
+          value: e.key,
+          child: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                child: e.key == current
+                    ? const Icon(Icons.check, size: 18)
+                    : null,
+              ),
+              const SizedBox(width: 6),
+              Flexible(child: Text(e.value)),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Playlist sort menu — same idiom as _SortMenuButton above, but reads/writes
+// settings.playlistSort and offers PlaylistSort's own options. A sibling
+// rather than a parameterised _SortMenuButton: the two enums (LibrarySort,
+// PlaylistSort) don't share a shape, so a single generic button would need
+// to take both the label map and the settings field as parameters anyway —
+// which is exactly what a small sibling widget already is, more legibly.
+// ---------------------------------------------------------------------------
+class _PlaylistSortMenuButton extends ConsumerWidget {
+  const _PlaylistSortMenuButton();
+
+  static const _labels = {
+    PlaylistSort.recent: 'Más reciente',
+    PlaylistSort.nameAsc: 'Nombre A-Z',
+    PlaylistSort.nameDesc: 'Nombre Z-A',
+    PlaylistSort.mostVideos: 'Más videos primero',
+    PlaylistSort.lastPlayed: 'Última reproducida',
+  };
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final current = playlistSortFor(ref.watch(settingsProvider).playlistSort);
+    return PopupMenuButton<PlaylistSort>(
+      tooltip: 'Ordenar',
+      icon: const Icon(Icons.sort),
+      onSelected: (sort) {
+        final s = ref.read(settingsProvider);
+        ref
+            .read(settingsProvider.notifier)
+            .set(s.copyWith(playlistSort: sort.name));
+      },
+      itemBuilder: (context) => _labels.entries.map((e) {
+        return PopupMenuItem<PlaylistSort>(
           value: e.key,
           child: Row(
             children: [

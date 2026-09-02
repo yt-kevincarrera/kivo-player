@@ -203,6 +203,23 @@ class FakePlaybackEngine implements PlaybackEngine {
   @override
   Future<void> setAudioDelay(double seconds) async => audioDelays.add(seconds);
 
+  final List<String> audioFilters = [];
+  String? lastAudioFilter;
+
+  /// Optional gate: when set, [setAudioFilter] awaits this completer before
+  /// recording the call, so tests can hold the "native round trip" open and
+  /// observe (or act during) the in-flight window before resolving it with
+  /// `audioFilterGate.complete()`. Defaults to null, preserving the
+  /// immediate-return behavior for existing callers.
+  Completer<void>? audioFilterGate;
+
+  @override
+  Future<void> setAudioFilter(String af) async {
+    if (audioFilterGate != null) await audioFilterGate!.future;
+    lastAudioFilter = af;
+    audioFilters.add(af);
+  }
+
   double? lastSubtitleFontSize;
   int? lastSubtitleTextColorArgb;
   int? lastSubtitleBackgroundColorArgb;

@@ -82,6 +82,16 @@ abstract class PlaybackEngine {
   /// Same debounce contract as [setSubtitleDelay], and the same hazard.
   Future<void> setAudioDelay(double seconds);
 
+  /// Sets mpv's `af` (audio filter) property directly — the equalizer's only
+  /// touchpoint with mpv. Pass the empty string to clear the filter graph.
+  /// See `EqualizerSettings`/`mpvAudioFilter` in
+  /// `lib/player/audio/equalizer.dart` for what builds the value.
+  ///
+  /// Same debounce contract as [setSubtitleDelay]/[setAudioDelay]: a
+  /// synchronous mpv call on the UI thread. One call per slider settle,
+  /// never one per tick.
+  Future<void> setAudioFilter(String af);
+
   /// The video's own chapter marks, or empty when it has none.
   ///
   /// Read on demand rather than kept live: media_kit does not surface
