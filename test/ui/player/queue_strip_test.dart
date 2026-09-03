@@ -65,4 +65,29 @@ void main() {
     ));
     expect(find.text('solo.mkv'), findsNothing);
   });
+
+  testWidgets('with a shuffle order the strip follows it; taps map back to the real index',
+      (tester) async {
+    // Permutation puts the current video (index 1) first, then 2, then 0 —
+    // the strip must lay the cards out in THAT order, and tapping a card
+    // must jump to the card's real queue index, not its position.
+    final c = await _pump(tester, session: const VideoSession(
+      playbackPath: 'content://A/b.mkv', displayName: 'b.mkv',
+      queue: ['content://A/a.mkv', 'content://A/b.mkv', 'content://A/c.mkv'],
+      queueNames: ['a.mkv', 'b.mkv', 'c.mkv'],
+      queueIds: ['ida', 'idb', 'idc'],
+      index: 1, folder: 'A',
+      order: [1, 2, 0],
+    ));
+    final xb = tester.getTopLeft(find.text('b.mkv')).dx;
+    final xc = tester.getTopLeft(find.text('c.mkv')).dx;
+    final xa = tester.getTopLeft(find.text('a.mkv')).dx;
+    expect(xb < xc && xc < xa, isTrue, reason: 'cards should read b, c, a');
+    expect(find.text('AHORA'), findsOneWidget);
+
+    await tester.tap(find.text('a.mkv'));
+    await tester.pump();
+    expect(c.read(queueJumpProvider), 0);
+    await tester.pump(const Duration(milliseconds: 3000));
+  });
 }

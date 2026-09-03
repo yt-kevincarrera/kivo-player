@@ -211,7 +211,9 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                               accent: accent,
                               onChanged: (next) => ref
                                   .read(settingsProvider.notifier)
-                                  .set(settings.copyWith(repeatMode: next.name)),
+                                  .set(
+                                    settings.copyWith(repeatMode: next.name),
+                                  ),
                             ),
                           ),
                           // Stays visible and toggleable even with a
@@ -274,7 +276,9 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                             title: 'Capítulos',
                             subtitle: chaptersSubtitle,
                             onTap: () {
-                              Navigator.of(sheetContext).pop();
+                              // Opens ON TOP of the menu: back returns here
+                              // instead of to the video. Only the one-tap
+                              // tiles close the menu.
                               showChaptersSheet(context);
                             },
                           ),
@@ -292,7 +296,6 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                               final n => '$n marcadores',
                             },
                             onTap: () {
-                              Navigator.of(sheetContext).pop();
                               showBookmarksSheet(context);
                             },
                           ),
@@ -314,7 +317,6 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                             title: 'Ecualizador',
                             subtitle: presetNameFor(eq),
                             onTap: () {
-                              Navigator.of(sheetContext).pop();
                               Navigator.of(context, rootNavigator: true).push(
                                 MaterialPageRoute(
                                   builder: (_) => const EqualizerSection(),
@@ -811,7 +813,9 @@ class _SegmentChip extends StatelessWidget {
         child: Text(
           label,
           style: TextStyle(
-            color: active ? onAccent(accent) : Colors.white.withValues(alpha: 0.55),
+            color: active
+                ? onAccent(accent)
+                : Colors.white.withValues(alpha: 0.55),
             fontSize: 10.5,
             fontWeight: FontWeight.w600,
           ),

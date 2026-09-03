@@ -26,14 +26,23 @@ class _QueueStripState extends ConsumerState<QueueStrip> {
     super.dispose();
   }
 
-  void _centerOn(int index, double cardExtent, double viewportW,
-      {required bool animate}) {
+  void _centerOn(
+    int index,
+    double cardExtent,
+    double viewportW, {
+    required bool animate,
+  }) {
     if (!_scroll.hasClients) return;
-    final target = (index * cardExtent - (viewportW - cardExtent) / 2)
-        .clamp(0.0, _scroll.position.maxScrollExtent);
+    final target = (index * cardExtent - (viewportW - cardExtent) / 2).clamp(
+      0.0,
+      _scroll.position.maxScrollExtent,
+    );
     if (animate) {
-      _scroll.animateTo(target,
-          duration: const Duration(milliseconds: 340), curve: Curves.easeOutCubic);
+      _scroll.animateTo(
+        target,
+        duration: const Duration(milliseconds: 340),
+        curve: Curves.easeOutCubic,
+      );
     } else {
       _scroll.jumpTo(target);
     }
@@ -42,14 +51,25 @@ class _QueueStripState extends ConsumerState<QueueStrip> {
   @override
   Widget build(BuildContext context) {
     final session = ref.watch(currentVideoProvider);
-    if (session == null || session.queue.length <= 1) return const SizedBox.shrink();
+    if (session == null || session.queue.length <= 1) {
+      return const SizedBox.shrink();
+    }
 
     final accent = Color(ref.watch(settingsProvider).accentColor);
-    final landscape = MediaQuery.orientationOf(context) == Orientation.landscape;
+    final landscape =
+        MediaQuery.orientationOf(context) == Orientation.landscape;
     final cardW = landscape ? 104.0 : 84.0;
     final thumbH = landscape ? 58.0 : 48.0;
     final stripH = thumbH + 20; // room for a 1-line name below
     final index = session.index;
+    // The strip answers "what comes next", so it follows the EFFECTIVE order:
+    // the shuffle permutation when there is one (current first, then the
+    // rest in the order they will play), the natural queue otherwise. Cards
+    // are laid out by position in that order; taps and highlights map back
+    // to the real queue index.
+    final order =
+        session.order ?? List<int>.generate(session.queue.length, (i) => i);
+    final currentPos = order.indexOf(index);
     final cardExtent = cardW + _gap;
 
     return SizedBox(
@@ -66,7 +86,7 @@ class _QueueStripState extends ConsumerState<QueueStrip> {
             _centered = index;
             final viewportW = constraints.maxWidth;
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              _centerOn(index, cardExtent, viewportW, animate: !firstShow);
+              _centerOn(currentPos, cardExtent, viewportW, animate: !firstShow);
             });
           }
           return ListView.builder(
@@ -74,17 +94,22 @@ class _QueueStripState extends ConsumerState<QueueStrip> {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 2),
             itemCount: session.queue.length,
-            itemBuilder: (context, i) {
+            itemBuilder: (context, pos) {
+              final i = order[pos];
               final active = i == index;
               final id = i < session.queueIds.length ? session.queueIds[i] : '';
-              final name = i < session.queueNames.length ? session.queueNames[i] : '';
+              final name = i < session.queueNames.length
+                  ? session.queueNames[i]
+                  : '';
               return Padding(
                 // Keyed by the queue uri so the ListView never recycles a card
                 // element across a different video — without this the thumbnail
                 // AnimatedSwitcher can cross-fade a neighbour's frame onto a
                 // card, making the tapped preview look like a different video.
                 key: ValueKey(session.queue[i]),
-                padding: EdgeInsets.only(right: i == session.queue.length - 1 ? 0 : _gap),
+                padding: EdgeInsets.only(
+                  right: pos == order.length - 1 ? 0 : _gap,
+                ),
                 child: _QueueCard(
                   width: cardW,
                   thumbH: thumbH,
@@ -165,18 +190,25 @@ class _QueueCard extends StatelessWidget {
                       child: Container(
                         color: accent,
                         padding: const EdgeInsets.symmetric(vertical: 1.5),
-                        child: Text('AHORA',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                color: onAccent(accent),
-                                fontSize: 8,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.5)),
+                        child: Text(
+                          'AHORA',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: onAccent(accent),
+                            fontSize: 8,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
                       ),
                     )
                   else
                     const Center(
-                      child: Icon(Icons.play_arrow_rounded, color: Colors.white70, size: 22),
+                      child: Icon(
+                        Icons.play_arrow_rounded,
+                        color: Colors.white70,
+                        size: 22,
+                      ),
                     ),
                 ],
               ),
