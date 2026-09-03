@@ -1,6 +1,4 @@
-    if (session == null || session.queue.length <= 1) {
-      return const SizedBox.shrink();
-    }import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
@@ -53,8 +51,9 @@ class _QueueStripState extends ConsumerState<QueueStrip> {
   @override
   Widget build(BuildContext context) {
     final session = ref.watch(currentVideoProvider);
-    if (session == null || session.queue.length <= 1)
+    if (session == null || session.queue.length <= 1) {
       return const SizedBox.shrink();
+    }
 
     final accent = Color(ref.watch(settingsProvider).accentColor);
     final landscape =
