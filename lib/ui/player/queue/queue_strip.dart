@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+    if (session == null || session.queue.length <= 1) {
+      return const SizedBox.shrink();
+    }import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
