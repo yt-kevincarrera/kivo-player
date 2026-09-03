@@ -96,4 +96,29 @@ void main() {
 
     expect(c.read(bookmarksProvider).single.name, 'Gol de media cancha');
   });
+
+  testWidgets('Marcadores opens on top of the menu; back returns to the menu',
+      (tester) async {
+    await _pump(tester, bookmarkStore: InMemoryBookmarkStore());
+    await tester.tap(find.text('Marcadores'));
+    await tester.pumpAndSettle();
+    // The bookmarks sheet is up...
+    expect(find.text('Sin marcadores'), findsWidgets);
+    // ...and closing it lands back on the menu, not on the video.
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text('Reproducción'), findsOneWidget);
+    expect(find.text('Marcadores'), findsOneWidget);
+  });
+
+  testWidgets('Ecualizador opens on top of the menu; back returns to the menu',
+      (tester) async {
+    await _pump(tester, bookmarkStore: InMemoryBookmarkStore());
+    await tester.tap(find.text('Ecualizador'));
+    await tester.pumpAndSettle();
+    expect(find.text('Reproducción'), findsNothing); // the screen covers it
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text('Reproducción'), findsOneWidget);
+  });
 }
