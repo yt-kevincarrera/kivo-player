@@ -1635,4 +1635,178 @@ class AppLocalizationsEs extends AppLocalizations {
   String updateStatusSizePercent(String size, int percent) {
     return '$size · $percent %';
   }
+
+  @override
+  String get vaultCreatePinTitle => 'Crea un PIN para el Vault';
+
+  @override
+  String get vaultRepeatPinTitle => 'Repite el PIN';
+
+  @override
+  String get vaultEnterPinTitle => 'Introduce tu PIN';
+
+  @override
+  String get vaultPinIncorrectError => 'PIN incorrecto';
+
+  @override
+  String get vaultPinMismatchError => 'Los PIN no coinciden';
+
+  @override
+  String get vaultUsePinAction => 'Usar PIN';
+
+  @override
+  String get vaultUnlockReason => 'Desbloquea el Vault';
+
+  @override
+  String get vaultEmptyMessage => 'Vault vacío';
+
+  @override
+  String get vaultEntranceVisibleSnackbar => 'Entrada visible en Ajustes';
+
+  @override
+  String get vaultEntranceHiddenSnackbar =>
+      'Entrada oculta. Mantén pulsado el título de Videos para entrar.';
+
+  @override
+  String get vaultMenuHideEntrance => 'Ocultar entrada';
+
+  @override
+  String get vaultMenuUseBiometric => 'Usar biometría';
+
+  @override
+  String get vaultTakeOutAction => 'Sacar del Vault';
+
+  @override
+  String get vaultTakeOutFailedPartial => 'No se pudieron sacar todos';
+
+  @override
+  String vaultTakeOutSuccessSnackbar(int count) {
+    return '$count devueltos a la galería';
+  }
+
+  @override
+  String get vaultDeleteForeverAction => 'Borrar del teléfono';
+
+  @override
+  String vaultDeleteForeverConfirmMessage(int count) {
+    return '¿Borrar $count videos para siempre? No se pueden recuperar.';
+  }
+
+  @override
+  String vaultDeleteForeverSuccessSnackbar(int count) {
+    return '$count borrados';
+  }
+
+  @override
+  String get vaultDeleteForeverFailedPartial => 'No se pudieron borrar todos';
+
+  @override
+  String get vaultUnlockBiometricSignInTitle => 'Desbloquear Vault';
+
+  @override
+  String get vaultUnlockBiometricHint => 'Toca el sensor de huella';
+
+  @override
+  String get vaultUnlockBiometricNotRecognized =>
+      'No reconocida. Inténtalo de nuevo.';
+
+  @override
+  String get vaultUnlockBiometricSuccessMessage => 'Huella reconocida';
+
+  @override
+  String get vaultUnlockBiometricRequiredTitle => 'Huella no configurada';
+
+  @override
+  String get vaultUnlockGoToSettingsButton => 'Ir a ajustes';
+
+  @override
+  String get vaultUnlockGoToSettingsDescription =>
+      'No tienes ninguna huella configurada en este dispositivo. Ve a Ajustes > Seguridad para añadir una.';
+
+  @override
+  String get vaultUnlockDeviceCredentialsRequiredTitle =>
+      'Bloqueo de pantalla requerido';
+
+  @override
+  String get vaultUnlockDeviceCredentialsSetupDescription =>
+      'Configura un bloqueo de pantalla en Ajustes para poder usarlo.';
+
+  @override
+  String get errorMediaAccess => 'No pudimos acceder a tus videos';
+
+  @override
+  String get errorLibraryScan => 'No pudimos leer tu biblioteca';
+
+  @override
+  String get errorThumbnail => 'No pudimos generar la miniatura';
+
+  @override
+  String get errorDelete => 'No pudimos borrar el video';
+
+  @override
+  String get errorRename => 'No pudimos renombrar el video';
+
+  @override
+  String get errorShare => 'No pudimos compartir el video';
+
+  @override
+  String get errorVaultHide => 'No pudimos ocultar el video';
+
+  @override
+  String get errorVaultRestore => 'No pudimos restaurar el video';
+
+  @override
+  String get errorVaultPurge => 'No pudimos borrar el video definitivamente';
+
+  @override
+  String get errorOpenVideo => 'No pudimos abrir el video';
+
+  @override
+  String get errorSubtitleLoad => 'No pudimos cargar el subtítulo';
+
+  @override
+  String get errorFrameCapture => 'No pudimos guardar la captura';
+
+  @override
+  String get errorUpdateCheck => 'No pudimos comprobar si hay actualizaciones';
+
+  @override
+  String get errorUpdateInstall => 'No pudimos instalar la actualización';
+
+  @override
+  String get errorUnknown => 'Algo no salió como esperábamos';
+
+  @override
+  String get errorDetailsAction => 'Detalles';
+
+  @override
+  String get errorNoTechnicalDetail => 'sin detalle técnico';
+
+  @override
+  String get errorRetryAction => 'Reintentar';
+
+  @override
+  String get errorDetailsSheetAction => 'Ver detalles';
+
+  @override
+  String get errorDetailCopiedSnackbar => 'Detalle copiado';
+
+  @override
+  String get settingsBackupTooNewMessage =>
+      'Esta copia es de una versión más nueva de Kivo.';
+
+  @override
+  String get settingsBackupInvalidFileMessage =>
+      'Este archivo no es una copia de seguridad de Kivo.';
+
+  @override
+  String get homeDateToday => 'Hoy';
+
+  @override
+  String get homeDateYesterday => 'Ayer';
+
+  @override
+  String chapterFallback(int n) {
+    return 'Capítulo $n';
+  }
 }

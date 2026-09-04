@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/settings/settings_provider.dart';
+import '../../l10n/l10n.dart';
 import '../../platform/biometric_auth_provider.dart';
+import '../../platform/interfaces/biometric_auth.dart';
 import '../../vault/vault_providers.dart';
 import 'pin_pad.dart';
 
@@ -130,9 +132,26 @@ class _VaultGateState extends ConsumerState<VaultGate> with WidgetsBindingObserv
       if (mounted) setState(() => _showPinPad = true);
       return;
     }
+    if (!mounted) return;
+    final l10n = context.l10n;
+    final messages = BiometricAuthMessages(
+      reason: l10n.vaultUnlockReason,
+      signInTitle: l10n.vaultUnlockBiometricSignInTitle,
+      biometricHint: l10n.vaultUnlockBiometricHint,
+      biometricNotRecognized: l10n.vaultUnlockBiometricNotRecognized,
+      biometricSuccess: l10n.vaultUnlockBiometricSuccessMessage,
+      cancelButton: l10n.commonCancel,
+      biometricRequiredTitle: l10n.vaultUnlockBiometricRequiredTitle,
+      goToSettingsButton: l10n.vaultUnlockGoToSettingsButton,
+      goToSettingsDescription: l10n.vaultUnlockGoToSettingsDescription,
+      deviceCredentialsRequiredTitle:
+          l10n.vaultUnlockDeviceCredentialsRequiredTitle,
+      deviceCredentialsSetupDescription:
+          l10n.vaultUnlockDeviceCredentialsSetupDescription,
+    );
     _biometricInFlight = true;
     try {
-      final ok = await bio.authenticate('Desbloquea el Vault');
+      final ok = await bio.authenticate(messages);
       if (ok && mounted) {
         ref.read(vaultUnlockedProvider.notifier).state = true;
       } else if (mounted) {
@@ -152,7 +171,7 @@ class _VaultGateState extends ConsumerState<VaultGate> with WidgetsBindingObserv
     if (auth.verify(pin)) {
       ref.read(vaultUnlockedProvider.notifier).state = true;
     } else {
-      setState(() => _error = 'PIN incorrecto');
+      setState(() => _error = context.l10n.vaultPinIncorrectError);
     }
   }
 
@@ -162,7 +181,7 @@ class _VaultGateState extends ConsumerState<VaultGate> with WidgetsBindingObserv
       return;
     }
     if (_firstPin != pin) {
-      setState(() { _firstPin = null; _error = 'Los PIN no coinciden'; });
+      setState(() { _firstPin = null; _error = context.l10n.vaultPinMismatchError; });
       return;
     }
     await ref.read(vaultAuthProvider).setPin(pin);
@@ -176,9 +195,10 @@ class _VaultGateState extends ConsumerState<VaultGate> with WidgetsBindingObserv
 
     final auth = ref.watch(vaultAuthProvider);
     final configuring = !auth.isConfigured;
+    final l10n = context.l10n;
     final title = configuring
-        ? (_firstPin == null ? 'Crea un PIN para el Vault' : 'Repite el PIN')
-        : 'Introduce tu PIN';
+        ? (_firstPin == null ? l10n.vaultCreatePinTitle : l10n.vaultRepeatPinTitle)
+        : l10n.vaultEnterPinTitle;
 
     final cs = Theme.of(context).colorScheme;
 
@@ -198,7 +218,7 @@ class _VaultGateState extends ConsumerState<VaultGate> with WidgetsBindingObserv
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: _bailToPinPad,
-                    child: const Text('Usar PIN'),
+                    child: Text(l10n.vaultUsePinAction),
                   ),
                 ],
               ),

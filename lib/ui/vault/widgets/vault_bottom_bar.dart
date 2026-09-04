@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/errors/kivo_failure.dart';
+import '../../../l10n/l10n.dart';
 import '../../../vault/vault_entry.dart';
 import '../../../vault/vault_providers.dart';
 import '../../../vault/vault_selection.dart';
@@ -21,6 +22,7 @@ class VaultBottomBar extends ConsumerWidget {
     final cs = Theme.of(context).colorScheme;
     final messenger = ScaffoldMessenger.of(context);
     final enabled = chosen.isNotEmpty;
+    final l10n = context.l10n;
 
     return Container(
       decoration: BoxDecoration(
@@ -34,7 +36,7 @@ class VaultBottomBar extends ConsumerWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _action(cs.onSurface, Icons.lock_open_outlined, 'Sacar del Vault', enabled ? () async {
+              _action(cs.onSurface, Icons.lock_open_outlined, l10n.vaultTakeOutAction, enabled ? () async {
                 final bool ok;
                 try {
                   ok = await ref.read(vaultEntriesProvider.notifier).unhide(chosen);
@@ -47,19 +49,19 @@ class VaultBottomBar extends ConsumerWidget {
                 }
                 sel.clear();
                 messenger.showSnackBar(SnackBar(content: Text(
-                    ok ? '${chosen.length} devueltos a la galería' : 'No se pudieron sacar todos')));
+                    ok ? l10n.vaultTakeOutSuccessSnackbar(chosen.length) : l10n.vaultTakeOutFailedPartial)));
               } : null),
-              _action(cs.error, Icons.delete_forever_outlined, 'Borrar del teléfono', enabled ? () async {
+              _action(cs.error, Icons.delete_forever_outlined, l10n.vaultDeleteForeverAction, enabled ? () async {
                 final ok = await showDialog<bool>(
                   context: context,
                   builder: (ctx) => AlertDialog(
-                    title: const Text('Borrar del teléfono'),
-                    content: Text('¿Borrar ${chosen.length} videos para siempre? No se pueden recuperar.'),
+                    title: Text(l10n.vaultDeleteForeverAction),
+                    content: Text(l10n.vaultDeleteForeverConfirmMessage(chosen.length)),
                     actions: [
-                      TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+                      TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.commonCancel)),
                       TextButton(
                         onPressed: () => Navigator.pop(ctx, true),
-                        child: Text('Borrar', style: TextStyle(color: Theme.of(ctx).colorScheme.error))),
+                        child: Text(l10n.commonDelete, style: TextStyle(color: Theme.of(ctx).colorScheme.error))),
                     ],
                   ),
                 );
@@ -76,7 +78,7 @@ class VaultBottomBar extends ConsumerWidget {
                 }
                 sel.clear();
                 messenger.showSnackBar(SnackBar(content: Text(
-                    done ? '${chosen.length} borrados' : 'No se pudieron borrar todos')));
+                    done ? l10n.vaultDeleteForeverSuccessSnackbar(chosen.length) : l10n.vaultDeleteForeverFailedPartial)));
               } : null),
             ],
           ),

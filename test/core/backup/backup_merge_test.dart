@@ -269,8 +269,8 @@ void main() {
     });
   });
 
-  group('describeRestorePlan', () {
-    test('lists every non-zero section and the settings note', () {
+  group('summarizeRestorePlan', () {
+    test('carries every non-zero section count and the settings flag', () {
       final plan = RestorePlan(
         backup: _backup(),
         playedCounts: const SectionCounts(added: 2),
@@ -287,14 +287,17 @@ void main() {
         vaultToAdd: const [],
         settingsWillReplace: true,
       );
-      final text = describeRestorePlan(plan);
-      expect(text, contains('3 listas'));
-      expect(text, contains('40 marcadores'));
-      expect(text, contains('12 posiciones'));
-      expect(text, contains('Los ajustes se reemplazarán.'));
+      final summary = summarizeRestorePlan(plan);
+      expect(summary.playlistsAdded, 3);
+      expect(summary.bookmarksAdded, 40);
+      expect(summary.positionsChanged, 12);
+      expect(summary.watchedVideosAdded, 2);
+      expect(summary.hiddenVideosAdded, 0);
+      expect(summary.trackSettingsChanged, 0);
+      expect(summary.settingsWillReplace, isTrue);
     });
 
-    test('says nothing to add when the plan is empty', () {
+    test('every count is zero and settingsWillReplace is false when the plan is empty', () {
       final plan = RestorePlan(
         backup: _backup(),
         playedCounts: const SectionCounts(),
@@ -311,7 +314,14 @@ void main() {
         vaultToAdd: const [],
         settingsWillReplace: false,
       );
-      expect(describeRestorePlan(plan), 'No hay nada nuevo que añadir.');
+      final summary = summarizeRestorePlan(plan);
+      expect(summary.playlistsAdded, 0);
+      expect(summary.bookmarksAdded, 0);
+      expect(summary.positionsChanged, 0);
+      expect(summary.watchedVideosAdded, 0);
+      expect(summary.hiddenVideosAdded, 0);
+      expect(summary.trackSettingsChanged, 0);
+      expect(summary.settingsWillReplace, isFalse);
       expect(plan.hasChanges, isFalse);
     });
   });

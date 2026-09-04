@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/settings/settings_provider.dart';
+import '../../l10n/l10n.dart';
 import '../../player/open/video_source.dart';
 import '../player/player_route.dart';
 import '../../vault/vault_entry.dart';
@@ -53,7 +54,7 @@ class _VaultContent extends ConsumerWidget {
       ),
       bottomNavigationBar: selecting ? const VaultBottomBar() : null,
       body: entries.isEmpty
-          ? Center(child: Text('Vault vacío', style: TextStyle(color: cs.onSurfaceVariant)))
+          ? Center(child: Text(context.l10n.vaultEmptyMessage, style: TextStyle(color: cs.onSurfaceVariant)))
           : GridView.builder(
               padding: const EdgeInsets.all(10),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -110,6 +111,7 @@ class _VaultMenu extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     return PopupMenuButton<String>(
       onSelected: (v) async {
         final notifier = ref.read(settingsProvider.notifier);
@@ -117,17 +119,17 @@ class _VaultMenu extends ConsumerWidget {
           await notifier.set(settings.copyWith(vaultEntranceHidden: !settings.vaultEntranceHidden));
           messenger.showSnackBar(SnackBar(
               content: Text(settings.vaultEntranceHidden
-                  ? 'Entrada visible en Ajustes'
-                  : 'Entrada oculta. Mantén pulsado el título de Videos para entrar.')));
+                  ? l10n.vaultEntranceVisibleSnackbar
+                  : l10n.vaultEntranceHiddenSnackbar)));
         } else if (v == 'bio') {
           await notifier.set(settings.copyWith(vaultBiometricEnabled: !settings.vaultBiometricEnabled));
         }
       },
       itemBuilder: (context) => [
         CheckedPopupMenuItem(
-            value: 'hide', checked: settings.vaultEntranceHidden, child: const Text('Ocultar entrada')),
+            value: 'hide', checked: settings.vaultEntranceHidden, child: Text(l10n.vaultMenuHideEntrance)),
         CheckedPopupMenuItem(
-            value: 'bio', checked: settings.vaultBiometricEnabled, child: const Text('Usar biometría')),
+            value: 'bio', checked: settings.vaultBiometricEnabled, child: Text(l10n.vaultMenuUseBiometric)),
       ],
     );
   }

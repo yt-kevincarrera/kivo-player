@@ -2519,5 +2519,290 @@
         "type": "int"
       }
     }
+  },
+
+  "vaultCreatePinTitle": "Create a PIN for the Vault",
+  "@vaultCreatePinTitle": {
+    "description": "PinPad title the first time the Vault is set up, before the first PIN entry."
+  },
+
+  "vaultRepeatPinTitle": "Repeat the PIN",
+  "@vaultRepeatPinTitle": {
+    "description": "PinPad title while setting up the Vault, after the first PIN entry (asks to confirm it)."
+  },
+
+  "vaultEnterPinTitle": "Enter your PIN",
+  "@vaultEnterPinTitle": {
+    "description": "PinPad title when unlocking an already-configured Vault."
+  },
+
+  "vaultPinIncorrectError": "Incorrect PIN",
+  "@vaultPinIncorrectError": {
+    "description": "Error under the PinPad when the PIN entered to unlock the Vault does not match."
+  },
+
+  "vaultPinMismatchError": "PINs don't match",
+  "@vaultPinMismatchError": {
+    "description": "Error under the PinPad when, while setting up the Vault, the second PIN entry does not match the first."
+  },
+
+  "vaultUsePinAction": "Use PIN",
+  "@vaultUsePinAction": {
+    "description": "Button under the fingerprint icon on the Vault gate, to jump straight to the PinPad without waiting for the biometric attempt."
+  },
+
+  "vaultUnlockReason": "Unlock the Vault",
+  "@vaultUnlockReason": {
+    "description": "Reason shown by the operating system itself in the biometric dialog when unlocking the Vault."
+  },
+
+  "vaultEmptyMessage": "Vault is empty",
+  "@vaultEmptyMessage": {
+    "description": "Text shown on the Vault screen when it holds no video."
+  },
+
+  "vaultEntranceVisibleSnackbar": "Entry visible in Settings",
+  "@vaultEntranceVisibleSnackbar": {
+    "description": "Snackbar from the Vault's menu when turning off \"Hide entry\": the Vault entry is now visible in Settings."
+  },
+
+  "vaultEntranceHiddenSnackbar": "Entry hidden. Long-press the Videos title to enter.",
+  "@vaultEntranceHiddenSnackbar": {
+    "description": "Snackbar from the Vault's menu when turning on \"Hide entry\": explains the alternate way in (long-pressing the library's title)."
+  },
+
+  "vaultMenuHideEntrance": "Hide entry",
+  "@vaultMenuHideEntrance": {
+    "description": "Option in the Vault's ⋮ menu that hides its Settings entry."
+  },
+
+  "vaultMenuUseBiometric": "Use biometrics",
+  "@vaultMenuUseBiometric": {
+    "description": "Option in the Vault's ⋮ menu that turns fingerprint unlock on/off."
+  },
+
+  "vaultTakeOutAction": "Take out of Vault",
+  "@vaultTakeOutAction": {
+    "description": "Action in the Vault's selection bottom bar: returns the chosen videos to the gallery."
+  },
+
+  "vaultTakeOutFailedPartial": "Could not take all of them out",
+  "@vaultTakeOutFailedPartial": {
+    "description": "Snackbar shown when \"Take out of Vault\" fails to return every chosen video to the gallery."
+  },
+
+  "vaultTakeOutSuccessSnackbar": "{count} returned to the gallery",
+  "@vaultTakeOutSuccessSnackbar": {
+    "description": "Snackbar shown after \"Take out of Vault\" with the number of videos returned to the gallery.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "vaultDeleteForeverAction": "Delete from phone",
+  "@vaultDeleteForeverAction": {
+    "description": "Action in the Vault's selection bottom bar (and its confirmation dialog's title): permanently deletes the chosen videos from the phone."
+  },
+
+  "vaultDeleteForeverConfirmMessage": "Delete {count} videos forever? They cannot be recovered.",
+  "@vaultDeleteForeverConfirmMessage": {
+    "description": "Body of the Vault's \"Delete from phone\" confirmation dialog, with the number of chosen videos.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "vaultDeleteForeverSuccessSnackbar": "{count} deleted",
+  "@vaultDeleteForeverSuccessSnackbar": {
+    "description": "Snackbar shown after \"Delete from phone\" in the Vault with the number of videos deleted.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "vaultDeleteForeverFailedPartial": "Could not delete all of them",
+  "@vaultDeleteForeverFailedPartial": {
+    "description": "Snackbar shown when \"Delete from phone\" in the Vault fails to delete every chosen video."
+  },
+
+  "vaultUnlockBiometricSignInTitle": "Unlock Vault",
+  "@vaultUnlockBiometricSignInTitle": {
+    "description": "Title of Android's native biometric dialog when unlocking the Vault."
+  },
+
+  "vaultUnlockBiometricHint": "Touch the fingerprint sensor",
+  "@vaultUnlockBiometricHint": {
+    "description": "Hint text of the native biometric dialog while it waits for a touch on the fingerprint sensor."
+  },
+
+  "vaultUnlockBiometricNotRecognized": "Not recognized. Try again.",
+  "@vaultUnlockBiometricNotRecognized": {
+    "description": "Text of the native biometric dialog when the fingerprint was not recognized."
+  },
+
+  "vaultUnlockBiometricSuccessMessage": "Fingerprint recognized",
+  "@vaultUnlockBiometricSuccessMessage": {
+    "description": "Text of the native biometric dialog when the fingerprint was recognized successfully."
+  },
+
+  "vaultUnlockBiometricRequiredTitle": "Fingerprint not set up",
+  "@vaultUnlockBiometricRequiredTitle": {
+    "description": "Title of the native biometric dialog when the device has no fingerprint enrolled."
+  },
+
+  "vaultUnlockGoToSettingsButton": "Go to settings",
+  "@vaultUnlockGoToSettingsButton": {
+    "description": "Button in the native biometric dialog that opens the system settings to set up a fingerprint or screen lock."
+  },
+
+  "vaultUnlockGoToSettingsDescription": "You have no fingerprint set up on this device. Go to Settings > Security to add one.",
+  "@vaultUnlockGoToSettingsDescription": {
+    "description": "Description in the native biometric dialog when the device has no fingerprint enrolled."
+  },
+
+  "vaultUnlockDeviceCredentialsRequiredTitle": "Screen lock required",
+  "@vaultUnlockDeviceCredentialsRequiredTitle": {
+    "description": "Title of the native biometric dialog when the device has neither a fingerprint nor a screen lock set up."
+  },
+
+  "vaultUnlockDeviceCredentialsSetupDescription": "Set up a screen lock in Settings to be able to use it.",
+  "@vaultUnlockDeviceCredentialsSetupDescription": {
+    "description": "Description in the native biometric dialog asking to set up a screen lock."
+  },
+
+  "errorMediaAccess": "We couldn't access your videos",
+  "@errorMediaAccess": {
+    "description": "Friendly message for error KV-101 (KivoOp.mediaAccess), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorLibraryScan": "We couldn't read your library",
+  "@errorLibraryScan": {
+    "description": "Friendly message for error KV-201 (KivoOp.libraryScan), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorThumbnail": "We couldn't generate the thumbnail",
+  "@errorThumbnail": {
+    "description": "Friendly message for error KV-202 (KivoOp.thumbnail), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorDelete": "We couldn't delete the video",
+  "@errorDelete": {
+    "description": "Friendly message for error KV-301 (KivoOp.delete), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorRename": "We couldn't rename the video",
+  "@errorRename": {
+    "description": "Friendly message for error KV-302 (KivoOp.rename), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorShare": "We couldn't share the video",
+  "@errorShare": {
+    "description": "Friendly message for error KV-303 (KivoOp.share), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorVaultHide": "We couldn't hide the video",
+  "@errorVaultHide": {
+    "description": "Friendly message for error KV-401 (KivoOp.vaultHide), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorVaultRestore": "We couldn't restore the video",
+  "@errorVaultRestore": {
+    "description": "Friendly message for error KV-402 (KivoOp.vaultRestore), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorVaultPurge": "We couldn't permanently delete the video",
+  "@errorVaultPurge": {
+    "description": "Friendly message for error KV-403 (KivoOp.vaultPurge), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorOpenVideo": "We couldn't open the video",
+  "@errorOpenVideo": {
+    "description": "Friendly message for error KV-501 (KivoOp.openVideo), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorSubtitleLoad": "We couldn't load the subtitle",
+  "@errorSubtitleLoad": {
+    "description": "Friendly message for error KV-502 (KivoOp.subtitleLoad), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorFrameCapture": "We couldn't save the capture",
+  "@errorFrameCapture": {
+    "description": "Friendly message for error KV-503 (KivoOp.frameCapture), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorUpdateCheck": "We couldn't check for updates",
+  "@errorUpdateCheck": {
+    "description": "Friendly message for error KV-601 (KivoOp.updateCheck), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorUpdateInstall": "We couldn't install the update",
+  "@errorUpdateInstall": {
+    "description": "Friendly message for error KV-602 (KivoOp.updateInstall), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorUnknown": "Something didn't go as expected",
+  "@errorUnknown": {
+    "description": "Friendly message for error KV-999 (KivoOp.unknown), for any unclassified failure, shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorDetailsAction": "Details",
+  "@errorDetailsAction": {
+    "description": "Action on the error snackbar that opens the sheet with the code and the technical detail."
+  },
+
+  "errorNoTechnicalDetail": "no technical detail",
+  "@errorNoTechnicalDetail": {
+    "description": "Fallback technical detail when showFailureSnackBar receives no concrete cause."
+  },
+
+  "errorRetryAction": "Retry",
+  "@errorRetryAction": {
+    "description": "Button on the full-screen error view (FailureView) that retries the failed operation."
+  },
+
+  "errorDetailsSheetAction": "View details",
+  "@errorDetailsSheetAction": {
+    "description": "Button on the full-screen error view (FailureView) that opens the sheet with the code and the technical detail."
+  },
+
+  "errorDetailCopiedSnackbar": "Detail copied",
+  "@errorDetailCopiedSnackbar": {
+    "description": "Snackbar shown after copying an error's code and technical detail to the clipboard."
+  },
+
+  "settingsBackupTooNewMessage": "This backup is from a newer version of Kivo.",
+  "@settingsBackupTooNewMessage": {
+    "description": "Body of the error dialog when restoring a backup written by a newer version of Kivo (BackupTooNewException)."
+  },
+
+  "settingsBackupInvalidFileMessage": "This file is not a Kivo backup.",
+  "@settingsBackupInvalidFileMessage": {
+    "description": "Body of the error dialog when restoring a file that is not a valid Kivo backup (BackupFormatException)."
+  },
+
+  "homeDateToday": "Today",
+  "@homeDateToday": {
+    "description": "Library section header for videos added today."
+  },
+
+  "homeDateYesterday": "Yesterday",
+  "@homeDateYesterday": {
+    "description": "Library section header for videos added yesterday."
+  },
+
+  "chapterFallback": "Chapter {n}",
+  "@chapterFallback": {
+    "description": "Title shown for a chapter with no name of its own in the file (mpv reports no title), in the chapters sheet.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
   }
 }

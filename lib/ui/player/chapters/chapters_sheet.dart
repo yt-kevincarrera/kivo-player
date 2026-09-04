@@ -255,7 +255,9 @@ class _ChapterRow extends StatelessWidget {
               ),
               Expanded(
                 child: Text(
-                  chapter.title,
+                  chapter.title.isEmpty
+                      ? context.l10n.chapterFallback(number)
+                      : chapter.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(

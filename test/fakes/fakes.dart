@@ -626,7 +626,7 @@ class FakeBiometricAuth implements BiometricAuth {
   @override
   Future<bool> isAvailable() async => available;
   @override
-  Future<bool> authenticate(String reason) async {
+  Future<bool> authenticate(BiometricAuthMessages messages) async {
     authCalls++;
     if (gate != null) return gate!.future;
     return willSucceed;

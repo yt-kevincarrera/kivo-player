@@ -237,9 +237,9 @@ RestorePlan buildRestorePlan({
   );
 }
 
-/// Structured counterpart to [describeRestorePlan]: the same six per-section
-/// counts plus [settingsWillReplace], with no sentence or language baked in.
-/// A UI builds the confirmation sentence from these via ICU plurals
+/// The six per-section counts a restore would apply, plus
+/// [settingsWillReplace], with no sentence or language baked in. A UI builds
+/// the confirmation sentence from these via ICU plurals
 /// (`settingsBackupRestoreItem*` in the ARB) — one plural placeholder per
 /// section, joined in Dart with the locale's own join word
 /// (`settingsBackupRestoreJoinWord`) — which is the shape (rather than one
@@ -272,9 +272,9 @@ class RestoreSummary {
   });
 }
 
-/// Builds a [RestoreSummary] from [plan] — the counts [describeRestorePlan]
-/// turns into its hardcoded Spanish sentence, exposed instead as plain data
-/// for a localized UI to phrase itself.
+/// Builds a [RestoreSummary] from [plan] — the same per-section counts
+/// [plan] carries, reshaped as plain data for a localized UI to phrase
+/// itself.
 RestoreSummary summarizeRestorePlan(RestorePlan plan) => RestoreSummary(
       playlistsAdded: plan.playlistsCounts.added,
       bookmarksAdded: plan.bookmarksCounts.added,
@@ -286,61 +286,3 @@ RestoreSummary summarizeRestorePlan(RestorePlan plan) => RestoreSummary(
       settingsWillReplace: plan.settingsWillReplace,
     );
 
-String _pluralize(int n, String singular, String plural) =>
-    n == 1 ? singular : plural;
-
-String _joinSpanish(List<String> parts) {
-  if (parts.isEmpty) return '';
-  if (parts.length == 1) return parts.first;
-  return '${parts.sublist(0, parts.length - 1).join(', ')} y ${parts.last}';
-}
-
-/// The Spanish sentence shown in the restore confirmation dialog, e.g.
-/// «Se añadirán 3 listas, 40 marcadores, 12 posiciones. Los ajustes se
-/// reemplazarán.» — or «No hay nada nuevo que añadir.» when [plan] would
-/// change nothing (restoring the same backup twice).
-///
-/// Kept for any caller still on the hardcoded-Spanish API; [summarizeRestorePlan]
-/// is the localized-UI replacement.
-String describeRestorePlan(RestorePlan plan) {
-  final parts = <String>[];
-  if (plan.playlistsCounts.added > 0) {
-    parts.add(
-        '${plan.playlistsCounts.added} ${_pluralize(plan.playlistsCounts.added, 'lista', 'listas')}');
-  }
-  if (plan.bookmarksCounts.added > 0) {
-    parts.add(
-        '${plan.bookmarksCounts.added} ${_pluralize(plan.bookmarksCounts.added, 'marcador', 'marcadores')}');
-  }
-  final resumeChanged = plan.resumeCounts.added + plan.resumeCounts.updated;
-  if (resumeChanged > 0) {
-    parts.add(
-        '$resumeChanged ${_pluralize(resumeChanged, 'posición', 'posiciones')}');
-  }
-  if (plan.playedCounts.added > 0) {
-    parts.add(
-        '${plan.playedCounts.added} ${_pluralize(plan.playedCounts.added, 'video visto', 'videos vistos')}');
-  }
-  if (plan.vaultCounts.added > 0) {
-    parts.add(
-        '${plan.vaultCounts.added} ${_pluralize(plan.vaultCounts.added, 'video oculto', 'videos ocultos')}');
-  }
-  final trackPrefsChanged =
-      plan.trackPrefsCounts.added + plan.trackPrefsCounts.updated;
-  if (trackPrefsChanged > 0) {
-    parts.add(
-        '$trackPrefsChanged ${_pluralize(trackPrefsChanged, 'ajuste de pista', 'ajustes de pista')}');
-  }
-
-  final sentence = StringBuffer();
-  if (parts.isEmpty) {
-    sentence.write('No hay nada nuevo que añadir.');
-  } else {
-    sentence.write('Se añadirán ${_joinSpanish(parts)}.');
-  }
-  if (plan.settingsWillReplace) {
-    if (parts.isNotEmpty) sentence.write(' ');
-    sentence.write('Los ajustes se reemplazarán.');
-  }
-  return sentence.toString();
-}

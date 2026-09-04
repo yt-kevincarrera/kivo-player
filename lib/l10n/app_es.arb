@@ -2518,5 +2518,290 @@
         "type": "int"
       }
     }
+  },
+
+  "vaultCreatePinTitle": "Crea un PIN para el Vault",
+  "@vaultCreatePinTitle": {
+    "description": "Título del PinPad la primera vez que se configura el Vault, antes de la primera entrada de PIN."
+  },
+
+  "vaultRepeatPinTitle": "Repite el PIN",
+  "@vaultRepeatPinTitle": {
+    "description": "Título del PinPad al configurar el Vault, tras la primera entrada de PIN (pide confirmarlo)."
+  },
+
+  "vaultEnterPinTitle": "Introduce tu PIN",
+  "@vaultEnterPinTitle": {
+    "description": "Título del PinPad al desbloquear el Vault ya configurado."
+  },
+
+  "vaultPinIncorrectError": "PIN incorrecto",
+  "@vaultPinIncorrectError": {
+    "description": "Error bajo el PinPad cuando el PIN introducido para desbloquear el Vault no coincide."
+  },
+
+  "vaultPinMismatchError": "Los PIN no coinciden",
+  "@vaultPinMismatchError": {
+    "description": "Error bajo el PinPad cuando, al configurar el Vault, la segunda entrada del PIN no coincide con la primera."
+  },
+
+  "vaultUsePinAction": "Usar PIN",
+  "@vaultUsePinAction": {
+    "description": "Botón bajo el ícono de huella en la puerta del Vault, para saltar al PinPad sin esperar al intento biométrico."
+  },
+
+  "vaultUnlockReason": "Desbloquea el Vault",
+  "@vaultUnlockReason": {
+    "description": "Motivo mostrado por el propio sistema operativo en el diálogo biométrico al desbloquear el Vault."
+  },
+
+  "vaultEmptyMessage": "Vault vacío",
+  "@vaultEmptyMessage": {
+    "description": "Texto mostrado en la pantalla del Vault cuando no contiene ningún video."
+  },
+
+  "vaultEntranceVisibleSnackbar": "Entrada visible en Ajustes",
+  "@vaultEntranceVisibleSnackbar": {
+    "description": "Snackbar del menú del Vault al desactivar «Ocultar entrada»: ahora la entrada al Vault se ve en Ajustes."
+  },
+
+  "vaultEntranceHiddenSnackbar": "Entrada oculta. Mantén pulsado el título de Videos para entrar.",
+  "@vaultEntranceHiddenSnackbar": {
+    "description": "Snackbar del menú del Vault al activar «Ocultar entrada»: explica la entrada alternativa (mantener pulsado el título de la biblioteca)."
+  },
+
+  "vaultMenuHideEntrance": "Ocultar entrada",
+  "@vaultMenuHideEntrance": {
+    "description": "Opción del menú ⋮ del Vault que oculta su entrada de Ajustes."
+  },
+
+  "vaultMenuUseBiometric": "Usar biometría",
+  "@vaultMenuUseBiometric": {
+    "description": "Opción del menú ⋮ del Vault que activa/desactiva el desbloqueo por huella."
+  },
+
+  "vaultTakeOutAction": "Sacar del Vault",
+  "@vaultTakeOutAction": {
+    "description": "Acción de la barra inferior de selección del Vault: devuelve los videos elegidos a la galería."
+  },
+
+  "vaultTakeOutFailedPartial": "No se pudieron sacar todos",
+  "@vaultTakeOutFailedPartial": {
+    "description": "Snackbar mostrado cuando «Sacar del Vault» no logra devolver todos los videos elegidos a la galería."
+  },
+
+  "vaultTakeOutSuccessSnackbar": "{count} devueltos a la galería",
+  "@vaultTakeOutSuccessSnackbar": {
+    "description": "Snackbar mostrado tras «Sacar del Vault» con la cantidad de videos devueltos a la galería.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "vaultDeleteForeverAction": "Borrar del teléfono",
+  "@vaultDeleteForeverAction": {
+    "description": "Acción de la barra inferior de selección del Vault (y título de su diálogo de confirmación): borra los videos elegidos del teléfono para siempre."
+  },
+
+  "vaultDeleteForeverConfirmMessage": "¿Borrar {count} videos para siempre? No se pueden recuperar.",
+  "@vaultDeleteForeverConfirmMessage": {
+    "description": "Cuerpo del diálogo de confirmación de «Borrar del teléfono» en el Vault, con la cantidad de videos elegidos.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "vaultDeleteForeverSuccessSnackbar": "{count} borrados",
+  "@vaultDeleteForeverSuccessSnackbar": {
+    "description": "Snackbar mostrado tras «Borrar del teléfono» en el Vault con la cantidad de videos borrados.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "vaultDeleteForeverFailedPartial": "No se pudieron borrar todos",
+  "@vaultDeleteForeverFailedPartial": {
+    "description": "Snackbar mostrado cuando «Borrar del teléfono» en el Vault no logra borrar todos los videos elegidos."
+  },
+
+  "vaultUnlockBiometricSignInTitle": "Desbloquear Vault",
+  "@vaultUnlockBiometricSignInTitle": {
+    "description": "Título del diálogo biométrico nativo de Android al desbloquear el Vault."
+  },
+
+  "vaultUnlockBiometricHint": "Toca el sensor de huella",
+  "@vaultUnlockBiometricHint": {
+    "description": "Texto de ayuda del diálogo biométrico nativo mientras espera el toque en el sensor de huella."
+  },
+
+  "vaultUnlockBiometricNotRecognized": "No reconocida. Inténtalo de nuevo.",
+  "@vaultUnlockBiometricNotRecognized": {
+    "description": "Texto del diálogo biométrico nativo cuando la huella no fue reconocida."
+  },
+
+  "vaultUnlockBiometricSuccessMessage": "Huella reconocida",
+  "@vaultUnlockBiometricSuccessMessage": {
+    "description": "Texto del diálogo biométrico nativo cuando la huella fue reconocida correctamente."
+  },
+
+  "vaultUnlockBiometricRequiredTitle": "Huella no configurada",
+  "@vaultUnlockBiometricRequiredTitle": {
+    "description": "Título del diálogo biométrico nativo cuando el dispositivo no tiene ninguna huella registrada."
+  },
+
+  "vaultUnlockGoToSettingsButton": "Ir a ajustes",
+  "@vaultUnlockGoToSettingsButton": {
+    "description": "Botón del diálogo biométrico nativo que lleva a los ajustes del sistema para configurar huella o bloqueo de pantalla."
+  },
+
+  "vaultUnlockGoToSettingsDescription": "No tienes ninguna huella configurada en este dispositivo. Ve a Ajustes > Seguridad para añadir una.",
+  "@vaultUnlockGoToSettingsDescription": {
+    "description": "Descripción del diálogo biométrico nativo cuando el dispositivo no tiene ninguna huella registrada."
+  },
+
+  "vaultUnlockDeviceCredentialsRequiredTitle": "Bloqueo de pantalla requerido",
+  "@vaultUnlockDeviceCredentialsRequiredTitle": {
+    "description": "Título del diálogo biométrico nativo cuando el dispositivo no tiene ni huella ni bloqueo de pantalla configurados."
+  },
+
+  "vaultUnlockDeviceCredentialsSetupDescription": "Configura un bloqueo de pantalla en Ajustes para poder usarlo.",
+  "@vaultUnlockDeviceCredentialsSetupDescription": {
+    "description": "Descripción del diálogo biométrico nativo pidiendo configurar un bloqueo de pantalla."
+  },
+
+  "errorMediaAccess": "No pudimos acceder a tus videos",
+  "@errorMediaAccess": {
+    "description": "Mensaje amigable del error KV-101 (KivoOp.mediaAccess), mostrado por los adaptadores de error (snackbar, vista de error)."
+  },
+
+  "errorLibraryScan": "No pudimos leer tu biblioteca",
+  "@errorLibraryScan": {
+    "description": "Mensaje amigable del error KV-201 (KivoOp.libraryScan), mostrado por los adaptadores de error (snackbar, vista de error)."
+  },
+
+  "errorThumbnail": "No pudimos generar la miniatura",
+  "@errorThumbnail": {
+    "description": "Mensaje amigable del error KV-202 (KivoOp.thumbnail), mostrado por los adaptadores de error (snackbar, vista de error)."
+  },
+
+  "errorDelete": "No pudimos borrar el video",
+  "@errorDelete": {
+    "description": "Mensaje amigable del error KV-301 (KivoOp.delete), mostrado por los adaptadores de error (snackbar, vista de error)."
+  },
+
+  "errorRename": "No pudimos renombrar el video",
+  "@errorRename": {
+    "description": "Mensaje amigable del error KV-302 (KivoOp.rename), mostrado por los adaptadores de error (snackbar, vista de error)."
+  },
+
+  "errorShare": "No pudimos compartir el video",
+  "@errorShare": {
+    "description": "Mensaje amigable del error KV-303 (KivoOp.share), mostrado por los adaptadores de error (snackbar, vista de error)."
+  },
+
+  "errorVaultHide": "No pudimos ocultar el video",
+  "@errorVaultHide": {
+    "description": "Mensaje amigable del error KV-401 (KivoOp.vaultHide), mostrado por los adaptadores de error (snackbar, vista de error)."
+  },
+
+  "errorVaultRestore": "No pudimos restaurar el video",
+  "@errorVaultRestore": {
+    "description": "Mensaje amigable del error KV-402 (KivoOp.vaultRestore), mostrado por los adaptadores de error (snackbar, vista de error)."
+  },
+
+  "errorVaultPurge": "No pudimos borrar el video definitivamente",
+  "@errorVaultPurge": {
+    "description": "Mensaje amigable del error KV-403 (KivoOp.vaultPurge), mostrado por los adaptadores de error (snackbar, vista de error)."
+  },
+
+  "errorOpenVideo": "No pudimos abrir el video",
+  "@errorOpenVideo": {
+    "description": "Mensaje amigable del error KV-501 (KivoOp.openVideo), mostrado por los adaptadores de error (snackbar, vista de error)."
+  },
+
+  "errorSubtitleLoad": "No pudimos cargar el subtítulo",
+  "@errorSubtitleLoad": {
+    "description": "Mensaje amigable del error KV-502 (KivoOp.subtitleLoad), mostrado por los adaptadores de error (snackbar, vista de error)."
+  },
+
+  "errorFrameCapture": "No pudimos guardar la captura",
+  "@errorFrameCapture": {
+    "description": "Mensaje amigable del error KV-503 (KivoOp.frameCapture), mostrado por los adaptadores de error (snackbar, vista de error)."
+  },
+
+  "errorUpdateCheck": "No pudimos comprobar si hay actualizaciones",
+  "@errorUpdateCheck": {
+    "description": "Mensaje amigable del error KV-601 (KivoOp.updateCheck), mostrado por los adaptadores de error (snackbar, vista de error)."
+  },
+
+  "errorUpdateInstall": "No pudimos instalar la actualización",
+  "@errorUpdateInstall": {
+    "description": "Mensaje amigable del error KV-602 (KivoOp.updateInstall), mostrado por los adaptadores de error (snackbar, vista de error)."
+  },
+
+  "errorUnknown": "Algo no salió como esperábamos",
+  "@errorUnknown": {
+    "description": "Mensaje amigable del error KV-999 (KivoOp.unknown), para cualquier fallo no clasificado, mostrado por los adaptadores de error (snackbar, vista de error)."
+  },
+
+  "errorDetailsAction": "Detalles",
+  "@errorDetailsAction": {
+    "description": "Acción del snackbar de error que abre la hoja con el código y el detalle técnico."
+  },
+
+  "errorNoTechnicalDetail": "sin detalle técnico",
+  "@errorNoTechnicalDetail": {
+    "description": "Detalle técnico de respaldo cuando showFailureSnackBar no recibe una causa concreta."
+  },
+
+  "errorRetryAction": "Reintentar",
+  "@errorRetryAction": {
+    "description": "Botón de la vista de error a pantalla completa (FailureView) que reintenta la operación fallida."
+  },
+
+  "errorDetailsSheetAction": "Ver detalles",
+  "@errorDetailsSheetAction": {
+    "description": "Botón de la vista de error a pantalla completa (FailureView) que abre la hoja con el código y el detalle técnico."
+  },
+
+  "errorDetailCopiedSnackbar": "Detalle copiado",
+  "@errorDetailCopiedSnackbar": {
+    "description": "Snackbar mostrado tras copiar el código y el detalle técnico de un error al portapapeles."
+  },
+
+  "settingsBackupTooNewMessage": "Esta copia es de una versión más nueva de Kivo.",
+  "@settingsBackupTooNewMessage": {
+    "description": "Cuerpo del diálogo de error al restaurar una copia de seguridad escrita por una versión más nueva de Kivo (BackupTooNewException)."
+  },
+
+  "settingsBackupInvalidFileMessage": "Este archivo no es una copia de seguridad de Kivo.",
+  "@settingsBackupInvalidFileMessage": {
+    "description": "Cuerpo del diálogo de error al restaurar un archivo que no es una copia de seguridad válida de Kivo (BackupFormatException)."
+  },
+
+  "homeDateToday": "Hoy",
+  "@homeDateToday": {
+    "description": "Encabezado de sección de la biblioteca para los videos añadidos hoy."
+  },
+
+  "homeDateYesterday": "Ayer",
+  "@homeDateYesterday": {
+    "description": "Encabezado de sección de la biblioteca para los videos añadidos ayer."
+  },
+
+  "chapterFallback": "Capítulo {n}",
+  "@chapterFallback": {
+    "description": "Título mostrado para un capítulo sin nombre propio en el archivo (mpv no reporta título), en la hoja de capítulos.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
   }
 }

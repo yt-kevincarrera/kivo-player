@@ -87,7 +87,8 @@ Future<void> _pump(
 void main() {
   // The label groupByDay assigns to the epoch-timestamped fixtures (single
   // section since both videos share dateAddedMs).
-  final dayLabel = groupByDay(_videos, DateTime.now()).first.label;
+  final dayLabel =
+      dateGroupLabel(_l10n, groupByDay(_videos, DateTime.now()).first.group!);
 
   testWidgets('flat mode (groupByDate: false) renders no date-section header',
       (tester) async {

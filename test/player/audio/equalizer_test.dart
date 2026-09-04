@@ -56,9 +56,9 @@ void main() {
     });
   });
 
-  group('presetNameFor', () {
-    test('matches Plano for an untouched flat curve', () {
-      expect(presetNameFor(EqualizerSettings.flat()), 'Plano');
+  group('presetFor', () {
+    test('matches EqPreset.flat for an untouched flat curve', () {
+      expect(presetFor(EqualizerSettings.flat()), EqPreset.flat);
     });
 
     test('matches a named preset regardless of enabled/preamp', () {
@@ -67,12 +67,12 @@ void main() {
         preampDb: 5,
         gainsDb: equalizerPresetCurves['Graves']!,
       );
-      expect(presetNameFor(s), 'Graves');
+      expect(presetFor(s), EqPreset.bass);
     });
 
-    test('falls back to Personalizado for a hand-tuned curve', () {
+    test('falls back to EqPreset.custom for a hand-tuned curve', () {
       final s = EqualizerSettings.flat().withBand(0, 1.5);
-      expect(presetNameFor(s), 'Personalizado');
+      expect(presetFor(s), EqPreset.custom);
     });
   });
 

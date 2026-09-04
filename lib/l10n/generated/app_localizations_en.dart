@@ -1627,4 +1627,177 @@ class AppLocalizationsEn extends AppLocalizations {
   String updateStatusSizePercent(String size, int percent) {
     return '$size · $percent%';
   }
+
+  @override
+  String get vaultCreatePinTitle => 'Create a PIN for the Vault';
+
+  @override
+  String get vaultRepeatPinTitle => 'Repeat the PIN';
+
+  @override
+  String get vaultEnterPinTitle => 'Enter your PIN';
+
+  @override
+  String get vaultPinIncorrectError => 'Incorrect PIN';
+
+  @override
+  String get vaultPinMismatchError => 'PINs don\'t match';
+
+  @override
+  String get vaultUsePinAction => 'Use PIN';
+
+  @override
+  String get vaultUnlockReason => 'Unlock the Vault';
+
+  @override
+  String get vaultEmptyMessage => 'Vault is empty';
+
+  @override
+  String get vaultEntranceVisibleSnackbar => 'Entry visible in Settings';
+
+  @override
+  String get vaultEntranceHiddenSnackbar =>
+      'Entry hidden. Long-press the Videos title to enter.';
+
+  @override
+  String get vaultMenuHideEntrance => 'Hide entry';
+
+  @override
+  String get vaultMenuUseBiometric => 'Use biometrics';
+
+  @override
+  String get vaultTakeOutAction => 'Take out of Vault';
+
+  @override
+  String get vaultTakeOutFailedPartial => 'Could not take all of them out';
+
+  @override
+  String vaultTakeOutSuccessSnackbar(int count) {
+    return '$count returned to the gallery';
+  }
+
+  @override
+  String get vaultDeleteForeverAction => 'Delete from phone';
+
+  @override
+  String vaultDeleteForeverConfirmMessage(int count) {
+    return 'Delete $count videos forever? They cannot be recovered.';
+  }
+
+  @override
+  String vaultDeleteForeverSuccessSnackbar(int count) {
+    return '$count deleted';
+  }
+
+  @override
+  String get vaultDeleteForeverFailedPartial => 'Could not delete all of them';
+
+  @override
+  String get vaultUnlockBiometricSignInTitle => 'Unlock Vault';
+
+  @override
+  String get vaultUnlockBiometricHint => 'Touch the fingerprint sensor';
+
+  @override
+  String get vaultUnlockBiometricNotRecognized => 'Not recognized. Try again.';
+
+  @override
+  String get vaultUnlockBiometricSuccessMessage => 'Fingerprint recognized';
+
+  @override
+  String get vaultUnlockBiometricRequiredTitle => 'Fingerprint not set up';
+
+  @override
+  String get vaultUnlockGoToSettingsButton => 'Go to settings';
+
+  @override
+  String get vaultUnlockGoToSettingsDescription =>
+      'You have no fingerprint set up on this device. Go to Settings > Security to add one.';
+
+  @override
+  String get vaultUnlockDeviceCredentialsRequiredTitle =>
+      'Screen lock required';
+
+  @override
+  String get vaultUnlockDeviceCredentialsSetupDescription =>
+      'Set up a screen lock in Settings to be able to use it.';
+
+  @override
+  String get errorMediaAccess => 'We couldn\'t access your videos';
+
+  @override
+  String get errorLibraryScan => 'We couldn\'t read your library';
+
+  @override
+  String get errorThumbnail => 'We couldn\'t generate the thumbnail';
+
+  @override
+  String get errorDelete => 'We couldn\'t delete the video';
+
+  @override
+  String get errorRename => 'We couldn\'t rename the video';
+
+  @override
+  String get errorShare => 'We couldn\'t share the video';
+
+  @override
+  String get errorVaultHide => 'We couldn\'t hide the video';
+
+  @override
+  String get errorVaultRestore => 'We couldn\'t restore the video';
+
+  @override
+  String get errorVaultPurge => 'We couldn\'t permanently delete the video';
+
+  @override
+  String get errorOpenVideo => 'We couldn\'t open the video';
+
+  @override
+  String get errorSubtitleLoad => 'We couldn\'t load the subtitle';
+
+  @override
+  String get errorFrameCapture => 'We couldn\'t save the capture';
+
+  @override
+  String get errorUpdateCheck => 'We couldn\'t check for updates';
+
+  @override
+  String get errorUpdateInstall => 'We couldn\'t install the update';
+
+  @override
+  String get errorUnknown => 'Something didn\'t go as expected';
+
+  @override
+  String get errorDetailsAction => 'Details';
+
+  @override
+  String get errorNoTechnicalDetail => 'no technical detail';
+
+  @override
+  String get errorRetryAction => 'Retry';
+
+  @override
+  String get errorDetailsSheetAction => 'View details';
+
+  @override
+  String get errorDetailCopiedSnackbar => 'Detail copied';
+
+  @override
+  String get settingsBackupTooNewMessage =>
+      'This backup is from a newer version of Kivo.';
+
+  @override
+  String get settingsBackupInvalidFileMessage =>
+      'This file is not a Kivo backup.';
+
+  @override
+  String get homeDateToday => 'Today';
+
+  @override
+  String get homeDateYesterday => 'Yesterday';
+
+  @override
+  String chapterFallback(int n) {
+    return 'Chapter $n';
+  }
 }

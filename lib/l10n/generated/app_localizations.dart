@@ -2737,6 +2737,324 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'{size} · {percent} %'**
   String updateStatusSizePercent(String size, int percent);
+
+  /// Título del PinPad la primera vez que se configura el Vault, antes de la primera entrada de PIN.
+  ///
+  /// In es, this message translates to:
+  /// **'Crea un PIN para el Vault'**
+  String get vaultCreatePinTitle;
+
+  /// Título del PinPad al configurar el Vault, tras la primera entrada de PIN (pide confirmarlo).
+  ///
+  /// In es, this message translates to:
+  /// **'Repite el PIN'**
+  String get vaultRepeatPinTitle;
+
+  /// Título del PinPad al desbloquear el Vault ya configurado.
+  ///
+  /// In es, this message translates to:
+  /// **'Introduce tu PIN'**
+  String get vaultEnterPinTitle;
+
+  /// Error bajo el PinPad cuando el PIN introducido para desbloquear el Vault no coincide.
+  ///
+  /// In es, this message translates to:
+  /// **'PIN incorrecto'**
+  String get vaultPinIncorrectError;
+
+  /// Error bajo el PinPad cuando, al configurar el Vault, la segunda entrada del PIN no coincide con la primera.
+  ///
+  /// In es, this message translates to:
+  /// **'Los PIN no coinciden'**
+  String get vaultPinMismatchError;
+
+  /// Botón bajo el ícono de huella en la puerta del Vault, para saltar al PinPad sin esperar al intento biométrico.
+  ///
+  /// In es, this message translates to:
+  /// **'Usar PIN'**
+  String get vaultUsePinAction;
+
+  /// Motivo mostrado por el propio sistema operativo en el diálogo biométrico al desbloquear el Vault.
+  ///
+  /// In es, this message translates to:
+  /// **'Desbloquea el Vault'**
+  String get vaultUnlockReason;
+
+  /// Texto mostrado en la pantalla del Vault cuando no contiene ningún video.
+  ///
+  /// In es, this message translates to:
+  /// **'Vault vacío'**
+  String get vaultEmptyMessage;
+
+  /// Snackbar del menú del Vault al desactivar «Ocultar entrada»: ahora la entrada al Vault se ve en Ajustes.
+  ///
+  /// In es, this message translates to:
+  /// **'Entrada visible en Ajustes'**
+  String get vaultEntranceVisibleSnackbar;
+
+  /// Snackbar del menú del Vault al activar «Ocultar entrada»: explica la entrada alternativa (mantener pulsado el título de la biblioteca).
+  ///
+  /// In es, this message translates to:
+  /// **'Entrada oculta. Mantén pulsado el título de Videos para entrar.'**
+  String get vaultEntranceHiddenSnackbar;
+
+  /// Opción del menú ⋮ del Vault que oculta su entrada de Ajustes.
+  ///
+  /// In es, this message translates to:
+  /// **'Ocultar entrada'**
+  String get vaultMenuHideEntrance;
+
+  /// Opción del menú ⋮ del Vault que activa/desactiva el desbloqueo por huella.
+  ///
+  /// In es, this message translates to:
+  /// **'Usar biometría'**
+  String get vaultMenuUseBiometric;
+
+  /// Acción de la barra inferior de selección del Vault: devuelve los videos elegidos a la galería.
+  ///
+  /// In es, this message translates to:
+  /// **'Sacar del Vault'**
+  String get vaultTakeOutAction;
+
+  /// Snackbar mostrado cuando «Sacar del Vault» no logra devolver todos los videos elegidos a la galería.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudieron sacar todos'**
+  String get vaultTakeOutFailedPartial;
+
+  /// Snackbar mostrado tras «Sacar del Vault» con la cantidad de videos devueltos a la galería.
+  ///
+  /// In es, this message translates to:
+  /// **'{count} devueltos a la galería'**
+  String vaultTakeOutSuccessSnackbar(int count);
+
+  /// Acción de la barra inferior de selección del Vault (y título de su diálogo de confirmación): borra los videos elegidos del teléfono para siempre.
+  ///
+  /// In es, this message translates to:
+  /// **'Borrar del teléfono'**
+  String get vaultDeleteForeverAction;
+
+  /// Cuerpo del diálogo de confirmación de «Borrar del teléfono» en el Vault, con la cantidad de videos elegidos.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Borrar {count} videos para siempre? No se pueden recuperar.'**
+  String vaultDeleteForeverConfirmMessage(int count);
+
+  /// Snackbar mostrado tras «Borrar del teléfono» en el Vault con la cantidad de videos borrados.
+  ///
+  /// In es, this message translates to:
+  /// **'{count} borrados'**
+  String vaultDeleteForeverSuccessSnackbar(int count);
+
+  /// Snackbar mostrado cuando «Borrar del teléfono» en el Vault no logra borrar todos los videos elegidos.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudieron borrar todos'**
+  String get vaultDeleteForeverFailedPartial;
+
+  /// Título del diálogo biométrico nativo de Android al desbloquear el Vault.
+  ///
+  /// In es, this message translates to:
+  /// **'Desbloquear Vault'**
+  String get vaultUnlockBiometricSignInTitle;
+
+  /// Texto de ayuda del diálogo biométrico nativo mientras espera el toque en el sensor de huella.
+  ///
+  /// In es, this message translates to:
+  /// **'Toca el sensor de huella'**
+  String get vaultUnlockBiometricHint;
+
+  /// Texto del diálogo biométrico nativo cuando la huella no fue reconocida.
+  ///
+  /// In es, this message translates to:
+  /// **'No reconocida. Inténtalo de nuevo.'**
+  String get vaultUnlockBiometricNotRecognized;
+
+  /// Texto del diálogo biométrico nativo cuando la huella fue reconocida correctamente.
+  ///
+  /// In es, this message translates to:
+  /// **'Huella reconocida'**
+  String get vaultUnlockBiometricSuccessMessage;
+
+  /// Título del diálogo biométrico nativo cuando el dispositivo no tiene ninguna huella registrada.
+  ///
+  /// In es, this message translates to:
+  /// **'Huella no configurada'**
+  String get vaultUnlockBiometricRequiredTitle;
+
+  /// Botón del diálogo biométrico nativo que lleva a los ajustes del sistema para configurar huella o bloqueo de pantalla.
+  ///
+  /// In es, this message translates to:
+  /// **'Ir a ajustes'**
+  String get vaultUnlockGoToSettingsButton;
+
+  /// Descripción del diálogo biométrico nativo cuando el dispositivo no tiene ninguna huella registrada.
+  ///
+  /// In es, this message translates to:
+  /// **'No tienes ninguna huella configurada en este dispositivo. Ve a Ajustes > Seguridad para añadir una.'**
+  String get vaultUnlockGoToSettingsDescription;
+
+  /// Título del diálogo biométrico nativo cuando el dispositivo no tiene ni huella ni bloqueo de pantalla configurados.
+  ///
+  /// In es, this message translates to:
+  /// **'Bloqueo de pantalla requerido'**
+  String get vaultUnlockDeviceCredentialsRequiredTitle;
+
+  /// Descripción del diálogo biométrico nativo pidiendo configurar un bloqueo de pantalla.
+  ///
+  /// In es, this message translates to:
+  /// **'Configura un bloqueo de pantalla en Ajustes para poder usarlo.'**
+  String get vaultUnlockDeviceCredentialsSetupDescription;
+
+  /// Mensaje amigable del error KV-101 (KivoOp.mediaAccess), mostrado por los adaptadores de error (snackbar, vista de error).
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos acceder a tus videos'**
+  String get errorMediaAccess;
+
+  /// Mensaje amigable del error KV-201 (KivoOp.libraryScan), mostrado por los adaptadores de error (snackbar, vista de error).
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos leer tu biblioteca'**
+  String get errorLibraryScan;
+
+  /// Mensaje amigable del error KV-202 (KivoOp.thumbnail), mostrado por los adaptadores de error (snackbar, vista de error).
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos generar la miniatura'**
+  String get errorThumbnail;
+
+  /// Mensaje amigable del error KV-301 (KivoOp.delete), mostrado por los adaptadores de error (snackbar, vista de error).
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos borrar el video'**
+  String get errorDelete;
+
+  /// Mensaje amigable del error KV-302 (KivoOp.rename), mostrado por los adaptadores de error (snackbar, vista de error).
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos renombrar el video'**
+  String get errorRename;
+
+  /// Mensaje amigable del error KV-303 (KivoOp.share), mostrado por los adaptadores de error (snackbar, vista de error).
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos compartir el video'**
+  String get errorShare;
+
+  /// Mensaje amigable del error KV-401 (KivoOp.vaultHide), mostrado por los adaptadores de error (snackbar, vista de error).
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos ocultar el video'**
+  String get errorVaultHide;
+
+  /// Mensaje amigable del error KV-402 (KivoOp.vaultRestore), mostrado por los adaptadores de error (snackbar, vista de error).
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos restaurar el video'**
+  String get errorVaultRestore;
+
+  /// Mensaje amigable del error KV-403 (KivoOp.vaultPurge), mostrado por los adaptadores de error (snackbar, vista de error).
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos borrar el video definitivamente'**
+  String get errorVaultPurge;
+
+  /// Mensaje amigable del error KV-501 (KivoOp.openVideo), mostrado por los adaptadores de error (snackbar, vista de error).
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos abrir el video'**
+  String get errorOpenVideo;
+
+  /// Mensaje amigable del error KV-502 (KivoOp.subtitleLoad), mostrado por los adaptadores de error (snackbar, vista de error).
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos cargar el subtítulo'**
+  String get errorSubtitleLoad;
+
+  /// Mensaje amigable del error KV-503 (KivoOp.frameCapture), mostrado por los adaptadores de error (snackbar, vista de error).
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos guardar la captura'**
+  String get errorFrameCapture;
+
+  /// Mensaje amigable del error KV-601 (KivoOp.updateCheck), mostrado por los adaptadores de error (snackbar, vista de error).
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos comprobar si hay actualizaciones'**
+  String get errorUpdateCheck;
+
+  /// Mensaje amigable del error KV-602 (KivoOp.updateInstall), mostrado por los adaptadores de error (snackbar, vista de error).
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos instalar la actualización'**
+  String get errorUpdateInstall;
+
+  /// Mensaje amigable del error KV-999 (KivoOp.unknown), para cualquier fallo no clasificado, mostrado por los adaptadores de error (snackbar, vista de error).
+  ///
+  /// In es, this message translates to:
+  /// **'Algo no salió como esperábamos'**
+  String get errorUnknown;
+
+  /// Acción del snackbar de error que abre la hoja con el código y el detalle técnico.
+  ///
+  /// In es, this message translates to:
+  /// **'Detalles'**
+  String get errorDetailsAction;
+
+  /// Detalle técnico de respaldo cuando showFailureSnackBar no recibe una causa concreta.
+  ///
+  /// In es, this message translates to:
+  /// **'sin detalle técnico'**
+  String get errorNoTechnicalDetail;
+
+  /// Botón de la vista de error a pantalla completa (FailureView) que reintenta la operación fallida.
+  ///
+  /// In es, this message translates to:
+  /// **'Reintentar'**
+  String get errorRetryAction;
+
+  /// Botón de la vista de error a pantalla completa (FailureView) que abre la hoja con el código y el detalle técnico.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver detalles'**
+  String get errorDetailsSheetAction;
+
+  /// Snackbar mostrado tras copiar el código y el detalle técnico de un error al portapapeles.
+  ///
+  /// In es, this message translates to:
+  /// **'Detalle copiado'**
+  String get errorDetailCopiedSnackbar;
+
+  /// Cuerpo del diálogo de error al restaurar una copia de seguridad escrita por una versión más nueva de Kivo (BackupTooNewException).
+  ///
+  /// In es, this message translates to:
+  /// **'Esta copia es de una versión más nueva de Kivo.'**
+  String get settingsBackupTooNewMessage;
+
+  /// Cuerpo del diálogo de error al restaurar un archivo que no es una copia de seguridad válida de Kivo (BackupFormatException).
+  ///
+  /// In es, this message translates to:
+  /// **'Este archivo no es una copia de seguridad de Kivo.'**
+  String get settingsBackupInvalidFileMessage;
+
+  /// Encabezado de sección de la biblioteca para los videos añadidos hoy.
+  ///
+  /// In es, this message translates to:
+  /// **'Hoy'**
+  String get homeDateToday;
+
+  /// Encabezado de sección de la biblioteca para los videos añadidos ayer.
+  ///
+  /// In es, this message translates to:
+  /// **'Ayer'**
+  String get homeDateYesterday;
+
+  /// Título mostrado para un capítulo sin nombre propio en el archivo (mpv no reporta título), en la hoja de capítulos.
+  ///
+  /// In es, this message translates to:
+  /// **'Capítulo {n}'**
+  String chapterFallback(int n);
 }
 
 class _AppLocalizationsDelegate

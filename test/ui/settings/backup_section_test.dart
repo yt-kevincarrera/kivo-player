@@ -160,8 +160,9 @@ void main() {
     await t.pumpAndSettle();
 
     expect(find.text(_l10n.settingsBackupReadFailedDialogTitle), findsOneWidget);
-    // BackupTooNewException.toString() itself is out of scope this wave
-    // (lib/core/backup/backup_file.dart) and stays hardcoded Spanish.
-    expect(find.textContaining('más nueva de Kivo'), findsOneWidget);
+    // The dialog shows the localized message, not BackupTooNewException's
+    // own hardcoded-Spanish toString() (that stays as the raw/log text —
+    // see lib/ui/settings/sections/backup_section.dart's catch clause).
+    expect(find.text(_l10n.settingsBackupTooNewMessage), findsOneWidget);
   });
 }

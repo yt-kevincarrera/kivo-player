@@ -91,13 +91,13 @@ class BackupSection extends ConsumerWidget {
     RestorePlan plan;
     try {
       plan = await ref.read(backupServiceProvider).plan(jsonStr);
-    } on BackupTooNewException catch (e) {
+    } on BackupTooNewException {
       if (!context.mounted) return;
-      await _showError(context, e.toString());
+      await _showError(context, context.l10n.settingsBackupTooNewMessage);
       return;
-    } on BackupFormatException catch (e) {
+    } on BackupFormatException {
       if (!context.mounted) return;
-      await _showError(context, e.toString());
+      await _showError(context, context.l10n.settingsBackupInvalidFileMessage);
       return;
     }
 
