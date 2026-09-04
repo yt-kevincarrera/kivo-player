@@ -6,7 +6,9 @@ import '../../../platform/all_files_access_provider.dart';
 import '../../../platform/interfaces/all_files_access.dart';
 import '../../../platform/interfaces/media_file_ops.dart';
 import '../../../platform/interfaces/media_indexer.dart';
+import '../../../player/library/played.dart';
 import '../../../player/library/video_actions.dart';
+import '../../../player/open/video_source.dart'; // resumeServiceProvider
 import '../../vault/vault_entry_actions.dart';
 import '../../widgets/failure_snack_bar.dart';
 import '../playlists/add_to_playlist_sheet.dart';
@@ -22,6 +24,10 @@ class VideoOptionsSheet extends StatelessWidget {
   final VoidCallback onAddToPlaylist;
   final VoidCallback onDelete;
   final VoidCallback onMoveToVault;
+  final bool isPlayed;
+  final VoidCallback onTogglePlayed;
+  final bool hasResume;
+  final VoidCallback onClearResume;
   const VideoOptionsSheet({
     super.key,
     required this.video,
@@ -31,6 +37,10 @@ class VideoOptionsSheet extends StatelessWidget {
     required this.onAddToPlaylist,
     required this.onDelete,
     required this.onMoveToVault,
+    required this.isPlayed,
+    required this.onTogglePlayed,
+    required this.hasResume,
+    required this.onClearResume,
   });
 
   @override
@@ -60,6 +70,16 @@ class VideoOptionsSheet extends StatelessWidget {
               _row(context, Icons.share_outlined, 'Compartir', cs.onSurface, onShare),
               _row(context, Icons.drive_file_rename_outline, 'Renombrar', cs.onSurface, onRename),
               _row(context, Icons.info_outline, 'Detalles', cs.onSurface, onDetails),
+              _row(
+                context,
+                isPlayed ? Icons.remove_circle_outline : Icons.check_circle_outline,
+                isPlayed ? 'Marcar como no visto' : 'Marcar como visto',
+                cs.onSurface,
+                onTogglePlayed,
+              ),
+              if (hasResume)
+                _row(context, Icons.playlist_remove, 'Quitar de Continuar viendo', cs.onSurface,
+                    onClearResume),
               _row(context, Icons.playlist_add, 'Añadir a lista', cs.onSurface, onAddToPlaylist),
               _row(context, Icons.lock_outline, 'Mover al Vault', cs.onSurface, onMoveToVault),
               _row(context, Icons.delete_outline, 'Borrar', cs.error, onDelete),
@@ -118,12 +138,28 @@ Future<void> maybeOfferAllFilesAccess(BuildContext context, WidgetRef ref) async
 /// details (sheet), and delete (own confirm dialog + controller).
 Future<void> showVideoOptions(BuildContext context, WidgetRef ref, VideoItem v) {
   final messenger = ScaffoldMessenger.of(context);
+  final isPlayed = ref.read(playedStoreProvider).isPlayed(v.name);
+  final hasResume = ref.read(resumeServiceProvider).positionFor(v.name) != null;
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Theme.of(context).colorScheme.surface,
     builder: (sheetContext) => VideoOptionsSheet(
       video: v,
+      isPlayed: isPlayed,
+      hasResume: hasResume,
+      onTogglePlayed: () async {
+        Navigator.pop(sheetContext);
+        final newPlayed = !isPlayed;
+        await ref.read(videoActionsProvider).setPlayed(v, newPlayed);
+        messenger.showSnackBar(SnackBar(
+            content: Text(newPlayed ? 'Marcado como visto' : 'Marcado como no visto')));
+      },
+      onClearResume: () async {
+        Navigator.pop(sheetContext);
+        await ref.read(videoActionsProvider).clearResume(v);
+        messenger.showSnackBar(const SnackBar(content: Text('Quitado de Continuar viendo')));
+      },
       onShare: () {
         Navigator.pop(sheetContext);
         ref.read(videoActionsProvider).share(v);

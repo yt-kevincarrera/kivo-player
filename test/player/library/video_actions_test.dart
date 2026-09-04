@@ -111,4 +111,40 @@ void main() {
     await c.read(videoActionsProvider).share(_v);
     expect(ops.sharedUris, ['content://v/1']);
   });
+
+  test('setPlayed(true) marks played and invalidates playedKeysProvider', () async {
+    final played = InMemoryPlayedStore();
+    final c = _c(FakeMediaFileOps(), ResumeService(InMemoryResumeStore()), played);
+    addTearDown(c.dispose);
+    expect(c.read(playedKeysProvider), isEmpty);
+
+    await c.read(videoActionsProvider).setPlayed(_v, true);
+
+    expect(played.isPlayed('old.mp4'), true);
+    expect(c.read(playedKeysProvider), {'old.mp4'});
+  });
+
+  test('setPlayed(false) unmarks played', () async {
+    final played = InMemoryPlayedStore();
+    await played.markPlayed('old.mp4');
+    final c = _c(FakeMediaFileOps(), ResumeService(InMemoryResumeStore()), played);
+    addTearDown(c.dispose);
+
+    await c.read(videoActionsProvider).setPlayed(_v, false);
+
+    expect(played.isPlayed('old.mp4'), false);
+    expect(c.read(playedKeysProvider), isEmpty);
+  });
+
+  test('clearResume drops the saved position', () async {
+    final store = InMemoryResumeStore();
+    final resume = ResumeService(store);
+    await store.put('old.mp4', 30, 100);
+    final c = _c(FakeMediaFileOps(), resume, InMemoryPlayedStore());
+    addTearDown(c.dispose);
+
+    await c.read(videoActionsProvider).clearResume(_v);
+
+    expect(resume.positionFor('old.mp4'), isNull);
+  });
 }

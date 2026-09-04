@@ -89,6 +89,27 @@ class VideoActionsController {
   Future<void> shareMany(List<VideoItem> videos) =>
       _ref.read(mediaFileOpsProvider).shareMany(videos.map((v) => v.uri).toList());
 
+  /// Marks (or unmarks) a video as played/seen. Invalidates
+  /// [playedKeysProvider] so the "Nuevo" badge in the library grid updates
+  /// immediately.
+  Future<void> setPlayed(VideoItem v, bool played) async {
+    final store = _ref.read(playedStoreProvider);
+    if (played) {
+      await store.markPlayed(v.name);
+    } else {
+      await store.remove(v.name);
+    }
+    _ref.invalidate(playedKeysProvider);
+  }
+
+  /// Drops a video's saved resume position — e.g. it was opened by mistake
+  /// and shouldn't linger in "Continuar viendo". Invalidates
+  /// [continueWatchingProvider] so the carousel drops the card at once.
+  Future<void> clearResume(VideoItem v) async {
+    await _ref.read(resumeServiceProvider).clear(v.name);
+    _ref.invalidate(continueWatchingProvider);
+  }
+
   Future<void> _refreshLibrary() async {
     await _ref.read(mediaIndexProvider.notifier).refresh();
     _ref.invalidate(continueWatchingProvider);
