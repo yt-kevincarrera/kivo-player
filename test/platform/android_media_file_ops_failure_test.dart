@@ -61,4 +61,17 @@ void main() {
     await AndroidMediaFileOps(log).share('uri');
     expect(log.entries().single.code, 'KV-303');
   });
+
+  test('movesToTrash is false below API 30', () {
+    final below = ErrorLog(InMemoryErrorLogStore(), appVersion: '1.1.0', androidSdk: 29);
+    expect(AndroidMediaFileOps(below).movesToTrash, isFalse);
+  });
+
+  test('movesToTrash is true from API 30 (Android 11) up', () {
+    final at = ErrorLog(InMemoryErrorLogStore(), appVersion: '1.1.0', androidSdk: 30);
+    expect(AndroidMediaFileOps(at).movesToTrash, isTrue);
+
+    final above = ErrorLog(InMemoryErrorLogStore(), appVersion: '1.1.0', androidSdk: 34);
+    expect(AndroidMediaFileOps(above).movesToTrash, isTrue);
+  });
 }

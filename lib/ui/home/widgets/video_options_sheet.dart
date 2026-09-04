@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/errors/kivo_failure.dart';
 import '../../../core/settings/settings_provider.dart';
+import '../../../platform/media_file_ops_provider.dart';
 import '../../../platform/all_files_access_provider.dart';
 import '../../../platform/interfaces/all_files_access.dart';
 import '../../../platform/interfaces/media_file_ops.dart';
 import '../../../platform/interfaces/media_indexer.dart';
+import '../../../player/library/played.dart';
 import '../../../player/library/video_actions.dart';
+import '../../../player/open/video_source.dart'; // resumeServiceProvider
 import '../../vault/vault_entry_actions.dart';
 import '../../widgets/failure_snack_bar.dart';
 import '../playlists/add_to_playlist_sheet.dart';
@@ -22,6 +25,10 @@ class VideoOptionsSheet extends StatelessWidget {
   final VoidCallback onAddToPlaylist;
   final VoidCallback onDelete;
   final VoidCallback onMoveToVault;
+  final bool isPlayed;
+  final VoidCallback onTogglePlayed;
+  final bool hasResume;
+  final VoidCallback onClearResume;
   const VideoOptionsSheet({
     super.key,
     required this.video,
@@ -31,6 +38,10 @@ class VideoOptionsSheet extends StatelessWidget {
     required this.onAddToPlaylist,
     required this.onDelete,
     required this.onMoveToVault,
+    required this.isPlayed,
+    required this.onTogglePlayed,
+    required this.hasResume,
+    required this.onClearResume,
   });
 
   @override
@@ -51,17 +62,69 @@ class VideoOptionsSheet extends StatelessWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                child: Text(video.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        color: cs.onSurface, fontSize: 15, fontWeight: FontWeight.w700)),
+                child: Text(
+                  video.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: cs.onSurface,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
-              _row(context, Icons.share_outlined, 'Compartir', cs.onSurface, onShare),
-              _row(context, Icons.drive_file_rename_outline, 'Renombrar', cs.onSurface, onRename),
-              _row(context, Icons.info_outline, 'Detalles', cs.onSurface, onDetails),
-              _row(context, Icons.playlist_add, 'Añadir a lista', cs.onSurface, onAddToPlaylist),
-              _row(context, Icons.lock_outline, 'Mover al Vault', cs.onSurface, onMoveToVault),
+              _row(
+                context,
+                Icons.share_outlined,
+                'Compartir',
+                cs.onSurface,
+                onShare,
+              ),
+              _row(
+                context,
+                Icons.drive_file_rename_outline,
+                'Renombrar',
+                cs.onSurface,
+                onRename,
+              ),
+              _row(
+                context,
+                Icons.info_outline,
+                'Detalles',
+                cs.onSurface,
+                onDetails,
+              ),
+              _row(
+                context,
+                isPlayed
+                    ? Icons.remove_circle_outline
+                    : Icons.check_circle_outline,
+                isPlayed ? 'Marcar como no visto' : 'Marcar como visto',
+                cs.onSurface,
+                onTogglePlayed,
+              ),
+              if (hasResume)
+                _row(
+                  context,
+                  Icons.playlist_remove,
+                  'Quitar de Continuar viendo',
+                  cs.onSurface,
+                  onClearResume,
+                ),
+              _row(
+                context,
+                Icons.playlist_add,
+                'Añadir a lista',
+                cs.onSurface,
+                onAddToPlaylist,
+              ),
+              _row(
+                context,
+                Icons.lock_outline,
+                'Mover al Vault',
+                cs.onSurface,
+                onMoveToVault,
+              ),
               _row(context, Icons.delete_outline, 'Borrar', cs.error, onDelete),
               const SizedBox(height: 8),
             ],
@@ -71,16 +134,24 @@ class VideoOptionsSheet extends StatelessWidget {
     );
   }
 
-  Widget _row(BuildContext context, IconData icon, String label, Color color, VoidCallback onTap) {
+  Widget _row(
+    BuildContext context,
+    IconData icon,
+    String label,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return InkWell(
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        child: Row(children: [
-          Icon(icon, size: 22, color: color),
-          const SizedBox(width: 16),
-          Text(label, style: TextStyle(color: color, fontSize: 15)),
-        ]),
+        child: Row(
+          children: [
+            Icon(icon, size: 22, color: color),
+            const SizedBox(width: 16),
+            Text(label, style: TextStyle(color: color, fontSize: 15)),
+          ],
+        ),
       ),
     );
   }
@@ -91,23 +162,37 @@ class VideoOptionsSheet extends StatelessWidget {
 /// [KivoSettings.offeredAllFilesAccess]); on accept it opens the settings
 /// screen. The caller then proceeds with the op regardless — the native side
 /// decides silent-vs-consent from the current permission.
-Future<void> maybeOfferAllFilesAccess(BuildContext context, WidgetRef ref) async {
+Future<void> maybeOfferAllFilesAccess(
+  BuildContext context,
+  WidgetRef ref,
+) async {
   final access = ref.read(allFilesAccessProvider);
   final granted = await access.isGranted();
   final settings = ref.read(settingsProvider);
-  if (!shouldOfferAllFilesAccess(granted, settings.offeredAllFilesAccess)) return;
-  ref.read(settingsProvider.notifier).set(settings.copyWith(offeredAllFilesAccess: true));
+  if (!shouldOfferAllFilesAccess(granted, settings.offeredAllFilesAccess)) {
+    return;
+  }
+  ref
+      .read(settingsProvider.notifier)
+      .set(settings.copyWith(offeredAllFilesAccess: true));
   if (!context.mounted) return;
   final give = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
       title: const Text('Sin confirmaciones de Android'),
       content: const Text(
-          'Para borrar y renombrar sin que Android te pida confirmación cada '
-          'vez, dale a Kivo acceso a los archivos.'),
+        'Para borrar y renombrar sin que Android te pida confirmación cada '
+        'vez, dale a Kivo acceso a los archivos.',
+      ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Ahora no')),
-        TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Dar acceso')),
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, false),
+          child: const Text('Ahora no'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, true),
+          child: const Text('Dar acceso'),
+        ),
       ],
     ),
   );
@@ -116,14 +201,41 @@ Future<void> maybeOfferAllFilesAccess(BuildContext context, WidgetRef ref) async
 
 /// Opens the options sheet, fully wired: share, rename (dialog + controller),
 /// details (sheet), and delete (own confirm dialog + controller).
-Future<void> showVideoOptions(BuildContext context, WidgetRef ref, VideoItem v) {
+Future<void> showVideoOptions(
+  BuildContext context,
+  WidgetRef ref,
+  VideoItem v,
+) {
   final messenger = ScaffoldMessenger.of(context);
+  final isPlayed = ref.read(playedStoreProvider).isPlayed(v.name);
+  final hasResume = ref.read(resumeServiceProvider).positionFor(v.name) != null;
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Theme.of(context).colorScheme.surface,
     builder: (sheetContext) => VideoOptionsSheet(
       video: v,
+      isPlayed: isPlayed,
+      hasResume: hasResume,
+      onTogglePlayed: () async {
+        Navigator.pop(sheetContext);
+        final newPlayed = !isPlayed;
+        await ref.read(videoActionsProvider).setPlayed(v, newPlayed);
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              newPlayed ? 'Marcado como visto' : 'Marcado como no visto',
+            ),
+          ),
+        );
+      },
+      onClearResume: () async {
+        Navigator.pop(sheetContext);
+        await ref.read(videoActionsProvider).clearResume(v);
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Quitado de Continuar viendo')),
+        );
+      },
       onShare: () {
         Navigator.pop(sheetContext);
         ref.read(videoActionsProvider).share(v);
@@ -157,16 +269,29 @@ Future<void> showVideoOptions(BuildContext context, WidgetRef ref, VideoItem v) 
       },
       onDelete: () async {
         Navigator.pop(sheetContext);
+        // Android 11+ moves to the system trash; the dialog must say so —
+        // «no se puede deshacer» would be a lie there.
+        final toTrash = ref.read(mediaFileOpsProvider).movesToTrash;
         final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Borrar video'),
-            content: Text('¿Borrar «${v.name}»? Esta acción no se puede deshacer.'),
+            title: Text(toTrash ? 'Mover a la papelera' : 'Borrar video'),
+            content: Text(
+              toTrash
+                  ? '¿Mover «${v.name}» a la papelera? Podrás recuperarlo durante 30 días desde la app Archivos.'
+                  : '¿Borrar «${v.name}»? Esta acción no se puede deshacer.',
+            ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancelar'),
+              ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: Text('Borrar', style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
+                child: Text(
+                  toTrash ? 'Mover a la papelera' : 'Borrar',
+                  style: TextStyle(color: Theme.of(ctx).colorScheme.error),
+                ),
               ),
             ],
           ),
@@ -177,7 +302,9 @@ Future<void> showVideoOptions(BuildContext context, WidgetRef ref, VideoItem v) 
         if (!context.mounted) return;
         final status = await ref.read(videoActionsProvider).delete(v);
         if (status == FileOpStatus.ok) {
-          messenger.showSnackBar(const SnackBar(content: Text('Video borrado')));
+          messenger.showSnackBar(
+            const SnackBar(content: Text('Video borrado')),
+          );
         } else if (status == FileOpStatus.error && context.mounted) {
           showFailureSnackBar(context, KivoOp.delete);
         }

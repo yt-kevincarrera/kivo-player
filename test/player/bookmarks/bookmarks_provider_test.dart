@@ -40,6 +40,9 @@ class _CountingBookmarkStore implements BookmarkStore {
   @override
   Future<void> rename(String oldKey, String newKey) =>
       _inner.rename(oldKey, newKey);
+
+  @override
+  Map<String, List<Bookmark>> all() => _inner.all();
 }
 
 void main() {

@@ -5,6 +5,7 @@ import '../../core/settings/settings_provider.dart';
 import '../vault/vault_entry_actions.dart';
 import 'sections/about_section.dart';
 import 'sections/advanced_playback_section.dart';
+import 'sections/backup_section.dart';
 import 'sections/equalizer_section.dart';
 import 'sections/general_section.dart';
 import 'sections/interface_section.dart';
@@ -50,6 +51,12 @@ class SettingsScreen extends ConsumerWidget {
               subtitle: 'Graves, voz, agudos y preamplificación',
               onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const EqualizerSection()))),
+            SettingNavRow(
+              icon: Icons.save_outlined,
+              title: 'Copia de seguridad',
+              subtitle: 'Exporta o restaura tus listas, marcadores y ajustes',
+              onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const BackupSection()))),
             SettingNavRow(
               icon: Icons.info_outline, title: 'Acerca de', subtitle: 'Versión y actualizaciones',
               onTap: () => Navigator.of(context).push(

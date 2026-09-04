@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/errors/kivo_failure.dart';
 import '../../../platform/interfaces/media_file_ops.dart';
 import '../../../platform/interfaces/media_indexer.dart';
+import '../../../platform/media_file_ops_provider.dart';
 import '../../../player/library/media_index.dart';
 import '../../../player/library/video_actions.dart';
 import '../../vault/vault_entry_actions.dart';
@@ -60,16 +61,22 @@ class SelectionBottomBar extends ConsumerWidget {
                 sel.clear();
               } : null),
               _action(cs.error, Icons.delete_outline, 'Borrar', enabled ? () async {
+                final movesToTrash = ref.read(mediaFileOpsProvider).movesToTrash;
+                final n = chosen.length;
+                final noun = n == 1 ? 'video' : 'videos';
+                final confirmLabel = movesToTrash ? 'Mover a la papelera' : 'Borrar';
                 final ok = await showDialog<bool>(
                   context: context,
                   builder: (ctx) => AlertDialog(
-                    title: const Text('Borrar videos'),
-                    content: Text('¿Borrar ${chosen.length} videos? Esta acción no se puede deshacer.'),
+                    title: Text(movesToTrash ? 'Mover a la papelera' : 'Borrar videos'),
+                    content: Text(movesToTrash
+                        ? '¿Mover $n $noun a la papelera?\n\nPodrás recuperarlos durante 30 días desde la app Archivos.'
+                        : '¿Borrar $n $noun? Esta acción no se puede deshacer.'),
                     actions: [
                       TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
                       TextButton(
                         onPressed: () => Navigator.pop(ctx, true),
-                        child: Text('Borrar', style: TextStyle(color: Theme.of(ctx).colorScheme.error))),
+                        child: Text(confirmLabel, style: TextStyle(color: Theme.of(ctx).colorScheme.error))),
                     ],
                   ),
                 );
@@ -78,7 +85,8 @@ class SelectionBottomBar extends ConsumerWidget {
                 if (!context.mounted) return;
                 final status = await ref.read(videoActionsProvider).deleteMany(chosen);
                 if (status == FileOpStatus.ok) {
-                  messenger.showSnackBar(SnackBar(content: Text('${chosen.length} videos borrados')));
+                  final doneMsg = movesToTrash ? '$n $noun movidos a la papelera' : '$n $noun borrados';
+                  messenger.showSnackBar(SnackBar(content: Text(doneMsg)));
                   sel.clear();
                 } else if (status == FileOpStatus.error && context.mounted) {
                   showFailureSnackBar(context, KivoOp.delete);

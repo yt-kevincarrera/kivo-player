@@ -19,4 +19,12 @@ void main() {
     await ops.share('content://v/1');
     expect(ops.sharedUris, ['content://v/1']);
   });
+
+  test('FakeMediaFileOps.movesToTrash defaults to false and is settable', () {
+    final ops = FakeMediaFileOps();
+    expect(ops.movesToTrash, isFalse);
+
+    ops.movesToTrash = true;
+    expect(ops.movesToTrash, isTrue);
+  });
 }

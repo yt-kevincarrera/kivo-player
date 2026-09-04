@@ -498,14 +498,27 @@ class MainActivity : FlutterFragmentActivity() {
                         if (pendingFileOpResult != null) { result.success("error"); return@setMethodCallHandler }
                         val u = Uri.parse(uri)
                         try {
+                            // API 30+: move to the system trash (recoverable for 30 days
+                            // from the Files app) instead of a permanent delete.
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
                                 Environment.isExternalStorageManager()) {
-                                contentResolver.delete(u, null, null)
-                                result.success("ok")
+                                val values = android.content.ContentValues().apply {
+                                    put(MediaStore.MediaColumns.IS_TRASHED, 1)
+                                }
+                                val rows = contentResolver.update(u, values, null, null)
+                                if (rows > 0) {
+                                    result.success("ok")
+                                } else {
+                                    // Row not owned by us despite all-files-access (rare):
+                                    // fall back to the system trash consent dialog.
+                                    val pi = MediaStore.createTrashRequest(contentResolver, listOf(u), true)
+                                    pendingFileOpResult = result
+                                    startIntentSenderForResult(pi.intentSender, REQ_DELETE, null, 0, 0, 0)
+                                }
                                 return@setMethodCallHandler
                             }
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                                val pi = MediaStore.createDeleteRequest(contentResolver, listOf(u))
+                                val pi = MediaStore.createTrashRequest(contentResolver, listOf(u), true)
                                 pendingFileOpResult = result
                                 startIntentSenderForResult(pi.intentSender, REQ_DELETE, null, 0, 0, 0)
                             } else {
@@ -590,14 +603,30 @@ class MainActivity : FlutterFragmentActivity() {
                         if (pendingFileOpResult != null) { result.success("error"); return@setMethodCallHandler }
                         val us = uris.map { Uri.parse(it) }
                         try {
+                            // API 30+: move all to the system trash instead of deleting
+                            // outright — see the "delete" handler above.
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
                                 Environment.isExternalStorageManager()) {
-                                for (u in us) contentResolver.delete(u, null, null)
-                                result.success("ok")
+                                val values = android.content.ContentValues().apply {
+                                    put(MediaStore.MediaColumns.IS_TRASHED, 1)
+                                }
+                                var allTrashed = true
+                                for (u in us) {
+                                    if (contentResolver.update(u, values, null, null) <= 0) {
+                                        allTrashed = false
+                                    }
+                                }
+                                if (allTrashed) {
+                                    result.success("ok")
+                                } else {
+                                    val pi = MediaStore.createTrashRequest(contentResolver, us, true)
+                                    pendingFileOpResult = result
+                                    startIntentSenderForResult(pi.intentSender, REQ_DELETE, null, 0, 0, 0)
+                                }
                                 return@setMethodCallHandler
                             }
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                                val pi = MediaStore.createDeleteRequest(contentResolver, us)
+                                val pi = MediaStore.createTrashRequest(contentResolver, us, true)
                                 pendingFileOpResult = result
                                 startIntentSenderForResult(pi.intentSender, REQ_DELETE, null, 0, 0, 0)
                             } else {

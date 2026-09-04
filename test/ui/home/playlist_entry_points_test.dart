@@ -65,6 +65,13 @@ void main() {
   testWidgets('the video ⋮ sheet offers adding to a playlist', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
+        // The sheet now reads played + resume state to label its rows.
+        overrides: [
+          playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
+          resumeServiceProvider.overrideWithValue(
+            ResumeService(InMemoryResumeStore()),
+          ),
+        ],
         child: MaterialApp(
           home: Scaffold(
             body: Consumer(

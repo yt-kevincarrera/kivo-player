@@ -58,6 +58,11 @@ abstract class TrackPrefsStore {
   Future<void> put(String key, VideoTrackPrefs prefs);
   Future<void> remove(String key);
   Future<void> rename(String oldKey, String newKey);
+
+  /// Every video with a non-default track record, keyed by video. Only
+  /// [BackupService] needs this — everything else works one video at a time
+  /// via [forKey], which is why this was missing for a while.
+  Map<String, VideoTrackPrefs> all();
 }
 
 class HiveTrackPrefsStore implements TrackPrefsStore {
@@ -85,6 +90,17 @@ class HiveTrackPrefsStore implements TrackPrefsStore {
     if (existing == null) return;
     await put(newKey, existing);
     await box.delete(oldKey);
+  }
+
+  @override
+  Map<String, VideoTrackPrefs> all() {
+    final out = <String, VideoTrackPrefs>{};
+    for (final key in box.keys) {
+      final raw = box.get(key);
+      if (raw is! Map) continue; // tolerate a corrupt/foreign record
+      out[key.toString()] = VideoTrackPrefs.fromMap(raw);
+    }
+    return out;
   }
 }
 
@@ -114,6 +130,9 @@ class InMemoryTrackPrefsStore implements TrackPrefsStore {
     _data[newKey] = existing;
     _data.remove(oldKey);
   }
+
+  @override
+  Map<String, VideoTrackPrefs> all() => Map.of(_data);
 }
 
 final trackPrefsStoreProvider = Provider<TrackPrefsStore>(

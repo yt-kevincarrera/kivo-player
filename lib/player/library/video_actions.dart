@@ -27,14 +27,22 @@ class VideoActionsController {
       _ref.read(mediaFileOpsProvider).share(v.uri);
 
   Future<FileOpStatus> delete(VideoItem v) async {
-    final status = await _ref.read(mediaFileOpsProvider).delete(v.uri);
+    final ops = _ref.read(mediaFileOpsProvider);
+    final status = await ops.delete(v.uri);
     if (status != FileOpStatus.ok) return status;
-    await _ref.read(resumeServiceProvider).clear(v.name);
-    await _ref.read(playedStoreProvider).remove(v.name);
-    await _discardImportedSubtitle(v.name);
-    await _ref.read(trackPrefsStoreProvider).remove(v.name);
+    // A trashed file is not gone: it can come back from the system trash for
+    // 30 days, and it should come back WHOLE — position, played mark, the
+    // subtitle it had. Only a permanent delete clears the name-keyed stores.
+    if (!ops.movesToTrash) await _forgetVideo(v.name);
     await _refreshLibrary();
     return status;
+  }
+
+  Future<void> _forgetVideo(String name) async {
+    await _ref.read(resumeServiceProvider).clear(name);
+    await _ref.read(playedStoreProvider).remove(name);
+    await _discardImportedSubtitle(name);
+    await _ref.read(trackPrefsStoreProvider).remove(name);
   }
 
   /// Deletes the app-owned subtitle copy, if this video had one.
@@ -53,12 +61,18 @@ class VideoActionsController {
   }
 
   Future<RenameOutcome> rename(VideoItem v, String newBaseName) async {
-    final outcome = await _ref.read(mediaFileOpsProvider).rename(v.uri, newBaseName);
-    if (outcome.status != FileOpStatus.ok || outcome.newName == null) return outcome;
+    final outcome = await _ref
+        .read(mediaFileOpsProvider)
+        .rename(v.uri, newBaseName);
+    if (outcome.status != FileOpStatus.ok || outcome.newName == null) {
+      return outcome;
+    }
     final newName = outcome.newName!;
     await _ref.read(resumeServiceProvider).rename(v.name, newName);
     await _ref.read(trackPrefsStoreProvider).rename(v.name, newName);
-    await _ref.read(playlistsProvider.notifier).renameEntry(v.id, v.name, newName);
+    await _ref
+        .read(playlistsProvider.notifier)
+        .renameEntry(v.id, v.name, newName);
     await _ref.read(bookmarkStoreProvider).rename(v.name, newName);
     final played = _ref.read(playedStoreProvider);
     if (played.isPlayed(v.name)) {
@@ -70,24 +84,43 @@ class VideoActionsController {
   }
 
   Future<FileOpStatus> deleteMany(List<VideoItem> videos) async {
-    final status = await _ref.read(mediaFileOpsProvider).deleteMany(
-        videos.map((v) => v.uri).toList());
+    final ops = _ref.read(mediaFileOpsProvider);
+    final status = await ops.deleteMany(videos.map((v) => v.uri).toList());
     if (status != FileOpStatus.ok) return status;
-    final resume = _ref.read(resumeServiceProvider);
-    final played = _ref.read(playedStoreProvider);
-    final subtitlePrefs = _ref.read(trackPrefsStoreProvider);
-    for (final v in videos) {
-      await resume.clear(v.name);
-      await played.remove(v.name);
-      await _discardImportedSubtitle(v.name);
-      await subtitlePrefs.remove(v.name);
+    // Same rule as delete(): trashed videos keep everything.
+    if (!ops.movesToTrash) {
+      for (final v in videos) {
+        await _forgetVideo(v.name);
+      }
     }
     await _refreshLibrary();
     return status;
   }
 
-  Future<void> shareMany(List<VideoItem> videos) =>
-      _ref.read(mediaFileOpsProvider).shareMany(videos.map((v) => v.uri).toList());
+  Future<void> shareMany(List<VideoItem> videos) => _ref
+      .read(mediaFileOpsProvider)
+      .shareMany(videos.map((v) => v.uri).toList());
+
+  /// Marks (or unmarks) a video as played/seen. Invalidates
+  /// [playedKeysProvider] so the "Nuevo" badge in the library grid updates
+  /// immediately.
+  Future<void> setPlayed(VideoItem v, bool played) async {
+    final store = _ref.read(playedStoreProvider);
+    if (played) {
+      await store.markPlayed(v.name);
+    } else {
+      await store.remove(v.name);
+    }
+    _ref.invalidate(playedKeysProvider);
+  }
+
+  /// Drops a video's saved resume position — e.g. it was opened by mistake
+  /// and shouldn't linger in "Continuar viendo". Invalidates
+  /// [continueWatchingProvider] so the carousel drops the card at once.
+  Future<void> clearResume(VideoItem v) async {
+    await _ref.read(resumeServiceProvider).clear(v.name);
+    _ref.invalidate(continueWatchingProvider);
+  }
 
   Future<void> _refreshLibrary() async {
     await _ref.read(mediaIndexProvider.notifier).refresh();
@@ -96,5 +129,6 @@ class VideoActionsController {
   }
 }
 
-final videoActionsProvider =
-    Provider<VideoActionsController>((ref) => VideoActionsController(ref));
+final videoActionsProvider = Provider<VideoActionsController>(
+  (ref) => VideoActionsController(ref),
+);

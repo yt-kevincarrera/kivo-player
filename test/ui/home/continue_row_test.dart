@@ -8,6 +8,7 @@ import 'package:kivo_player/platform/interfaces/media_permission.dart';
 import 'package:kivo_player/platform/media_permission_provider.dart';
 import 'package:kivo_player/platform/media_indexer_provider.dart';
 import 'package:kivo_player/player/library/media_index.dart';
+import 'package:kivo_player/player/library/played.dart';
 import 'package:kivo_player/player/open/video_source.dart'; // resumeServiceProvider
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/ui/home/widgets/continue_row.dart';
@@ -37,6 +38,7 @@ ProviderContainer _container(List<VideoItem> items, InMemoryResumeStore store,
     mediaPermissionImplProvider.overrideWithValue(_Granted()),
     mediaIndexerProvider.overrideWithValue(FakeMediaIndexer(items)),
     resumeServiceProvider.overrideWithValue(ResumeService(store)),
+    playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
   ]);
 }
 
@@ -76,6 +78,8 @@ void main() {
       'Compartir',
       'Renombrar',
       'Detalles',
+      'Marcar como visto',
+      'Quitar de Continuar viendo',
       'Añadir a lista',
       'Mover al Vault',
       'Borrar',
