@@ -52,7 +52,7 @@ void main() {
     expect(ops.sharedManyUris.single, ['u1']);
   });
 
-  Future<ProviderContainer> _buildBar(
+  Future<ProviderContainer> buildBar(
     WidgetTester tester, {
     required FakeMediaFileOps ops,
   }) async {
@@ -79,7 +79,7 @@ void main() {
 
   testWidgets('delete confirm shows the permanent-delete copy when movesToTrash is false', (tester) async {
     final ops = FakeMediaFileOps()..movesToTrash = false;
-    await _buildBar(tester, ops: ops);
+    await buildBar(tester, ops: ops);
 
     await tester.tap(find.byIcon(Icons.delete_outline));
     await tester.pumpAndSettle();
@@ -92,7 +92,7 @@ void main() {
 
   testWidgets('delete confirm shows the trash copy when movesToTrash is true', (tester) async {
     final ops = FakeMediaFileOps()..movesToTrash = true;
-    await _buildBar(tester, ops: ops);
+    await buildBar(tester, ops: ops);
 
     await tester.tap(find.byIcon(Icons.delete_outline));
     await tester.pumpAndSettle();

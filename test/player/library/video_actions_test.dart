@@ -21,19 +21,29 @@ class _Perm implements MediaPermission {
 }
 
 const _v = VideoItem(
-  id: '1', uri: 'content://v/1', name: 'old.mp4', folder: 'Movies',
-  durationMs: 600000, sizeBytes: 100, dateAddedMs: 0,
+  id: '1',
+  uri: 'content://v/1',
+  name: 'old.mp4',
+  folder: 'Movies',
+  durationMs: 600000,
+  sizeBytes: 100,
+  dateAddedMs: 0,
 );
 
-ProviderContainer _c(FakeMediaFileOps ops, ResumeService resume, PlayedStore played) =>
-    ProviderContainer(overrides: [
-      mediaFileOpsProvider.overrideWithValue(ops),
-      resumeServiceProvider.overrideWithValue(resume),
-      playedStoreProvider.overrideWithValue(played),
-      mediaIndexerProvider.overrideWithValue(FakeMediaIndexer()),
-      mediaPermissionImplProvider.overrideWithValue(_Perm()),
-      bookmarkStoreProvider.overrideWithValue(InMemoryBookmarkStore()),
-    ]);
+ProviderContainer _c(
+  FakeMediaFileOps ops,
+  ResumeService resume,
+  PlayedStore played,
+) => ProviderContainer(
+  overrides: [
+    mediaFileOpsProvider.overrideWithValue(ops),
+    resumeServiceProvider.overrideWithValue(resume),
+    playedStoreProvider.overrideWithValue(played),
+    mediaIndexerProvider.overrideWithValue(FakeMediaIndexer()),
+    mediaPermissionImplProvider.overrideWithValue(_Perm()),
+    bookmarkStoreProvider.overrideWithValue(InMemoryBookmarkStore()),
+  ],
+);
 
 void main() {
   test('delete clears resume+played and returns ok', () async {
@@ -76,7 +86,10 @@ void main() {
     await store.put('old.mp4', 30, 100);
     await played.markPlayed('old.mp4');
     final ops = FakeMediaFileOps()
-      ..renameOutcome = const RenameOutcome(FileOpStatus.ok, newName: 'new.mp4');
+      ..renameOutcome = const RenameOutcome(
+        FileOpStatus.ok,
+        newName: 'new.mp4',
+      );
     final c = _c(ops, resume, played);
     addTearDown(c.dispose);
 
@@ -106,28 +119,43 @@ void main() {
 
   test('share passes the uri through', () async {
     final ops = FakeMediaFileOps();
-    final c = _c(ops, ResumeService(InMemoryResumeStore()), InMemoryPlayedStore());
+    final c = _c(
+      ops,
+      ResumeService(InMemoryResumeStore()),
+      InMemoryPlayedStore(),
+    );
     addTearDown(c.dispose);
     await c.read(videoActionsProvider).share(_v);
     expect(ops.sharedUris, ['content://v/1']);
   });
 
-  test('setPlayed(true) marks played and invalidates playedKeysProvider', () async {
-    final played = InMemoryPlayedStore();
-    final c = _c(FakeMediaFileOps(), ResumeService(InMemoryResumeStore()), played);
-    addTearDown(c.dispose);
-    expect(c.read(playedKeysProvider), isEmpty);
+  test(
+    'setPlayed(true) marks played and invalidates playedKeysProvider',
+    () async {
+      final played = InMemoryPlayedStore();
+      final c = _c(
+        FakeMediaFileOps(),
+        ResumeService(InMemoryResumeStore()),
+        played,
+      );
+      addTearDown(c.dispose);
+      expect(c.read(playedKeysProvider), isEmpty);
 
-    await c.read(videoActionsProvider).setPlayed(_v, true);
+      await c.read(videoActionsProvider).setPlayed(_v, true);
 
-    expect(played.isPlayed('old.mp4'), true);
-    expect(c.read(playedKeysProvider), {'old.mp4'});
-  });
+      expect(played.isPlayed('old.mp4'), true);
+      expect(c.read(playedKeysProvider), {'old.mp4'});
+    },
+  );
 
   test('setPlayed(false) unmarks played', () async {
     final played = InMemoryPlayedStore();
     await played.markPlayed('old.mp4');
-    final c = _c(FakeMediaFileOps(), ResumeService(InMemoryResumeStore()), played);
+    final c = _c(
+      FakeMediaFileOps(),
+      ResumeService(InMemoryResumeStore()),
+      played,
+    );
     addTearDown(c.dispose);
 
     await c.read(videoActionsProvider).setPlayed(_v, false);
@@ -146,5 +174,26 @@ void main() {
     await c.read(videoActionsProvider).clearResume(_v);
 
     expect(resume.positionFor('old.mp4'), isNull);
+  });
+
+  test('a delete that moves to the trash keeps resume+played', () async {
+    // The file is not gone: it can come back from the system trash for 30
+    // days, and it should come back whole. Only a permanent delete forgets.
+    final store = InMemoryResumeStore();
+    final resume = ResumeService(store);
+    final played = InMemoryPlayedStore();
+    await store.put('old.mp4', 30, 100);
+    await played.markPlayed('old.mp4');
+    final ops = FakeMediaFileOps()
+      ..deleteResult = FileOpStatus.ok
+      ..movesToTrash = true;
+    final c = _c(ops, resume, played);
+    addTearDown(c.dispose);
+
+    final status = await c.read(videoActionsProvider).delete(_v);
+    expect(status, FileOpStatus.ok);
+    expect(ops.deletedUris, ['content://v/1']);
+    expect(resume.positionFor('old.mp4'), isNotNull);
+    expect(played.isPlayed('old.mp4'), true);
   });
 }
