@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pip_rewind">Retroceder</string>
+    <string name="pip_pause">Pausa</string>
+    <string name="pip_play">Reproducir</string>
+    <string name="pip_forward">Avanzar</string>
+    <string name="notif_playing">Reproduciendo</string>
+    <string name="notif_paused">En pausa</string>
+    <string name="notif_channel_playback">Reproducción</string>
+</resources>

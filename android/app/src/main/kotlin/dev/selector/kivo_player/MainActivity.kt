@@ -1118,13 +1118,13 @@ class MainActivity : FlutterFragmentActivity() {
         val clamped = ratio.coerceIn(0.45f, 2.35f)
         val rational = Rational((clamped * 1000).toInt(), 1000)
         val actions = listOf(
-            remoteAction(android.R.drawable.ic_media_rew, "Retroceder", "rewind", 1),
+            remoteAction(android.R.drawable.ic_media_rew, getString(R.string.pip_rewind), "rewind", 1),
             if (pipPlaying) {
-                remoteAction(android.R.drawable.ic_media_pause, "Pausa", "pause", 2)
+                remoteAction(android.R.drawable.ic_media_pause, getString(R.string.pip_pause), "pause", 2)
             } else {
-                remoteAction(android.R.drawable.ic_media_play, "Reproducir", "play", 2)
+                remoteAction(android.R.drawable.ic_media_play, getString(R.string.pip_play), "play", 2)
             },
-            remoteAction(android.R.drawable.ic_media_ff, "Avanzar", "forward", 3),
+            remoteAction(android.R.drawable.ic_media_ff, getString(R.string.pip_forward), "forward", 3),
         )
         return PictureInPictureParams.Builder()
             .setAspectRatio(rational)
