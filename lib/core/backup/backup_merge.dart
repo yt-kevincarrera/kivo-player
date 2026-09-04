@@ -26,13 +26,11 @@ class SectionCounts {
 }
 
 /// A snapshot of what is currently on the device, in the shape
-/// [buildRestorePlan] needs to compare against a [BackupFile].
-///
-/// [bookmarks] and [trackPrefs] only need to carry the videos that are also
-/// present in the backup being planned — neither BookmarkStore nor
-/// TrackPrefsStore can enumerate every key they hold, but both can look up
-/// one key at a time, and the backup file already names every key that
-/// matters. See [BackupService.plan] for how that partial map gets built.
+/// [buildRestorePlan] needs to compare against a [BackupFile]. Each field is
+/// the store's full contents — [bookmarks] and [trackPrefs] only need to
+/// carry the videos also present in the backup being planned, so a caller
+/// may pass a partial map (matching keys is all `buildRestorePlan` does with
+/// them) as well as the store's `all()`.
 class CurrentBackupData {
   final Set<String> played;
   final Map<String, List<Bookmark>> bookmarks;

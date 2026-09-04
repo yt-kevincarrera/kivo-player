@@ -273,4 +273,6 @@ class _ThrowingTrackPrefsStore implements TrackPrefsStore {
   Future<void> remove(String key) async {}
   @override
   Future<void> rename(String oldKey, String newKey) async {}
+  @override
+  Map<String, VideoTrackPrefs> all() => const {};
 }

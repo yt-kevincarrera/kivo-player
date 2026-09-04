@@ -11,6 +11,11 @@ abstract class BookmarkStore {
   Future<void> put(String key, List<Bookmark> bookmarks);
   Future<void> remove(String key);
   Future<void> rename(String oldKey, String newKey);
+
+  /// Every video that has at least one bookmark, keyed by video. Only
+  /// [BackupService] needs this — everything else works one video at a time
+  /// via [forVideo], which is why this was missing for a while.
+  Map<String, List<Bookmark>> all();
 }
 
 class HiveBookmarkStore implements BookmarkStore {
@@ -38,6 +43,17 @@ class HiveBookmarkStore implements BookmarkStore {
     await box.put(newKey, existing.map((b) => b.toMap()).toList());
     await box.delete(oldKey);
   }
+
+  @override
+  Map<String, List<Bookmark>> all() {
+    final out = <String, List<Bookmark>>{};
+    for (final key in box.keys) {
+      final raw = box.get(key);
+      if (raw is! List) continue; // tolerate a corrupt/foreign record
+      out[key.toString()] = raw.whereType<Map>().map(Bookmark.fromMap).toList();
+    }
+    return out;
+  }
 }
 
 /// Session-only store: a valid fallback and what the tests use.
@@ -59,6 +75,10 @@ class InMemoryBookmarkStore implements BookmarkStore {
     final existing = _data.remove(oldKey);
     if (existing != null) _data[newKey] = existing;
   }
+
+  @override
+  Map<String, List<Bookmark>> all() =>
+      {for (final e in _data.entries) e.key: List.of(e.value)};
 }
 
 // Deliberately throws rather than defaulting to an in-memory store: a video's

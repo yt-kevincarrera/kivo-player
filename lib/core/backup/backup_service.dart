@@ -13,18 +13,6 @@ import 'backup_file.dart';
 import 'backup_merge.dart';
 
 /// Builds, plans, and applies a Kivo backup against the live stores.
-///
-/// NOTE — a known, deliberate gap: [BookmarkStore] and [TrackPrefsStore]
-/// have no way to enumerate every key they hold (no `entries()`/`all()`),
-/// only per-key reads (`forVideo`/`forKey`) and per-key writes (`put`). That
-/// means [exportJson] cannot discover which videos have bookmarks or track
-/// prefs, so those two sections are always exported empty — this is a real
-/// limitation, not a bug, and needs one of those two stores to grow an
-/// enumeration method to fix. [plan]/[apply], by contrast, work correctly
-/// for both sections on a backup that already names its keys (e.g. one made
-/// by a future Kivo that can enumerate them, or restored on a second
-/// device): plan() looks up each key the backup mentions individually, and
-/// apply() writes each one back through the store's existing `put`.
 class BackupService {
   final Ref _ref;
   BackupService(this._ref);
@@ -35,6 +23,8 @@ class BackupService {
     final playedKeys = _ref.read(playedStoreProvider).keys();
     final playlists = _ref.read(playlistStoreProvider).all();
     final vaultEntries = _ref.read(vaultStoreProvider).readAll();
+    final trackPrefs = _ref.read(trackPrefsStoreProvider).all();
+    final bookmarks = _ref.read(bookmarkStoreProvider).all();
     final appVersion = await _ref.read(appInstallerProvider).appVersion();
 
     final backup = BackupFile(
@@ -46,10 +36,9 @@ class BackupService {
           e.key: ResumeBackupEntry(e.seconds, e.updatedAtMs),
       },
       played: playedKeys,
-      // See the class doc: no enumeration method on these two stores yet.
-      trackPrefs: const {},
+      trackPrefs: trackPrefs,
       playlists: playlists,
-      bookmarks: const {},
+      bookmarks: bookmarks,
       vault: vaultEntries,
     );
     return backup.toJson();
@@ -60,23 +49,13 @@ class BackupService {
   /// parse exception — when [json] isn't a readable Kivo backup.
   Future<RestorePlan> plan(String json) async {
     final backup = BackupFile.fromJson(json);
-
-    final bookmarkStore = _ref.read(bookmarkStoreProvider);
-    final trackPrefsStore = _ref.read(trackPrefsStoreProvider);
     final resumeEntries = _ref.read(resumeServiceProvider).entries();
 
     final current = CurrentBackupData(
       played: _ref.read(playedStoreProvider).keys(),
-      bookmarks: {
-        for (final key in backup.bookmarks.keys)
-          key: bookmarkStore.forVideo(key),
-      },
+      bookmarks: _ref.read(bookmarkStoreProvider).all(),
       playlists: _ref.read(playlistStoreProvider).all(),
-      trackPrefs: {
-        for (final key in backup.trackPrefs.keys)
-          if (trackPrefsStore.forKey(key) != null)
-            key: trackPrefsStore.forKey(key)!,
-      },
+      trackPrefs: _ref.read(trackPrefsStoreProvider).all(),
       resume: {
         for (final e in resumeEntries)
           e.key: ResumeBackupEntry(e.seconds, e.updatedAtMs),

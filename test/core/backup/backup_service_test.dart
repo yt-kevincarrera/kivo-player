@@ -74,25 +74,26 @@ void main() {
       expect(decoded.app, '1.14.2');
     });
 
-    test('trackPrefs and bookmarks are always empty on export — neither '
-        'store can enumerate its keys, only look one up by key (see '
-        'BackupService doc comment)', () async {
+    test('carries trackPrefs and bookmarks, keyed by video', () async {
       final (container, stores) = await _container();
       addTearDown(container.dispose);
 
       await stores.trackPrefs
           .put('ep1.mp4', const VideoTrackPrefs(subtitleDelayMs: 300));
-      await stores.bookmarks.put('ep1.mp4',
-          const [Bookmark(positionMs: 10, name: '', createdAtMs: 1)]);
+      await stores.trackPrefs
+          .put('ep2.mp4', const VideoTrackPrefs(audioDelayMs: -80));
+      await stores.bookmarks.put('ep1.mp4', const [
+        Bookmark(positionMs: 10, name: 'a', createdAtMs: 1),
+        Bookmark(positionMs: 20, name: 'b', createdAtMs: 2),
+      ]);
 
       final json = await container.read(backupServiceProvider).exportJson();
       final decoded = BackupFile.fromJson(json);
 
-      expect(decoded.trackPrefs, isEmpty);
-      expect(decoded.bookmarks, isEmpty);
-      // The data is still on the device — export just can't see it.
-      expect(stores.trackPrefs.forKey('ep1.mp4'), isNotNull);
-      expect(stores.bookmarks.forVideo('ep1.mp4'), isNotEmpty);
+      expect(decoded.trackPrefs.keys, containsAll(['ep1.mp4', 'ep2.mp4']));
+      expect(decoded.trackPrefs['ep1.mp4']!.subtitleDelayMs, 300);
+      expect(decoded.trackPrefs['ep2.mp4']!.audioDelayMs, -80);
+      expect(decoded.bookmarks['ep1.mp4']!.map((b) => b.name), ['a', 'b']);
     });
   });
 
@@ -137,6 +138,45 @@ void main() {
       expect(secondPlan.resumeToWrite, isEmpty);
     });
 
+    test('reproduces bookmarks and trackPrefs exactly, and applying twice is idempotent',
+        () async {
+      final (source, sourceStores) = await _container();
+      addTearDown(source.dispose);
+      final (target, targetStores) = await _container();
+      addTearDown(target.dispose);
+
+      await sourceStores.trackPrefs.put(
+          'ep1.mp4', const VideoTrackPrefs(subtitleDelayMs: 250, audioDelayMs: -10));
+      await sourceStores.bookmarks.put('ep1.mp4', const [
+        Bookmark(positionMs: 500, name: 'intro', createdAtMs: 1),
+        Bookmark(positionMs: 9000, name: '', createdAtMs: 2),
+      ]);
+
+      final json = await source.read(backupServiceProvider).exportJson();
+
+      final plan = await target.read(backupServiceProvider).plan(json);
+      expect(plan.trackPrefsCounts.added, 1);
+      expect(plan.bookmarksCounts.added, 2);
+      await target.read(backupServiceProvider).apply(plan);
+
+      expect(targetStores.trackPrefs.forKey('ep1.mp4')!.subtitleDelayMs, 250);
+      expect(targetStores.trackPrefs.forKey('ep1.mp4')!.audioDelayMs, -10);
+      expect(targetStores.bookmarks.forVideo('ep1.mp4').map((b) => b.name),
+          ['intro', '']);
+
+      // Applying the exact same export again changes nothing further.
+      final secondPlan = await target.read(backupServiceProvider).plan(json);
+      expect(secondPlan.trackPrefsToWrite, isEmpty);
+      expect(secondPlan.bookmarksToWrite, isEmpty);
+      expect(secondPlan.trackPrefsCounts.unchanged, 1);
+      expect(secondPlan.bookmarksCounts.unchanged, 2);
+      await target.read(backupServiceProvider).apply(secondPlan);
+
+      expect(targetStores.trackPrefs.forKey('ep1.mp4')!.subtitleDelayMs, 250);
+      expect(targetStores.bookmarks.forVideo('ep1.mp4').map((b) => b.name),
+          ['intro', '']);
+    });
+
     test('a restore never removes anything already on the target', () async {
       final (target, targetStores) = await _container();
       addTearDown(target.dispose);
@@ -159,10 +199,9 @@ void main() {
     });
   });
 
-  group('trackPrefs and bookmarks restore (plan/apply only)', () {
+  group('trackPrefs and bookmarks restore from a hand-made backup', () {
     test('a backup naming specific keys restores them via the store\'s '
-        'existing put/forKey/forVideo methods, even though export could '
-        'not have produced this section', () async {
+        'existing put method, independent of exportJson', () async {
       final (target, targetStores) = await _container();
       addTearDown(target.dispose);
 

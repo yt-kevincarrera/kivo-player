@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive/hive.dart';
 import 'package:kivo_player/player/tracks/track_prefs_store.dart';
 
 void main() {
@@ -70,4 +73,63 @@ void main() {
     expect(p.audioDelayMs, 0);
   });
 
+  group('InMemoryTrackPrefsStore.all()', () {
+    test('returns every video with a stored record, keyed by video', () async {
+      final s = InMemoryTrackPrefsStore();
+      await s.put('ep1.mkv', const VideoTrackPrefs(subtitleDelayMs: 300));
+      await s.put('ep2.mkv', const VideoTrackPrefs(audioDelayMs: -80));
+
+      final all = s.all();
+      expect(all.keys, unorderedEquals(['ep1.mkv', 'ep2.mkv']));
+      expect(all['ep1.mkv']!.subtitleDelayMs, 300);
+      expect(all['ep2.mkv']!.audioDelayMs, -80);
+    });
+
+    test('on an empty store is an empty map', () {
+      expect(InMemoryTrackPrefsStore().all(), isEmpty);
+    });
+  });
+
+  group('HiveTrackPrefsStore', () {
+    late Directory tmp;
+    late Box box;
+
+    setUp(() async {
+      tmp = Directory.systemTemp.createTempSync('kivo_track_prefs_hive');
+      Hive.init(tmp.path);
+      box = await Hive.openBox('subtitlePrefs');
+    });
+
+    tearDown(() async {
+      await Hive.deleteFromDisk();
+      tmp.deleteSync(recursive: true);
+    });
+
+    test('all() returns every video with a stored record, keyed by video', () async {
+      final s = HiveTrackPrefsStore(box);
+      await s.put('ep1.mkv', const VideoTrackPrefs(subtitleDelayMs: 300));
+      await s.put('ep2.mkv', const VideoTrackPrefs(audioDelayMs: -80));
+
+      final all = s.all();
+      expect(all.keys, unorderedEquals(['ep1.mkv', 'ep2.mkv']));
+      expect(all['ep1.mkv']!.subtitleDelayMs, 300);
+      expect(all['ep2.mkv']!.audioDelayMs, -80);
+    });
+
+    // A key whose raw stored value isn't the shape put() ever writes must be
+    // skipped, the same tolerance HivePlaylistStore.all() has for a non-Map
+    // row.
+    test('all() skips a key whose raw value is not a Map', () async {
+      final s = HiveTrackPrefsStore(box);
+      await s.put('good.mkv', const VideoTrackPrefs(subtitleDelayMs: 100));
+      await box.put('corrupt.mkv', 42);
+
+      final all = s.all();
+      expect(all.keys, ['good.mkv']);
+    });
+
+    test('all() on an empty box is an empty map', () {
+      expect(HiveTrackPrefsStore(box).all(), isEmpty);
+    });
+  });
 }
