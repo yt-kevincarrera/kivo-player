@@ -70,7 +70,7 @@ class SelectionBottomBar extends ConsumerWidget {
                   builder: (ctx) => AlertDialog(
                     title: Text(movesToTrash ? 'Mover a la papelera' : 'Borrar videos'),
                     content: Text(movesToTrash
-                        ? '¿Mover $n $noun a la papelera?\n\nPodrás recuperarlos durante 30 días desde la app Archivos.'
+                        ? '¿Mover $n $noun a la papelera?\n\nPodrás recuperarlos durante 30 días desde la papelera del teléfono.'
                         : '¿Borrar $n $noun? Esta acción no se puede deshacer.'),
                     actions: [
                       TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
