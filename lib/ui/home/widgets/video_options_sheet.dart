@@ -278,7 +278,7 @@ Future<void> showVideoOptions(
             title: Text(toTrash ? 'Mover a la papelera' : 'Borrar video'),
             content: Text(
               toTrash
-                  ? '¿Mover «${v.name}» a la papelera? Podrás recuperarlo durante 30 días desde la app Archivos.'
+                  ? '¿Mover «${v.name}» a la papelera? Podrás recuperarlo durante 30 días desde la papelera del teléfono.'
                   : '¿Borrar «${v.name}»? Esta acción no se puede deshacer.',
             ),
             actions: [

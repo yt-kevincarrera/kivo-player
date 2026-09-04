@@ -99,7 +99,7 @@ void main() {
 
     expect(find.text('Mover a la papelera'), findsNWidgets(2)); // dialog title + confirm button
     expect(
-      find.text('¿Mover 2 videos a la papelera?\n\nPodrás recuperarlos durante 30 días desde la app Archivos.'),
+      find.text('¿Mover 2 videos a la papelera?\n\nPodrás recuperarlos durante 30 días desde la papelera del teléfono.'),
       findsOneWidget,
     );
     expect(find.textContaining('no se puede deshacer'), findsNothing);
@@ -130,7 +130,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text('¿Mover 1 video a la papelera?\n\nPodrás recuperarlos durante 30 días desde la app Archivos.'),
+      find.text('¿Mover 1 video a la papelera?\n\nPodrás recuperarlos durante 30 días desde la papelera del teléfono.'),
       findsOneWidget,
     );
   });
