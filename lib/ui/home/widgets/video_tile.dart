@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/format.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
+import '../../../l10n/l10n.dart';
 import '../../../platform/interfaces/media_indexer.dart';
 import '../../widgets/press_bounce.dart';
 import 'thumbnail_image.dart';
@@ -331,7 +332,7 @@ class _VideoTileState extends ConsumerState<VideoTile> {
       borderRadius: BorderRadius.circular(8),
     ),
     child: Text(
-      'Nuevo',
+      context.l10n.videoTileNewBadge,
       style: TextStyle(
         color: onAccent(accent),
         fontSize: 10,

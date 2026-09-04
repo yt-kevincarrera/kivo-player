@@ -14,6 +14,9 @@ import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/ui/home/widgets/continue_row.dart';
 import 'package:kivo_player/ui/home/widgets/video_tile.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 class _Granted implements MediaPermission {
   @override
@@ -55,14 +58,11 @@ void main() {
     addTearDown(container.dispose);
     await container.read(mediaIndexProvider.future); // ensure index loaded
 
-    await tester.pumpWidget(UncontrolledProviderScope(
+    await pumpLocalized(
+      tester,
+      Scaffold(body: ContinueRow(onOpen: (_, __) {})),
       container: container,
-      child: MaterialApp(
-        home: Scaffold(
-          body: ContinueRow(onOpen: (_, __) {}),
-        ),
-      ),
-    ));
+    );
     await tester.pump();
 
     expect(find.text('clip.mp4'), findsOneWidget);
@@ -75,14 +75,14 @@ void main() {
     // once (invisible, behind the sheet) in the carousel, once in the sheet.
     expect(find.text('clip.mp4'), findsNWidgets(2));
     for (final label in [
-      'Compartir',
-      'Renombrar',
-      'Detalles',
-      'Marcar como visto',
-      'Quitar de Continuar viendo',
-      'Añadir a lista',
-      'Mover al Vault',
-      'Borrar',
+      _l10n.commonShare,
+      _l10n.commonRename,
+      _l10n.videoSheetDetails,
+      _l10n.videoSheetMarkWatched,
+      _l10n.videoSheetClearResume,
+      _l10n.playlistAddToListLabel,
+      _l10n.videoSheetMoveToVault,
+      _l10n.commonDelete,
     ]) {
       expect(find.text(label), findsOneWidget);
     }
@@ -104,14 +104,11 @@ void main() {
     addTearDown(container.dispose);
     await container.read(mediaIndexProvider.future);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
+    await pumpLocalized(
+      tester,
+      Scaffold(body: ContinueRow(onOpen: (_, __) {})),
       container: container,
-      child: MaterialApp(
-        home: Scaffold(
-          body: ContinueRow(onOpen: (_, __) {}),
-        ),
-      ),
-    ));
+    );
     await tester.pump();
 
     final scrollable = tester.state<ScrollableState>(find.byType(Scrollable));

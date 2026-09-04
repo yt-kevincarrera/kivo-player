@@ -19,6 +19,7 @@ import 'package:kivo_player/vault/vault_store.dart';
 import 'package:kivo_player/platform/biometric_auth_provider.dart';
 import 'package:kivo_player/ui/home/library_screen.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
 
 class _Perm implements MediaPermission {
   @override Future<MediaAccess> status() async => MediaAccess.granted;
@@ -45,10 +46,12 @@ void main() {
     addTearDown(c.dispose);
     await c.read(mediaIndexProvider.future);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
+    await pumpLocalized(
+      tester,
+      const LibraryScreen(),
+      theme: KivoTheme.dark(),
       container: c,
-      child: MaterialApp(theme: KivoTheme.dark(), home: const LibraryScreen()),
-    ));
+    );
     await tester.pump();
 
     await tester.longPress(find.byKey(const ValueKey('title')));

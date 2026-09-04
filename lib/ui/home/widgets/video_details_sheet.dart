@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/format.dart';
+import '../../../l10n/l10n.dart';
 import '../../../platform/interfaces/media_indexer.dart';
 
 void showVideoDetails(BuildContext context, VideoItem v) {
@@ -13,13 +14,13 @@ void showVideoDetails(BuildContext context, VideoItem v) {
           : '—';
       final folder = v.path.isNotEmpty ? v.path : v.folder;
       final rows = <(String, String)>[
-        ('Nombre', v.name),
-        ('Carpeta', folder),
-        ('Tamaño', fmtSize(v.sizeBytes)),
-        ('Duración', fmtDuration(Duration(milliseconds: v.durationMs))),
-        ('Resolución', res),
-        ('Agregado', date),
-        ('URI', v.uri),
+        (ctx.l10n.detailsLabelName, v.name),
+        (ctx.l10n.detailsLabelFolder, folder),
+        (ctx.l10n.detailsLabelSize, fmtSize(v.sizeBytes)),
+        (ctx.l10n.detailsLabelDuration, fmtDuration(Duration(milliseconds: v.durationMs))),
+        (ctx.l10n.detailsLabelResolution, res),
+        (ctx.l10n.detailsLabelAdded, date),
+        (ctx.l10n.detailsLabelUri, v.uri),
       ];
       final cs = Theme.of(ctx).colorScheme;
       return SafeArea(
@@ -29,7 +30,7 @@ void showVideoDetails(BuildContext context, VideoItem v) {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Detalles',
+              Text(ctx.l10n.videoSheetDetails,
                   style: TextStyle(color: cs.onSurface, fontSize: 16, fontWeight: FontWeight.w700)),
               const SizedBox(height: 12),
               for (final (label, value) in rows)

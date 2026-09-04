@@ -6,17 +6,19 @@ import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/platform/all_files_access_provider.dart';
 import 'package:kivo_player/ui/home/widgets/video_options_sheet.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
 
-Widget _host(ProviderContainer c) => UncontrolledProviderScope(
+final _l10n = l10nFor(const Locale('es'));
+
+Future<void> _pumpHost(WidgetTester tester, ProviderContainer c) => pumpLocalized(
+      tester,
+      Scaffold(body: Consumer(builder: (context, ref, _) {
+        return ElevatedButton(
+          onPressed: () => maybeOfferAllFilesAccess(context, ref),
+          child: const Text('go'),
+        );
+      })),
       container: c,
-      child: MaterialApp(
-        home: Scaffold(body: Consumer(builder: (context, ref, _) {
-          return ElevatedButton(
-            onPressed: () => maybeOfferAllFilesAccess(context, ref),
-            child: const Text('go'),
-          );
-        })),
-      ),
     );
 
 void main() {
@@ -29,16 +31,16 @@ void main() {
     ]);
     addTearDown(c.dispose);
 
-    await tester.pumpWidget(_host(c));
+    await _pumpHost(tester, c);
     await tester.tap(find.text('go'));
     await tester.pumpAndSettle();
 
     // Offer dialog shows; the flag is now set.
-    expect(find.text('Dar acceso'), findsOneWidget);
+    expect(find.text(_l10n.libraryAccessPromptAction), findsOneWidget);
     expect(c.read(settingsProvider).offeredAllFilesAccess, true);
 
     // Accept → requests access.
-    await tester.tap(find.text('Dar acceso'));
+    await tester.tap(find.text(_l10n.libraryAccessPromptAction));
     await tester.pumpAndSettle();
     expect(fake.requestCount, 1);
   });
@@ -52,10 +54,10 @@ void main() {
     ]);
     addTearDown(c.dispose);
 
-    await tester.pumpWidget(_host(c));
+    await _pumpHost(tester, c);
     await tester.tap(find.text('go'));
     await tester.pumpAndSettle();
-    expect(find.text('Dar acceso'), findsNothing);
+    expect(find.text(_l10n.libraryAccessPromptAction), findsNothing);
   });
 
   testWidgets('does not offer when already granted', (tester) async {
@@ -66,9 +68,9 @@ void main() {
     ]);
     addTearDown(c.dispose);
 
-    await tester.pumpWidget(_host(c));
+    await _pumpHost(tester, c);
     await tester.tap(find.text('go'));
     await tester.pumpAndSettle();
-    expect(find.text('Dar acceso'), findsNothing);
+    expect(find.text(_l10n.libraryAccessPromptAction), findsNothing);
   });
 }

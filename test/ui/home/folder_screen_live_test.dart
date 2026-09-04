@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
@@ -14,6 +13,7 @@ import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/ui/home/folder_screen.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
 
 class _GrantedPerm implements MediaPermission {
   @override
@@ -60,23 +60,22 @@ const _indexed = [
 
 Future<void> _pump(WidgetTester tester, {List<VideoItem> videos = const []}) async {
   final settingsService = await SettingsService.load(InMemorySettingsStore());
-  await tester.pumpWidget(
-    ProviderScope(
-      overrides: [
-        settingsServiceProvider.overrideWithValue(settingsService),
-        mediaPermissionImplProvider.overrideWithValue(_GrantedPerm()),
-        mediaIndexerProvider.overrideWithValue(FakeMediaIndexer(_indexed)),
-        resumeServiceProvider.overrideWithValue(
-          ResumeService(InMemoryResumeStore()),
-        ),
-        frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
-        playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
-      ],
-      child: MaterialApp(
-        theme: KivoTheme.light(),
-        home: FolderScreen(folder: 'Movies', videos: videos),
-      ),
+  final container = ProviderContainer(overrides: [
+    settingsServiceProvider.overrideWithValue(settingsService),
+    mediaPermissionImplProvider.overrideWithValue(_GrantedPerm()),
+    mediaIndexerProvider.overrideWithValue(FakeMediaIndexer(_indexed)),
+    resumeServiceProvider.overrideWithValue(
+      ResumeService(InMemoryResumeStore()),
     ),
+    frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
+    playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
+  ]);
+  addTearDown(container.dispose);
+  await pumpLocalized(
+    tester,
+    FolderScreen(folder: 'Movies', videos: videos),
+    theme: KivoTheme.light(),
+    container: container,
   );
   await tester.pumpAndSettle();
 }

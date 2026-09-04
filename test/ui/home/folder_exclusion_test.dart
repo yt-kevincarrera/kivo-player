@@ -6,6 +6,9 @@ import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/ui/home/widgets/folder_options_sheet.dart';
 import 'package:kivo_player/ui/settings/sections/hidden_folders_section.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 Future<ProviderContainer> _c() async {
   final svc = await SettingsService.load(InMemorySettingsStore());
@@ -19,31 +22,30 @@ void main() {
     final c = await _c();
     addTearDown(c.dispose);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: MaterialApp(
-        home: Consumer(builder: (ctx, ref, _) => Scaffold(
-              body: Builder(
-                builder: (b) => TextButton(
-                  onPressed: () => showFolderOptionsSheet(b, ref, 'WhatsApp'),
-                  child: const Text('open'),
-                ),
+    await pumpLocalized(
+      tester,
+      Consumer(builder: (ctx, ref, _) => Scaffold(
+            body: Builder(
+              builder: (b) => TextButton(
+                onPressed: () => showFolderOptionsSheet(b, ref, 'WhatsApp'),
+                child: const Text('open'),
               ),
-            )),
-      ),
-    ));
+            ),
+          )),
+      container: c,
+    );
 
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
     expect(find.textContaining('No se borra ni se mueve nada'), findsOneWidget);
 
-    await tester.tap(find.text('Ocultar de la biblioteca'));
+    await tester.tap(find.text(_l10n.folderHideTitle));
     await tester.pumpAndSettle();
 
     expect(c.read(settingsProvider).excludedFolders, ['WhatsApp']);
-    expect(find.text('Deshacer'), findsOneWidget);
+    expect(find.text(_l10n.commonUndo), findsOneWidget);
 
-    await tester.tap(find.text('Deshacer'));
+    await tester.tap(find.text(_l10n.commonUndo));
     await tester.pumpAndSettle();
     expect(c.read(settingsProvider).excludedFolders, isEmpty);
   });
@@ -55,22 +57,21 @@ void main() {
     await c.read(settingsProvider.notifier)
         .set(s.copyWith(excludedFolders: const ['WhatsApp']));
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: MaterialApp(
-        home: Consumer(builder: (ctx, ref, _) => Scaffold(
-              body: Builder(
-                builder: (b) => TextButton(
-                  onPressed: () => showFolderOptionsSheet(b, ref, 'WhatsApp'),
-                  child: const Text('open'),
-                ),
+    await pumpLocalized(
+      tester,
+      Consumer(builder: (ctx, ref, _) => Scaffold(
+            body: Builder(
+              builder: (b) => TextButton(
+                onPressed: () => showFolderOptionsSheet(b, ref, 'WhatsApp'),
+                child: const Text('open'),
               ),
-            )),
-      ),
-    ));
+            ),
+          )),
+      container: c,
+    );
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Ocultar de la biblioteca'));
+    await tester.tap(find.text(_l10n.folderHideTitle));
     await tester.pumpAndSettle();
 
     expect(c.read(settingsProvider).excludedFolders, ['WhatsApp']);

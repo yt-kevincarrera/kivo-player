@@ -11,6 +11,9 @@ import 'package:kivo_player/player/playlists/playlist_controller.dart';
 import 'package:kivo_player/player/playlists/playlist_store.dart';
 import 'package:kivo_player/ui/home/playlists/add_to_playlist_sheet.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 const _v = VideoItem(
   id: '1',
@@ -34,21 +37,20 @@ Future<ProviderContainer> _c(PlaylistStore store) async {
 }
 
 Future<void> _open(WidgetTester tester, ProviderContainer c) async {
-  await tester.pumpWidget(UncontrolledProviderScope(
-    container: c,
-    child: MaterialApp(
-      home: Consumer(
-        builder: (ctx, ref, _) => Scaffold(
-          body: Builder(
-            builder: (b) => TextButton(
-              onPressed: () => showAddToPlaylistSheet(b, ref, const [_v]),
-              child: const Text('open'),
-            ),
+  await pumpLocalized(
+    tester,
+    Consumer(
+      builder: (ctx, ref, _) => Scaffold(
+        body: Builder(
+          builder: (b) => TextButton(
+            onPressed: () => showAddToPlaylistSheet(b, ref, const [_v]),
+            child: const Text('open'),
           ),
         ),
       ),
     ),
-  ));
+    container: c,
+  );
   await tester.tap(find.text('open'));
   await tester.pumpAndSettle();
 }
@@ -76,11 +78,11 @@ void main() {
     addTearDown(c.dispose);
 
     await _open(tester, c);
-    await tester.tap(find.text('Nueva lista'));
+    await tester.tap(find.text(_l10n.playlistNewListLabel));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), 'Curso');
-    await tester.tap(find.text('Crear'));
+    await tester.tap(find.text(_l10n.commonCreate));
     await tester.pumpAndSettle();
 
     expect(store.all().single.name, 'Curso');
@@ -93,9 +95,9 @@ void main() {
     addTearDown(c.dispose);
 
     await _open(tester, c);
-    await tester.tap(find.text('Nueva lista'));
+    await tester.tap(find.text(_l10n.playlistNewListLabel));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Crear'));
+    await tester.tap(find.text(_l10n.commonCreate));
     await tester.pumpAndSettle();
 
     expect(store.all(), isEmpty);
@@ -108,7 +110,7 @@ void main() {
 
     await _open(tester, c);
     expect(find.textContaining('Todavía no tienes listas'), findsOneWidget);
-    expect(find.text('Nueva lista'), findsOneWidget);
+    expect(find.text(_l10n.playlistNewListLabel), findsOneWidget);
   });
 
   testWidgets('the sheet closes before the writes, not after', (tester) async {
@@ -120,14 +122,14 @@ void main() {
     addTearDown(c.dispose);
 
     await _open(tester, c);
-    await tester.tap(find.text('Nueva lista'));
+    await tester.tap(find.text(_l10n.playlistNewListLabel));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'Curso');
-    await tester.tap(find.text('Crear'));
+    await tester.tap(find.text(_l10n.commonCreate));
     await tester.pumpAndSettle();
 
     // The write is still in flight, and the sheet is already gone.
-    expect(find.text('Añadir a lista'), findsNothing);
+    expect(find.text(_l10n.playlistAddToListLabel), findsNothing);
     expect(find.text('open'), findsOneWidget);
 
     slow.gate.complete();

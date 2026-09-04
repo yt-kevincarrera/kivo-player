@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../platform/interfaces/media_indexer.dart';
 import '../../../player/playlists/playlist.dart';
 import '../../../player/playlists/playlist_controller.dart';
@@ -40,7 +41,7 @@ class _AddToPlaylistSheet extends ConsumerWidget {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-              child: Text('Añadir a lista',
+              child: Text(context.l10n.playlistAddToListLabel,
                   style: TextStyle(
                       color: cs.onSurface, fontSize: 15, fontWeight: FontWeight.w700)),
             ),
@@ -48,7 +49,7 @@ class _AddToPlaylistSheet extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
                 child: Text(
-                  'Todavía no tienes listas. Crea una para empezar.',
+                  context.l10n.playlistAddSheetEmpty,
                   style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13.5),
                 ),
               )
@@ -65,7 +66,7 @@ class _AddToPlaylistSheet extends ConsumerWidget {
                           Icons.playlist_play_rounded,
                           p.name,
                           cs.onSurface,
-                          () => _addTo(ref, messenger, navigator, p),
+                          () => _addTo(context, ref, messenger, navigator, p),
                           trailing: '${p.entries.length}',
                         ),
                     ],
@@ -75,7 +76,7 @@ class _AddToPlaylistSheet extends ConsumerWidget {
             _row(
               context,
               Icons.add,
-              'Nueva lista',
+              context.l10n.playlistNewListLabel,
               cs.primary,
               () => _createAndAdd(context, ref, messenger, navigator),
             ),
@@ -116,16 +117,19 @@ class _AddToPlaylistSheet extends ConsumerWidget {
   }
 
   void _addTo(
+    BuildContext context,
     WidgetRef ref,
     ScaffoldMessengerState messenger,
     NavigatorState navigator,
     Playlist playlist,
   ) {
     // No await between reading the controller and popping: nothing here
-    // crosses an async gap, so touching navigator/messenger stays safe.
+    // crosses an async gap, so touching navigator/messenger/context stays safe.
     ref.read(playlistsProvider.notifier).addVideos(playlist.id, videos);
     navigator.pop();
-    messenger.showSnackBar(SnackBar(content: Text('Añadido a «${playlist.name}»')));
+    messenger.showSnackBar(
+      SnackBar(content: Text(context.l10n.playlistAddedSnackbar(playlist.name))),
+    );
   }
 
   Future<void> _createAndAdd(
@@ -137,18 +141,22 @@ class _AddToPlaylistSheet extends ConsumerWidget {
     // Read the notifier before anything can pop this sheet: it belongs to the
     // container and outlives the sheet, where `ref` does not.
     final playlists = ref.read(playlistsProvider.notifier);
+    // Captured too, same reason: the sheet's own context is defunct once
+    // `navigator.pop()` below closes it, but the SnackBar text still needs
+    // to be resolved after that point.
+    final l10n = context.l10n;
     final controller = TextEditingController();
     String? name;
     try {
       name = await showDialog<String>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          title: const Text('Nueva lista'),
+          title: Text(l10n.playlistNewListLabel),
           content: TextField(controller: controller, autofocus: true),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancelar'),
+              child: Text(l10n.commonCancel),
             ),
             TextButton(
               onPressed: () {
@@ -159,7 +167,7 @@ class _AddToPlaylistSheet extends ConsumerWidget {
                 if (trimmed.isEmpty) return;
                 Navigator.pop(dialogContext, trimmed);
               },
-              child: const Text('Crear'),
+              child: Text(l10n.commonCreate),
             ),
           ],
         ),
@@ -177,7 +185,9 @@ class _AddToPlaylistSheet extends ConsumerWidget {
     navigator.pop();
     final playlist = await playlists.create(name);
     await playlists.addVideos(playlist.id, videos);
-    messenger.showSnackBar(SnackBar(content: Text('Añadido a «${playlist.name}»')));
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.playlistAddedSnackbar(playlist.name))),
+    );
   }
 }
 

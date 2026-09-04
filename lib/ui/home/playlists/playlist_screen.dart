@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/format.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
+import '../../../l10n/l10n.dart';
 import '../../../player/library/continue_watching.dart';
 import '../../../player/library/played.dart';
 import '../../../player/playlists/playlist.dart';
@@ -71,12 +72,15 @@ class PlaylistScreen extends ConsumerWidget {
                     if (value == 'rename') _rename(context, ref, playlist!);
                     if (value == 'delete') _delete(context, ref, playlist!);
                   },
-                  itemBuilder: (_) => const [
+                  itemBuilder: (_) => [
                     PopupMenuItem(
                       value: 'rename',
-                      child: Text('Renombrar lista'),
+                      child: Text(context.l10n.playlistRenameTitle),
                     ),
-                    PopupMenuItem(value: 'delete', child: Text('Borrar lista')),
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Text(context.l10n.playlistDeleteTitle),
+                    ),
                   ],
                 ),
               ],
@@ -92,15 +96,13 @@ class PlaylistScreen extends ConsumerWidget {
               backgroundColor: accent,
               foregroundColor: onAccent(accent),
               icon: const Icon(Icons.play_arrow_rounded),
-              label: const Text('Reproducir'),
+              label: Text(context.l10n.playlistPlayLabel),
             ),
       body: resolved.isEmpty
-          ? const LibraryEmptyState(
+          ? LibraryEmptyState(
               icon: Icons.playlist_play_rounded,
-              title: 'Esta lista está vacía',
-              subtitle:
-                  'Añade videos desde la selección o desde el menú de '
-                  'un video, con «Añadir a lista».',
+              title: context.l10n.playlistEmptyTitle,
+              subtitle: context.l10n.playlistEmptySubtitle,
             )
           : ReorderableListView.builder(
               padding: const EdgeInsets.fromLTRB(4, 8, 4, 96),
@@ -218,7 +220,7 @@ class PlaylistScreen extends ConsumerWidget {
             // Sharing, renaming and the rest live behind long-press, the
             // same selection the library uses.
             trailingIcon: Icons.close,
-            trailingTooltip: 'Quitar de la lista',
+            trailingTooltip: context.l10n.playlistRemoveEntryTooltip,
             onOptions: () => _removeEntry(context, ref, i, re),
             onLongPress: () {
               HapticFeedback.selectionClick();
@@ -298,9 +300,9 @@ class PlaylistScreen extends ConsumerWidget {
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(
       SnackBar(
-        content: Text('«$name» quitado de la lista'),
+        content: Text(context.l10n.playlistEntryRemovedSnackbar(name)),
         action: SnackBarAction(
-          label: 'Deshacer',
+          label: context.l10n.commonUndo,
           onPressed: () => notifier.insertEntryAt(playlistId, index, entry),
         ),
       ),
@@ -320,8 +322,8 @@ class PlaylistScreen extends ConsumerWidget {
     final ok = ref.read(playlistPlaybackProvider).play(playlistId);
     if (!ok) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Nada disponible para reproducir ahora mismo'),
+        SnackBar(
+          content: Text(context.l10n.playlistNothingToPlaySnackbar),
         ),
       );
       return;
@@ -346,12 +348,12 @@ class PlaylistScreen extends ConsumerWidget {
       name = await showDialog<String>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          title: const Text('Renombrar lista'),
+          title: Text(context.l10n.playlistRenameTitle),
           content: TextField(controller: controller, autofocus: true),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancelar'),
+              child: Text(context.l10n.commonCancel),
             ),
             TextButton(
               onPressed: () {
@@ -361,7 +363,7 @@ class PlaylistScreen extends ConsumerWidget {
                 if (trimmed.isEmpty) return;
                 Navigator.pop(dialogContext, trimmed);
               },
-              child: const Text('Guardar'),
+              child: Text(context.l10n.commonSave),
             ),
           ],
         ),
@@ -391,20 +393,17 @@ class PlaylistScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Borrar lista'),
-        content: Text(
-          '¿Borrar «${playlist.name}»? Esta acción no se puede deshacer. '
-          'Los videos no se borran, solo la lista.',
-        ),
+        title: Text(context.l10n.playlistDeleteTitle),
+        content: Text(context.l10n.playlistDeleteConfirmBody(playlist.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text(context.l10n.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(
-              'Borrar',
+              context.l10n.commonDelete,
               style: TextStyle(color: Theme.of(ctx).colorScheme.error),
             ),
           ),
@@ -499,7 +498,7 @@ class _UnavailableEntryRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'No disponible',
+                  context.l10n.playlistEntryUnavailable,
                   style: TextStyle(
                     color: cs.error,
                     fontSize: 14,
@@ -512,7 +511,7 @@ class _UnavailableEntryRow extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.more_vert, size: 20, color: cs.onSurfaceVariant),
             onPressed: onRemove,
-            tooltip: 'Quitar de la lista',
+            tooltip: context.l10n.playlistRemoveEntryTooltip,
             visualDensity: VisualDensity.compact,
             padding: const EdgeInsets.all(4),
             constraints: const BoxConstraints(),

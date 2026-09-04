@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../l10n/l10n.dart';
 import '../../platform/interfaces/media_indexer.dart';
 import '../../player/library/continue_watching.dart';
 import '../../player/library/media_index.dart';
@@ -73,9 +74,9 @@ class FolderScreen extends ConsumerWidget {
           // the screen would otherwise stay open on a blank body.
           emptyState: LibraryEmptyState(
             icon: Icons.folder_off_outlined,
-            title: 'Esta carpeta quedó vacía',
-            subtitle: 'Ya no queda ningún video en «$folder».',
-            primaryLabel: 'Volver',
+            title: context.l10n.folderEmptyTitle,
+            subtitle: context.l10n.folderEmptySubtitle(folder),
+            primaryLabel: context.l10n.commonGoBack,
             onPrimary: () => Navigator.of(context).maybePop(),
           ),
         ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/l10n.dart';
 import '../../../platform/interfaces/media_indexer.dart';
 import '../../../player/library/rename_util.dart';
 
@@ -16,13 +17,13 @@ Future<String?> showRenameDialog(BuildContext context, VideoItem v) async {
           final valid = sanitized != null && sanitized != split.base;
           final cs = Theme.of(ctx).colorScheme;
           return AlertDialog(
-            title: const Text('Renombrar'),
+            title: Text(ctx.l10n.commonRename),
             content: Row(children: [
               Expanded(
                 child: TextField(
                   controller: controller,
                   autofocus: true,
-                  decoration: const InputDecoration(labelText: 'Nombre'),
+                  decoration: InputDecoration(labelText: ctx.l10n.detailsLabelName),
                   onChanged: (_) => setState(() {}),
                 ),
               ),
@@ -33,10 +34,10 @@ Future<String?> showRenameDialog(BuildContext context, VideoItem v) async {
                 ),
             ]),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
+              TextButton(onPressed: () => Navigator.pop(ctx), child: Text(ctx.l10n.commonCancel)),
               TextButton(
                 onPressed: valid ? () => Navigator.pop(ctx, sanitized) : null,
-                child: const Text('Guardar'),
+                child: Text(ctx.l10n.commonSave),
               ),
             ],
           );

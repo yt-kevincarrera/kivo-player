@@ -15,6 +15,9 @@ import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/ui/home/widgets/video_density_feed.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 class _GrantedPerm implements MediaPermission {
   @override
@@ -54,30 +57,29 @@ Future<void> _pump(
   void Function(VideoItem current, List<VideoItem> all, Rect? origin)? onOpen,
 }) async {
   final settingsService = await SettingsService.load(InMemorySettingsStore());
-  await tester.pumpWidget(
-    ProviderScope(
-      overrides: [
-        settingsServiceProvider.overrideWithValue(settingsService),
-        mediaPermissionImplProvider.overrideWithValue(_GrantedPerm()),
-        mediaIndexerProvider.overrideWithValue(FakeMediaIndexer(_videos)),
-        resumeServiceProvider.overrideWithValue(
-          ResumeService(InMemoryResumeStore()),
-        ),
-        frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
-        playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
-      ],
-      child: MaterialApp(
-        theme: KivoTheme.light(),
-        home: Scaffold(
-          body: VideoDensityFeed(
-            videos: _videos,
-            onOpen: onOpen ?? (_, __, ___) {},
-            groupByDate: groupByDate,
-            showContinueRow: showContinueRow,
-          ),
-        ),
+  final container = ProviderContainer(overrides: [
+    settingsServiceProvider.overrideWithValue(settingsService),
+    mediaPermissionImplProvider.overrideWithValue(_GrantedPerm()),
+    mediaIndexerProvider.overrideWithValue(FakeMediaIndexer(_videos)),
+    resumeServiceProvider.overrideWithValue(
+      ResumeService(InMemoryResumeStore()),
+    ),
+    frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
+    playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
+  ]);
+  addTearDown(container.dispose);
+  await pumpLocalized(
+    tester,
+    Scaffold(
+      body: VideoDensityFeed(
+        videos: _videos,
+        onOpen: onOpen ?? (_, __, ___) {},
+        groupByDate: groupByDate,
+        showContinueRow: showContinueRow,
       ),
     ),
+    theme: KivoTheme.light(),
+    container: container,
   );
   await tester.pumpAndSettle();
 }
@@ -109,7 +111,7 @@ void main() {
       (tester) async {
     await _pump(tester, groupByDate: false, showContinueRow: false);
 
-    expect(find.text('Continuar viendo'), findsNothing);
+    expect(find.text(_l10n.continueRowTitle), findsNothing);
   });
 
   testWidgets('tapping a video title fires onOpen with the right video',

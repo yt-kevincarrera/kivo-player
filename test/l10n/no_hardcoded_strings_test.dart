@@ -20,17 +20,6 @@ import 'package:flutter_test/flutter_test.dart';
 /// when wave 0 (foundation) landed. See the file header for what this means
 /// and does not mean.
 const Map<String, int> _baseline = {
-  'lib/ui/home/library_screen.dart': 19,
-  'lib/ui/home/playlists/add_to_playlist_sheet.dart': 7,
-  'lib/ui/home/playlists/playlist_screen.dart': 6,
-  'lib/ui/home/playlists/playlists_tab.dart': 4,
-  'lib/ui/home/widgets/continue_row.dart': 1,
-  'lib/ui/home/widgets/folder_grid.dart': 2,
-  'lib/ui/home/widgets/folder_options_sheet.dart': 3,
-  'lib/ui/home/widgets/rename_dialog.dart': 4,
-  'lib/ui/home/widgets/selection_app_bar.dart': 2,
-  'lib/ui/home/widgets/selection_bottom_bar.dart': 11,
-  'lib/ui/home/widgets/video_details_sheet.dart': 7,
   'lib/ui/player/autoplay/autoplay_overlay.dart': 3,
   'lib/ui/player/bookmarks/bookmarks_sheet.dart': 2,
   'lib/ui/player/chapters/chapters_sheet.dart': 4,

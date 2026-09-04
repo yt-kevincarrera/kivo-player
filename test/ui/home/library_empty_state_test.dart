@@ -17,6 +17,7 @@ import 'package:kivo_player/ui/home/folder_screen.dart';
 import 'package:kivo_player/ui/home/library_screen.dart';
 import 'package:kivo_player/ui/home/state/library_filter_state.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
 
 /// A permission stub whose `status()` is fixed and whose `request()` is
 /// counted — the empty state for [MediaAccess.limited] must be able to send
@@ -85,11 +86,11 @@ Future<ProviderContainer> _pump(
   );
   addTearDown(container.dispose);
 
-  await tester.pumpWidget(
-    UncontrolledProviderScope(
-      container: container,
-      child: MaterialApp(theme: KivoTheme.light(), home: home),
-    ),
+  await pumpLocalized(
+    tester,
+    home,
+    theme: KivoTheme.light(),
+    container: container,
   );
   await tester.pumpAndSettle();
   return container;

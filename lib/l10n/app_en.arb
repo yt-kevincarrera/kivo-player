@@ -19,5 +19,640 @@
   "settingsLanguageEnglish": "English",
   "@settingsLanguageEnglish": {
     "description": "Language selector option: pin English regardless of the system language. The language name is always shown in that language itself, never translated."
+  },
+
+  "libraryTabAll": "All",
+  "@libraryTabAll": {
+    "description": "Library sub-tab chip: shows every video."
+  },
+
+  "libraryTabFolders": "Folders",
+  "@libraryTabFolders": {
+    "description": "Library sub-tab chip: folder-grouped view."
+  },
+
+  "libraryTabPlaylists": "Playlists",
+  "@libraryTabPlaylists": {
+    "description": "Library sub-tab chip: the playlists tab."
+  },
+
+  "libraryUnwatchedFilter": "Unwatched",
+  "@libraryUnwatchedFilter": {
+    "description": "Label/semantics of the \"unwatched only\" filter chip in the library and in search results."
+  },
+
+  "librarySearchHintPlaylists": "Search playlists",
+  "@librarySearchHintPlaylists": {
+    "description": "Search field hint text while the Playlists sub-tab is active."
+  },
+
+  "librarySearchHintVideos": "Search videos or folders",
+  "@librarySearchHintVideos": {
+    "description": "Search field hint text on the All/Folders sub-tabs."
+  },
+
+  "librarySearchClose": "Close search",
+  "@librarySearchClose": {
+    "description": "Tooltip on the close (X) icon that exits library search."
+  },
+
+  "librarySearchTooltip": "Search",
+  "@librarySearchTooltip": {
+    "description": "Tooltip on the icon that opens library search."
+  },
+
+  "libraryDensityTooltip": "{count, plural, =1{View in 1 column} other{View in {count} columns}}",
+  "@libraryDensityTooltip": {
+    "description": "Tooltip on the grid-density icon, naming the column count it switches to next.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "libraryOpenFile": "Open file",
+  "@libraryOpenFile": {
+    "description": "Action to open a video file directly via the system file picker (AppBar tooltip and library empty-state buttons)."
+  },
+
+  "librarySortTooltip": "Sort",
+  "@librarySortTooltip": {
+    "description": "Tooltip on the sort icon, shared by the video and playlist sort menus."
+  },
+
+  "librarySortRecent": "Most recent",
+  "@librarySortRecent": {
+    "description": "Sort option: newest first (shared by the video and playlist sort menus)."
+  },
+
+  "librarySortNameAsc": "Name A-Z",
+  "@librarySortNameAsc": {
+    "description": "Sort option: alphabetical ascending (shared by the video and playlist sort menus)."
+  },
+
+  "librarySortNameDesc": "Name Z-A",
+  "@librarySortNameDesc": {
+    "description": "Sort option: alphabetical descending (shared by the video and playlist sort menus)."
+  },
+
+  "librarySortDurationDesc": "Duration: longest",
+  "@librarySortDurationDesc": {
+    "description": "Video sort option: longest duration first."
+  },
+
+  "librarySortDurationAsc": "Duration: shortest",
+  "@librarySortDurationAsc": {
+    "description": "Video sort option: shortest duration first."
+  },
+
+  "librarySortSizeDesc": "Size: largest",
+  "@librarySortSizeDesc": {
+    "description": "Video sort option: largest file size first."
+  },
+
+  "librarySortSizeAsc": "Size: smallest",
+  "@librarySortSizeAsc": {
+    "description": "Video sort option: smallest file size first."
+  },
+
+  "playlistSortMostVideos": "Most videos first",
+  "@playlistSortMostVideos": {
+    "description": "Playlist sort option: playlists with the most videos first."
+  },
+
+  "playlistSortLastPlayed": "Last played",
+  "@playlistSortLastPlayed": {
+    "description": "Playlist sort option: most recently played first."
+  },
+
+  "libraryNoSearchResults": "No videos found for \"{query}\"",
+  "@libraryNoSearchResults": {
+    "description": "Empty state shown when a library search finds no matching videos.",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+
+  "librarySearchClearAction": "Clear search",
+  "@librarySearchClearAction": {
+    "description": "Button that clears the current search and closes it (video and playlist search empty states)."
+  },
+
+  "libraryEmptyAllWatchedTitle": "You've watched everything",
+  "@libraryEmptyAllWatchedTitle": {
+    "description": "Empty-state title when the \"unwatched only\" filter hides every video."
+  },
+
+  "libraryEmptyAllWatchedSubtitle": "There's no unwatched video left.",
+  "@libraryEmptyAllWatchedSubtitle": {
+    "description": "Empty-state subtitle when the \"unwatched only\" filter hides every video."
+  },
+
+  "libraryEmptyRemoveFilterAction": "Remove filter",
+  "@libraryEmptyRemoveFilterAction": {
+    "description": "Button that turns off the \"unwatched only\" filter."
+  },
+
+  "libraryEmptyLimitedAccessTitle": "Kivo only sees the videos you picked",
+  "@libraryEmptyLimitedAccessTitle": {
+    "description": "Empty-state title on Android's partial media-access grant."
+  },
+
+  "libraryEmptyLimitedAccessSubtitle": "Widen the selection to see the rest of your gallery.",
+  "@libraryEmptyLimitedAccessSubtitle": {
+    "description": "Empty-state subtitle on Android's partial media-access grant."
+  },
+
+  "libraryEmptyChooseMoreAction": "Choose more videos",
+  "@libraryEmptyChooseMoreAction": {
+    "description": "Button that re-opens the system media-access picker."
+  },
+
+  "libraryEmptyNoVideosTitle": "No videos yet",
+  "@libraryEmptyNoVideosTitle": {
+    "description": "Empty-state title when the device has no videos at all."
+  },
+
+  "libraryEmptyNoVideosSubtitle": "It'll show up here once you record or download one.",
+  "@libraryEmptyNoVideosSubtitle": {
+    "description": "Empty-state subtitle when the device has no videos at all."
+  },
+
+  "libraryEmptyRescanAction": "Scan again",
+  "@libraryEmptyRescanAction": {
+    "description": "Button that manually re-scans the device for new videos."
+  },
+
+  "libraryAccessPromptTitle": "Grant access to your videos to see them here",
+  "@libraryAccessPromptTitle": {
+    "description": "Text shown when Kivo doesn't yet have media library permission."
+  },
+
+  "libraryAccessPromptAction": "Grant access",
+  "@libraryAccessPromptAction": {
+    "description": "Button that requests media library permission; also the accept action on the \"all files access\" dialog."
+  },
+
+  "folderEmptyTitle": "This folder is now empty",
+  "@folderEmptyTitle": {
+    "description": "Title of a folder's empty state when it has no videos left."
+  },
+
+  "folderEmptySubtitle": "There's no video left in \"{folder}\".",
+  "@folderEmptySubtitle": {
+    "description": "Subtitle of a folder's empty state, naming the folder.",
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
+
+  "commonGoBack": "Go back",
+  "@commonGoBack": {
+    "description": "Generic \"go back\" button, e.g. leaving a folder that is now empty."
+  },
+
+  "homeTabVideos": "Videos",
+  "@homeTabVideos": {
+    "description": "Bottom navigation tab label for the library."
+  },
+
+  "homeTabSettings": "Settings",
+  "@homeTabSettings": {
+    "description": "Bottom navigation tab label for settings."
+  },
+
+  "videoTileNewBadge": "New",
+  "@videoTileNewBadge": {
+    "description": "Small badge on a video tile's thumbnail for videos never played."
+  },
+
+  "continueRowTitle": "Continue watching",
+  "@continueRowTitle": {
+    "description": "Title of the horizontal strip of videos with a pending resume, at the top of the All tab."
+  },
+
+  "commonShare": "Share",
+  "@commonShare": {
+    "description": "Share action, shown on a video's options sheet and the bulk-selection bar."
+  },
+
+  "commonRename": "Rename",
+  "@commonRename": {
+    "description": "Generic rename action label/dialog title (video options sheet, playlist swipe action, rename dialog title)."
+  },
+
+  "videoSheetDetails": "Details",
+  "@videoSheetDetails": {
+    "description": "\"Details\" row in the video options sheet, reused as the details sheet's own heading."
+  },
+
+  "videoSheetMarkUnwatched": "Mark as unwatched",
+  "@videoSheetMarkUnwatched": {
+    "description": "Options-sheet row shown for an already-watched video."
+  },
+
+  "videoSheetMarkWatched": "Mark as watched",
+  "@videoSheetMarkWatched": {
+    "description": "Options-sheet row shown for an unwatched video."
+  },
+
+  "videoSheetClearResume": "Remove from Continue watching",
+  "@videoSheetClearResume": {
+    "description": "Options-sheet row that clears a video's resume position."
+  },
+
+  "videoSheetResumeCleared": "Removed from Continue watching",
+  "@videoSheetResumeCleared": {
+    "description": "Snackbar confirming the resume position was cleared."
+  },
+
+  "playlistAddToListLabel": "Add to playlist",
+  "@playlistAddToListLabel": {
+    "description": "\"Add to playlist\" action label, and the add-to-playlist sheet's own heading."
+  },
+
+  "videoSheetMoveToVault": "Move to Vault",
+  "@videoSheetMoveToVault": {
+    "description": "Options-sheet row that moves a video into the Vault."
+  },
+
+  "commonDelete": "Delete",
+  "@commonDelete": {
+    "description": "Generic short delete action/button label, reused across delete confirmations and swipe actions."
+  },
+
+  "allFilesAccessDialogTitle": "No Android confirmations",
+  "@allFilesAccessDialogTitle": {
+    "description": "Title of the one-time dialog offering all-files access."
+  },
+
+  "allFilesAccessDialogBody": "To delete and rename without Android asking you to confirm every time, give Kivo access to your files.",
+  "@allFilesAccessDialogBody": {
+    "description": "Body of the dialog offering all-files access."
+  },
+
+  "commonNotNow": "Not now",
+  "@commonNotNow": {
+    "description": "Decline button on the all-files-access dialog."
+  },
+
+  "videoSheetMarkedWatched": "Marked as watched",
+  "@videoSheetMarkedWatched": {
+    "description": "Snackbar shown after marking a video as watched."
+  },
+
+  "videoSheetMarkedUnwatched": "Marked as unwatched",
+  "@videoSheetMarkedUnwatched": {
+    "description": "Snackbar shown after marking a video as unwatched."
+  },
+
+  "trashMoveTitle": "Move to trash",
+  "@trashMoveTitle": {
+    "description": "Title/confirm-button text for moving one or more videos to the system trash (Android 11+)."
+  },
+
+  "videoSheetDeleteTitle": "Delete video",
+  "@videoSheetDeleteTitle": {
+    "description": "Delete-confirmation dialog title when the device has no trash (permanent delete)."
+  },
+
+  "videoSheetTrashConfirmBody": "Move \"{name}\" to the trash? You can recover it from your phone's trash for 30 days.",
+  "@videoSheetTrashConfirmBody": {
+    "description": "Confirmation dialog body when moving a video to the trash.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "videoSheetDeleteConfirmBody": "Delete \"{name}\"? This can't be undone.",
+  "@videoSheetDeleteConfirmBody": {
+    "description": "Confirmation dialog body when permanently deleting a video.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "commonCancel": "Cancel",
+  "@commonCancel": {
+    "description": "Generic cancel button in dialogs."
+  },
+
+  "videoSheetDeletedSnackbar": "Video deleted",
+  "@videoSheetDeletedSnackbar": {
+    "description": "Snackbar shown after deleting a video."
+  },
+
+  "detailsLabelName": "Name",
+  "@detailsLabelName": {
+    "description": "Field label in the video details sheet and the rename dialog's text field."
+  },
+
+  "detailsLabelFolder": "Folder",
+  "@detailsLabelFolder": {
+    "description": "Row label in the video details sheet."
+  },
+
+  "detailsLabelSize": "Size",
+  "@detailsLabelSize": {
+    "description": "Row label in the video details sheet."
+  },
+
+  "detailsLabelDuration": "Duration",
+  "@detailsLabelDuration": {
+    "description": "Row label in the video details sheet."
+  },
+
+  "detailsLabelResolution": "Resolution",
+  "@detailsLabelResolution": {
+    "description": "Row label in the video details sheet."
+  },
+
+  "detailsLabelAdded": "Added",
+  "@detailsLabelAdded": {
+    "description": "Row label in the video details sheet (date added)."
+  },
+
+  "detailsLabelUri": "URI",
+  "@detailsLabelUri": {
+    "description": "Row label in the video details sheet. Technical acronym, the same in both languages."
+  },
+
+  "commonSave": "Save",
+  "@commonSave": {
+    "description": "Generic save button in rename/edit dialogs."
+  },
+
+  "selectionCountLabel": "{count, plural, =1{{count} selected} other{{count} selected}}",
+  "@selectionCountLabel": {
+    "description": "Title of the selection AppBar: how many videos are currently selected.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "selectionSelectAll": "Select all",
+  "@selectionSelectAll": {
+    "description": "Tooltip on the \"select all\" icon in the selection AppBar."
+  },
+
+  "selectionMoveToVault": "To Vault",
+  "@selectionMoveToVault": {
+    "description": "Bulk-selection bar action: move the selected videos to the Vault."
+  },
+
+  "selectionAddToList": "To a playlist",
+  "@selectionAddToList": {
+    "description": "Bulk-selection bar action: add the selected videos to a playlist."
+  },
+
+  "selectionDeleteTitle": "Delete videos",
+  "@selectionDeleteTitle": {
+    "description": "Bulk-delete confirmation dialog title when the device has no trash."
+  },
+
+  "selectionTrashConfirmBody": "{count, plural, =1{Move 1 video to the trash?\n\nYou can recover it from your phone's trash for 30 days.} other{Move {count} videos to the trash?\n\nYou can recover them from your phone's trash for 30 days.}}",
+  "@selectionTrashConfirmBody": {
+    "description": "Confirmation dialog body when moving several selected videos to the trash.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "selectionDeleteConfirmBody": "{count, plural, =1{Delete 1 video? This can't be undone.} other{Delete {count} videos? This can't be undone.}}",
+  "@selectionDeleteConfirmBody": {
+    "description": "Confirmation dialog body when permanently deleting several selected videos.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "selectionTrashedSnackbar": "{count, plural, =1{1 video moved to the trash} other{{count} videos moved to the trash}}",
+  "@selectionTrashedSnackbar": {
+    "description": "Snackbar shown after moving the selected videos to the trash.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "selectionDeletedSnackbar": "{count, plural, =1{1 video deleted} other{{count} videos deleted}}",
+  "@selectionDeletedSnackbar": {
+    "description": "Snackbar shown after permanently deleting the selected videos.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "foldersEmptyTitle": "No folders",
+  "@foldersEmptyTitle": {
+    "description": "Title of the Folders tab's empty state."
+  },
+
+  "foldersEmptySubtitle": "Your videos will show up here grouped by folder.",
+  "@foldersEmptySubtitle": {
+    "description": "Subtitle of the Folders tab's empty state."
+  },
+
+  "folderCardVideoCount": "{count} vids",
+  "@folderCardVideoCount": {
+    "description": "Small pill on a folder card showing how many videos it has.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "folderHideTitle": "Hide from library",
+  "@folderHideTitle": {
+    "description": "Row in a folder's long-press options sheet."
+  },
+
+  "folderHideSubtitle": "Nothing is deleted or moved: it just stops showing up in Kivo.",
+  "@folderHideSubtitle": {
+    "description": "Clarifying subtitle under the \"Hide from library\" row."
+  },
+
+  "folderHiddenSnackbar": "{folder} hidden",
+  "@folderHiddenSnackbar": {
+    "description": "Snackbar shown after hiding a folder, naming it.",
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
+
+  "commonUndo": "Undo",
+  "@commonUndo": {
+    "description": "Generic undo action in a SnackBarAction."
+  },
+
+  "playlistsEmptyTitle": "You don't have any playlists yet",
+  "@playlistsEmptyTitle": {
+    "description": "Title of the Playlists tab's empty state when none exist."
+  },
+
+  "playlistsEmptySubtitle": "A playlist is an order you choose: create one and add videos from selection or from a video's menu.",
+  "@playlistsEmptySubtitle": {
+    "description": "Subtitle of the Playlists tab's empty state when none exist."
+  },
+
+  "playlistNewListLabel": "New playlist",
+  "@playlistNewListLabel": {
+    "description": "Label/title for creating a new playlist (empty-state button, create dialog title, floating action button, add-to-playlist sheet row)."
+  },
+
+  "playlistsNoSearchResults": "No playlist matches \"{query}\"",
+  "@playlistsNoSearchResults": {
+    "description": "Empty state when a search among playlists finds none.",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+
+  "commonCreate": "Create",
+  "@commonCreate": {
+    "description": "Generic confirm-creation button in create-playlist dialogs."
+  },
+
+  "playlistsSelectedCount": "{count, plural, =1{1 playlist selected} other{{count} playlists selected}}",
+  "@playlistsSelectedCount": {
+    "description": "Label of the playlist bulk-selection bar: how many are marked.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playlistsBulkDeleteTitle": "Delete playlists",
+  "@playlistsBulkDeleteTitle": {
+    "description": "Confirmation dialog title when deleting several marked playlists."
+  },
+
+  "playlistsBulkDeleteBody": "{count, plural, =1{Delete 1 playlist? This can't be undone. The videos aren't deleted, only the playlists.} other{Delete {count} playlists? This can't be undone. The videos aren't deleted, only the playlists.}}",
+  "@playlistsBulkDeleteBody": {
+    "description": "Confirmation dialog body when deleting several marked playlists.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playlistRenameTitle": "Rename playlist",
+  "@playlistRenameTitle": {
+    "description": "Title of the menu/dialog to rename a playlist (playlist screen menu and the Playlists tab's rename dialog)."
+  },
+
+  "playlistRowVideoCount": "{count, plural, =1{1 video} other{{count} videos}}",
+  "@playlistRowVideoCount": {
+    "description": "Video count shown on a playlist row.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playlistRowMissingCount": "{count, plural, =1{{count} unavailable} other{{count} unavailable}}",
+  "@playlistRowMissingCount": {
+    "description": "Appended to a playlist row's video count when some entries can no longer be found.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playlistAddSheetEmpty": "You don't have any playlists yet. Create one to get started.",
+  "@playlistAddSheetEmpty": {
+    "description": "Message shown in the add-to-playlist sheet when there are no playlists."
+  },
+
+  "playlistAddedSnackbar": "Added to \"{name}\"",
+  "@playlistAddedSnackbar": {
+    "description": "Snackbar shown after adding video(s) to a playlist, naming it.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playlistPlayLabel": "Play",
+  "@playlistPlayLabel": {
+    "description": "Label of the floating action button that plays the whole playlist."
+  },
+
+  "playlistEmptyTitle": "This playlist is empty",
+  "@playlistEmptyTitle": {
+    "description": "Title of a playlist's empty state when it has no entries."
+  },
+
+  "playlistEmptySubtitle": "Add videos from selection or from a video's menu, with \"Add to playlist\".",
+  "@playlistEmptySubtitle": {
+    "description": "Subtitle of a playlist's empty state when it has no entries."
+  },
+
+  "playlistRemoveEntryTooltip": "Remove from playlist",
+  "@playlistRemoveEntryTooltip": {
+    "description": "Tooltip on the button that removes an entry from the playlist (available and unavailable rows)."
+  },
+
+  "playlistEntryRemovedSnackbar": "\"{name}\" removed from the playlist",
+  "@playlistEntryRemovedSnackbar": {
+    "description": "Snackbar shown after removing an entry from the playlist, naming it.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playlistNothingToPlaySnackbar": "Nothing available to play right now",
+  "@playlistNothingToPlaySnackbar": {
+    "description": "Snackbar shown when trying to play a playlist with no available entries."
+  },
+
+  "playlistDeleteTitle": "Delete playlist",
+  "@playlistDeleteTitle": {
+    "description": "Title of the menu/dialog to delete a single playlist (distinct from bulk delete)."
+  },
+
+  "playlistDeleteConfirmBody": "Delete \"{name}\"? This can't be undone. The videos aren't deleted, only the playlist.",
+  "@playlistDeleteConfirmBody": {
+    "description": "Confirmation dialog body when deleting a single playlist, naming it.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playlistEntryUnavailable": "Unavailable",
+  "@playlistEntryUnavailable": {
+    "description": "Label shown on a playlist row whose original video can no longer be found."
   }
 }

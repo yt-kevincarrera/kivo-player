@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kivo_player/platform/interfaces/media_indexer.dart';
 import 'package:kivo_player/ui/home/state/library_selection.dart';
 import 'package:kivo_player/ui/home/widgets/selection_app_bar.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 const _a = VideoItem(id: '1', uri: 'u1', name: 'a.mp4', folder: 'F', durationMs: 1, sizeBytes: 1, dateAddedMs: 0);
 const _b = VideoItem(id: '2', uri: 'u2', name: 'b.mp4', folder: 'F', durationMs: 1, sizeBytes: 1, dateAddedMs: 0);
@@ -14,15 +17,14 @@ void main() {
     addTearDown(c.dispose);
     c.read(librarySelectionProvider.notifier).toggle('u1');
 
-    await tester.pumpWidget(UncontrolledProviderScope(
+    await pumpLocalized(
+      tester,
+      const Scaffold(appBar: SelectionAppBar(allVisible: [_a, _b])),
       container: c,
-      child: const MaterialApp(
-        home: Scaffold(appBar: SelectionAppBar(allVisible: [_a, _b])),
-      ),
-    ));
+    );
     await tester.pump();
 
-    expect(find.text('1 seleccionado'), findsOneWidget);
+    expect(find.text(_l10n.selectionCountLabel(1)), findsOneWidget);
 
     // Batch actions (share/delete) moved to SelectionBottomBar; the app bar
     // is context-only now.

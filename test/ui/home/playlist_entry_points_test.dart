@@ -18,6 +18,9 @@ import 'package:kivo_player/ui/home/state/library_selection.dart';
 import 'package:kivo_player/ui/home/widgets/selection_bottom_bar.dart';
 import 'package:kivo_player/ui/home/widgets/video_options_sheet.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 const _a = VideoItem(
     id: '1', uri: 'u1', name: 'a.mp4', folder: 'F',
@@ -49,46 +52,46 @@ void main() {
     await c.read(mediaIndexProvider.future);
     c.read(librarySelectionProvider.notifier).selectAll(['u1']);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
+    await pumpLocalized(
+      tester,
+      const Scaffold(bottomNavigationBar: SelectionBottomBar()),
       container: c,
-      child: const MaterialApp(
-        home: Scaffold(bottomNavigationBar: SelectionBottomBar()),
-      ),
-    ));
+    );
     await tester.pumpAndSettle();
 
     // Only that the entry point exists and is reachable — the sheet itself is
     // covered by its own test.
-    expect(find.text('A una lista'), findsOneWidget);
+    expect(find.text(_l10n.selectionAddToList), findsOneWidget);
   });
 
   testWidgets('the video ⋮ sheet offers adding to a playlist', (tester) async {
-    await tester.pumpWidget(
-      ProviderScope(
-        // The sheet now reads played + resume state to label its rows.
-        overrides: [
-          playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
-          resumeServiceProvider.overrideWithValue(
-            ResumeService(InMemoryResumeStore()),
-          ),
-        ],
-        child: MaterialApp(
-          home: Scaffold(
-            body: Consumer(
-              builder: (ctx, ref, _) => Builder(
-                builder: (b) => TextButton(
-                  onPressed: () => showVideoOptions(b, ref, _a),
-                  child: const Text('open'),
-                ),
-              ),
+    final container = ProviderContainer(
+      // The sheet now reads played + resume state to label its rows.
+      overrides: [
+        playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
+        resumeServiceProvider.overrideWithValue(
+          ResumeService(InMemoryResumeStore()),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    await pumpLocalized(
+      tester,
+      Scaffold(
+        body: Consumer(
+          builder: (ctx, ref, _) => Builder(
+            builder: (b) => TextButton(
+              onPressed: () => showVideoOptions(b, ref, _a),
+              child: const Text('open'),
             ),
           ),
         ),
       ),
+      container: container,
     );
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Añadir a lista'), findsOneWidget);
+    expect(find.text(_l10n.playlistAddToListLabel), findsOneWidget);
   });
 }

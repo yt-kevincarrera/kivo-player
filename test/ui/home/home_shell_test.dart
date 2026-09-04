@@ -10,18 +10,23 @@ import 'package:kivo_player/platform/media_indexer_provider.dart';
 import 'package:kivo_player/player/library/played.dart';
 import 'package:kivo_player/ui/home/home_shell.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
 
 Future<void> _pump(WidgetTester t) async {
   final s = await SettingsService.load(InMemorySettingsStore());
-  await t.pumpWidget(ProviderScope(
-    overrides: [
-      settingsServiceProvider.overrideWithValue(s),
-      mediaIndexerProvider.overrideWithValue(FakeMediaIndexer()),
-      playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
-      bookmarkStoreProvider.overrideWithValue(InMemoryBookmarkStore()),
-    ],
-    child: MaterialApp(theme: KivoTheme.dark(), home: const HomeShell()),
-  ));
+  final container = ProviderContainer(overrides: [
+    settingsServiceProvider.overrideWithValue(s),
+    mediaIndexerProvider.overrideWithValue(FakeMediaIndexer()),
+    playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
+    bookmarkStoreProvider.overrideWithValue(InMemoryBookmarkStore()),
+  ]);
+  addTearDown(container.dispose);
+  await pumpLocalized(
+    t,
+    const HomeShell(),
+    theme: KivoTheme.dark(),
+    container: container,
+  );
   await t.pump();
 }
 

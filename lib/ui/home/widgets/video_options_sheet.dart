@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/errors/kivo_failure.dart';
 import '../../../core/settings/settings_provider.dart';
+import '../../../l10n/l10n.dart';
 import '../../../platform/media_file_ops_provider.dart';
 import '../../../platform/all_files_access_provider.dart';
 import '../../../platform/interfaces/all_files_access.dart';
@@ -76,21 +77,21 @@ class VideoOptionsSheet extends StatelessWidget {
               _row(
                 context,
                 Icons.share_outlined,
-                'Compartir',
+                context.l10n.commonShare,
                 cs.onSurface,
                 onShare,
               ),
               _row(
                 context,
                 Icons.drive_file_rename_outline,
-                'Renombrar',
+                context.l10n.commonRename,
                 cs.onSurface,
                 onRename,
               ),
               _row(
                 context,
                 Icons.info_outline,
-                'Detalles',
+                context.l10n.videoSheetDetails,
                 cs.onSurface,
                 onDetails,
               ),
@@ -99,7 +100,9 @@ class VideoOptionsSheet extends StatelessWidget {
                 isPlayed
                     ? Icons.remove_circle_outline
                     : Icons.check_circle_outline,
-                isPlayed ? 'Marcar como no visto' : 'Marcar como visto',
+                isPlayed
+                    ? context.l10n.videoSheetMarkUnwatched
+                    : context.l10n.videoSheetMarkWatched,
                 cs.onSurface,
                 onTogglePlayed,
               ),
@@ -107,25 +110,31 @@ class VideoOptionsSheet extends StatelessWidget {
                 _row(
                   context,
                   Icons.playlist_remove,
-                  'Quitar de Continuar viendo',
+                  context.l10n.videoSheetClearResume,
                   cs.onSurface,
                   onClearResume,
                 ),
               _row(
                 context,
                 Icons.playlist_add,
-                'Añadir a lista',
+                context.l10n.playlistAddToListLabel,
                 cs.onSurface,
                 onAddToPlaylist,
               ),
               _row(
                 context,
                 Icons.lock_outline,
-                'Mover al Vault',
+                context.l10n.videoSheetMoveToVault,
                 cs.onSurface,
                 onMoveToVault,
               ),
-              _row(context, Icons.delete_outline, 'Borrar', cs.error, onDelete),
+              _row(
+                context,
+                Icons.delete_outline,
+                context.l10n.commonDelete,
+                cs.error,
+                onDelete,
+              ),
               const SizedBox(height: 8),
             ],
           ),
@@ -179,19 +188,16 @@ Future<void> maybeOfferAllFilesAccess(
   final give = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
-      title: const Text('Sin confirmaciones de Android'),
-      content: const Text(
-        'Para borrar y renombrar sin que Android te pida confirmación cada '
-        'vez, dale a Kivo acceso a los archivos.',
-      ),
+      title: Text(context.l10n.allFilesAccessDialogTitle),
+      content: Text(context.l10n.allFilesAccessDialogBody),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx, false),
-          child: const Text('Ahora no'),
+          child: Text(context.l10n.commonNotNow),
         ),
         TextButton(
           onPressed: () => Navigator.pop(ctx, true),
-          child: const Text('Dar acceso'),
+          child: Text(context.l10n.libraryAccessPromptAction),
         ),
       ],
     ),
@@ -221,10 +227,13 @@ Future<void> showVideoOptions(
         Navigator.pop(sheetContext);
         final newPlayed = !isPlayed;
         await ref.read(videoActionsProvider).setPlayed(v, newPlayed);
+        if (!context.mounted) return;
         messenger.showSnackBar(
           SnackBar(
             content: Text(
-              newPlayed ? 'Marcado como visto' : 'Marcado como no visto',
+              newPlayed
+                  ? context.l10n.videoSheetMarkedWatched
+                  : context.l10n.videoSheetMarkedUnwatched,
             ),
           ),
         );
@@ -232,8 +241,9 @@ Future<void> showVideoOptions(
       onClearResume: () async {
         Navigator.pop(sheetContext);
         await ref.read(videoActionsProvider).clearResume(v);
+        if (!context.mounted) return;
         messenger.showSnackBar(
-          const SnackBar(content: Text('Quitado de Continuar viendo')),
+          SnackBar(content: Text(context.l10n.videoSheetResumeCleared)),
         );
       },
       onShare: () {
@@ -275,21 +285,25 @@ Future<void> showVideoOptions(
         final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: Text(toTrash ? 'Mover a la papelera' : 'Borrar video'),
+            title: Text(
+              toTrash
+                  ? context.l10n.trashMoveTitle
+                  : context.l10n.videoSheetDeleteTitle,
+            ),
             content: Text(
               toTrash
-                  ? '¿Mover «${v.name}» a la papelera? Podrás recuperarlo durante 30 días desde la papelera del teléfono.'
-                  : '¿Borrar «${v.name}»? Esta acción no se puede deshacer.',
+                  ? context.l10n.videoSheetTrashConfirmBody(v.name)
+                  : context.l10n.videoSheetDeleteConfirmBody(v.name),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Cancelar'),
+                child: Text(context.l10n.commonCancel),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
                 child: Text(
-                  toTrash ? 'Mover a la papelera' : 'Borrar',
+                  toTrash ? context.l10n.trashMoveTitle : context.l10n.commonDelete,
                   style: TextStyle(color: Theme.of(ctx).colorScheme.error),
                 ),
               ),
@@ -301,9 +315,10 @@ Future<void> showVideoOptions(
         await maybeOfferAllFilesAccess(context, ref);
         if (!context.mounted) return;
         final status = await ref.read(videoActionsProvider).delete(v);
+        if (!context.mounted) return;
         if (status == FileOpStatus.ok) {
           messenger.showSnackBar(
-            const SnackBar(content: Text('Video borrado')),
+            SnackBar(content: Text(context.l10n.videoSheetDeletedSnackbar)),
           );
         } else if (status == FileOpStatus.error && context.mounted) {
           showFailureSnackBar(context, KivoOp.delete);
