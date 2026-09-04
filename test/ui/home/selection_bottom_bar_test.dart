@@ -51,4 +51,87 @@ void main() {
     await tester.pump();
     expect(ops.sharedManyUris.single, ['u1']);
   });
+
+  Future<ProviderContainer> _buildBar(
+    WidgetTester tester, {
+    required FakeMediaFileOps ops,
+  }) async {
+    final s = await SettingsService.load(InMemorySettingsStore());
+    final c = ProviderContainer(overrides: [
+      settingsServiceProvider.overrideWithValue(s),
+      mediaFileOpsProvider.overrideWithValue(ops),
+      mediaIndexerProvider.overrideWithValue(FakeMediaIndexer([_a, _b])),
+      mediaPermissionImplProvider.overrideWithValue(_Perm()),
+      resumeServiceProvider.overrideWithValue(ResumeService(InMemoryResumeStore())),
+      playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
+    ]);
+    addTearDown(c.dispose);
+    await c.read(mediaIndexProvider.future);
+    c.read(librarySelectionProvider.notifier).selectAll(['u1', 'u2']);
+
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: c,
+      child: const MaterialApp(home: Scaffold(bottomNavigationBar: SelectionBottomBar())),
+    ));
+    await tester.pump();
+    return c;
+  }
+
+  testWidgets('delete confirm shows the permanent-delete copy when movesToTrash is false', (tester) async {
+    final ops = FakeMediaFileOps()..movesToTrash = false;
+    await _buildBar(tester, ops: ops);
+
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Borrar videos'), findsOneWidget);
+    expect(find.text('¿Borrar 2 videos? Esta acción no se puede deshacer.'), findsOneWidget);
+    expect(find.widgetWithText(TextButton, 'Borrar'), findsOneWidget);
+    expect(find.textContaining('papelera'), findsNothing);
+  });
+
+  testWidgets('delete confirm shows the trash copy when movesToTrash is true', (tester) async {
+    final ops = FakeMediaFileOps()..movesToTrash = true;
+    await _buildBar(tester, ops: ops);
+
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Mover a la papelera'), findsNWidgets(2)); // dialog title + confirm button
+    expect(
+      find.text('¿Mover 2 videos a la papelera?\n\nPodrás recuperarlos durante 30 días desde la app Archivos.'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('no se puede deshacer'), findsNothing);
+  });
+
+  testWidgets('delete confirm uses the singular noun for a single selected video', (tester) async {
+    final ops = FakeMediaFileOps()..movesToTrash = true;
+    final s = await SettingsService.load(InMemorySettingsStore());
+    final c = ProviderContainer(overrides: [
+      settingsServiceProvider.overrideWithValue(s),
+      mediaFileOpsProvider.overrideWithValue(ops),
+      mediaIndexerProvider.overrideWithValue(FakeMediaIndexer([_a, _b])),
+      mediaPermissionImplProvider.overrideWithValue(_Perm()),
+      resumeServiceProvider.overrideWithValue(ResumeService(InMemoryResumeStore())),
+      playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
+    ]);
+    addTearDown(c.dispose);
+    await c.read(mediaIndexProvider.future);
+    c.read(librarySelectionProvider.notifier).selectAll(['u1']);
+
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: c,
+      child: const MaterialApp(home: Scaffold(bottomNavigationBar: SelectionBottomBar())),
+    ));
+    await tester.pump();
+
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('¿Mover 1 video a la papelera?\n\nPodrás recuperarlos durante 30 días desde la app Archivos.'),
+      findsOneWidget,
+    );
+  });
 }

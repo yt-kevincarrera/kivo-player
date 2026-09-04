@@ -496,6 +496,11 @@ class FakeMediaFileOps implements MediaFileOps {
     newName: 'renamed.mp4',
   );
 
+  /// Defaults to false (permanent delete), matching pre-Android-11. Set true
+  /// to simulate an API 30+ device where delete moves to the system trash.
+  @override
+  bool movesToTrash = false;
+
   @override
   Future<FileOpStatus> delete(String uri) async {
     deletedUris.add(uri);

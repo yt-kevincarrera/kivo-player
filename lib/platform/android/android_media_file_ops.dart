@@ -9,6 +9,13 @@ class AndroidMediaFileOps implements MediaFileOps {
   final ErrorLog _log;
   static const MethodChannel _channel = MethodChannel('kivo/media');
 
+  /// Android 11 (API 30, R) introduced MediaStore's system trash — see
+  /// [MediaFileOps.movesToTrash]. [_log.androidSdk] is the API level already
+  /// fetched once via the 'kivo/update' channel at startup (main.dart), so
+  /// this needs no extra platform round trip.
+  @override
+  bool get movesToTrash => _log.androidSdk >= 30;
+
   FileOpStatus _status(String? s) => switch (s) {
         'ok' => FileOpStatus.ok,
         'cancelled' => FileOpStatus.cancelled,

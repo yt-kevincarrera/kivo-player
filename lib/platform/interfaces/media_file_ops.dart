@@ -10,6 +10,12 @@ class RenameOutcome {
 
 /// Operations on a device video file (MediaStore on Android).
 abstract class MediaFileOps {
+  /// True when [delete]/[deleteMany] move the file to the SYSTEM TRASH
+  /// (Android 11+, API 30) instead of deleting it outright — recoverable for
+  /// 30 days from the Files app. False on older Android, where the delete is
+  /// permanent.
+  bool get movesToTrash;
+
   /// Deletes the file. On Android 11+ the SYSTEM shows its own confirmation;
   /// returns [FileOpStatus.cancelled] if the user declines it.
   Future<FileOpStatus> delete(String uri);
