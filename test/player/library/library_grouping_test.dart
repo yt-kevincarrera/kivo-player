@@ -18,7 +18,12 @@ void main() {
       at('old.mp4', day(2024, 3, 5)),
     ];
     final s = groupByDay(items, now);
-    expect(s.map((e) => e.label).toList(), ['Hoy', 'Ayer', '12 jun', 'mar 2024']);
+    expect(s.map((e) => e.group).toList(), [
+      const DateGroup.today(),
+      const DateGroup.yesterday(),
+      const DateGroup.dated('12 jun'),
+      const DateGroup.dated('mar 2024'),
+    ]);
     expect(s.first.items.single.name, 'today.mp4');
   });
 
@@ -26,7 +31,7 @@ void main() {
     final items = [at('a.mp4', day(2026, 6, 30) + 100), at('b.mp4', day(2026, 6, 30))];
     final s = groupByDay(items, now);
     expect(s.length, 1);
-    expect(s.first.label, 'Hoy');
+    expect(s.first.group, const DateGroup.today());
     expect(s.first.items.map((e) => e.name).toList(), ['a.mp4', 'b.mp4']); // newest first
   });
 }

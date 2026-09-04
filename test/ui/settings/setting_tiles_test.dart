@@ -2,10 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kivo_player/core/theme/kivo_theme.dart';
 import 'package:kivo_player/ui/settings/widgets/setting_tiles.dart';
+import '../../helpers/pump_app.dart';
 
-Future<void> _host(WidgetTester t, Widget child) => t.pumpWidget(
-      MaterialApp(theme: KivoTheme.dark(), home: Scaffold(body: child)),
-    );
+// setting_tiles.dart itself never resolves l10n (every string it shows is a
+// plain parameter from its caller) — the "SettingSegmented" fixture below
+// mirrors general_section.dart's real theme selector, so it draws from the
+// same ARB keys rather than restating their Spanish text inline.
+final _l10n = l10nFor(const Locale('es'));
+
+Future<void> _host(WidgetTester t, Widget child) =>
+    pumpLocalized(t, Scaffold(body: child), theme: KivoTheme.dark());
 
 void main() {
   testWidgets('SettingNavRow shows title/subtitle and fires onTap', (t) async {
@@ -54,12 +60,16 @@ void main() {
   testWidgets('SettingSegmented highlights the active option and switches', (t) async {
     String? got;
     await _host(t, SettingSegmented<String>(
-      title: 'Tema',
-      options: const [('auto', 'Auto'), ('dark', 'Oscuro'), ('light', 'Claro')],
+      title: _l10n.settingsGeneralTheme,
+      options: [
+        ('auto', _l10n.settingsGeneralThemeAuto),
+        ('dark', _l10n.settingsGeneralThemeDark),
+        ('light', _l10n.settingsGeneralThemeLight),
+      ],
       value: 'dark',
       onChanged: (v) => got = v));
-    expect(find.text('Oscuro'), findsOneWidget);
-    await t.tap(find.text('Claro'));
+    expect(find.text(_l10n.settingsGeneralThemeDark), findsOneWidget);
+    await t.tap(find.text(_l10n.settingsGeneralThemeLight));
     expect(got, 'light');
   });
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../l10n/l10n.dart';
+
 /// HSV picker (hue + saturation + value sliders, no external package/network).
 /// Returns the chosen ARGB, or null on cancel.
 Future<int?> showColorPickerSheet(BuildContext context, int initialArgb) {
@@ -34,6 +36,7 @@ class _ColorPickerSheetState extends State<_ColorPickerSheet> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
@@ -41,27 +44,27 @@ class _ColorPickerSheetState extends State<_ColorPickerSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Center(child: Text('Personalizado',
+            Center(child: Text(l10n.settingsColorPickerTitle,
                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: cs.onSurface))),
             const SizedBox(height: 16),
             Container(height: 54, decoration: BoxDecoration(
                 color: _color, borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: cs.outlineVariant))),
             const SizedBox(height: 14),
-            _channel(context, 'Matiz', _hsv.hue, 360, (v) => setState(() => _hsv = _hsv.withHue(v))),
-            _channel(context, 'Saturación', _hsv.saturation, 1, (v) => setState(() => _hsv = _hsv.withSaturation(v))),
-            _channel(context, 'Brillo', _hsv.value, 1, (v) => setState(() => _hsv = _hsv.withValue(v))),
+            _channel(context, l10n.settingsColorPickerHue, _hsv.hue, 360, (v) => setState(() => _hsv = _hsv.withHue(v))),
+            _channel(context, l10n.settingsColorPickerSaturation, _hsv.saturation, 1, (v) => setState(() => _hsv = _hsv.withSaturation(v))),
+            _channel(context, l10n.settingsColorPickerBrightness, _hsv.value, 1, (v) => setState(() => _hsv = _hsv.withValue(v))),
             const SizedBox(height: 8),
             Row(children: [
               Expanded(child: TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cancelar'))),
+                child: Text(l10n.commonCancel))),
               const SizedBox(width: 8),
               Expanded(child: FilledButton(
                 style: FilledButton.styleFrom(backgroundColor: cs.secondary, foregroundColor: cs.onSecondary),
                 onPressed: () => Navigator.of(context).pop(
                     _color.toARGB32() | 0xFF000000), // force opaque
-                child: const Text('Aplicar'))),
+                child: Text(l10n.settingsColorPickerApplyAction))),
             ]),
           ],
         ),

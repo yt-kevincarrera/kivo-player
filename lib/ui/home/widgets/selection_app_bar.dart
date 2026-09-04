@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../l10n/l10n.dart';
 import '../../../platform/interfaces/media_indexer.dart';
 import '../state/library_selection.dart';
 
@@ -22,16 +23,14 @@ class SelectionAppBar extends ConsumerWidget implements PreferredSizeWidget {
     return AppBar(
       leading: IconButton(
         icon: const Icon(Icons.close),
-        tooltip: 'Cancelar',
+        tooltip: context.l10n.commonCancel,
         onPressed: sel.clear,
       ),
-      title: Text(
-        '${chosen.length} seleccionado${chosen.length == 1 ? '' : 's'}',
-      ),
+      title: Text(context.l10n.selectionCountLabel(chosen.length)),
       actions: [
         IconButton(
           icon: const Icon(Icons.select_all),
-          tooltip: 'Seleccionar todo',
+          tooltip: context.l10n.selectionSelectAll,
           onPressed: () => sel.selectAll(allVisible.map((v) => v.uri)),
         ),
       ],

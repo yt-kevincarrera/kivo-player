@@ -7,6 +7,7 @@ import '../../core/update/release_notes.dart';
 import '../../core/update/update_download_controller.dart';
 import '../../core/update/update_info.dart';
 import '../../core/update/update_providers.dart';
+import '../../l10n/l10n.dart';
 import '../../platform/interfaces/app_installer.dart';
 
 Future<void> showUpdateDialog(BuildContext context, UpdateInfo info) =>
@@ -52,31 +53,33 @@ class _UpdateDialogState extends ConsumerState<_UpdateDialog> {
     final st = ref.watch(updateDownloadProvider);
     final accent = Color(ref.watch(settingsProvider.select((s) => s.accentColor)));
     final cs = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
     final version = _info?.version ?? st.version;
 
     return AlertDialog(
-      title: Text(version == null ? 'Actualización' : 'Nueva versión $version'),
+      title: Text(version == null ? l10n.updateGenericTitle : l10n.updateTitleWithVersion(version)),
       content: SizedBox(
         width: double.maxFinite,
-        child: SingleChildScrollView(child: _content(st, accent, cs)),
+        child: SingleChildScrollView(child: _content(context, st, accent, cs)),
       ),
-      actions: _actions(st),
+      actions: _actions(context, st),
     );
   }
 
-  Widget _content(UpdateDownloadState st, Color accent, ColorScheme cs) {
+  Widget _content(BuildContext context, UpdateDownloadState st, Color accent, ColorScheme cs) {
+    final l10n = context.l10n;
     final muted = TextStyle(color: cs.onSurfaceVariant, fontSize: 13);
     switch (st.phase) {
       case DownloadPhase.idle:
         final info = _info;
         if (info == null) {
-          return Text('Ya no hay ninguna descarga en curso.', style: muted);
+          return Text(l10n.updateNoActiveDownload, style: muted);
         }
         // Stripped of headings and the compare link: a URL is no use inside a
         // dialog, and older releases contain nothing else.
         final notes = cleanReleaseNotes(info.notes);
         return Text(
-          notes.isEmpty ? 'Hay una versión más reciente disponible.' : notes,
+          notes.isEmpty ? l10n.updateNoNotesAvailable : notes,
           style: muted,
         );
       case DownloadPhase.downloading:
@@ -84,21 +87,21 @@ class _UpdateDialogState extends ConsumerState<_UpdateDialog> {
           st.progress,
           accent,
           cs,
-          caption: _statusLine(st.progress),
-          hint: 'Puedes salir de Kivo: la descarga sigue.',
+          caption: _statusLine(context, st.progress),
+          hint: l10n.updateCanLeaveHint,
         );
       case DownloadPhase.ready:
         return _progressBlock(
           const DownloadProgress(DownloadStage.done, received: 1, total: 1),
           accent,
           cs,
-          caption: 'Listo para instalar',
-          hint: 'Pulsa Instalar para continuar.',
+          caption: l10n.updateReadyCaption,
+          hint: l10n.updateReadyHint,
         );
       case DownloadPhase.failed:
         final f = kivoErrorCatalog[KivoOp.updateInstall]!;
         return Text(
-          '${f.message} (${f.code}).\nPuedes reintentar o bajarla desde el navegador.',
+          l10n.updateFailedMessage(f.message, f.code),
           style: muted,
         );
     }
@@ -132,22 +135,23 @@ class _UpdateDialogState extends ConsumerState<_UpdateDialog> {
     );
   }
 
-  List<Widget> _actions(UpdateDownloadState st) {
+  List<Widget> _actions(BuildContext context, UpdateDownloadState st) {
+    final l10n = context.l10n;
     final info = _info;
     switch (st.phase) {
       case DownloadPhase.idle:
-        if (info == null) return [_closeButton()];
+        if (info == null) return [_closeButton(context)];
         return [
           TextButton(
             onPressed: () {
               ref.read(updateControllerProvider).skip(info.version);
               Navigator.pop(context);
             },
-            child: const Text('Omitir esta versión'),
+            child: Text(l10n.updateSkipVersionAction),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Ahora no'),
+            child: Text(l10n.commonNotNow),
           ),
           FilledButton(
             onPressed: info.apkUrl == null
@@ -156,71 +160,72 @@ class _UpdateDialogState extends ConsumerState<_UpdateDialog> {
                     Navigator.pop(context);
                   }
                 : () => _dl.start(info),
-            child: Text(info.apkUrl == null ? 'Abrir en navegador' : 'Descargar'),
+            child: Text(info.apkUrl == null ? l10n.updateOpenInBrowserAction : l10n.updateDownloadAction),
           ),
         ];
       case DownloadPhase.downloading:
         return [
-          TextButton(onPressed: _dl.cancel, child: const Text('Cancelar')),
+          TextButton(onPressed: _dl.cancel, child: Text(l10n.commonCancel)),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Ocultar'),
+            child: Text(l10n.updateHideAction),
           ),
           // Present but inert, so it is obvious where the install will happen.
-          const FilledButton(onPressed: null, child: Text('Instalar')),
+          FilledButton(onPressed: null, child: Text(l10n.updateInstallAction)),
         ];
       case DownloadPhase.ready:
         return [
           // Without a way out, a downloaded APK you no longer want is
           // permanent: it keeps its 30 MB and keeps claiming the update slot,
           // which is how an updater bug once made itself unfixable in-app.
-          TextButton(onPressed: _dl.cancel, child: const Text('Descartar')),
+          TextButton(onPressed: _dl.cancel, child: Text(l10n.updateDiscardReadyAction)),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Ahora no'),
+            child: Text(l10n.commonNotNow),
           ),
           FilledButton(
             onPressed: () => _install(_dl.install()),
-            child: const Text('Instalar'),
+            child: Text(l10n.updateInstallAction),
           ),
         ];
       case DownloadPhase.failed:
         return [
           if (info == null)
-            _closeButton()
+            _closeButton(context)
           else
             TextButton(
               onPressed: () {
                 ref.read(updateControllerProvider).openInBrowser(info);
                 Navigator.pop(context);
               },
-              child: const Text('Abrir en navegador'),
+              child: Text(l10n.updateOpenInBrowserAction),
             ),
           FilledButton(
             onPressed: () => _install(_dl.retry(info)),
-            child: const Text('Reintentar'),
+            child: Text(l10n.updateRetryAction),
           ),
         ];
     }
   }
 
-  Widget _closeButton() => TextButton(
+  Widget _closeButton(BuildContext context) => TextButton(
         onPressed: () => Navigator.pop(context),
-        child: const Text('Cerrar'),
+        child: Text(context.l10n.commonClose),
       );
 
   /// Reports the outcome of an install attempt. A null outcome means a fresh
   /// download was queued instead, which the progress block already narrates.
   Future<void> _install(Future<InstallOutcome?> pending) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     final outcome = await pending;
     if (!mounted || outcome == null) return;
     switch (outcome) {
       case InstallOutcome.started:
         Navigator.pop(context);
       case InstallOutcome.needsPermission:
-        messenger.showSnackBar(const SnackBar(
-          content: Text('Permite instalar apps para continuar, luego pulsa Instalar.'),
+        messenger.showSnackBar(SnackBar(
+          content: Text(l10n.updateInstallNeedsPermissionSnackbar),
         ));
       case InstallOutcome.failed:
         break; // the dialog already switched to its failed state
@@ -228,16 +233,17 @@ class _UpdateDialogState extends ConsumerState<_UpdateDialog> {
   }
 }
 
-String _statusLine(DownloadProgress p) {
+String _statusLine(BuildContext context, DownloadProgress p) {
+  final l10n = context.l10n;
   final size = p.total > 0
       ? '${_mb(p.received)} / ${_mb(p.total)} MB'
       : '${_mb(p.received)} MB';
   final pct = p.fraction;
   return switch (p.stage) {
-    DownloadStage.pending => 'En cola…',
-    DownloadStage.pausedNetwork => 'En pausa · esperando conexión',
-    DownloadStage.pausedRetry => 'En pausa · reintentando',
-    _ => pct == null ? size : '$size · ${(pct * 100).round()} %',
+    DownloadStage.pending => l10n.updateStatusQueued,
+    DownloadStage.pausedNetwork => l10n.updateStatusPausedNetwork,
+    DownloadStage.pausedRetry => l10n.updateStatusPausedRetry,
+    _ => pct == null ? size : l10n.updateStatusSizePercent(size, (pct * 100).round()),
   };
 }
 

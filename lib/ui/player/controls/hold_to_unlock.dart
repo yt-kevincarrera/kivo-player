@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../l10n/l10n.dart';
 
 class HoldToUnlock extends StatefulWidget {
   final VoidCallback onUnlock;
@@ -47,8 +48,8 @@ class _HoldToUnlockState extends State<HoldToUnlock> with SingleTickerProviderSt
             ]),
           ),
           const SizedBox(height: 10),
-          const Text('mantén para desbloquear',
-              style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
+          Text(context.l10n.playerHoldToUnlockHint,
+              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
         ]),
       ),
     );

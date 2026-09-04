@@ -6,6 +6,7 @@ import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/ui/player/controls/center_controls.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
 
 void main() {
   testWidgets('play/pause button toggles engine playing', (tester) async {
@@ -18,10 +19,11 @@ void main() {
     ]);
     addTearDown(c.dispose);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
+    await pumpLocalized(
+      tester,
+      const Scaffold(body: Center(child: CenterControls())),
       container: c,
-      child: const MaterialApp(home: Scaffold(body: Center(child: CenterControls()))),
-    ));
+    );
 
     // Emit playing=true, then let the stream propagate to the widget
     engine.emitPlaying(true);

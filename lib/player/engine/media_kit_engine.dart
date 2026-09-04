@@ -201,9 +201,11 @@ class MediaKitEngine implements PlaybackEngine {
         final title = await native.getProperty('chapter-list/$i/title');
         out.add(
           MediaChapter(
-            // mpv leaves the title empty for unnamed chapters, which is common;
-            // a number is more use to the reader than a blank row.
-            title: title.trim().isEmpty ? 'Capítulo ${i + 1}' : title.trim(),
+            // mpv leaves the title empty for unnamed chapters, which is
+            // common; left empty here (rather than baking in a fallback
+            // string) so the UI can render its own localized
+            // `l10n.chapterFallback(n)` — see chapters_sheet.dart.
+            title: title.trim(),
             start: Duration(milliseconds: (seconds * 1000).round()),
           ),
         );

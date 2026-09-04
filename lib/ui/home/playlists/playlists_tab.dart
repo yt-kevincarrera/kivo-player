@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
+import '../../../l10n/l10n.dart';
 import '../../../player/playlists/playlist.dart';
 import '../../../player/playlists/playlist_controller.dart';
 import '../../../player/playlists/playlist_filter.dart';
@@ -74,11 +75,9 @@ class PlaylistsTab extends ConsumerWidget {
     if (allPlaylists.isEmpty) {
       return LibraryEmptyState(
         icon: Icons.playlist_play_rounded,
-        title: 'Todavía no tienes listas',
-        subtitle:
-            'Una lista es un orden que tú eliges: crea una y añade videos '
-            'desde la selección o desde el menú de un video.',
-        primaryLabel: 'Nueva lista',
+        title: context.l10n.playlistsEmptyTitle,
+        subtitle: context.l10n.playlistsEmptySubtitle,
+        primaryLabel: context.l10n.playlistNewListLabel,
         onPrimary: () => _createPlaylist(context, ref),
       );
     }
@@ -110,8 +109,8 @@ class PlaylistsTab extends ConsumerWidget {
     if (playlists.isEmpty) {
       return LibraryEmptyState(
         icon: Icons.search_off,
-        title: 'Ninguna lista coincide con "$query"',
-        primaryLabel: 'Borrar búsqueda',
+        title: context.l10n.playlistsNoSearchResults(query),
+        primaryLabel: context.l10n.librarySearchClearAction,
         onPrimary:
             onClearSearch ??
             () {
@@ -174,12 +173,12 @@ class PlaylistsTab extends ConsumerWidget {
       name = await showDialog<String>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          title: const Text('Nueva lista'),
+          title: Text(context.l10n.playlistNewListLabel),
           content: TextField(controller: controller, autofocus: true),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancelar'),
+              child: Text(context.l10n.commonCancel),
             ),
             TextButton(
               onPressed: () {
@@ -189,7 +188,7 @@ class PlaylistsTab extends ConsumerWidget {
                 if (trimmed.isEmpty) return;
                 Navigator.pop(dialogContext, trimmed);
               },
-              child: const Text('Crear'),
+              child: Text(context.l10n.commonCreate),
             ),
           ],
         ),
@@ -215,7 +214,7 @@ class _NewPlaylistButton extends ConsumerWidget {
       backgroundColor: accent,
       foregroundColor: onAccent(accent),
       icon: const Icon(Icons.add),
-      label: const Text('Nueva lista'),
+      label: Text(context.l10n.playlistNewListLabel),
     );
   }
 }
@@ -239,9 +238,7 @@ class _PlaylistsSelectionBar extends ConsumerWidget {
     final cs = Theme.of(context).colorScheme;
     // Same intersection _delete applies, so the label and the confirm agree.
     final count = selected.where(visibleIds.contains).length;
-    final label = count == 1
-        ? '1 lista seleccionada'
-        : '$count listas seleccionadas';
+    final label = context.l10n.playlistsSelectedCount(count);
 
     return Container(
       decoration: BoxDecoration(
@@ -270,7 +267,7 @@ class _PlaylistsSelectionBar extends ConsumerWidget {
               TextButton(
                 onPressed: () =>
                     ref.read(playlistsSelectionProvider.notifier).clear(),
-                child: const Text('Cancelar'),
+                child: Text(context.l10n.commonCancel),
               ),
               TextButton(
                 // Keyed: a playlist row's own swipe-to-delete button also
@@ -279,7 +276,7 @@ class _PlaylistsSelectionBar extends ConsumerWidget {
                 key: const Key('playlists-bulk-borrar'),
                 onPressed: () => _delete(context, ref),
                 child: Text(
-                  'Borrar',
+                  context.l10n.commonDelete,
                   style: TextStyle(
                     color: cs.error,
                     fontWeight: FontWeight.w700,
@@ -308,27 +305,22 @@ class _PlaylistsSelectionBar extends ConsumerWidget {
         .where(visibleIds.contains)
         .toList();
     final n = ids.length;
+    final l10n = context.l10n;
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Borrar listas'),
-        content: Text(
-          n == 1
-              ? '¿Borrar 1 lista? Esta acción no se puede deshacer. '
-                    'Los videos no se borran, solo las listas.'
-              : '¿Borrar $n listas? Esta acción no se puede deshacer. '
-                    'Los videos no se borran, solo las listas.',
-        ),
+        title: Text(l10n.playlistsBulkDeleteTitle),
+        content: Text(l10n.playlistsBulkDeleteBody(n)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text(l10n.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(
-              'Borrar',
+              l10n.commonDelete,
               style: TextStyle(color: Theme.of(ctx).colorScheme.error),
             ),
           ),
@@ -376,12 +368,12 @@ Future<void> _renamePlaylist(
     name = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Renombrar lista'),
+        title: Text(context.l10n.playlistRenameTitle),
         content: TextField(controller: controller, autofocus: true),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancelar'),
+            child: Text(context.l10n.commonCancel),
           ),
           TextButton(
             onPressed: () {
@@ -391,7 +383,7 @@ Future<void> _renamePlaylist(
               if (trimmed.isEmpty) return;
               Navigator.pop(dialogContext, trimmed);
             },
-            child: const Text('Guardar'),
+            child: Text(context.l10n.commonSave),
           ),
         ],
       ),
@@ -558,10 +550,10 @@ class _PlaylistRowState extends ConsumerState<_PlaylistRow>
     }
 
     final n = playlist.entries.length;
-    final videos = n == 1 ? '1 video' : '$n videos';
+    final videos = context.l10n.playlistRowVideoCount(n);
     final countLabel = missing == 0
         ? videos
-        : '$videos · $missing no ${missing == 1 ? 'disponible' : 'disponibles'}';
+        : '$videos · ${context.l10n.playlistRowMissingCount(missing)}';
 
     void handleTap() {
       final openRowId = ref.read(_playlistSwipeOpenRowProvider);
@@ -787,7 +779,7 @@ class _SwipeActionsBackground extends StatelessWidget {
           // nothing else — keyed anyway for symmetry and so tests never
           // have to guess which row's button they hit.
           key: ValueKey('playlist-swipe-renombrar-$playlistId'),
-          label: 'Renombrar',
+          label: context.l10n.commonRename,
           icon: Icons.edit_rounded,
           background: cs.secondaryContainer,
           foreground: cs.onSecondaryContainer,
@@ -796,7 +788,7 @@ class _SwipeActionsBackground extends StatelessWidget {
         const Expanded(child: SizedBox()),
         _SwipeActionButton(
           key: ValueKey('playlist-swipe-borrar-$playlistId'),
-          label: 'Borrar',
+          label: context.l10n.commonDelete,
           icon: Icons.delete_outline_rounded,
           background: cs.error,
           foreground: cs.onError,

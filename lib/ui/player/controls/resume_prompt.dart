@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/format.dart';
 import '../../../core/settings/settings_provider.dart';
+import '../../../l10n/l10n.dart';
 import '../../../player/control/player_controller.dart';
 import '../../../player/resume/resume_plan.dart';
 
@@ -52,6 +53,7 @@ class _ResumePromptState extends ConsumerState<ResumePrompt> {
     final accent = Color(ref.watch(settingsProvider).accentColor);
     final ctrl = ref.read(playerControllerProvider);
     final pos = fmtDuration(s.savedPosition);
+    final l10n = context.l10n;
 
     Widget action(String label, VoidCallback onTap) => TextButton(
           style: TextButton.styleFrom(foregroundColor: accent),
@@ -61,14 +63,17 @@ class _ResumePromptState extends ConsumerState<ResumePrompt> {
 
     final children = <Widget>[];
     if (s.kind == ResumePromptKind.undo) {
-      children.add(Flexible(child: Text('Reanudado desde $pos',
+      children.add(Flexible(child: Text(l10n.playerResumeUndoneMessage(pos),
           style: const TextStyle(color: Colors.white))));
-      children.add(action('Reiniciar', () { ref.read(restartRequestProvider.notifier).state++; _clear(); }));
+      children.add(action(l10n.playerResumeRestartAction,
+          () { ref.read(restartRequestProvider.notifier).state++; _clear(); }));
     } else {
-      children.add(Flexible(child: Text('¿Reanudar desde $pos?',
+      children.add(Flexible(child: Text(l10n.playerResumeAskMessage(pos),
           style: const TextStyle(color: Colors.white))));
-      children.add(action('Desde el inicio', () { ref.read(restartRequestProvider.notifier).state++; _clear(); }));
-      children.add(action('Reanudar', () { ctrl.seekTo(s.savedPosition); _clear(); }));
+      children.add(action(l10n.playerResumeFromStartAction,
+          () { ref.read(restartRequestProvider.notifier).state++; _clear(); }));
+      children.add(action(l10n.playerResumeAction,
+          () { ctrl.seekTo(s.savedPosition); _clear(); }));
     }
 
     return Align(

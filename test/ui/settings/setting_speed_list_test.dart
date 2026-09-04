@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kivo_player/core/theme/kivo_theme.dart';
 import 'package:kivo_player/ui/settings/widgets/setting_speed_list.dart';
+import '../../helpers/pump_app.dart';
 
-Future<void> _host(WidgetTester t, Widget child) => t.pumpWidget(
-      MaterialApp(theme: KivoTheme.dark(), home: Scaffold(body: child)),
-    );
+final _l10n = l10nFor(const Locale('es'));
+
+Future<void> _host(WidgetTester t, Widget child) =>
+    pumpLocalized(t, Scaffold(body: child), theme: KivoTheme.dark());
 
 void main() {
   testWidgets('shows one chip per value, sorted', (t) async {
@@ -41,8 +43,8 @@ void main() {
         title: 'Presets', values: const [1.0, 2.0], min: 0.25, max: 4.0, onChanged: (v) => got = v));
     await t.tap(find.byKey(const ValueKey('speed-add')));
     await t.pumpAndSettle();
-    expect(find.text('Añadir'), findsOneWidget);
-    await t.tap(find.text('Añadir')); // default sheet value is min-ish; just confirm it reports
+    expect(find.text(_l10n.settingsSpeedAddAction), findsOneWidget);
+    await t.tap(find.text(_l10n.settingsSpeedAddAction)); // default sheet value is min-ish; just confirm it reports
     await t.pumpAndSettle();
     expect(got, isNotNull);
     // list stays sorted and deduped

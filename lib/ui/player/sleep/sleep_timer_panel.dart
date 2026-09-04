@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/format.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
+import '../../../l10n/l10n.dart';
 import '../../../player/sleep/sleep_timer.dart';
 
 /// [onBack] renders a back arrow in the header that closes this panel and
@@ -96,8 +97,8 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
                   ),
                   const SizedBox(width: 10),
                 ],
-                const Text('Temporizador de apagado',
-                    style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800)),
+                Text(context.l10n.playerSleepPanelTitle,
+                    style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800)),
                 const Spacer(),
                 InkWell(
                   borderRadius: BorderRadius.circular(8),
@@ -123,9 +124,10 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
   }
 
   List<Widget> _selectorChildren(Color accent) {
+    final l10n = context.l10n;
     final durationActive = !_episodeSelected && !_episodesSelected;
     return [
-      const _Eyebrow('Duración'),
+      _Eyebrow(l10n.playerSleepDurationLabel),
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -136,7 +138,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
           })),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text('$_minutes min',
+            child: Text(l10n.playerSleepMinutesValue(_minutes),
                 style: TextStyle(
                   color: durationActive ? accent : Colors.white38,
                   fontSize: 34,
@@ -161,7 +163,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
           _episodesSelected = false;
         }),
       ),
-      const _Eyebrow('O bien'),
+      _Eyebrow(l10n.playerSleepOrLabel),
       _EpisodeCard(
         selected: _episodeSelected,
         accent: accent,
@@ -193,10 +195,10 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
       const SizedBox(height: 12),
       _PrimaryButton(
         label: _episodesSelected
-            ? 'Iniciar · Tras $_episodes episodios'
+            ? l10n.playerSleepStartAfterEpisodes(_episodes)
             : _episodeSelected
-                ? 'Iniciar · Al terminar el episodio'
-                : 'Iniciar · $_minutes min',
+                ? l10n.playerSleepStartAtEpisodeEnd
+                : l10n.playerSleepStartFixedMinutes(_minutes),
         accent: accent,
         onTap: _start,
       ),
@@ -204,6 +206,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
   }
 
   List<Widget> _activeChildren(SleepTimerState st, Color accent) {
+    final l10n = context.l10n;
     final total = st.original.inMilliseconds;
     final frac = total == 0 ? 0.0 : (st.remaining.inMilliseconds / total).clamp(0.0, 1.0);
     return [
@@ -230,10 +233,10 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
           padding: const EdgeInsets.only(top: 2, bottom: 10),
           child: Text(
             st.mode == SleepTimerMode.fixed
-                ? 'restante · de ${st.original.inMinutes} min'
+                ? l10n.playerSleepRemainingOfMinutes(st.original.inMinutes)
                 : st.mode == SleepTimerMode.episodes
-                    ? (st.episodesLeft == 1 ? 'episodio restante' : 'episodios restantes')
-                    : 'hasta el final del episodio',
+                    ? l10n.playerSleepEpisodesRemaining(st.episodesLeft)
+                    : l10n.playerSleepUntilEpisodeEnd,
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.42),
               fontSize: 10,
@@ -249,11 +252,11 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
       if (st.mode == SleepTimerMode.fixed)
         Row(
           children: [
-            Expanded(child: _GhostButton(label: 'Desactivar', onTap: () => ref.read(sleepTimerProvider.notifier).cancel())),
+            Expanded(child: _GhostButton(label: l10n.playerSleepDeactivate, onTap: () => ref.read(sleepTimerProvider.notifier).cancel())),
             const SizedBox(width: 8),
             Expanded(
               child: _PrimaryButton(
-                label: 'Extender +${st.original.inMinutes}',
+                label: l10n.playerSleepExtendByMinutes(st.original.inMinutes),
                 accent: accent,
                 onTap: () => ref.read(sleepTimerProvider.notifier).extend(),
               ),
@@ -261,7 +264,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
           ],
         )
       else
-        _GhostButton(label: 'Desactivar', onTap: () => ref.read(sleepTimerProvider.notifier).cancel()),
+        _GhostButton(label: l10n.playerSleepDeactivate, onTap: () => ref.read(sleepTimerProvider.notifier).cancel()),
     ];
   }
 }
@@ -401,14 +404,14 @@ class _EpisodeCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Al terminar el episodio',
+                  Text(context.l10n.playerSleepEpisodeCardTitle,
                       style: TextStyle(
                         color: selected ? accent : Colors.white,
                         fontSize: 13,
                         fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                       )),
                   const SizedBox(height: 1),
-                  Text('Se detiene cuando termine este video',
+                  Text(context.l10n.playerSleepEpisodeCardSubtitle,
                       style: TextStyle(color: Colors.white.withValues(alpha: 0.42), fontSize: 11)),
                 ],
               ),
@@ -470,14 +473,14 @@ class _EpisodesCountCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Tras N episodios',
+                  Text(context.l10n.playerSleepEpisodesCardTitle,
                       style: TextStyle(
                         color: selected ? accent : Colors.white,
                         fontSize: 13,
                         fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                       )),
                   const SizedBox(height: 1),
-                  Text('Deja correr el autoplay y detiene',
+                  Text(context.l10n.playerSleepEpisodesCardSubtitle,
                       style: TextStyle(color: Colors.white.withValues(alpha: 0.42), fontSize: 11)),
                 ],
               ),

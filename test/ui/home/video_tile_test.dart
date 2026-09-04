@@ -8,6 +8,9 @@ import 'package:kivo_player/platform/media_indexer_provider.dart';
 import 'package:kivo_player/platform/interfaces/media_indexer.dart';
 import 'package:kivo_player/ui/home/widgets/video_tile.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 const _video = VideoItem(
   id: '1',
@@ -21,16 +24,17 @@ const _video = VideoItem(
 
 Future<void> _pump(WidgetTester tester, Widget child) async {
   final s = await SettingsService.load(InMemorySettingsStore());
-  await tester.pumpWidget(ProviderScope(
-    overrides: [
-      settingsServiceProvider.overrideWithValue(s),
-      mediaIndexerProvider.overrideWithValue(FakeMediaIndexer()),
-    ],
-    child: MaterialApp(
-      theme: KivoTheme.light(),
-      home: Scaffold(body: Center(child: SizedBox(width: 300, child: child))),
-    ),
-  ));
+  final container = ProviderContainer(overrides: [
+    settingsServiceProvider.overrideWithValue(s),
+    mediaIndexerProvider.overrideWithValue(FakeMediaIndexer()),
+  ]);
+  addTearDown(container.dispose);
+  await pumpLocalized(
+    tester,
+    Scaffold(body: Center(child: SizedBox(width: 300, child: child))),
+    theme: KivoTheme.light(),
+    container: container,
+  );
   await tester.pump();
 }
 
@@ -104,7 +108,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Nuevo'), findsOneWidget);
+    expect(find.text(_l10n.videoTileNewBadge), findsOneWidget);
   });
 
   testWidgets('list-row shows more_vert options icon', (tester) async {

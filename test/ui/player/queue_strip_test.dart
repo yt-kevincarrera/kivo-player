@@ -9,6 +9,9 @@ import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/ui/player/queue/queue_strip.dart';
 import 'package:kivo_player/ui/player/state/queue_strip_state.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 const _session = VideoSession(
   playbackPath: 'content://A/b.mkv', displayName: 'b.mkv',
@@ -26,13 +29,12 @@ Future<ProviderContainer> _pump(WidgetTester tester, {VideoSession session = _se
   ]);
   addTearDown(c.dispose);
   c.read(currentVideoProvider.notifier).open(session);
-  await tester.pumpWidget(UncontrolledProviderScope(
+  await pumpLocalized(
+    tester,
+    const Scaffold(body: SafeArea(child: Align(alignment: Alignment.bottomCenter, child: QueueStrip()))),
     container: c,
-    child: MaterialApp(
-      theme: KivoTheme.dark(),
-      home: const Scaffold(body: SafeArea(child: Align(alignment: Alignment.bottomCenter, child: QueueStrip()))),
-    ),
-  ));
+    theme: KivoTheme.dark(),
+  );
   await tester.pump();
   return c;
 }
@@ -40,7 +42,7 @@ Future<ProviderContainer> _pump(WidgetTester tester, {VideoSession session = _se
 void main() {
   testWidgets('shows a card per queue item with the current highlighted; tap sets queueJumpProvider', (tester) async {
     final c = await _pump(tester);
-    expect(find.text('AHORA'), findsOneWidget); // current (index 1)
+    expect(find.text(_l10n.playerQueueNowBadge), findsOneWidget); // current (index 1)
     expect(find.text('a.mkv'), findsOneWidget);
     expect(find.text('c.mkv'), findsOneWidget);
     await tester.tap(find.text('c.mkv'));
@@ -83,7 +85,7 @@ void main() {
     final xc = tester.getTopLeft(find.text('c.mkv')).dx;
     final xa = tester.getTopLeft(find.text('a.mkv')).dx;
     expect(xb < xc && xc < xa, isTrue, reason: 'cards should read b, c, a');
-    expect(find.text('AHORA'), findsOneWidget);
+    expect(find.text(_l10n.playerQueueNowBadge), findsOneWidget);
 
     await tester.tap(find.text('a.mkv'));
     await tester.pump();

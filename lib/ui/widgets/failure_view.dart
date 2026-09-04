@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/errors/kivo_failure.dart';
+import '../../l10n/l10n.dart';
+import 'failure_l10n.dart';
 
 /// The full-screen failure state: friendly message, quotable code, and the
 /// technical detail only where the user asked for it.
@@ -22,6 +24,7 @@ class FailureView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -32,7 +35,7 @@ class FailureView extends StatelessWidget {
             Icon(Icons.error_outline, size: 40, color: cs.onSurfaceVariant),
             const SizedBox(height: 14),
             Text(
-              failure.message,
+              failureMessage(l10n, failure.op),
               textAlign: TextAlign.center,
               style: TextStyle(
                   fontSize: 15.5,
@@ -55,14 +58,14 @@ class FailureView extends StatelessWidget {
                 if (onRetry != null) ...[
                   TextButton(
                     onPressed: onRetry,
-                    child:
-                        Text('Reintentar', style: TextStyle(color: cs.secondary)),
+                    child: Text(l10n.errorRetryAction,
+                        style: TextStyle(color: cs.secondary)),
                   ),
                   const SizedBox(width: 4),
                 ],
                 TextButton(
                   onPressed: () => showFailureDetailsSheet(context, failure),
-                  child: Text('Ver detalles',
+                  child: Text(l10n.errorDetailsSheetAction,
                       style: TextStyle(color: cs.onSurfaceVariant)),
                 ),
               ],
@@ -133,5 +136,5 @@ Future<void> _copyDetail(BuildContext context, KivoFailure failure) async {
       ClipboardData(text: '${failure.code}\n${failure.detail}'));
   if (!context.mounted) return;
   ScaffoldMessenger.of(context)
-      .showSnackBar(const SnackBar(content: Text('Detalle copiado')));
+      .showSnackBar(SnackBar(content: Text(context.l10n.errorDetailCopiedSnackbar)));
 }

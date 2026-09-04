@@ -1,0 +1,2808 @@
+{
+  "@@locale": "en",
+
+  "settingsLanguage": "Language",
+  "@settingsLanguage": {
+    "description": "Title of the language selector row in Settings → General."
+  },
+
+  "settingsLanguageSystem": "System",
+  "@settingsLanguageSystem": {
+    "description": "Language selector option: follow the operating system's language."
+  },
+
+  "settingsLanguageSpanish": "Español",
+  "@settingsLanguageSpanish": {
+    "description": "Language selector option: pin Spanish regardless of the system language. The language name is always shown in that language itself, never translated."
+  },
+
+  "settingsLanguageEnglish": "English",
+  "@settingsLanguageEnglish": {
+    "description": "Language selector option: pin English regardless of the system language. The language name is always shown in that language itself, never translated."
+  },
+
+  "libraryTabAll": "All",
+  "@libraryTabAll": {
+    "description": "Library sub-tab chip: shows every video."
+  },
+
+  "libraryTabFolders": "Folders",
+  "@libraryTabFolders": {
+    "description": "Library sub-tab chip: folder-grouped view."
+  },
+
+  "libraryTabPlaylists": "Playlists",
+  "@libraryTabPlaylists": {
+    "description": "Library sub-tab chip: the playlists tab."
+  },
+
+  "libraryUnwatchedFilter": "Unwatched",
+  "@libraryUnwatchedFilter": {
+    "description": "Label/semantics of the \"unwatched only\" filter chip in the library and in search results."
+  },
+
+  "librarySearchHintPlaylists": "Search playlists",
+  "@librarySearchHintPlaylists": {
+    "description": "Search field hint text while the Playlists sub-tab is active."
+  },
+
+  "librarySearchHintVideos": "Search videos or folders",
+  "@librarySearchHintVideos": {
+    "description": "Search field hint text on the All/Folders sub-tabs."
+  },
+
+  "librarySearchClose": "Close search",
+  "@librarySearchClose": {
+    "description": "Tooltip on the close (X) icon that exits library search."
+  },
+
+  "librarySearchTooltip": "Search",
+  "@librarySearchTooltip": {
+    "description": "Tooltip on the icon that opens library search."
+  },
+
+  "libraryDensityTooltip": "{count, plural, =1{View in 1 column} other{View in {count} columns}}",
+  "@libraryDensityTooltip": {
+    "description": "Tooltip on the grid-density icon, naming the column count it switches to next.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "libraryOpenFile": "Open file",
+  "@libraryOpenFile": {
+    "description": "Action to open a video file directly via the system file picker (AppBar tooltip and library empty-state buttons)."
+  },
+
+  "librarySortTooltip": "Sort",
+  "@librarySortTooltip": {
+    "description": "Tooltip on the sort icon, shared by the video and playlist sort menus."
+  },
+
+  "librarySortRecent": "Most recent",
+  "@librarySortRecent": {
+    "description": "Sort option: newest first (shared by the video and playlist sort menus)."
+  },
+
+  "librarySortNameAsc": "Name A-Z",
+  "@librarySortNameAsc": {
+    "description": "Sort option: alphabetical ascending (shared by the video and playlist sort menus)."
+  },
+
+  "librarySortNameDesc": "Name Z-A",
+  "@librarySortNameDesc": {
+    "description": "Sort option: alphabetical descending (shared by the video and playlist sort menus)."
+  },
+
+  "librarySortDurationDesc": "Duration: longest",
+  "@librarySortDurationDesc": {
+    "description": "Video sort option: longest duration first."
+  },
+
+  "librarySortDurationAsc": "Duration: shortest",
+  "@librarySortDurationAsc": {
+    "description": "Video sort option: shortest duration first."
+  },
+
+  "librarySortSizeDesc": "Size: largest",
+  "@librarySortSizeDesc": {
+    "description": "Video sort option: largest file size first."
+  },
+
+  "librarySortSizeAsc": "Size: smallest",
+  "@librarySortSizeAsc": {
+    "description": "Video sort option: smallest file size first."
+  },
+
+  "playlistSortMostVideos": "Most videos first",
+  "@playlistSortMostVideos": {
+    "description": "Playlist sort option: playlists with the most videos first."
+  },
+
+  "playlistSortLastPlayed": "Last played",
+  "@playlistSortLastPlayed": {
+    "description": "Playlist sort option: most recently played first."
+  },
+
+  "libraryNoSearchResults": "No videos found for \"{query}\"",
+  "@libraryNoSearchResults": {
+    "description": "Empty state shown when a library search finds no matching videos.",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+
+  "librarySearchClearAction": "Clear search",
+  "@librarySearchClearAction": {
+    "description": "Button that clears the current search and closes it (video and playlist search empty states)."
+  },
+
+  "libraryEmptyAllWatchedTitle": "You've watched everything",
+  "@libraryEmptyAllWatchedTitle": {
+    "description": "Empty-state title when the \"unwatched only\" filter hides every video."
+  },
+
+  "libraryEmptyAllWatchedSubtitle": "There's no unwatched video left.",
+  "@libraryEmptyAllWatchedSubtitle": {
+    "description": "Empty-state subtitle when the \"unwatched only\" filter hides every video."
+  },
+
+  "libraryEmptyRemoveFilterAction": "Remove filter",
+  "@libraryEmptyRemoveFilterAction": {
+    "description": "Button that turns off the \"unwatched only\" filter."
+  },
+
+  "libraryEmptyLimitedAccessTitle": "Kivo only sees the videos you picked",
+  "@libraryEmptyLimitedAccessTitle": {
+    "description": "Empty-state title on Android's partial media-access grant."
+  },
+
+  "libraryEmptyLimitedAccessSubtitle": "Widen the selection to see the rest of your gallery.",
+  "@libraryEmptyLimitedAccessSubtitle": {
+    "description": "Empty-state subtitle on Android's partial media-access grant."
+  },
+
+  "libraryEmptyChooseMoreAction": "Choose more videos",
+  "@libraryEmptyChooseMoreAction": {
+    "description": "Button that re-opens the system media-access picker."
+  },
+
+  "libraryEmptyNoVideosTitle": "No videos yet",
+  "@libraryEmptyNoVideosTitle": {
+    "description": "Empty-state title when the device has no videos at all."
+  },
+
+  "libraryEmptyNoVideosSubtitle": "It'll show up here once you record or download one.",
+  "@libraryEmptyNoVideosSubtitle": {
+    "description": "Empty-state subtitle when the device has no videos at all."
+  },
+
+  "libraryEmptyRescanAction": "Scan again",
+  "@libraryEmptyRescanAction": {
+    "description": "Button that manually re-scans the device for new videos."
+  },
+
+  "libraryAccessPromptTitle": "Grant access to your videos to see them here",
+  "@libraryAccessPromptTitle": {
+    "description": "Text shown when Kivo doesn't yet have media library permission."
+  },
+
+  "libraryAccessPromptAction": "Grant access",
+  "@libraryAccessPromptAction": {
+    "description": "Button that requests media library permission; also the accept action on the \"all files access\" dialog."
+  },
+
+  "folderEmptyTitle": "This folder is now empty",
+  "@folderEmptyTitle": {
+    "description": "Title of a folder's empty state when it has no videos left."
+  },
+
+  "folderEmptySubtitle": "There's no video left in \"{folder}\".",
+  "@folderEmptySubtitle": {
+    "description": "Subtitle of a folder's empty state, naming the folder.",
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
+
+  "commonGoBack": "Go back",
+  "@commonGoBack": {
+    "description": "Generic \"go back\" button, e.g. leaving a folder that is now empty."
+  },
+
+  "homeTabVideos": "Videos",
+  "@homeTabVideos": {
+    "description": "Bottom navigation tab label for the library."
+  },
+
+  "homeTabSettings": "Settings",
+  "@homeTabSettings": {
+    "description": "Bottom navigation tab label for settings."
+  },
+
+  "videoTileNewBadge": "New",
+  "@videoTileNewBadge": {
+    "description": "Small badge on a video tile's thumbnail for videos never played."
+  },
+
+  "continueRowTitle": "Continue watching",
+  "@continueRowTitle": {
+    "description": "Title of the horizontal strip of videos with a pending resume, at the top of the All tab."
+  },
+
+  "commonShare": "Share",
+  "@commonShare": {
+    "description": "Share action, shown on a video's options sheet and the bulk-selection bar."
+  },
+
+  "commonRename": "Rename",
+  "@commonRename": {
+    "description": "Generic rename action label/dialog title (video options sheet, playlist swipe action, rename dialog title)."
+  },
+
+  "videoSheetDetails": "Details",
+  "@videoSheetDetails": {
+    "description": "\"Details\" row in the video options sheet, reused as the details sheet's own heading."
+  },
+
+  "videoSheetMarkUnwatched": "Mark as unwatched",
+  "@videoSheetMarkUnwatched": {
+    "description": "Options-sheet row shown for an already-watched video."
+  },
+
+  "videoSheetMarkWatched": "Mark as watched",
+  "@videoSheetMarkWatched": {
+    "description": "Options-sheet row shown for an unwatched video."
+  },
+
+  "videoSheetClearResume": "Remove from Continue watching",
+  "@videoSheetClearResume": {
+    "description": "Options-sheet row that clears a video's resume position."
+  },
+
+  "videoSheetResumeCleared": "Removed from Continue watching",
+  "@videoSheetResumeCleared": {
+    "description": "Snackbar confirming the resume position was cleared."
+  },
+
+  "playlistAddToListLabel": "Add to playlist",
+  "@playlistAddToListLabel": {
+    "description": "\"Add to playlist\" action label, and the add-to-playlist sheet's own heading."
+  },
+
+  "videoSheetMoveToVault": "Move to Vault",
+  "@videoSheetMoveToVault": {
+    "description": "Options-sheet row that moves a video into the Vault."
+  },
+
+  "commonDelete": "Delete",
+  "@commonDelete": {
+    "description": "Generic short delete action/button label, reused across delete confirmations and swipe actions."
+  },
+
+  "allFilesAccessDialogTitle": "No Android confirmations",
+  "@allFilesAccessDialogTitle": {
+    "description": "Title of the one-time dialog offering all-files access."
+  },
+
+  "allFilesAccessDialogBody": "To delete and rename without Android asking you to confirm every time, give Kivo access to your files.",
+  "@allFilesAccessDialogBody": {
+    "description": "Body of the dialog offering all-files access."
+  },
+
+  "commonNotNow": "Not now",
+  "@commonNotNow": {
+    "description": "Decline button on the all-files-access dialog."
+  },
+
+  "videoSheetMarkedWatched": "Marked as watched",
+  "@videoSheetMarkedWatched": {
+    "description": "Snackbar shown after marking a video as watched."
+  },
+
+  "videoSheetMarkedUnwatched": "Marked as unwatched",
+  "@videoSheetMarkedUnwatched": {
+    "description": "Snackbar shown after marking a video as unwatched."
+  },
+
+  "trashMoveTitle": "Move to trash",
+  "@trashMoveTitle": {
+    "description": "Title/confirm-button text for moving one or more videos to the system trash (Android 11+)."
+  },
+
+  "videoSheetDeleteTitle": "Delete video",
+  "@videoSheetDeleteTitle": {
+    "description": "Delete-confirmation dialog title when the device has no trash (permanent delete)."
+  },
+
+  "videoSheetTrashConfirmBody": "Move \"{name}\" to the trash? You can recover it from your phone's trash for 30 days.",
+  "@videoSheetTrashConfirmBody": {
+    "description": "Confirmation dialog body when moving a video to the trash.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "videoSheetDeleteConfirmBody": "Delete \"{name}\"? This can't be undone.",
+  "@videoSheetDeleteConfirmBody": {
+    "description": "Confirmation dialog body when permanently deleting a video.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "commonCancel": "Cancel",
+  "@commonCancel": {
+    "description": "Generic cancel button in dialogs."
+  },
+
+  "videoSheetDeletedSnackbar": "Video deleted",
+  "@videoSheetDeletedSnackbar": {
+    "description": "Snackbar shown after deleting a video."
+  },
+
+  "detailsLabelName": "Name",
+  "@detailsLabelName": {
+    "description": "Field label in the video details sheet and the rename dialog's text field."
+  },
+
+  "detailsLabelFolder": "Folder",
+  "@detailsLabelFolder": {
+    "description": "Row label in the video details sheet."
+  },
+
+  "detailsLabelSize": "Size",
+  "@detailsLabelSize": {
+    "description": "Row label in the video details sheet."
+  },
+
+  "detailsLabelDuration": "Duration",
+  "@detailsLabelDuration": {
+    "description": "Row label in the video details sheet."
+  },
+
+  "detailsLabelResolution": "Resolution",
+  "@detailsLabelResolution": {
+    "description": "Row label in the video details sheet."
+  },
+
+  "detailsLabelAdded": "Added",
+  "@detailsLabelAdded": {
+    "description": "Row label in the video details sheet (date added)."
+  },
+
+  "detailsLabelUri": "URI",
+  "@detailsLabelUri": {
+    "description": "Row label in the video details sheet. Technical acronym, the same in both languages."
+  },
+
+  "commonSave": "Save",
+  "@commonSave": {
+    "description": "Generic save button in rename/edit dialogs."
+  },
+
+  "selectionCountLabel": "{count, plural, =1{{count} selected} other{{count} selected}}",
+  "@selectionCountLabel": {
+    "description": "Title of the selection AppBar: how many videos are currently selected.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "selectionSelectAll": "Select all",
+  "@selectionSelectAll": {
+    "description": "Tooltip on the \"select all\" icon in the selection AppBar."
+  },
+
+  "selectionMoveToVault": "To Vault",
+  "@selectionMoveToVault": {
+    "description": "Bulk-selection bar action: move the selected videos to the Vault."
+  },
+
+  "selectionAddToList": "To a playlist",
+  "@selectionAddToList": {
+    "description": "Bulk-selection bar action: add the selected videos to a playlist."
+  },
+
+  "selectionDeleteTitle": "Delete videos",
+  "@selectionDeleteTitle": {
+    "description": "Bulk-delete confirmation dialog title when the device has no trash."
+  },
+
+  "selectionTrashConfirmBody": "{count, plural, =1{Move 1 video to the trash?\n\nYou can recover it from your phone's trash for 30 days.} other{Move {count} videos to the trash?\n\nYou can recover them from your phone's trash for 30 days.}}",
+  "@selectionTrashConfirmBody": {
+    "description": "Confirmation dialog body when moving several selected videos to the trash.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "selectionDeleteConfirmBody": "{count, plural, =1{Delete 1 video? This can't be undone.} other{Delete {count} videos? This can't be undone.}}",
+  "@selectionDeleteConfirmBody": {
+    "description": "Confirmation dialog body when permanently deleting several selected videos.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "selectionTrashedSnackbar": "{count, plural, =1{1 video moved to the trash} other{{count} videos moved to the trash}}",
+  "@selectionTrashedSnackbar": {
+    "description": "Snackbar shown after moving the selected videos to the trash.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "selectionDeletedSnackbar": "{count, plural, =1{1 video deleted} other{{count} videos deleted}}",
+  "@selectionDeletedSnackbar": {
+    "description": "Snackbar shown after permanently deleting the selected videos.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "foldersEmptyTitle": "No folders",
+  "@foldersEmptyTitle": {
+    "description": "Title of the Folders tab's empty state."
+  },
+
+  "foldersEmptySubtitle": "Your videos will show up here grouped by folder.",
+  "@foldersEmptySubtitle": {
+    "description": "Subtitle of the Folders tab's empty state."
+  },
+
+  "folderCardVideoCount": "{count} vids",
+  "@folderCardVideoCount": {
+    "description": "Small pill on a folder card showing how many videos it has.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "folderHideTitle": "Hide from library",
+  "@folderHideTitle": {
+    "description": "Row in a folder's long-press options sheet."
+  },
+
+  "folderHideSubtitle": "Nothing is deleted or moved: it just stops showing up in Kivo.",
+  "@folderHideSubtitle": {
+    "description": "Clarifying subtitle under the \"Hide from library\" row."
+  },
+
+  "folderHiddenSnackbar": "{folder} hidden",
+  "@folderHiddenSnackbar": {
+    "description": "Snackbar shown after hiding a folder, naming it.",
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
+
+  "commonUndo": "Undo",
+  "@commonUndo": {
+    "description": "Generic undo action in a SnackBarAction."
+  },
+
+  "playlistsEmptyTitle": "You don't have any playlists yet",
+  "@playlistsEmptyTitle": {
+    "description": "Title of the Playlists tab's empty state when none exist."
+  },
+
+  "playlistsEmptySubtitle": "A playlist is an order you choose: create one and add videos from selection or from a video's menu.",
+  "@playlistsEmptySubtitle": {
+    "description": "Subtitle of the Playlists tab's empty state when none exist."
+  },
+
+  "playlistNewListLabel": "New playlist",
+  "@playlistNewListLabel": {
+    "description": "Label/title for creating a new playlist (empty-state button, create dialog title, floating action button, add-to-playlist sheet row)."
+  },
+
+  "playlistsNoSearchResults": "No playlist matches \"{query}\"",
+  "@playlistsNoSearchResults": {
+    "description": "Empty state when a search among playlists finds none.",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+
+  "commonCreate": "Create",
+  "@commonCreate": {
+    "description": "Generic confirm-creation button in create-playlist dialogs."
+  },
+
+  "playlistsSelectedCount": "{count, plural, =1{1 playlist selected} other{{count} playlists selected}}",
+  "@playlistsSelectedCount": {
+    "description": "Label of the playlist bulk-selection bar: how many are marked.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playlistsBulkDeleteTitle": "Delete playlists",
+  "@playlistsBulkDeleteTitle": {
+    "description": "Confirmation dialog title when deleting several marked playlists."
+  },
+
+  "playlistsBulkDeleteBody": "{count, plural, =1{Delete 1 playlist? This can't be undone. The videos aren't deleted, only the playlists.} other{Delete {count} playlists? This can't be undone. The videos aren't deleted, only the playlists.}}",
+  "@playlistsBulkDeleteBody": {
+    "description": "Confirmation dialog body when deleting several marked playlists.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playlistRenameTitle": "Rename playlist",
+  "@playlistRenameTitle": {
+    "description": "Title of the menu/dialog to rename a playlist (playlist screen menu and the Playlists tab's rename dialog)."
+  },
+
+  "playlistRowVideoCount": "{count, plural, =1{1 video} other{{count} videos}}",
+  "@playlistRowVideoCount": {
+    "description": "Video count shown on a playlist row.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playlistRowMissingCount": "{count, plural, =1{{count} unavailable} other{{count} unavailable}}",
+  "@playlistRowMissingCount": {
+    "description": "Appended to a playlist row's video count when some entries can no longer be found.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playlistAddSheetEmpty": "You don't have any playlists yet. Create one to get started.",
+  "@playlistAddSheetEmpty": {
+    "description": "Message shown in the add-to-playlist sheet when there are no playlists."
+  },
+
+  "playlistAddedSnackbar": "Added to \"{name}\"",
+  "@playlistAddedSnackbar": {
+    "description": "Snackbar shown after adding video(s) to a playlist, naming it.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playlistPlayLabel": "Play",
+  "@playlistPlayLabel": {
+    "description": "Label of the floating action button that plays the whole playlist."
+  },
+
+  "playlistEmptyTitle": "This playlist is empty",
+  "@playlistEmptyTitle": {
+    "description": "Title of a playlist's empty state when it has no entries."
+  },
+
+  "playlistEmptySubtitle": "Add videos from selection or from a video's menu, with \"Add to playlist\".",
+  "@playlistEmptySubtitle": {
+    "description": "Subtitle of a playlist's empty state when it has no entries."
+  },
+
+  "playlistRemoveEntryTooltip": "Remove from playlist",
+  "@playlistRemoveEntryTooltip": {
+    "description": "Tooltip on the button that removes an entry from the playlist (available and unavailable rows)."
+  },
+
+  "playlistEntryRemovedSnackbar": "\"{name}\" removed from the playlist",
+  "@playlistEntryRemovedSnackbar": {
+    "description": "Snackbar shown after removing an entry from the playlist, naming it.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playlistNothingToPlaySnackbar": "Nothing available to play right now",
+  "@playlistNothingToPlaySnackbar": {
+    "description": "Snackbar shown when trying to play a playlist with no available entries."
+  },
+
+  "playlistDeleteTitle": "Delete playlist",
+  "@playlistDeleteTitle": {
+    "description": "Title of the menu/dialog to delete a single playlist (distinct from bulk delete)."
+  },
+
+  "playlistDeleteConfirmBody": "Delete \"{name}\"? This can't be undone. The videos aren't deleted, only the playlist.",
+  "@playlistDeleteConfirmBody": {
+    "description": "Confirmation dialog body when deleting a single playlist, naming it.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playlistEntryUnavailable": "Unavailable",
+  "@playlistEntryUnavailable": {
+    "description": "Label shown on a playlist row whose original video can no longer be found."
+  },
+
+  "playerAutoplayNextLabel": "NEXT",
+  "@playerAutoplayNextLabel": {
+    "description": "Eyebrow of the autoplay corner card announcing the pending next video."
+  },
+
+  "playerAutoplayPlayAction": "Play",
+  "@playerAutoplayPlayAction": {
+    "description": "Button on the autoplay corner card that confirms advancing to the next video immediately."
+  },
+
+  "playerBookmarksTitle": "Bookmarks",
+  "@playerBookmarksTitle": {
+    "description": "Title of the bookmarks sheet, reused as the \"Bookmarks\" row title in the more menu."
+  },
+
+  "playerBookmarksEmpty": "You haven't marked anything in this video yet.",
+  "@playerBookmarksEmpty": {
+    "description": "Empty state of the bookmarks sheet when the video has none."
+  },
+
+  "playerBookmarksRenameDialogTitle": "Name bookmark",
+  "@playerBookmarksRenameDialogTitle": {
+    "description": "Title of the dialog to name or rename a bookmark."
+  },
+
+  "playerBookmarksDeletedUnnamedSnackbar": "Bookmark deleted · {time}",
+  "@playerBookmarksDeletedUnnamedSnackbar": {
+    "description": "Snackbar when deleting an unnamed bookmark; {time} already comes formatted by fmtDuration.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerBookmarksDeletedNamedSnackbar": "\"{name}\" deleted",
+  "@playerBookmarksDeletedNamedSnackbar": {
+    "description": "Snackbar when deleting a named bookmark, naming it.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerChaptersTitle": "Chapters",
+  "@playerChaptersTitle": {
+    "description": "Title of the chapters sheet, reused as the \"Chapters\" row title in the more menu."
+  },
+
+  "playerChaptersEmpty": "This video has no chapters.",
+  "@playerChaptersEmpty": {
+    "description": "Empty state of the chapters sheet when the video has none."
+  },
+
+  "playerChaptersPrevious": "Previous",
+  "@playerChaptersPrevious": {
+    "description": "Button that jumps to the previous chapter, in the chapters sheet."
+  },
+
+  "playerChaptersNext": "Next",
+  "@playerChaptersNext": {
+    "description": "Button that jumps to the next chapter, in the chapters sheet."
+  },
+
+  "playerSpeedTooltip": "Speed",
+  "@playerSpeedTooltip": {
+    "description": "Tooltip of the speed button in the player's bottom bar, reused as a label in the gesture tutorial."
+  },
+
+  "playerLockScreenTooltip": "Lock screen",
+  "@playerLockScreenTooltip": {
+    "description": "Tooltip of the button that locks the screen, in the player's bottom bar."
+  },
+
+  "playerAspectRatioTooltip": "Aspect ratio",
+  "@playerAspectRatioTooltip": {
+    "description": "Tooltip of the aspect ratio button in the bottom bar, reused as a label in the gesture tutorial."
+  },
+
+  "playerRotateTooltip": "Rotate",
+  "@playerRotateTooltip": {
+    "description": "Tooltip of the rotate button in the bottom bar, reused as a label in the gesture tutorial."
+  },
+
+  "playerSkipForwardTooltip": "Forward {seconds}s",
+  "@playerSkipForwardTooltip": {
+    "description": "Tooltip of the center fast-forward button, naming the configured seconds.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerSkipBackTooltip": "Back {seconds}s",
+  "@playerSkipBackTooltip": {
+    "description": "Tooltip of the center rewind button, naming the configured seconds.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerPauseTooltip": "Pause",
+  "@playerPauseTooltip": {
+    "description": "Tooltip of the center play/pause button while the video is playing."
+  },
+
+  "playerPlayTooltip": "Play",
+  "@playerPlayTooltip": {
+    "description": "Tooltip of the center play/pause button while the video is paused."
+  },
+
+  "playerHoldToUnlockHint": "hold to unlock",
+  "@playerHoldToUnlockHint": {
+    "description": "Instruction under the lock icon on the player's locked screen."
+  },
+
+  "playerResumeUndoneMessage": "Resumed from {pos}",
+  "@playerResumeUndoneMessage": {
+    "description": "Toast confirming the video resumed from a saved position; {pos} already comes formatted by fmtDuration.",
+    "placeholders": {
+      "pos": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerResumeRestartAction": "Restart",
+  "@playerResumeRestartAction": {
+    "description": "Button on the resume toast that restarts the video from the beginning."
+  },
+
+  "playerResumeAskMessage": "Resume from {pos}?",
+  "@playerResumeAskMessage": {
+    "description": "Question on the resume prompt; {pos} already comes formatted by fmtDuration.",
+    "placeholders": {
+      "pos": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerResumeFromStartAction": "From the start",
+  "@playerResumeFromStartAction": {
+    "description": "Button on the resume prompt that starts the video from the beginning."
+  },
+
+  "playerResumeAction": "Resume",
+  "@playerResumeAction": {
+    "description": "Button on the resume prompt that continues from the saved position."
+  },
+
+  "playerBackTooltip": "Back",
+  "@playerBackTooltip": {
+    "description": "Tooltip of the back button, in the player's top bar."
+  },
+
+  "playerInfoOverlayHideTooltip": "Hide on-screen info",
+  "@playerInfoOverlayHideTooltip": {
+    "description": "Tooltip of the info button while the overlay is visible."
+  },
+
+  "playerInfoOverlayShowTooltip": "Show on-screen info",
+  "@playerInfoOverlayShowTooltip": {
+    "description": "Tooltip of the info button while the overlay is hidden."
+  },
+
+  "playerSubtitlesTooltip": "Subtitles",
+  "@playerSubtitlesTooltip": {
+    "description": "Tooltip of the subtitles button in the top bar, reused as the subtitles sheet title and as a label in the gesture tutorial."
+  },
+
+  "playerPipTooltip": "Picture in picture",
+  "@playerPipTooltip": {
+    "description": "Tooltip of the picture-in-picture button, reused as a label in the gesture tutorial."
+  },
+
+  "playerAudioTooltip": "Audio",
+  "@playerAudioTooltip": {
+    "description": "Tooltip of the audio button in the top bar, reused as the audio tracks sheet title."
+  },
+
+  "playerMoreOptionsTooltip": "More options",
+  "@playerMoreOptionsTooltip": {
+    "description": "Tooltip of the button that opens the more menu, in the player's top bar."
+  },
+
+  "playerLoopMarkA": "Mark A",
+  "@playerLoopMarkA": {
+    "description": "Text of the A-B loop pill while waiting for point A to be marked."
+  },
+
+  "playerLoopMarkB": "Mark B",
+  "@playerLoopMarkB": {
+    "description": "Text of the A-B loop pill while waiting for point B to be marked."
+  },
+
+  "playerLoopPointALabel": "A {time}",
+  "@playerLoopPointALabel": {
+    "description": "Reminder of the already-marked point A, next to the pill, while waiting for point B; {time} already comes formatted by fmtDuration.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerLoopSubtitleIdle": "Repeat a section of the video",
+  "@playerLoopSubtitleIdle": {
+    "description": "Subtitle of the \"A-B loop\" row in the more menu when no loop is marked."
+  },
+
+  "playerLoopSubtitleMarking": "Marking…",
+  "@playerLoopSubtitleMarking": {
+    "description": "Subtitle of the \"A-B loop\" row in the more menu while marking point A or B."
+  },
+
+  "playerLoopSubtitleActive": "Active · {range}",
+  "@playerLoopSubtitleActive": {
+    "description": "Subtitle of the \"A-B loop\" row in the more menu with the loop active; {range} already comes formatted by fmtDuration.",
+    "placeholders": {
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerMenuChaptersSubtitle": "{count, plural, =0{No chapters} =1{1 chapter} other{{count} chapters}}",
+  "@playerMenuChaptersSubtitle": {
+    "description": "Subtitle of the \"Chapters\" row in the more menu with the video's chapter count.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerMenuSleepBadgeEpisode": "At the end",
+  "@playerMenuSleepBadgeEpisode": {
+    "description": "Badge on the \"Sleep timer\" tile in the more menu when the timer is set to stop at the end of the episode."
+  },
+
+  "playerMenuSleepBadgeEpisodes": "{count} ep",
+  "@playerMenuSleepBadgeEpisodes": {
+    "description": "Badge on the \"Sleep timer\" tile in the more menu when the timer is counting down episodes.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerMenuMarkHere": "Mark here",
+  "@playerMenuMarkHere": {
+    "description": "Tile in the more menu that saves a bookmark at the current position."
+  },
+
+  "playerMenuCapture": "Capture",
+  "@playerMenuCapture": {
+    "description": "Tile in the more menu that captures the current frame."
+  },
+
+  "playerMenuSleepTimer": "Sleep timer",
+  "@playerMenuSleepTimer": {
+    "description": "Tile in the more menu that opens the sleep timer panel."
+  },
+
+  "playerMenuSync": "Sync",
+  "@playerMenuSync": {
+    "description": "Tile in the more menu that opens the audio/subtitle sync panel."
+  },
+
+  "playerMenuGroupPlayback": "Playback",
+  "@playerMenuGroupPlayback": {
+    "description": "Title of the Repeat/Shuffle/A-B loop group of rows in the more menu."
+  },
+
+  "playerMenuRepeat": "Repeat",
+  "@playerMenuRepeat": {
+    "description": "Row in the more menu with the repeat mode selector."
+  },
+
+  "playerMenuOptionOff": "Off",
+  "@playerMenuOptionOff": {
+    "description": "\"Off\" segment of the Repeat/Shuffle selectors in the more menu."
+  },
+
+  "playerMenuRepeatList": "List",
+  "@playerMenuRepeatList": {
+    "description": "Segment of the Repeat selector: repeat the whole playlist/queue."
+  },
+
+  "playerMenuRepeatVideoOption": "Video",
+  "@playerMenuRepeatVideoOption": {
+    "description": "Segment of the Repeat selector: repeat only the current video."
+  },
+
+  "playerMenuShuffle": "Shuffle",
+  "@playerMenuShuffle": {
+    "description": "Row in the more menu with the shuffle order selector."
+  },
+
+  "playerMenuOptionOn": "On",
+  "@playerMenuOptionOn": {
+    "description": "\"On\" segment of the Shuffle selector in the more menu."
+  },
+
+  "playerMenuAbLoop": "A-B loop",
+  "@playerMenuAbLoop": {
+    "description": "Row in the more menu that arms or cancels the A-B loop."
+  },
+
+  "playerMenuGroupGoTo": "Go to",
+  "@playerMenuGroupGoTo": {
+    "description": "Title of the Chapters/Bookmarks group of rows in the more menu."
+  },
+
+  "playerMenuBookmarksSubtitle": "{count, plural, =0{No bookmarks} =1{1 bookmark} other{{count} bookmarks}}",
+  "@playerMenuBookmarksSubtitle": {
+    "description": "Subtitle of the \"Bookmarks\" row in the more menu with the video's bookmark count.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerMenuGroupAudio": "Audio",
+  "@playerMenuGroupAudio": {
+    "description": "Title of the group holding the Equalizer row in the more menu."
+  },
+
+  "playerMenuEqualizer": "Equalizer",
+  "@playerMenuEqualizer": {
+    "description": "Row in the more menu that opens the equalizer."
+  },
+
+  "playerMenuBookmarkSavedSnackbar": "Bookmark saved · {time}",
+  "@playerMenuBookmarkSavedSnackbar": {
+    "description": "Snackbar after saving a bookmark with \"Mark here\"; {time} already comes formatted by fmtDuration.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerMenuBookmarkNameAction": "Name",
+  "@playerMenuBookmarkNameAction": {
+    "description": "Action on the bookmark-saved snackbar that opens the dialog to name it."
+  },
+
+  "playerMenuCaptureSavedSnackbar": "Frame captured",
+  "@playerMenuCaptureSavedSnackbar": {
+    "description": "Snackbar shown after successfully capturing a frame."
+  },
+
+  "playerMenuCaptureViewAction": "View",
+  "@playerMenuCaptureViewAction": {
+    "description": "Action on the frame-captured snackbar that opens the image."
+  },
+
+  "playerQueueNowBadge": "NOW",
+  "@playerQueueNowBadge": {
+    "description": "Badge over the current video's thumbnail, in the queue strip."
+  },
+
+  "playerSleepPanelTitle": "Sleep timer",
+  "@playerSleepPanelTitle": {
+    "description": "Title of the sleep timer panel."
+  },
+
+  "playerSleepDurationLabel": "Duration",
+  "@playerSleepDurationLabel": {
+    "description": "Eyebrow above the minutes selector, in the sleep timer panel."
+  },
+
+  "playerSleepMinutesValue": "{minutes} min",
+  "@playerSleepMinutesValue": {
+    "description": "Value of the minutes selector, in the sleep timer panel.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerSleepOrLabel": "Or",
+  "@playerSleepOrLabel": {
+    "description": "Eyebrow between the minutes selector and the episode cards, in the sleep timer panel."
+  },
+
+  "playerSleepStartAfterEpisodes": "Start · After {count} episodes",
+  "@playerSleepStartAfterEpisodes": {
+    "description": "Primary button of the sleep timer panel when \"after N episodes\" was chosen.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerSleepStartAtEpisodeEnd": "Start · At the end of the episode",
+  "@playerSleepStartAtEpisodeEnd": {
+    "description": "Primary button of the sleep timer panel when \"at the end of the episode\" was chosen."
+  },
+
+  "playerSleepStartFixedMinutes": "Start · {minutes} min",
+  "@playerSleepStartFixedMinutes": {
+    "description": "Primary button of the sleep timer panel when a fixed duration was chosen.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerSleepRemainingOfMinutes": "remaining · of {minutes} min",
+  "@playerSleepRemainingOfMinutes": {
+    "description": "Subtitle under the remaining time, in the sleep timer panel with a fixed duration active.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerSleepEpisodesRemaining": "{count, plural, =1{episode remaining} other{episodes remaining}}",
+  "@playerSleepEpisodesRemaining": {
+    "description": "Subtitle under the episode counter, in the sleep timer panel with episodes mode active. The number is already shown separately above.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerSleepUntilEpisodeEnd": "until the end of the episode",
+  "@playerSleepUntilEpisodeEnd": {
+    "description": "Subtitle under the remaining time, in the sleep timer panel with \"at the end of the episode\" mode active."
+  },
+
+  "playerSleepDeactivate": "Turn off",
+  "@playerSleepDeactivate": {
+    "description": "Button that cancels the active sleep timer, in the sleep timer panel and the warning toast."
+  },
+
+  "playerSleepExtendByMinutes": "Extend +{minutes}",
+  "@playerSleepExtendByMinutes": {
+    "description": "Button that extends the active sleep timer by its own duration, in the sleep timer panel.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerSleepEpisodeCardTitle": "At the end of the episode",
+  "@playerSleepEpisodeCardTitle": {
+    "description": "Title of the card that arms the timer to stop at the end of the episode."
+  },
+
+  "playerSleepEpisodeCardSubtitle": "Stops when this video ends",
+  "@playerSleepEpisodeCardSubtitle": {
+    "description": "Clarifying subtitle of the \"At the end of the episode\" card."
+  },
+
+  "playerSleepEpisodesCardTitle": "After N episodes",
+  "@playerSleepEpisodesCardTitle": {
+    "description": "Title of the card that arms the timer to stop after a number of episodes chosen with the card's own −/+ buttons."
+  },
+
+  "playerSleepEpisodesCardSubtitle": "Lets autoplay run and then stops",
+  "@playerSleepEpisodesCardSubtitle": {
+    "description": "Clarifying subtitle of the \"After N episodes\" card."
+  },
+
+  "playerSleepPausingInLabel": "Pausing in ",
+  "@playerSleepPausingInLabel": {
+    "description": "Prefix of the sleep timer warning toast, followed by the remaining time in its own style (rich text, not interpolated). Keep the trailing space.",
+    "placeholders": {}
+  },
+
+  "playerSleepExtendAction": "Extend",
+  "@playerSleepExtendAction": {
+    "description": "Button on the sleep timer warning toast that extends it by its own duration."
+  },
+
+  "playerSpeedSavePreset": "Save {rate}x",
+  "@playerSpeedSavePreset": {
+    "description": "Button on the speed panel that saves the current speed as a new preset; {rate} already comes formatted (rounded to two decimals).",
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerSpeedResetAction": "Reset (1x)",
+  "@playerSpeedResetAction": {
+    "description": "Button on the speed panel that resets the speed to 1x."
+  },
+
+  "playerAspectFit": "Fit",
+  "@playerAspectFit": {
+    "description": "Name of the \"fit to box\" aspect mode, shown in the flash when the mode changes."
+  },
+
+  "playerAspectFill": "Fill",
+  "@playerAspectFill": {
+    "description": "Name of the \"fill the screen\" aspect mode, shown in the flash when the mode changes."
+  },
+
+  "playerAspectStretch": "Stretch",
+  "@playerAspectStretch": {
+    "description": "Name of the \"stretch\" aspect mode, shown in the flash when the mode changes."
+  },
+
+  "playerTracksTabLabel": "Tracks",
+  "@playerTracksTabLabel": {
+    "description": "Tab of the subtitles sheet listing the available tracks."
+  },
+
+  "playerTracksStyleTabLabel": "Style",
+  "@playerTracksStyleTabLabel": {
+    "description": "Tab of the subtitles sheet that edits the style (size and color)."
+  },
+
+  "playerTracksShowSubtitles": "Show subtitles",
+  "@playerTracksShowSubtitles": {
+    "description": "Switch that turns subtitles on or off, in the subtitles sheet."
+  },
+
+  "playerTracksSectionInVideo": "In the video",
+  "@playerTracksSectionInVideo": {
+    "description": "Eyebrow of the section listing tracks embedded in the file, in the tracks sheet."
+  },
+
+  "playerTracksEmbeddedDefault": "Embedded track · default",
+  "@playerTracksEmbeddedDefault": {
+    "description": "Subtitle of an embedded track flagged as default by the file."
+  },
+
+  "playerTracksEmbedded": "Embedded track",
+  "@playerTracksEmbedded": {
+    "description": "Subtitle of a regular embedded track (not the default)."
+  },
+
+  "playerTracksSectionSync": "Sync",
+  "@playerTracksSectionSync": {
+    "description": "Eyebrow of the sync section, in the tracks sheet."
+  },
+
+  "playerTracksSyncSubtitles": "Sync subtitles",
+  "@playerTracksSyncSubtitles": {
+    "description": "Card that opens the sync panel, in the subtitles sheet."
+  },
+
+  "playerTracksSyncAudio": "Sync audio",
+  "@playerTracksSyncAudio": {
+    "description": "Card that opens the sync panel, in the audio sheet."
+  },
+
+  "playerTracksSyncNeedsSubtitle": "Turn on a subtitle to adjust it",
+  "@playerTracksSyncNeedsSubtitle": {
+    "description": "Subtitle of the sync card when no subtitle is active yet."
+  },
+
+  "playerTracksSyncHint": "Adjust the offset during playback",
+  "@playerTracksSyncHint": {
+    "description": "Subtitle of the sync card once the offset can be adjusted."
+  },
+
+  "playerTracksSectionInFolder": "In the folder",
+  "@playerTracksSectionInFolder": {
+    "description": "Eyebrow of the section listing subtitle files found next to the video, in the subtitles sheet."
+  },
+
+  "playerTracksLocalFile": "Local file",
+  "@playerTracksLocalFile": {
+    "description": "Subtitle of a subtitle track found as a file next to the video."
+  },
+
+  "playerTracksNoSubtitlesFound": "This video has no embedded subtitles and there are no files next to it.",
+  "@playerTracksNoSubtitlesFound": {
+    "description": "Empty state of the subtitles sheet when there are no embedded tracks or nearby files."
+  },
+
+  "playerTracksNoOtherAudioTracks": "This video has no other audio tracks.",
+  "@playerTracksNoOtherAudioTracks": {
+    "description": "Empty state of the audio sheet when the video has no other tracks."
+  },
+
+  "playerTracksSectionFromDevice": "From your device",
+  "@playerTracksSectionFromDevice": {
+    "description": "Eyebrow of the section with the action to load a subtitle manually, in the subtitles sheet."
+  },
+
+  "playerTracksLoadSubtitleAction": "Load subtitle…",
+  "@playerTracksLoadSubtitleAction": {
+    "description": "Card that opens the file picker to load a subtitle manually."
+  },
+
+  "playerTracksLoadSubtitleHint": "Choose a .srt, .ass or .vtt file",
+  "@playerTracksLoadSubtitleHint": {
+    "description": "Subtitle of the \"Load subtitle…\" card, with the accepted formats."
+  },
+
+  "playerTracksBgTransparent": "Transparent",
+  "@playerTracksBgTransparent": {
+    "description": "Subtitle background option: no background, in the Style tab."
+  },
+
+  "playerTracksBgBlack": "Black",
+  "@playerTracksBgBlack": {
+    "description": "Subtitle background option: black, in the Style tab."
+  },
+
+  "playerTracksBgWhite": "White",
+  "@playerTracksBgWhite": {
+    "description": "Subtitle background option: white, in the Style tab."
+  },
+
+  "playerTracksStylePreviewSample": "We're close to finding it.",
+  "@playerTracksStylePreviewSample": {
+    "description": "Sample phrase shown in the live subtitle style preview, in the Style tab."
+  },
+
+  "playerTracksSizeLabel": "Size",
+  "@playerTracksSizeLabel": {
+    "description": "Eyebrow above the font size control, in the Style tab."
+  },
+
+  "playerTracksTextColorLabel": "Text color",
+  "@playerTracksTextColorLabel": {
+    "description": "Eyebrow above the text color swatches, in the Style tab."
+  },
+
+  "playerTracksBackgroundColorLabel": "Background color",
+  "@playerTracksBackgroundColorLabel": {
+    "description": "Eyebrow above the background color swatches, in the Style tab."
+  },
+
+  "playerTracksResetStyleAction": "Reset style",
+  "@playerTracksResetStyleAction": {
+    "description": "Button that restores the subtitle style to its defaults, in the Style tab."
+  },
+
+  "playerSyncDragHint": "drag the bar or use the buttons",
+  "@playerSyncDragHint": {
+    "description": "Instruction under the drag bar of the audio/subtitle sync panel."
+  },
+
+  "playerTutorialPageTaps": "Taps",
+  "@playerTutorialPageTaps": {
+    "description": "Title of the gesture tutorial's first page."
+  },
+
+  "playerTutorialDoubleTapBack": "Double tap · −{seconds} s",
+  "@playerTutorialDoubleTapBack": {
+    "description": "Gesture tutorial label for the double tap that skips back, with the configured seconds.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerTutorialDoubleTapPause": "Double tap · Pause",
+  "@playerTutorialDoubleTapPause": {
+    "description": "Gesture tutorial label for the center double tap that pauses."
+  },
+
+  "playerTutorialDoubleTapForward": "Double tap · +{seconds} s",
+  "@playerTutorialDoubleTapForward": {
+    "description": "Gesture tutorial label for the double tap that skips forward, with the configured seconds.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerTutorialSingleTapToggleControls": "Single tap · Show or hide the controls",
+  "@playerTutorialSingleTapToggleControls": {
+    "description": "Gesture tutorial label for the single tap that shows or hides the controls."
+  },
+
+  "playerTutorialPageDrags": "Drags",
+  "@playerTutorialPageDrags": {
+    "description": "Title of the gesture tutorial's second page."
+  },
+
+  "playerTutorialDragBrightness": "Drag · Brightness",
+  "@playerTutorialDragBrightness": {
+    "description": "Gesture tutorial label for the vertical brightness drag."
+  },
+
+  "playerTutorialDragVolume": "Drag · Volume (up to {percent}%)",
+  "@playerTutorialDragVolume": {
+    "description": "Gesture tutorial label for the vertical volume drag, with the configured maximum.",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerTutorialDragSeekPreview": "Drag · Seek with preview",
+  "@playerTutorialDragSeekPreview": {
+    "description": "Gesture tutorial label for the horizontal seek drag."
+  },
+
+  "playerTutorialDragEdgeMinimize": "Drag on the edge · Minimize",
+  "@playerTutorialDragEdgeMinimize": {
+    "description": "Gesture tutorial label for the lateral-edge drag that minimizes."
+  },
+
+  "playerTutorialDragCenterRotate": "Drag in the center · Rotate (with the controls hidden)",
+  "@playerTutorialDragCenterRotate": {
+    "description": "Gesture tutorial label for the center drag that rotates the screen."
+  },
+
+  "playerTutorialPinchZoom": "Pinch · Zoom (up to {zoom})",
+  "@playerTutorialPinchZoom": {
+    "description": "Gesture tutorial label for the pinch-to-zoom gesture, with the configured maximum already formatted (e.g. \"8×\").",
+    "placeholders": {
+      "zoom": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerTutorialZoomPan": "While zoomed, drag · Pan · Tap the pill to return to 1×",
+  "@playerTutorialZoomPan": {
+    "description": "Gesture tutorial label for panning while zoomed in."
+  },
+
+  "playerTutorialHoldLeftSpeed": "Hold on the left · {speed}",
+  "@playerTutorialHoldLeftSpeed": {
+    "description": "Gesture tutorial label for holding on the left, with the configured speed already formatted (e.g. \"2×\").",
+    "placeholders": {
+      "speed": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerTutorialHoldRightLadder": "Hold and slide up or down on the right · Speed ladder",
+  "@playerTutorialHoldRightLadder": {
+    "description": "Gesture tutorial label for holding and sliding on the right."
+  },
+
+  "playerTutorialPageButtons": "Buttons",
+  "@playerTutorialPageButtons": {
+    "description": "Title of the gesture tutorial's third page."
+  },
+
+  "playerTutorialMinimize": "Minimize to the mini-bar",
+  "@playerTutorialMinimize": {
+    "description": "Gesture tutorial label for the minimize button."
+  },
+
+  "playerTutorialInfoOverlay": "On-screen info",
+  "@playerTutorialInfoOverlay": {
+    "description": "Gesture tutorial label for the on-screen info button."
+  },
+
+  "playerTutorialAudioTracks": "Audio tracks",
+  "@playerTutorialAudioTracks": {
+    "description": "Gesture tutorial label for the audio tracks button."
+  },
+
+  "playerTutorialMoreOptions": "More options · sleep timer and A-B loop",
+  "@playerTutorialMoreOptions": {
+    "description": "Gesture tutorial label for the button that opens the more menu."
+  },
+
+  "playerTutorialLockScreen": "Lock the screen",
+  "@playerTutorialLockScreen": {
+    "description": "Gesture tutorial label for the lock screen button."
+  },
+
+  "playerTutorialQueueHint": "With more than one video in the folder, the queue appears above the buttons",
+  "@playerTutorialQueueHint": {
+    "description": "Closing note on the \"Buttons\" page of the gesture tutorial, about the queue strip."
+  },
+
+  "playerTutorialDoneAction": "Got it",
+  "@playerTutorialDoneAction": {
+    "description": "Button that closes the gesture tutorial, on its last page."
+  },
+
+  "playerTutorialNextAction": "Next",
+  "@playerTutorialNextAction": {
+    "description": "Button that advances to the next page of the gesture tutorial."
+  },
+
+  "playerTutorialTopBarSection": "Top bar",
+  "@playerTutorialTopBarSection": {
+    "description": "Title of the top bar section, on the \"Buttons\" page of the gesture tutorial."
+  },
+
+  "playerTutorialBottomBarSection": "Bottom bar",
+  "@playerTutorialBottomBarSection": {
+    "description": "Title of the bottom bar section, on the \"Buttons\" page of the gesture tutorial."
+  },
+
+  "settingsGeneralTitle": "General",
+  "@settingsGeneralTitle": {
+    "description": "Title of the General section in Settings; reused as its row title on the Settings root screen."
+  },
+
+  "settingsGeneralNavSubtitle": "Theme, accent color, haptics",
+  "@settingsGeneralNavSubtitle": {
+    "description": "Subtitle of the \"General\" row on the Settings root screen."
+  },
+
+  "settingsGeneralGroupAppearance": "Appearance",
+  "@settingsGeneralGroupAppearance": {
+    "description": "Group label for appearance (theme, accent color, icons, language) in Settings → General."
+  },
+
+  "settingsGeneralTheme": "Theme",
+  "@settingsGeneralTheme": {
+    "description": "Title of the theme segmented selector in Settings → General."
+  },
+
+  "settingsGeneralThemeSubtitle": "Light, dark, or match the system",
+  "@settingsGeneralThemeSubtitle": {
+    "description": "Subtitle of the theme selector in Settings → General."
+  },
+
+  "settingsGeneralThemeAuto": "Auto",
+  "@settingsGeneralThemeAuto": {
+    "description": "Theme selector option: follow the system theme."
+  },
+
+  "settingsGeneralThemeDark": "Dark",
+  "@settingsGeneralThemeDark": {
+    "description": "Theme selector option: pin dark."
+  },
+
+  "settingsGeneralThemeLight": "Light",
+  "@settingsGeneralThemeLight": {
+    "description": "Theme selector option: pin light."
+  },
+
+  "settingsGeneralAccentColor": "Accent color",
+  "@settingsGeneralAccentColor": {
+    "description": "Title of the accent color picker in Settings → General."
+  },
+
+  "settingsGeneralIcons": "Icons",
+  "@settingsGeneralIcons": {
+    "description": "Title of the icon style segmented selector in Settings → General."
+  },
+
+  "settingsGeneralIconsSubtitle": "Duotone or flat (white)",
+  "@settingsGeneralIconsSubtitle": {
+    "description": "Subtitle of the icon style selector in Settings → General."
+  },
+
+  "settingsGeneralIconsDuotone": "Duotone",
+  "@settingsGeneralIconsDuotone": {
+    "description": "Icon style selector option: duotone."
+  },
+
+  "settingsGeneralIconsFlat": "Flat",
+  "@settingsGeneralIconsFlat": {
+    "description": "Icon style selector option: flat (white)."
+  },
+
+  "settingsGeneralGroupInteraction": "Interaction",
+  "@settingsGeneralGroupInteraction": {
+    "description": "Group label for interaction (haptics) in Settings → General."
+  },
+
+  "settingsGeneralHaptics": "Haptics on gestures",
+  "@settingsGeneralHaptics": {
+    "description": "Title of the haptics-on-gestures switch in Settings → General."
+  },
+
+  "settingsGeneralHapticsSubtitle": "Subtle vibration when crossing thresholds",
+  "@settingsGeneralHapticsSubtitle": {
+    "description": "Subtitle of the haptics-on-gestures switch in Settings → General."
+  },
+
+  "settingsGroupLibrary": "Library",
+  "@settingsGroupLibrary": {
+    "description": "Group label \"Library\", shared by Settings → General (hidden folders) and Settings → Interface (columns)."
+  },
+
+  "settingsHiddenFoldersTitle": "Hidden folders",
+  "@settingsHiddenFoldersTitle": {
+    "description": "Title of the hidden folders screen, reused as its row title in Settings → General."
+  },
+
+  "settingsHiddenFoldersNavSubtitle": "Folders that don't appear in your library",
+  "@settingsHiddenFoldersNavSubtitle": {
+    "description": "Subtitle of the \"Hidden folders\" row in Settings → General."
+  },
+
+  "settingsHiddenFoldersEmpty": "You haven't hidden any folder.\nPress and hold a folder in Videos to hide it.",
+  "@settingsHiddenFoldersEmpty": {
+    "description": "Empty state of the hidden folders screen."
+  },
+
+  "settingsHiddenFoldersShowAction": "Show",
+  "@settingsHiddenFoldersShowAction": {
+    "description": "Button that unhides a hidden folder, on its row."
+  },
+
+  "settingsRootTitle": "Settings",
+  "@settingsRootTitle": {
+    "description": "AppBar title of the Settings root screen."
+  },
+
+  "settingsPlaybackGesturesTitle": "Playback and gestures",
+  "@settingsPlaybackGesturesTitle": {
+    "description": "Title of the playback-and-gestures section, reused as its row title on the Settings root screen."
+  },
+
+  "settingsPlaybackGesturesNavSubtitle": "Skips, sensitivities, speed",
+  "@settingsPlaybackGesturesNavSubtitle": {
+    "description": "Subtitle of the \"Playback and gestures\" row on the Settings root screen."
+  },
+
+  "settingsInterfaceTitle": "Interface",
+  "@settingsInterfaceTitle": {
+    "description": "Title of the interface section, reused as its row title on the Settings root screen."
+  },
+
+  "settingsInterfaceNavSubtitle": "Controls, overlay, aspect, columns",
+  "@settingsInterfaceNavSubtitle": {
+    "description": "Subtitle of the \"Interface\" row on the Settings root screen."
+  },
+
+  "settingsAdvancedPlaybackTitle": "Advanced playback",
+  "@settingsAdvancedPlaybackTitle": {
+    "description": "Title of the advanced playback section, reused as its row title on the Settings root screen."
+  },
+
+  "settingsAdvancedPlaybackNavSubtitle": "Resume, autoplay, subtitles, PiP",
+  "@settingsAdvancedPlaybackNavSubtitle": {
+    "description": "Subtitle of the \"Advanced playback\" row on the Settings root screen."
+  },
+
+  "settingsEqualizerTitle": "Equalizer",
+  "@settingsEqualizerTitle": {
+    "description": "Title of the equalizer screen, reused as its row title in Settings and as its switch title."
+  },
+
+  "settingsEqualizerNavSubtitle": "Bass, voice, treble and preamp",
+  "@settingsEqualizerNavSubtitle": {
+    "description": "Subtitle of the \"Equalizer\" row on the Settings root screen."
+  },
+
+  "settingsBackupTitle": "Backup",
+  "@settingsBackupTitle": {
+    "description": "Title of the backup screen, reused as its row title in Settings."
+  },
+
+  "settingsBackupNavSubtitle": "Export or restore your playlists, bookmarks and settings",
+  "@settingsBackupNavSubtitle": {
+    "description": "Subtitle of the \"Backup\" row on the Settings root screen."
+  },
+
+  "settingsAboutTitle": "About",
+  "@settingsAboutTitle": {
+    "description": "Title of the \"About\" screen, reused as its row title in Settings."
+  },
+
+  "settingsAboutNavSubtitle": "Version and updates",
+  "@settingsAboutNavSubtitle": {
+    "description": "Subtitle of the \"About\" row on the Settings root screen."
+  },
+
+  "settingsVaultNavSubtitle": "Hidden videos",
+  "@settingsVaultNavSubtitle": {
+    "description": "Subtitle of the \"Vault\" row on the Settings root screen."
+  },
+
+  "settingsResetAction": "Reset",
+  "@settingsResetAction": {
+    "description": "Short reset button, reused as the confirm action of the reset-all-settings dialog and as the equalizer curve reset action."
+  },
+
+  "settingsResetAllTitle": "Reset values",
+  "@settingsResetAllTitle": {
+    "description": "Title of the confirmation dialog and text of the button that resets every setting to its default."
+  },
+
+  "settingsResetAllBody": "Reset every setting to its default value?",
+  "@settingsResetAllBody": {
+    "description": "Body of the reset-all-settings confirmation dialog."
+  },
+
+  "settingsAboutDownloading": "Downloading the update",
+  "@settingsAboutDownloading": {
+    "description": "Title of the row shown while the update downloads, in Settings → About."
+  },
+
+  "settingsAboutDownloadingSubtitleWithVersion": "Kivo {version} · tap to see the progress",
+  "@settingsAboutDownloadingSubtitleWithVersion": {
+    "description": "Subtitle of the in-progress download row when the version is known.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+
+  "settingsAboutDownloadingSubtitleNoVersion": "Tap to see the progress",
+  "@settingsAboutDownloadingSubtitleNoVersion": {
+    "description": "Subtitle of the in-progress download row when the version is not known yet."
+  },
+
+  "settingsAboutReady": "Update ready to install",
+  "@settingsAboutReady": {
+    "description": "Title of the row shown once the update finished downloading, in Settings → About."
+  },
+
+  "settingsAboutReadySubtitleWithVersion": "Kivo {version} · tap to install it",
+  "@settingsAboutReadySubtitleWithVersion": {
+    "description": "Subtitle of the ready-to-install row when the version is known.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+
+  "settingsAboutReadySubtitleNoVersion": "Tap to install it",
+  "@settingsAboutReadySubtitleNoVersion": {
+    "description": "Subtitle of the ready-to-install row when the version is not known yet."
+  },
+
+  "settingsAboutCheckForUpdates": "Check for updates",
+  "@settingsAboutCheckForUpdates": {
+    "description": "Row that triggers the manual update check, in Settings → About."
+  },
+
+  "settingsAboutUpToDateSnackbar": "You're up to date ✓",
+  "@settingsAboutUpToDateSnackbar": {
+    "description": "Snackbar shown after a manual check finds no update."
+  },
+
+  "settingsAboutVersion": "Version {version}",
+  "@settingsAboutVersion": {
+    "description": "Version number shown under the app name, in Settings → About.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+
+  "settingsAboutTagline": "Local video player",
+  "@settingsAboutTagline": {
+    "description": "Short app description, in Settings → About."
+  },
+
+  "settingsAboutByAuthor": "By Kevin Carrera",
+  "@settingsAboutByAuthor": {
+    "description": "Author credit, in Settings → About."
+  },
+
+  "settingsAboutErrorLogTitle": "Error log",
+  "@settingsAboutErrorLogTitle": {
+    "description": "Title of the error log screen, reused as its row title in Settings → About."
+  },
+
+  "settingsAboutErrorLogSubtitle": "The latest failures, with their technical detail",
+  "@settingsAboutErrorLogSubtitle": {
+    "description": "Subtitle of the \"Error log\" row in Settings → About."
+  },
+
+  "settingsAboutAutoCheck": "Check automatically",
+  "@settingsAboutAutoCheck": {
+    "description": "Title of the automatic-check switch, in Settings → About."
+  },
+
+  "settingsAboutAutoCheckSubtitle": "Checks on open, at most once a day",
+  "@settingsAboutAutoCheckSubtitle": {
+    "description": "Subtitle of the automatic-check switch, in Settings → About."
+  },
+
+  "settingsAdvancedAutomaticOption": "Automatic",
+  "@settingsAdvancedAutomaticOption": {
+    "description": "Option \"automatic\", reused by the resume mode and by the subtitle/audio language selectors."
+  },
+
+  "settingsAdvancedLangChosen": "{lang} (chosen)",
+  "@settingsAdvancedLangChosen": {
+    "description": "The already-chosen language option in the subtitle/audio language selectors, naming the chosen code.",
+    "placeholders": {
+      "lang": {
+        "type": "String"
+      }
+    }
+  },
+
+  "settingsAdvancedGroupContinueWatching": "Continue watching",
+  "@settingsAdvancedGroupContinueWatching": {
+    "description": "Group label for resume, in Settings → Advanced playback."
+  },
+
+  "settingsAdvancedResumeBehavior": "When reopening a video",
+  "@settingsAdvancedResumeBehavior": {
+    "description": "Title of the resume-behavior selector, in Settings → Advanced playback."
+  },
+
+  "settingsAdvancedResumeAsk": "Ask",
+  "@settingsAdvancedResumeAsk": {
+    "description": "Resume selector option: always ask."
+  },
+
+  "settingsAdvancedResumeOff": "Off",
+  "@settingsAdvancedResumeOff": {
+    "description": "Resume selector option: off."
+  },
+
+  "settingsAdvancedResumeMinSeconds": "Minimum to remember position",
+  "@settingsAdvancedResumeMinSeconds": {
+    "description": "Title of the minimum-seconds-to-remember-position stepper, in Settings → Advanced playback."
+  },
+
+  "settingsAdvancedGroupPlayback": "Playback",
+  "@settingsAdvancedGroupPlayback": {
+    "description": "Group label for playback, in Settings → Advanced playback."
+  },
+
+  "settingsAdvancedAutoplayNext": "Play the next one automatically",
+  "@settingsAdvancedAutoplayNext": {
+    "description": "Title of the autoplay switch, in Settings → Advanced playback."
+  },
+
+  "settingsAdvancedPipAutoOnHome": "Floating thumbnail (PiP) when leaving to home",
+  "@settingsAdvancedPipAutoOnHome": {
+    "description": "Title of the auto-PiP-on-leaving-to-library switch, in Settings → Advanced playback."
+  },
+
+  "settingsAdvancedMinimizeKeepsPlaying": "Keep playing when minimized",
+  "@settingsAdvancedMinimizeKeepsPlaying": {
+    "description": "Title of the keep-playing-when-minimized switch, in Settings → Advanced playback."
+  },
+
+  "settingsAdvancedMinimizeKeepsPlayingSubtitle": "Audio keeps going in the bottom bar instead of pausing",
+  "@settingsAdvancedMinimizeKeepsPlayingSubtitle": {
+    "description": "Subtitle of the keep-playing-when-minimized switch."
+  },
+
+  "settingsAdvancedGroupSubtitlesAudio": "Subtitles and audio",
+  "@settingsAdvancedGroupSubtitlesAudio": {
+    "description": "Group label for subtitles and audio, in Settings → Advanced playback."
+  },
+
+  "settingsAdvancedSubtitlesDefault": "Enable subtitles by default",
+  "@settingsAdvancedSubtitlesDefault": {
+    "description": "Title of the subtitles-enabled-by-default switch, in Settings → Advanced playback."
+  },
+
+  "settingsAdvancedPreferredSubtitleLang": "Preferred subtitle language",
+  "@settingsAdvancedPreferredSubtitleLang": {
+    "description": "Title of the preferred subtitle language selector, in Settings → Advanced playback."
+  },
+
+  "settingsAdvancedPreferredLangSubtitle": "Set when you choose a track; here you can go back to Automatic",
+  "@settingsAdvancedPreferredLangSubtitle": {
+    "description": "Subtitle shared by the preferred-subtitle and preferred-audio language selectors."
+  },
+
+  "settingsAdvancedPreferredAudioLang": "Preferred audio language",
+  "@settingsAdvancedPreferredAudioLang": {
+    "description": "Title of the preferred audio language selector, in Settings → Advanced playback."
+  },
+
+  "settingsAdvancedGroupStorage": "Storage",
+  "@settingsAdvancedGroupStorage": {
+    "description": "Group label for storage, in Settings → Advanced playback."
+  },
+
+  "settingsAdvancedAllFilesAccess": "Access to all files",
+  "@settingsAdvancedAllFilesAccess": {
+    "description": "Title of the all-files-access row, in Settings → Advanced playback."
+  },
+
+  "settingsAdvancedAllFilesAccessGranted": "Granted",
+  "@settingsAdvancedAllFilesAccessGranted": {
+    "description": "Subtitle of the all-files-access row once it is already granted."
+  },
+
+  "settingsAdvancedAllFilesAccessPrompt": "Tap to delete and rename without confirmation",
+  "@settingsAdvancedAllFilesAccessPrompt": {
+    "description": "Subtitle of the all-files-access row while it is not granted yet."
+  },
+
+  "settingsGesturesGroupLearn": "Learn",
+  "@settingsGesturesGroupLearn": {
+    "description": "Group label for learning, in Settings → Playback and gestures."
+  },
+
+  "settingsGesturesViewMap": "View the gesture map",
+  "@settingsGesturesViewMap": {
+    "description": "Row that opens the gesture tutorial, in Settings → Playback and gestures."
+  },
+
+  "settingsGesturesViewMapSubtitle": "Taps, drags and the player's buttons",
+  "@settingsGesturesViewMapSubtitle": {
+    "description": "Subtitle of the \"View the gesture map\" row."
+  },
+
+  "settingsGesturesGroupDoubleTap": "Double tap",
+  "@settingsGesturesGroupDoubleTap": {
+    "description": "Group label for double tap, in Settings → Playback and gestures."
+  },
+
+  "settingsGesturesSkipBack": "Skip back",
+  "@settingsGesturesSkipBack": {
+    "description": "Title of the skip-back-by-double-tap stepper."
+  },
+
+  "settingsGesturesSkipForward": "Skip forward",
+  "@settingsGesturesSkipForward": {
+    "description": "Title of the skip-forward-by-double-tap stepper."
+  },
+
+  "settingsGesturesDoubleTapPause": "Pause with a double tap in the center",
+  "@settingsGesturesDoubleTapPause": {
+    "description": "Title of the pause-on-center-double-tap switch."
+  },
+
+  "settingsGesturesGroupSeek": "Skip and seek",
+  "@settingsGesturesGroupSeek": {
+    "description": "Group label for skip and seek, in Settings → Playback and gestures."
+  },
+
+  "settingsGesturesCenterSkip": "Skip of the ± buttons",
+  "@settingsGesturesCenterSkip": {
+    "description": "Title of the center ± buttons skip stepper."
+  },
+
+  "settingsGesturesHorizontalSeek": "Seek by dragging horizontally",
+  "@settingsGesturesHorizontalSeek": {
+    "description": "Title of the seek-by-horizontal-drag switch."
+  },
+
+  "settingsGesturesGroupZoom": "Zoom",
+  "@settingsGesturesGroupZoom": {
+    "description": "Group label for zoom, in Settings → Playback and gestures."
+  },
+
+  "settingsGesturesPinchZoom": "Pinch to zoom",
+  "@settingsGesturesPinchZoom": {
+    "description": "Title of the pinch-to-zoom switch."
+  },
+
+  "settingsGesturesPinchZoomSubtitle": "Pinch to zoom in and drag to pan",
+  "@settingsGesturesPinchZoomSubtitle": {
+    "description": "Subtitle of the pinch-to-zoom switch."
+  },
+
+  "settingsGesturesZoomMax": "Maximum zoom",
+  "@settingsGesturesZoomMax": {
+    "description": "Title of the maximum-zoom segmented selector."
+  },
+
+  "settingsGesturesZoomReset": "Reset zoom",
+  "@settingsGesturesZoomReset": {
+    "description": "Title of the when-zoom-resets segmented selector."
+  },
+
+  "settingsGesturesZoomResetSubtitle": "When it goes back to 1× on its own",
+  "@settingsGesturesZoomResetSubtitle": {
+    "description": "Subtitle of the zoom-reset selector."
+  },
+
+  "settingsGesturesZoomResetExit": "On exit",
+  "@settingsGesturesZoomResetExit": {
+    "description": "Zoom-reset selector option: on leaving the video."
+  },
+
+  "settingsGesturesZoomResetVideo": "Every video",
+  "@settingsGesturesZoomResetVideo": {
+    "description": "Zoom-reset selector option: on every new video."
+  },
+
+  "settingsGesturesZoomResetNever": "Never",
+  "@settingsGesturesZoomResetNever": {
+    "description": "Zoom-reset selector option: never automatically."
+  },
+
+  "settingsGesturesGroupSensitivity": "Gesture sensitivity",
+  "@settingsGesturesGroupSensitivity": {
+    "description": "Group label for sensitivity, in Settings → Playback and gestures."
+  },
+
+  "settingsGesturesBrightness": "Brightness",
+  "@settingsGesturesBrightness": {
+    "description": "Title of the brightness sensitivity slider."
+  },
+
+  "settingsGesturesVolume": "Volume",
+  "@settingsGesturesVolume": {
+    "description": "Title of the volume sensitivity slider."
+  },
+
+  "settingsGesturesSeek": "Seek",
+  "@settingsGesturesSeek": {
+    "description": "Title of the seek sensitivity slider."
+  },
+
+  "settingsGesturesVolumeBoostMax": "Maximum volume boost",
+  "@settingsGesturesVolumeBoostMax": {
+    "description": "Title of the maximum volume boost stepper."
+  },
+
+  "settingsGesturesGroupSpeed": "Speed",
+  "@settingsGesturesGroupSpeed": {
+    "description": "Group label for speed, in Settings → Playback and gestures."
+  },
+
+  "settingsGesturesRememberSpeed": "Remember speed between videos",
+  "@settingsGesturesRememberSpeed": {
+    "description": "Title of the remember-speed switch."
+  },
+
+  "settingsGesturesHoldLeftSpeed": "Speed when holding (left)",
+  "@settingsGesturesHoldLeftSpeed": {
+    "description": "Title of the hold-left speed slider."
+  },
+
+  "settingsGesturesHoldRightMax": "Maximum speed",
+  "@settingsGesturesHoldRightMax": {
+    "description": "Title of the hold-right maximum speed slider."
+  },
+
+  "settingsGesturesHoldRightRelease": "When releasing the accelerator, go back to the previous speed",
+  "@settingsGesturesHoldRightRelease": {
+    "description": "Title of the revert-to-previous-speed-on-release switch."
+  },
+
+  "settingsGesturesSpeedFineStep": "Fine speed step",
+  "@settingsGesturesSpeedFineStep": {
+    "description": "Title of the fine-speed-step segmented selector."
+  },
+
+  "settingsGesturesSpeedPresets": "Preset speeds",
+  "@settingsGesturesSpeedPresets": {
+    "description": "Title of the editable preset-speeds list."
+  },
+
+  "settingsGesturesSpeedPresetsSubtitle": "The ones shown in the speed panel",
+  "@settingsGesturesSpeedPresetsSubtitle": {
+    "description": "Subtitle of the preset-speeds list."
+  },
+
+  "settingsGesturesHoldRightDetents": "Accelerator steps (right hold)",
+  "@settingsGesturesHoldRightDetents": {
+    "description": "Title of the editable accelerator-steps list."
+  },
+
+  "settingsGesturesHoldRightDetentsSubtitle": "The speed ladder when holding on the right",
+  "@settingsGesturesHoldRightDetentsSubtitle": {
+    "description": "Subtitle of the accelerator-steps list."
+  },
+
+  "settingsInterfaceGroupControls": "Controls",
+  "@settingsInterfaceGroupControls": {
+    "description": "Group label for controls, in Settings → Interface."
+  },
+
+  "settingsInterfaceAutoHide": "Auto-hide controls",
+  "@settingsInterfaceAutoHide": {
+    "description": "Title of the controls-auto-hide-time stepper."
+  },
+
+  "settingsInterfaceRememberOrientation": "Remember orientation between videos",
+  "@settingsInterfaceRememberOrientation": {
+    "description": "Title of the remember-orientation-lock switch."
+  },
+
+  "settingsInterfaceGroupVideo": "Video",
+  "@settingsInterfaceGroupVideo": {
+    "description": "Group label for video, in Settings → Interface."
+  },
+
+  "settingsInterfaceDefaultAspect": "Default aspect",
+  "@settingsInterfaceDefaultAspect": {
+    "description": "Title of the default-aspect-ratio segmented selector."
+  },
+
+  "settingsInterfaceAspectFit": "Fit",
+  "@settingsInterfaceAspectFit": {
+    "description": "Default aspect selector option: fit inside the frame."
+  },
+
+  "settingsInterfaceAspectFill": "Fill",
+  "@settingsInterfaceAspectFill": {
+    "description": "Default aspect selector option: fill the screen."
+  },
+
+  "settingsInterfaceAspectStretch": "Stretch",
+  "@settingsInterfaceAspectStretch": {
+    "description": "Default aspect selector option: stretch."
+  },
+
+  "settingsInterfaceGroupOverlay": "Info overlay",
+  "@settingsInterfaceGroupOverlay": {
+    "description": "Group label for the info overlay, in Settings → Interface."
+  },
+
+  "settingsInterfaceShowOverlay": "Show info overlay",
+  "@settingsInterfaceShowOverlay": {
+    "description": "Title of the show-info-overlay switch."
+  },
+
+  "settingsInterfaceOverlayContent": "Content",
+  "@settingsInterfaceOverlayContent": {
+    "description": "Title of the info-overlay content selector."
+  },
+
+  "settingsInterfaceOverlayContentNameTime": "Name and time",
+  "@settingsInterfaceOverlayContentNameTime": {
+    "description": "Info overlay content selector option: name and time."
+  },
+
+  "settingsInterfaceOverlayContentNameOnly": "Name only",
+  "@settingsInterfaceOverlayContentNameOnly": {
+    "description": "Info overlay content selector option: name only."
+  },
+
+  "settingsInterfaceOverlayContentRemaining": "Remaining time",
+  "@settingsInterfaceOverlayContentRemaining": {
+    "description": "Info overlay content selector option: remaining time."
+  },
+
+  "settingsInterfaceOverlayCorner": "Corner",
+  "@settingsInterfaceOverlayCorner": {
+    "description": "Title of the info-overlay corner picker."
+  },
+
+  "settingsInterfaceColumns": "Default columns",
+  "@settingsInterfaceColumns": {
+    "description": "Title of the default-library-columns segmented selector."
+  },
+
+  "settingsEqSwitchSubtitle": "Applies the bass, voice and treble curve to the audio",
+  "@settingsEqSwitchSubtitle": {
+    "description": "Subtitle of the enable-equalizer switch."
+  },
+
+  "settingsEqGroupPresets": "Presets",
+  "@settingsEqGroupPresets": {
+    "description": "Group label for presets, in Settings → Equalizer."
+  },
+
+  "settingsEqPresetFlat": "Flat",
+  "@settingsEqPresetFlat": {
+    "description": "Name of the \"Flat\" equalizer preset: every band at 0 dB."
+  },
+
+  "settingsEqPresetBass": "Bass",
+  "@settingsEqPresetBass": {
+    "description": "Name of the \"Bass\" equalizer preset: low-frequency boost."
+  },
+
+  "settingsEqPresetVoice": "Voice",
+  "@settingsEqPresetVoice": {
+    "description": "Name of the \"Voice\" equalizer preset: boost centered on dialogue."
+  },
+
+  "settingsEqPresetTreble": "Treble",
+  "@settingsEqPresetTreble": {
+    "description": "Name of the \"Treble\" equalizer preset: high-frequency boost."
+  },
+
+  "settingsEqPresetCustom": "Custom",
+  "@settingsEqPresetCustom": {
+    "description": "Name shown when the equalizer curve does not match any preset."
+  },
+
+  "settingsEqGroupBands": "Bands",
+  "@settingsEqGroupBands": {
+    "description": "Group label for bands, in Settings → Equalizer."
+  },
+
+  "settingsEqGroupPreamp": "Preamp",
+  "@settingsEqGroupPreamp": {
+    "description": "Group label for preamp, in Settings → Equalizer."
+  },
+
+  "settingsEqPreampGain": "Overall gain",
+  "@settingsEqPreampGain": {
+    "description": "Title of the overall preamp gain slider."
+  },
+
+  "settingsBackupExport": "Export backup",
+  "@settingsBackupExport": {
+    "description": "Title of the export-backup row."
+  },
+
+  "settingsBackupExportSubtitle": "Saves your playlists, bookmarks and settings to a file",
+  "@settingsBackupExportSubtitle": {
+    "description": "Subtitle of the export-backup row."
+  },
+
+  "settingsBackupRestoreTitle": "Restore backup",
+  "@settingsBackupRestoreTitle": {
+    "description": "Title of the restore-backup row and dialog."
+  },
+
+  "settingsBackupRestoreSubtitle": "Adds whatever is in a backup file saved before",
+  "@settingsBackupRestoreSubtitle": {
+    "description": "Subtitle of the restore-backup row."
+  },
+
+  "settingsBackupExportSavedSnackbar": "Backup saved",
+  "@settingsBackupExportSavedSnackbar": {
+    "description": "Snackbar shown after the exported backup is saved."
+  },
+
+  "settingsBackupExportCancelledSnackbar": "Cancelled",
+  "@settingsBackupExportCancelledSnackbar": {
+    "description": "Snackbar shown when the save-exported-backup dialog is cancelled."
+  },
+
+  "settingsBackupReadFileFailedSnackbar": "Couldn't read the file",
+  "@settingsBackupReadFileFailedSnackbar": {
+    "description": "Snackbar shown when the file chosen to restore can't be read."
+  },
+
+  "settingsBackupRestoreConfirmAction": "Restore",
+  "@settingsBackupRestoreConfirmAction": {
+    "description": "Confirm button of the restore-backup dialog."
+  },
+
+  "settingsBackupRestoredSnackbar": "Backup restored",
+  "@settingsBackupRestoredSnackbar": {
+    "description": "Snackbar shown after the backup restore is applied."
+  },
+
+  "settingsBackupReadFailedDialogTitle": "Couldn't read the backup",
+  "@settingsBackupReadFailedDialogTitle": {
+    "description": "Title of the error dialog when a backup file can't be read."
+  },
+
+  "settingsBackupRestoreItemPlaylists": "{count, plural, =1{1 playlist} other{{count} playlists}}",
+  "@settingsBackupRestoreItemPlaylists": {
+    "description": "Count of playlists that would be added on restore, inside the confirmation dialog sentence.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsBackupRestoreItemBookmarks": "{count, plural, =1{1 bookmark} other{{count} bookmarks}}",
+  "@settingsBackupRestoreItemBookmarks": {
+    "description": "Count of bookmarks that would be added on restore, inside the confirmation dialog sentence.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsBackupRestoreItemPositions": "{count, plural, =1{1 position} other{{count} positions}}",
+  "@settingsBackupRestoreItemPositions": {
+    "description": "Count of resume positions that would be added or updated on restore.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsBackupRestoreItemWatchedVideos": "{count, plural, =1{1 watched video} other{{count} watched videos}}",
+  "@settingsBackupRestoreItemWatchedVideos": {
+    "description": "Count of watched videos that would be added on restore.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsBackupRestoreItemHiddenVideos": "{count, plural, =1{1 hidden video} other{{count} hidden videos}}",
+  "@settingsBackupRestoreItemHiddenVideos": {
+    "description": "Count of Vault videos that would be added on restore.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsBackupRestoreItemTrackSettings": "{count, plural, =1{1 track setting} other{{count} track settings}}",
+  "@settingsBackupRestoreItemTrackSettings": {
+    "description": "Count of track settings (sync, chosen subtitle) that would be added or updated on restore.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsBackupRestoreJoinWord": "and",
+  "@settingsBackupRestoreJoinWord": {
+    "description": "Joining word before the last item in the restore dialog sentence, e.g. \"3 playlists and 2 bookmarks\"."
+  },
+
+  "settingsBackupRestoreWillAdd": "{items} will be added.",
+  "@settingsBackupRestoreWillAdd": {
+    "description": "Main sentence of the restore dialog, with the item list already joined.",
+    "placeholders": {
+      "items": {
+        "type": "String"
+      }
+    }
+  },
+
+  "settingsBackupRestoreNothingNew": "There's nothing new to add.",
+  "@settingsBackupRestoreNothingNew": {
+    "description": "Restore dialog sentence when the backup would bring no change at all."
+  },
+
+  "settingsBackupRestoreSettingsReplace": "Settings will be replaced.",
+  "@settingsBackupRestoreSettingsReplace": {
+    "description": "Sentence appended to the restore dialog when the backup also carries settings."
+  },
+
+  "settingsErrorLogCopyAllTooltip": "Copy all",
+  "@settingsErrorLogCopyAllTooltip": {
+    "description": "Tooltip of the button that copies the whole error log to the clipboard."
+  },
+
+  "settingsErrorLogClearTooltip": "Clear log",
+  "@settingsErrorLogClearTooltip": {
+    "description": "Tooltip of the button that clears the error log."
+  },
+
+  "settingsErrorLogCopiedSnackbar": "Log copied",
+  "@settingsErrorLogCopiedSnackbar": {
+    "description": "Snackbar shown after the error log is copied to the clipboard."
+  },
+
+  "settingsErrorLogEmpty": "No errors logged",
+  "@settingsErrorLogEmpty": {
+    "description": "Empty state of the error log screen."
+  },
+
+  "settingsErrorLogAgeJustNow": "just now",
+  "@settingsErrorLogAgeJustNow": {
+    "description": "Age of an error log entry, under one minute."
+  },
+
+  "settingsErrorLogAgeMinutes": "{count} min ago",
+  "@settingsErrorLogAgeMinutes": {
+    "description": "Age of an error log entry, in minutes.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsErrorLogAgeHours": "{count} h ago",
+  "@settingsErrorLogAgeHours": {
+    "description": "Age of an error log entry, in hours.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsErrorLogAgeDays": "{count} d ago",
+  "@settingsErrorLogAgeDays": {
+    "description": "Age of an error log entry, in days.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsErrorLogDetailLine": "Kivo {version} · Android API {sdk}",
+  "@settingsErrorLogDetailLine": {
+    "description": "Technical line \"Kivo {version} · Android API {sdk}\", reused in an error log entry's expanded detail and in the text copied to the clipboard.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "sdk": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsColorPickerTitle": "Custom",
+  "@settingsColorPickerTitle": {
+    "description": "Header of the custom HSV color picker sheet."
+  },
+
+  "settingsColorPickerHue": "Hue",
+  "@settingsColorPickerHue": {
+    "description": "Label of the hue channel, in the custom color sheet."
+  },
+
+  "settingsColorPickerSaturation": "Saturation",
+  "@settingsColorPickerSaturation": {
+    "description": "Label of the saturation channel, in the custom color sheet."
+  },
+
+  "settingsColorPickerBrightness": "Brightness",
+  "@settingsColorPickerBrightness": {
+    "description": "Label of the brightness (HSV value) channel, in the custom color sheet."
+  },
+
+  "settingsColorPickerApplyAction": "Apply",
+  "@settingsColorPickerApplyAction": {
+    "description": "Button that confirms the chosen color, in the custom color sheet."
+  },
+
+  "settingsSpeedAddDialogTitle": "Add speed",
+  "@settingsSpeedAddDialogTitle": {
+    "description": "Header of the sheet to add a new speed to a speed list."
+  },
+
+  "settingsSpeedAddAction": "Add",
+  "@settingsSpeedAddAction": {
+    "description": "Button that confirms the chosen speed, in the add-speed sheet."
+  },
+
+  "commonClose": "Close",
+  "@commonClose": {
+    "description": "Generic close button in dialogs."
+  },
+
+  "updateGenericTitle": "Update",
+  "@updateGenericTitle": {
+    "description": "Title of the update dialog while the version is not known yet."
+  },
+
+  "updateTitleWithVersion": "New version {version}",
+  "@updateTitleWithVersion": {
+    "description": "Title of the update dialog, naming the available version.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+
+  "updateNoActiveDownload": "There's no download in progress anymore.",
+  "@updateNoActiveDownload": {
+    "description": "Body of the update dialog when reopened over a download that no longer exists."
+  },
+
+  "updateNoNotesAvailable": "A newer version is available.",
+  "@updateNoNotesAvailable": {
+    "description": "Body of the update dialog when the release notes come back empty."
+  },
+
+  "updateCanLeaveHint": "You can leave Kivo: the download keeps going.",
+  "@updateCanLeaveHint": {
+    "description": "Hint under the progress bar while the update downloads."
+  },
+
+  "updateReadyCaption": "Ready to install",
+  "@updateReadyCaption": {
+    "description": "Status text of the update dialog once the download is finished."
+  },
+
+  "updateReadyHint": "Tap Install to continue.",
+  "@updateReadyHint": {
+    "description": "Hint under the \"Ready to install\" status."
+  },
+
+  "updateFailedMessage": "{message} ({code}).\nYou can retry or download it from the browser.",
+  "@updateFailedMessage": {
+    "description": "Body of the update dialog when the download or install failed; {message} and {code} come from the KV-nnn error catalog.",
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+
+  "updateSkipVersionAction": "Skip this version",
+  "@updateSkipVersionAction": {
+    "description": "Button that skips the offered version, in the update dialog."
+  },
+
+  "updateOpenInBrowserAction": "Open in browser",
+  "@updateOpenInBrowserAction": {
+    "description": "Button that opens the update page in the browser."
+  },
+
+  "updateDownloadAction": "Download",
+  "@updateDownloadAction": {
+    "description": "Button that starts downloading the update."
+  },
+
+  "updateHideAction": "Hide",
+  "@updateHideAction": {
+    "description": "Button that closes the dialog without cancelling the ongoing download."
+  },
+
+  "updateInstallAction": "Install",
+  "@updateInstallAction": {
+    "description": "Button that installs the already-downloaded update."
+  },
+
+  "updateDiscardReadyAction": "Dismiss",
+  "@updateDiscardReadyAction": {
+    "description": "Button that discards an already-downloaded update and frees the download slot."
+  },
+
+  "updateRetryAction": "Retry",
+  "@updateRetryAction": {
+    "description": "Button that retries a failed download or install."
+  },
+
+  "updateInstallNeedsPermissionSnackbar": "Allow installing apps to continue, then tap Install.",
+  "@updateInstallNeedsPermissionSnackbar": {
+    "description": "Snackbar shown when the install-apps permission is missing."
+  },
+
+  "updateStatusQueued": "Queued…",
+  "@updateStatusQueued": {
+    "description": "Download status text while it is queued."
+  },
+
+  "updateStatusPausedNetwork": "Paused · waiting for connection",
+  "@updateStatusPausedNetwork": {
+    "description": "Download status text while paused for lack of network."
+  },
+
+  "updateStatusPausedRetry": "Paused · retrying",
+  "@updateStatusPausedRetry": {
+    "description": "Download status text while paused and retrying."
+  },
+
+  "updateStatusSizePercent": "{size} · {percent}%",
+  "@updateStatusSizePercent": {
+    "description": "Status text of an in-progress download: already-formatted size and percentage.",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+
+  "vaultCreatePinTitle": "Create a PIN for the Vault",
+  "@vaultCreatePinTitle": {
+    "description": "PinPad title the first time the Vault is set up, before the first PIN entry."
+  },
+
+  "vaultRepeatPinTitle": "Repeat the PIN",
+  "@vaultRepeatPinTitle": {
+    "description": "PinPad title while setting up the Vault, after the first PIN entry (asks to confirm it)."
+  },
+
+  "vaultEnterPinTitle": "Enter your PIN",
+  "@vaultEnterPinTitle": {
+    "description": "PinPad title when unlocking an already-configured Vault."
+  },
+
+  "vaultPinIncorrectError": "Incorrect PIN",
+  "@vaultPinIncorrectError": {
+    "description": "Error under the PinPad when the PIN entered to unlock the Vault does not match."
+  },
+
+  "vaultPinMismatchError": "PINs don't match",
+  "@vaultPinMismatchError": {
+    "description": "Error under the PinPad when, while setting up the Vault, the second PIN entry does not match the first."
+  },
+
+  "vaultUsePinAction": "Use PIN",
+  "@vaultUsePinAction": {
+    "description": "Button under the fingerprint icon on the Vault gate, to jump straight to the PinPad without waiting for the biometric attempt."
+  },
+
+  "vaultUnlockReason": "Unlock the Vault",
+  "@vaultUnlockReason": {
+    "description": "Reason shown by the operating system itself in the biometric dialog when unlocking the Vault."
+  },
+
+  "vaultEmptyMessage": "Vault is empty",
+  "@vaultEmptyMessage": {
+    "description": "Text shown on the Vault screen when it holds no video."
+  },
+
+  "vaultEntranceVisibleSnackbar": "Entry visible in Settings",
+  "@vaultEntranceVisibleSnackbar": {
+    "description": "Snackbar from the Vault's menu when turning off \"Hide entry\": the Vault entry is now visible in Settings."
+  },
+
+  "vaultEntranceHiddenSnackbar": "Entry hidden. Long-press the Videos title to enter.",
+  "@vaultEntranceHiddenSnackbar": {
+    "description": "Snackbar from the Vault's menu when turning on \"Hide entry\": explains the alternate way in (long-pressing the library's title)."
+  },
+
+  "vaultMenuHideEntrance": "Hide entry",
+  "@vaultMenuHideEntrance": {
+    "description": "Option in the Vault's ⋮ menu that hides its Settings entry."
+  },
+
+  "vaultMenuUseBiometric": "Use biometrics",
+  "@vaultMenuUseBiometric": {
+    "description": "Option in the Vault's ⋮ menu that turns fingerprint unlock on/off."
+  },
+
+  "vaultTakeOutAction": "Take out of Vault",
+  "@vaultTakeOutAction": {
+    "description": "Action in the Vault's selection bottom bar: returns the chosen videos to the gallery."
+  },
+
+  "vaultTakeOutFailedPartial": "Could not take all of them out",
+  "@vaultTakeOutFailedPartial": {
+    "description": "Snackbar shown when \"Take out of Vault\" fails to return every chosen video to the gallery."
+  },
+
+  "vaultTakeOutSuccessSnackbar": "{count} returned to the gallery",
+  "@vaultTakeOutSuccessSnackbar": {
+    "description": "Snackbar shown after \"Take out of Vault\" with the number of videos returned to the gallery.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "vaultDeleteForeverAction": "Delete from phone",
+  "@vaultDeleteForeverAction": {
+    "description": "Action in the Vault's selection bottom bar (and its confirmation dialog's title): permanently deletes the chosen videos from the phone."
+  },
+
+  "vaultDeleteForeverConfirmMessage": "Delete {count} videos forever? They cannot be recovered.",
+  "@vaultDeleteForeverConfirmMessage": {
+    "description": "Body of the Vault's \"Delete from phone\" confirmation dialog, with the number of chosen videos.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "vaultDeleteForeverSuccessSnackbar": "{count} deleted",
+  "@vaultDeleteForeverSuccessSnackbar": {
+    "description": "Snackbar shown after \"Delete from phone\" in the Vault with the number of videos deleted.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "vaultDeleteForeverFailedPartial": "Could not delete all of them",
+  "@vaultDeleteForeverFailedPartial": {
+    "description": "Snackbar shown when \"Delete from phone\" in the Vault fails to delete every chosen video."
+  },
+
+  "vaultUnlockBiometricSignInTitle": "Unlock Vault",
+  "@vaultUnlockBiometricSignInTitle": {
+    "description": "Title of Android's native biometric dialog when unlocking the Vault."
+  },
+
+  "vaultUnlockBiometricHint": "Touch the fingerprint sensor",
+  "@vaultUnlockBiometricHint": {
+    "description": "Hint text of the native biometric dialog while it waits for a touch on the fingerprint sensor."
+  },
+
+  "vaultUnlockBiometricNotRecognized": "Not recognized. Try again.",
+  "@vaultUnlockBiometricNotRecognized": {
+    "description": "Text of the native biometric dialog when the fingerprint was not recognized."
+  },
+
+  "vaultUnlockBiometricSuccessMessage": "Fingerprint recognized",
+  "@vaultUnlockBiometricSuccessMessage": {
+    "description": "Text of the native biometric dialog when the fingerprint was recognized successfully."
+  },
+
+  "vaultUnlockBiometricRequiredTitle": "Fingerprint not set up",
+  "@vaultUnlockBiometricRequiredTitle": {
+    "description": "Title of the native biometric dialog when the device has no fingerprint enrolled."
+  },
+
+  "vaultUnlockGoToSettingsButton": "Go to settings",
+  "@vaultUnlockGoToSettingsButton": {
+    "description": "Button in the native biometric dialog that opens the system settings to set up a fingerprint or screen lock."
+  },
+
+  "vaultUnlockGoToSettingsDescription": "You have no fingerprint set up on this device. Go to Settings > Security to add one.",
+  "@vaultUnlockGoToSettingsDescription": {
+    "description": "Description in the native biometric dialog when the device has no fingerprint enrolled."
+  },
+
+  "vaultUnlockDeviceCredentialsRequiredTitle": "Screen lock required",
+  "@vaultUnlockDeviceCredentialsRequiredTitle": {
+    "description": "Title of the native biometric dialog when the device has neither a fingerprint nor a screen lock set up."
+  },
+
+  "vaultUnlockDeviceCredentialsSetupDescription": "Set up a screen lock in Settings to be able to use it.",
+  "@vaultUnlockDeviceCredentialsSetupDescription": {
+    "description": "Description in the native biometric dialog asking to set up a screen lock."
+  },
+
+  "errorMediaAccess": "We couldn't access your videos",
+  "@errorMediaAccess": {
+    "description": "Friendly message for error KV-101 (KivoOp.mediaAccess), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorLibraryScan": "We couldn't read your library",
+  "@errorLibraryScan": {
+    "description": "Friendly message for error KV-201 (KivoOp.libraryScan), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorThumbnail": "We couldn't generate the thumbnail",
+  "@errorThumbnail": {
+    "description": "Friendly message for error KV-202 (KivoOp.thumbnail), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorDelete": "We couldn't delete the video",
+  "@errorDelete": {
+    "description": "Friendly message for error KV-301 (KivoOp.delete), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorRename": "We couldn't rename the video",
+  "@errorRename": {
+    "description": "Friendly message for error KV-302 (KivoOp.rename), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorShare": "We couldn't share the video",
+  "@errorShare": {
+    "description": "Friendly message for error KV-303 (KivoOp.share), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorVaultHide": "We couldn't hide the video",
+  "@errorVaultHide": {
+    "description": "Friendly message for error KV-401 (KivoOp.vaultHide), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorVaultRestore": "We couldn't restore the video",
+  "@errorVaultRestore": {
+    "description": "Friendly message for error KV-402 (KivoOp.vaultRestore), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorVaultPurge": "We couldn't permanently delete the video",
+  "@errorVaultPurge": {
+    "description": "Friendly message for error KV-403 (KivoOp.vaultPurge), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorOpenVideo": "We couldn't open the video",
+  "@errorOpenVideo": {
+    "description": "Friendly message for error KV-501 (KivoOp.openVideo), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorSubtitleLoad": "We couldn't load the subtitle",
+  "@errorSubtitleLoad": {
+    "description": "Friendly message for error KV-502 (KivoOp.subtitleLoad), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorFrameCapture": "We couldn't save the capture",
+  "@errorFrameCapture": {
+    "description": "Friendly message for error KV-503 (KivoOp.frameCapture), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorUpdateCheck": "We couldn't check for updates",
+  "@errorUpdateCheck": {
+    "description": "Friendly message for error KV-601 (KivoOp.updateCheck), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorUpdateInstall": "We couldn't install the update",
+  "@errorUpdateInstall": {
+    "description": "Friendly message for error KV-602 (KivoOp.updateInstall), shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorUnknown": "Something didn't go as expected",
+  "@errorUnknown": {
+    "description": "Friendly message for error KV-999 (KivoOp.unknown), for any unclassified failure, shown by the error adapters (snackbar, error view)."
+  },
+
+  "errorDetailsAction": "Details",
+  "@errorDetailsAction": {
+    "description": "Action on the error snackbar that opens the sheet with the code and the technical detail."
+  },
+
+  "errorNoTechnicalDetail": "no technical detail",
+  "@errorNoTechnicalDetail": {
+    "description": "Fallback technical detail when showFailureSnackBar receives no concrete cause."
+  },
+
+  "errorRetryAction": "Retry",
+  "@errorRetryAction": {
+    "description": "Button on the full-screen error view (FailureView) that retries the failed operation."
+  },
+
+  "errorDetailsSheetAction": "View details",
+  "@errorDetailsSheetAction": {
+    "description": "Button on the full-screen error view (FailureView) that opens the sheet with the code and the technical detail."
+  },
+
+  "errorDetailCopiedSnackbar": "Detail copied",
+  "@errorDetailCopiedSnackbar": {
+    "description": "Snackbar shown after copying an error's code and technical detail to the clipboard."
+  },
+
+  "settingsBackupTooNewMessage": "This backup is from a newer version of Kivo.",
+  "@settingsBackupTooNewMessage": {
+    "description": "Body of the error dialog when restoring a backup written by a newer version of Kivo (BackupTooNewException)."
+  },
+
+  "settingsBackupInvalidFileMessage": "This file is not a Kivo backup.",
+  "@settingsBackupInvalidFileMessage": {
+    "description": "Body of the error dialog when restoring a file that is not a valid Kivo backup (BackupFormatException)."
+  },
+
+  "homeDateToday": "Today",
+  "@homeDateToday": {
+    "description": "Library section header for videos added today."
+  },
+
+  "homeDateYesterday": "Yesterday",
+  "@homeDateYesterday": {
+    "description": "Library section header for videos added yesterday."
+  },
+
+  "chapterFallback": "Chapter {n}",
+  "@chapterFallback": {
+    "description": "Title shown for a chapter with no name of its own in the file (mpv reports no title), in the chapters sheet.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  }
+}

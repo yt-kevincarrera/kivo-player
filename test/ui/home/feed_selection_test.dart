@@ -9,6 +9,7 @@ import 'package:kivo_player/ui/home/state/library_selection.dart';
 import 'package:kivo_player/ui/home/widgets/video_density_feed.dart';
 import 'package:kivo_player/ui/home/widgets/video_tile.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
 
 const _a = VideoItem(id: '1', uri: 'u1', name: 'a.mp4', folder: 'F', durationMs: 1000, sizeBytes: 1, dateAddedMs: 0);
 const _b = VideoItem(id: '2', uri: 'u2', name: 'b.mp4', folder: 'F', durationMs: 1000, sizeBytes: 1, dateAddedMs: 0);
@@ -22,13 +23,14 @@ void main() {
     ]);
     addTearDown(c.dispose);
     var opens = 0;
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: MaterialApp(home: Scaffold(body: VideoDensityFeed(
+    await pumpLocalized(
+      tester,
+      Scaffold(body: VideoDensityFeed(
         videos: const [_a, _b], groupByDate: false, showContinueRow: false,
         onOpen: (_, __, ___) => opens++,
-      ))),
-    ));
+      )),
+      container: c,
+    );
     await tester.pumpAndSettle();
 
     await tester.longPress(find.byType(VideoTile).first);

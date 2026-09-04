@@ -15,6 +15,9 @@ import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/ui/home/state/library_selection.dart';
 import 'package:kivo_player/ui/home/widgets/selection_bottom_bar.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 const _a = VideoItem(id: '1', uri: 'u1', name: 'a.mp4', folder: 'F', durationMs: 1, sizeBytes: 1, dateAddedMs: 0);
 const _b = VideoItem(id: '2', uri: 'u2', name: 'b.mp4', folder: 'F', durationMs: 1, sizeBytes: 1, dateAddedMs: 0);
@@ -41,10 +44,11 @@ void main() {
     await c.read(mediaIndexProvider.future);
     c.read(librarySelectionProvider.notifier).selectAll(['u1']);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
+    await pumpLocalized(
+      tester,
+      const Scaffold(bottomNavigationBar: SelectionBottomBar()),
       container: c,
-      child: const MaterialApp(home: Scaffold(bottomNavigationBar: SelectionBottomBar())),
-    ));
+    );
     await tester.pump();
 
     await tester.tap(find.byIcon(Icons.share_outlined));
@@ -69,10 +73,11 @@ void main() {
     await c.read(mediaIndexProvider.future);
     c.read(librarySelectionProvider.notifier).selectAll(['u1', 'u2']);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
+    await pumpLocalized(
+      tester,
+      const Scaffold(bottomNavigationBar: SelectionBottomBar()),
       container: c,
-      child: const MaterialApp(home: Scaffold(bottomNavigationBar: SelectionBottomBar())),
-    ));
+    );
     await tester.pump();
     return c;
   }
@@ -84,9 +89,9 @@ void main() {
     await tester.tap(find.byIcon(Icons.delete_outline));
     await tester.pumpAndSettle();
 
-    expect(find.text('Borrar videos'), findsOneWidget);
-    expect(find.text('¿Borrar 2 videos? Esta acción no se puede deshacer.'), findsOneWidget);
-    expect(find.widgetWithText(TextButton, 'Borrar'), findsOneWidget);
+    expect(find.text(_l10n.selectionDeleteTitle), findsOneWidget);
+    expect(find.text(_l10n.selectionDeleteConfirmBody(2)), findsOneWidget);
+    expect(find.widgetWithText(TextButton, _l10n.commonDelete), findsOneWidget);
     expect(find.textContaining('papelera'), findsNothing);
   });
 
@@ -97,9 +102,9 @@ void main() {
     await tester.tap(find.byIcon(Icons.delete_outline));
     await tester.pumpAndSettle();
 
-    expect(find.text('Mover a la papelera'), findsNWidgets(2)); // dialog title + confirm button
+    expect(find.text(_l10n.trashMoveTitle), findsNWidgets(2)); // dialog title + confirm button
     expect(
-      find.text('¿Mover 2 videos a la papelera?\n\nPodrás recuperarlos durante 30 días desde la papelera del teléfono.'),
+      find.text(_l10n.selectionTrashConfirmBody(2)),
       findsOneWidget,
     );
     expect(find.textContaining('no se puede deshacer'), findsNothing);
@@ -120,17 +125,18 @@ void main() {
     await c.read(mediaIndexProvider.future);
     c.read(librarySelectionProvider.notifier).selectAll(['u1']);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
+    await pumpLocalized(
+      tester,
+      const Scaffold(bottomNavigationBar: SelectionBottomBar()),
       container: c,
-      child: const MaterialApp(home: Scaffold(bottomNavigationBar: SelectionBottomBar())),
-    ));
+    );
     await tester.pump();
 
     await tester.tap(find.byIcon(Icons.delete_outline));
     await tester.pumpAndSettle();
 
     expect(
-      find.text('¿Mover 1 video a la papelera?\n\nPodrás recuperarlos durante 30 días desde la papelera del teléfono.'),
+      find.text(_l10n.selectionTrashConfirmBody(1)),
       findsOneWidget,
     );
   });

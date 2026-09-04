@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
+import '../../../l10n/l10n.dart';
 import '../widgets/setting_tiles.dart';
 import '../widgets/setting_choice.dart';
 import '../widgets/setting_corner_picker.dart';
@@ -12,52 +13,61 @@ class InterfaceSettingsSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(settingsProvider);
     final n = ref.read(settingsProvider.notifier);
+    final l10n = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Interfaz')),
+      appBar: AppBar(title: Text(l10n.settingsInterfaceTitle)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 28),
         children: [
-          _label(context, 'Controles'),
+          _label(context, l10n.settingsInterfaceGroupControls),
           SettingsCard(children: [
             SettingStepper(
-              title: 'Auto-ocultar controles',
+              title: l10n.settingsInterfaceAutoHide,
               value: (s.controlsAutoHideMs / 1000).round().clamp(1, 10),
               min: 1, max: 10, step: 1, label: (v) => '$v s',
               onChanged: (v) => n.set(s.copyWith(controlsAutoHideMs: v * 1000))),
             SettingSwitch(
-              title: 'Recordar orientación entre videos', value: s.rememberOrientationLock,
+              title: l10n.settingsInterfaceRememberOrientation, value: s.rememberOrientationLock,
               onChanged: (v) => n.set(s.copyWith(rememberOrientationLock: v))),
           ]),
           const SizedBox(height: 16),
-          _label(context, 'Video'),
+          _label(context, l10n.settingsInterfaceGroupVideo),
           SettingsCard(children: [
             SettingSegmented<String>(
-              title: 'Aspecto por defecto', value: s.defaultAspectMode,
-              options: const [('fit', 'Ajustar'), ('fill', 'Llenar'), ('stretch', 'Estirar')],
+              title: l10n.settingsInterfaceDefaultAspect, value: s.defaultAspectMode,
+              options: [
+                ('fit', l10n.settingsInterfaceAspectFit),
+                ('fill', l10n.settingsInterfaceAspectFill),
+                ('stretch', l10n.settingsInterfaceAspectStretch),
+              ],
               onChanged: (v) => n.set(s.copyWith(defaultAspectMode: v))),
           ]),
           const SizedBox(height: 16),
-          _label(context, 'Overlay de información'),
+          _label(context, l10n.settingsInterfaceGroupOverlay),
           SettingsCard(children: [
             SettingSwitch(
-              title: 'Mostrar overlay de info', value: s.showInfoOverlay,
+              title: l10n.settingsInterfaceShowOverlay, value: s.showInfoOverlay,
               onChanged: (v) => n.set(s.copyWith(showInfoOverlay: v))),
             if (s.showInfoOverlay) ...[
               SettingChoice<String>(
-                title: 'Contenido', value: s.infoOverlayContent,
-                options: const [('name_time', 'Nombre y tiempo'), ('name', 'Solo nombre'), ('remaining', 'Tiempo restante')],
+                title: l10n.settingsInterfaceOverlayContent, value: s.infoOverlayContent,
+                options: [
+                  ('name_time', l10n.settingsInterfaceOverlayContentNameTime),
+                  ('name', l10n.settingsInterfaceOverlayContentNameOnly),
+                  ('remaining', l10n.settingsInterfaceOverlayContentRemaining),
+                ],
                 onChanged: (v) => n.set(s.copyWith(infoOverlayContent: v))),
               SettingCornerPicker(
-                title: 'Esquina', value: s.infoOverlayCorner,
+                title: l10n.settingsInterfaceOverlayCorner, value: s.infoOverlayCorner,
                 onChanged: (v) => n.set(s.copyWith(infoOverlayCorner: v))),
             ],
           ]),
           const SizedBox(height: 16),
-          _label(context, 'Biblioteca'),
+          _label(context, l10n.settingsGroupLibrary),
           SettingsCard(children: [
             SettingSegmented<int>(
-              title: 'Columnas por defecto', value: s.libraryColumns,
+              title: l10n.settingsInterfaceColumns, value: s.libraryColumns,
               options: const [(1, '1'), (2, '2'), (3, '3')],
               onChanged: (v) => n.set(s.copyWith(libraryColumns: v))),
           ]),

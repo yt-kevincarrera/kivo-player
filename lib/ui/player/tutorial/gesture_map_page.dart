@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/icons/kivo_icons.dart';
 import '../../../core/settings/settings_provider.dart';
+import '../../../l10n/l10n.dart';
 import '../../../platform/pip_controller_provider.dart';
 import '../../../player/control/gesture_math.dart';
 import 'gesture_map_content.dart';
@@ -41,7 +42,9 @@ class _GestureMapScreenState extends ConsumerState<GestureMapScreen> {
   @override
   Widget build(BuildContext context) {
     final accent = Color(ref.watch(settingsProvider).accentColor);
+    final l10n = context.l10n;
     final pages = gestureMapPages(
+      l10n,
       ref.watch(settingsProvider),
       pipSupported: ref.watch(pipSupportedProvider).value ?? false,
     );
@@ -127,7 +130,7 @@ class _GestureMapScreenState extends ConsumerState<GestureMapScreen> {
                         ),
                       ),
                       child: Text(
-                        last ? 'Entendido' : 'Siguiente',
+                        last ? l10n.playerTutorialDoneAction : l10n.playerTutorialNextAction,
                         style: const TextStyle(fontWeight: FontWeight.w800),
                       ),
                     ),
@@ -470,9 +473,9 @@ class _ButtonsPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _section('Barra de arriba', top),
+          _section(context.l10n.playerTutorialTopBarSection, top),
           const SizedBox(height: 14),
-          _section('Barra de abajo', bottom),
+          _section(context.l10n.playerTutorialBottomBarSection, bottom),
           for (final hint in footer)
             Padding(
               padding: const EdgeInsets.only(top: 14),

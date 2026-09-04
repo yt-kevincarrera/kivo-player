@@ -7,6 +7,7 @@ import 'package:kivo_player/core/theme/kivo_theme.dart';
 import 'package:kivo_player/platform/interfaces/media_indexer.dart';
 import 'package:kivo_player/ui/home/widgets/folder_grid.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
 
 void main() {
   testWidgets('folder count pill uses the accent, not a hardcoded gold', (t) async {
@@ -21,17 +22,18 @@ void main() {
       sizeBytes: 1,
       dateAddedMs: 1,
     );
-    await t.pumpWidget(ProviderScope(
-      overrides: [
-        settingsServiceProvider.overrideWithValue(s),
-      ],
-      child: MaterialApp(
-        theme: KivoTheme.dark(accent: const Color(0xFF2D6CFF)),
-        home: Scaffold(
-          body: FolderGrid(videos: const [item], onOpenFolder: (_, __) {}),
-        ),
+    final container = ProviderContainer(overrides: [
+      settingsServiceProvider.overrideWithValue(s),
+    ]);
+    addTearDown(container.dispose);
+    await pumpLocalized(
+      t,
+      Scaffold(
+        body: FolderGrid(videos: const [item], onOpenFolder: (_, __) {}),
       ),
-    ));
+      theme: KivoTheme.dark(accent: const Color(0xFF2D6CFF)),
+      container: container,
+    );
     await t.pump();
     // The "1 vid" pill text should be painted with the accent, not gold.
     final txt = findPillText(t);

@@ -16,6 +16,7 @@ import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/ui/home/home_shell.dart';
 import 'package:kivo_player/ui/home/library_screen.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
 
 const _a = VideoItem(
     id: '1',
@@ -45,10 +46,12 @@ Future<ProviderContainer> _mount(WidgetTester tester) async {
   ]);
   addTearDown(c.dispose);
   await c.read(mediaIndexProvider.future);
-  await tester.pumpWidget(UncontrolledProviderScope(
+  await pumpLocalized(
+    tester,
+    const HomeShell(),
+    theme: KivoTheme.dark(),
     container: c,
-    child: MaterialApp(theme: KivoTheme.dark(), home: const HomeShell()),
-  ));
+  );
   await tester.pumpAndSettle();
   return c;
 }

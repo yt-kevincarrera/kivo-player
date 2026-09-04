@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Default (English). Spanish lives in values-es/strings.xml. Only the
+     strings Android itself renders — the PiP remote actions and the media
+     notification — belong here; everything the Flutter side shows is in
+     lib/l10n/*.arb. -->
+<resources>
+    <string name="pip_rewind">Rewind</string>
+    <string name="pip_pause">Pause</string>
+    <string name="pip_play">Play</string>
+    <string name="pip_forward">Forward</string>
+    <string name="notif_playing">Playing</string>
+    <string name="notif_paused">Paused</string>
+    <string name="notif_channel_playback">Playback</string>
+</resources>

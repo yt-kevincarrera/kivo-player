@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kivo_player/player/bookmarks/bookmark_store.dart';
@@ -16,6 +15,7 @@ import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/ui/player/player_screen.dart';
 import 'package:kivo_player/ui/player/state/video_ready_state.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
 
 class NoopControls implements DeviceControls {
   @override Future<double> currentBrightness() async => 0.5;
@@ -54,10 +54,7 @@ void main() {
       const VideoSession(playbackPath: '/v/ep1.mkv', displayName: 'ep1.mkv', queue: ['/v/ep1.mkv'], index: 0),
     );
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: const MaterialApp(home: PlayerScreen()),
-    ));
+    await pumpLocalized(tester, const PlayerScreen(), container: c);
     await tester.pump(); // let the post-frame _start / _openSession run
 
     // Fresh open: no decoded frame yet → cover is armed.

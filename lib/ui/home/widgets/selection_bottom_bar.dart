@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/errors/kivo_failure.dart';
+import '../../../l10n/l10n.dart';
 import '../../../platform/interfaces/media_file_ops.dart';
 import '../../../platform/interfaces/media_indexer.dart';
 import '../../../platform/media_file_ops_provider.dart';
@@ -40,14 +41,14 @@ class SelectionBottomBar extends ConsumerWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _action(cs.onSurface, Icons.lock_outline, 'Al Vault', enabled ? () async {
+              _action(cs.onSurface, Icons.lock_outline, context.l10n.selectionMoveToVault, enabled ? () async {
                 // Clear the selection FIRST so this bar disappears immediately —
                 // otherwise a slow op invites repeat taps that re-fire the move.
                 final items = chosen;
                 sel.clear();
                 await moveToVault(context, ref, items);
               } : null),
-              _action(cs.onSurface, Icons.playlist_add, 'A una lista', enabled ? () {
+              _action(cs.onSurface, Icons.playlist_add, context.l10n.selectionAddToList, enabled ? () {
                 // Clear FIRST, matching Al Vault above — the bar disappearing
                 // immediately stops repeat taps. showAddToPlaylistSheet pops
                 // and reports on its own, so this is fire-and-forget: nothing
@@ -56,24 +57,24 @@ class SelectionBottomBar extends ConsumerWidget {
                 sel.clear();
                 showAddToPlaylistSheet(context, ref, items);
               } : null),
-              _action(cs.onSurface, Icons.share_outlined, 'Compartir', enabled ? () async {
+              _action(cs.onSurface, Icons.share_outlined, context.l10n.commonShare, enabled ? () async {
                 await ref.read(videoActionsProvider).shareMany(chosen);
                 sel.clear();
               } : null),
-              _action(cs.error, Icons.delete_outline, 'Borrar', enabled ? () async {
+              _action(cs.error, Icons.delete_outline, context.l10n.commonDelete, enabled ? () async {
                 final movesToTrash = ref.read(mediaFileOpsProvider).movesToTrash;
                 final n = chosen.length;
-                final noun = n == 1 ? 'video' : 'videos';
-                final confirmLabel = movesToTrash ? 'Mover a la papelera' : 'Borrar';
+                final l10n = context.l10n;
+                final confirmLabel = movesToTrash ? l10n.trashMoveTitle : l10n.commonDelete;
                 final ok = await showDialog<bool>(
                   context: context,
                   builder: (ctx) => AlertDialog(
-                    title: Text(movesToTrash ? 'Mover a la papelera' : 'Borrar videos'),
+                    title: Text(movesToTrash ? l10n.trashMoveTitle : l10n.selectionDeleteTitle),
                     content: Text(movesToTrash
-                        ? '¿Mover $n $noun a la papelera?\n\nPodrás recuperarlos durante 30 días desde la papelera del teléfono.'
-                        : '¿Borrar $n $noun? Esta acción no se puede deshacer.'),
+                        ? l10n.selectionTrashConfirmBody(n)
+                        : l10n.selectionDeleteConfirmBody(n)),
                     actions: [
-                      TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+                      TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.commonCancel)),
                       TextButton(
                         onPressed: () => Navigator.pop(ctx, true),
                         child: Text(confirmLabel, style: TextStyle(color: Theme.of(ctx).colorScheme.error))),
@@ -84,8 +85,11 @@ class SelectionBottomBar extends ConsumerWidget {
                 await maybeOfferAllFilesAccess(context, ref);
                 if (!context.mounted) return;
                 final status = await ref.read(videoActionsProvider).deleteMany(chosen);
+                if (!context.mounted) return;
                 if (status == FileOpStatus.ok) {
-                  final doneMsg = movesToTrash ? '$n $noun movidos a la papelera' : '$n $noun borrados';
+                  final doneMsg = movesToTrash
+                      ? l10n.selectionTrashedSnackbar(n)
+                      : l10n.selectionDeletedSnackbar(n);
                   messenger.showSnackBar(SnackBar(content: Text(doneMsg)));
                   sel.clear();
                 } else if (status == FileOpStatus.error && context.mounted) {

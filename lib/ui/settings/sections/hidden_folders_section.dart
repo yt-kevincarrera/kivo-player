@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/settings/settings_provider.dart';
+import '../../../l10n/l10n.dart';
 
 /// Lists the folders hidden via [showFolderOptionsSheet] and lets you bring
 /// each one back. Reads the stored names off [KivoSettings.excludedFolders]
@@ -13,18 +14,18 @@ class HiddenFoldersSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
     final hidden =
         ref.watch(settingsProvider.select((s) => s.excludedFolders));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Carpetas ocultas')),
+      appBar: AppBar(title: Text(l10n.settingsHiddenFoldersTitle)),
       body: hidden.isEmpty
           ? Center(
               child: Padding(
                 padding: const EdgeInsets.all(32),
                 child: Text(
-                  'No has ocultado ninguna carpeta.\n'
-                  'Mantén pulsada una carpeta en Videos para ocultarla.',
+                  l10n.settingsHiddenFoldersEmpty,
                   textAlign: TextAlign.center,
                   style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
                 ),
@@ -48,7 +49,7 @@ class HiddenFoldersSection extends ConsumerWidget {
                                 .where((f) => f != folder)
                                 .toList()));
                       },
-                      child: Text('Mostrar',
+                      child: Text(l10n.settingsHiddenFoldersShowAction,
                           style: TextStyle(color: cs.secondary)),
                     ),
                   ),

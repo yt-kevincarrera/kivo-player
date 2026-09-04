@@ -1,0 +1,10 @@
+# synthetic-package is intentionally omitted: it is deprecated in this Flutter
+# (3.41.8) and "no longer has any effect" (flutter pub get warns if set at
+# all, true or false). Non-synthetic generation — writing real, versionable
+# Dart files under output-dir instead of a hidden synthetic package — is now
+# the only behavior, controlled purely by output-dir below.
+arb-dir: lib/l10n
+template-arb-file: app_es.arb
+output-localization-file: app_localizations.dart
+nullable-getter: false
+output-dir: lib/l10n/generated

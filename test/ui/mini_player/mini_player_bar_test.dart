@@ -17,6 +17,7 @@ import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/ui/mini_player/mini_player_bar.dart';
 import 'package:kivo_player/ui/player/player_screen.dart';
 import 'package:kivo_player/ui/player/state/mini_player_state.dart';
+import 'package:kivo_player/l10n/generated/app_localizations.dart';
 import '../../fakes/fakes.dart';
 
 // A local no-op DeviceControls fake — deliberately not imported from
@@ -62,7 +63,12 @@ Future<ProviderContainer> _pumpBar(WidgetTester tester, {required bool minimized
     // since in the real app it's mounted as a sibling of the Navigator via
     // MaterialApp.builder, not a descendant of it — attach the same key here
     // so "tap expands" exercises the real navigation path.
-    child: MaterialApp(navigatorKey: kivoNavigatorKey, home: const Scaffold(body: MiniPlayerBar())),
+    child: MaterialApp(
+      navigatorKey: kivoNavigatorKey,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: const Scaffold(body: MiniPlayerBar()),
+    ),
   ));
   await tester.pump();
   return c;

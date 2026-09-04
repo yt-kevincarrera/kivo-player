@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
+import '../../../l10n/l10n.dart';
 import '../../../player/open/video_source.dart';
 import '../../home/widgets/thumbnail_image.dart';
 import '../state/controls_visibility.dart';
@@ -191,7 +192,7 @@ class _QueueCard extends StatelessWidget {
                         color: accent,
                         padding: const EdgeInsets.symmetric(vertical: 1.5),
                         child: Text(
-                          'AHORA',
+                          context.l10n.playerQueueNowBadge,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: onAccent(accent),

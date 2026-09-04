@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/format.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
+import '../../../l10n/l10n.dart';
 import '../../../player/chapters/chapter.dart';
 import '../../../player/chapters/chapters_provider.dart';
 import '../../../player/control/player_controller.dart';
@@ -48,9 +49,9 @@ class _ChaptersSheet extends ConsumerWidget {
                 ),
               ),
             ),
-            const Text(
-              'Capítulos',
-              style: TextStyle(
+            Text(
+              context.l10n.playerChaptersTitle,
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 15,
                 fontWeight: FontWeight.w800,
@@ -68,7 +69,7 @@ class _ChaptersSheet extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 child: Text(
-                  'Este video no tiene capítulos.',
+                  context.l10n.playerChaptersEmpty,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.5),
                     fontSize: 13,
@@ -134,7 +135,7 @@ class _SkipRow extends ConsumerWidget {
         _SkipButton(
           key: const ValueKey('chapter-previous'),
           icon: Icons.skip_previous_rounded,
-          label: 'Anterior',
+          label: context.l10n.playerChaptersPrevious,
           enabled: back != null,
           accent: accent,
           onTap: () => go(back),
@@ -142,7 +143,7 @@ class _SkipRow extends ConsumerWidget {
         _SkipButton(
           key: const ValueKey('chapter-next'),
           icon: Icons.skip_next_rounded,
-          label: 'Siguiente',
+          label: context.l10n.playerChaptersNext,
           enabled: forward != null,
           accent: accent,
           onTap: () => go(forward),
@@ -254,7 +255,9 @@ class _ChapterRow extends StatelessWidget {
               ),
               Expanded(
                 child: Text(
-                  chapter.title,
+                  chapter.title.isEmpty
+                      ? context.l10n.chapterFallback(number)
+                      : chapter.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(

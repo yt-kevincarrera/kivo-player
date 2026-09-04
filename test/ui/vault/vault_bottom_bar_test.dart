@@ -11,6 +11,9 @@ import 'package:kivo_player/vault/vault_store.dart';
 import 'package:kivo_player/vault/vault_selection.dart';
 import 'package:kivo_player/ui/vault/widgets/vault_bottom_bar.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 class _Perm implements MediaPermission {
   @override Future<MediaAccess> status() async => MediaAccess.granted;
@@ -38,10 +41,11 @@ void main() {
     await tester.pump(Duration.zero);
     c.read(vaultSelectionProvider.notifier).selectAll(['/vault/1.mp4']);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
+    await pumpLocalized(
+      tester,
+      const Scaffold(bottomNavigationBar: VaultBottomBar()),
       container: c,
-      child: const MaterialApp(home: Scaffold(bottomNavigationBar: VaultBottomBar())),
-    ));
+    );
     await tester.pump();
 
     await tester.tap(find.byIcon(Icons.lock_open_outlined));
@@ -68,15 +72,16 @@ void main() {
     await tester.pump(Duration.zero);
     c.read(vaultSelectionProvider.notifier).selectAll(['/vault/2.mp4']);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
+    await pumpLocalized(
+      tester,
+      const Scaffold(bottomNavigationBar: VaultBottomBar()),
       container: c,
-      child: const MaterialApp(home: Scaffold(bottomNavigationBar: VaultBottomBar())),
-    ));
+    );
     await tester.pump();
 
     await tester.tap(find.byIcon(Icons.delete_forever_outlined));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Borrar'));
+    await tester.tap(find.text(_l10n.commonDelete));
     await tester.pump();
     expect(ops.deleted, ['/vault/2.mp4']);
   });

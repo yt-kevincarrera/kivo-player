@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/format.dart';
 import '../../../core/settings/settings_provider.dart';
+import '../../../l10n/l10n.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../platform/interfaces/media_indexer.dart';
 import '../../../player/library/continue_watching.dart';
 import '../../../player/library/library_grouping.dart';
@@ -13,6 +15,15 @@ import '../state/library_selection.dart';
 import 'continue_row.dart';
 import 'video_options_sheet.dart';
 import 'video_tile.dart';
+
+/// Maps [group] to its localized display label. `dated` groups carry an
+/// already-formatted (non-localized — date formatting is out of scope this
+/// wave) date string of their own; only `today`/`yesterday` need a lookup.
+String dateGroupLabel(AppLocalizations l10n, DateGroup group) => switch (group.kind) {
+      DateGroupKind.today => l10n.homeDateToday,
+      DateGroupKind.yesterday => l10n.homeDateYesterday,
+      DateGroupKind.dated => group.formatted!,
+    };
 
 /// A reusable density-aware video feed: pinch-to-resize (1↔3 columns),
 /// animated reflow ("reacomodado") on column change, list-row/cover tile
@@ -146,7 +157,7 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
     final cols = ref.watch(settingsProvider).libraryColumns;
     final sections = widget.groupByDate
         ? groupByDay(widget.videos, DateTime.now())
-        : [DaySection('', widget.videos)];
+        : [DaySection(null, widget.videos)];
     final continueItems = {
       for (final c in ref.watch(continueWatchingProvider)) c.video.name: c,
     };
@@ -174,7 +185,7 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
               ),
             ),
           for (final s in sections) ...[
-            if (s.label.isNotEmpty)
+            if (s.group != null)
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(
@@ -202,7 +213,7 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
                       Container(width: 3, height: 13, color: accentColor),
                       const SizedBox(width: 7),
                       Text(
-                        s.label,
+                        dateGroupLabel(context.l10n, s.group!),
                         style: TextStyle(
                           color: cs.onSurfaceVariant,
                           fontSize: 13,

@@ -20,6 +20,7 @@ import 'package:kivo_player/ui/home/playlists/playlists_tab.dart';
 import 'package:kivo_player/ui/home/state/library_selection.dart';
 import 'package:kivo_player/ui/home/widgets/video_tile.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
 
 class _GrantedPerm implements MediaPermission {
   @override
@@ -77,11 +78,11 @@ Future<ProviderContainer> _buildApp(WidgetTester tester) async {
           () => DateTime.fromMillisecondsSinceEpoch(1000 + tick++)),
     ],
   );
-  await tester.pumpWidget(
-    UncontrolledProviderScope(
-      container: container,
-      child: MaterialApp(theme: KivoTheme.light(), home: const LibraryScreen()),
-    ),
+  await pumpLocalized(
+    tester,
+    const LibraryScreen(),
+    theme: KivoTheme.light(),
+    container: container,
   );
   await tester.pumpAndSettle();
   return container;

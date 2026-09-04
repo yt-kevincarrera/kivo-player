@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../l10n/l10n.dart';
 import '../../../platform/interfaces/media_indexer.dart';
 import '../../../player/library/continue_watching.dart';
 import 'video_options_sheet.dart';
@@ -18,7 +19,7 @@ class ContinueRow extends ConsumerWidget {
       Padding(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
         child: Text(
-          'Continuar viendo',
+          context.l10n.continueRowTitle,
           style: TextStyle(
             color: cs.onSurface,
             fontSize: 13,

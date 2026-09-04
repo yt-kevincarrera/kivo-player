@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
+import '../../../l10n/l10n.dart';
 import '../../../player/open/video_source.dart';
 import '../state/controls_visibility.dart';
 import '../../../player/tracks/track_delay.dart';
@@ -205,7 +206,7 @@ class _TrackSyncHudState extends ConsumerState<TrackSyncHud> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'arrastra la barra o usa los botones',
+                      context.l10n.playerSyncDragHint,
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.38),
                         fontSize: 10,
@@ -281,6 +282,9 @@ class _TargetToggle extends StatelessWidget {
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
+        // 'Sub'/'Audio' are short track-type labels, not sentences — kept as
+        // the abbreviated technical terms in both languages, like the "Sub" /
+        // "Audio" track kind itself. Not translated.
         children: [
           _TargetChip(
             key: const ValueKey('sync-target-subtitles'),

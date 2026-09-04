@@ -15,6 +15,9 @@ import 'package:kivo_player/ui/home/playlists/playlist_screen.dart';
 import 'package:kivo_player/ui/home/playlists/playlists_tab.dart';
 import 'package:kivo_player/ui/home/state/library_filter_state.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 VideoItem _v(String id, String name) => VideoItem(
       id: id,
@@ -52,10 +55,11 @@ Future<ProviderContainer> _c(PlaylistStore store, List<VideoItem> index) async {
 }
 
 Future<void> _pump(WidgetTester tester, ProviderContainer c) async {
-  await tester.pumpWidget(UncontrolledProviderScope(
+  await pumpLocalized(
+    tester,
+    const Scaffold(body: PlaylistsTab()),
     container: c,
-    child: const MaterialApp(home: Scaffold(body: PlaylistsTab())),
-  ));
+  );
   await tester.pumpAndSettle();
 }
 
@@ -167,7 +171,7 @@ void main() {
       await tester.tap(find.text('Serie'));
       await tester.pumpAndSettle();
       expect(find.byType(PlaylistScreen), findsNothing);
-      expect(find.text('Borrar'), findsOneWidget);
+      expect(find.text(_l10n.commonDelete), findsOneWidget);
     });
 
     testWidgets('unmarking the last selected row hides the selection bar again',
@@ -195,13 +199,13 @@ void main() {
       addTearDown(c.dispose);
       await _pump(tester, c);
 
-      expect(find.text('Nueva lista'), findsOneWidget);
+      expect(find.text(_l10n.playlistNewListLabel), findsOneWidget);
 
       await tester.longPress(find.text('Serie'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Nueva lista'), findsNothing);
-      expect(find.text('Borrar'), findsOneWidget);
+      expect(find.text(_l10n.playlistNewListLabel), findsNothing);
+      expect(find.text(_l10n.commonDelete), findsOneWidget);
     });
 
     testWidgets('Cancelar in the selection bar clears the marks without deleting',
@@ -217,12 +221,12 @@ void main() {
       await tester.longPress(find.text('Serie'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Cancelar'));
+      await tester.tap(find.text(_l10n.commonCancel));
       await tester.pumpAndSettle();
 
       // Keyed rather than find.text('Borrar') — see the marking test above.
       expect(find.byKey(const Key('playlists-bulk-borrar')), findsNothing);
-      expect(find.text('Nueva lista'), findsOneWidget);
+      expect(find.text(_l10n.playlistNewListLabel), findsOneWidget);
       expect(store.all().length, 2);
     });
 
@@ -254,14 +258,14 @@ void main() {
       // Cancelling the confirm (the dialog's own Cancelar, not the bar's)
       // leaves both playlists untouched and the selection still active.
       await tester.tap(find.descendant(
-          of: find.byType(AlertDialog), matching: find.text('Cancelar')));
+          of: find.byType(AlertDialog), matching: find.text(_l10n.commonCancel)));
       await tester.pumpAndSettle();
       expect(store.all().length, 2);
 
       await tester.tap(find.byKey(bulkBorrar));
       await tester.pumpAndSettle();
       await tester.tap(find.descendant(
-          of: find.byType(AlertDialog), matching: find.text('Borrar')));
+          of: find.byType(AlertDialog), matching: find.text(_l10n.commonDelete)));
       await tester.pumpAndSettle();
 
       expect(store.all(), isEmpty);
@@ -321,9 +325,9 @@ void main() {
 
       // Same dialog shape as playlist_screen.dart's own rename: title,
       // pre-filled TextField, Guardar actually renames.
-      expect(find.text('Renombrar lista'), findsOneWidget);
+      expect(find.text(_l10n.playlistRenameTitle), findsOneWidget);
       await tester.enterText(find.byType(TextField), 'Temporada 2');
-      await tester.tap(find.text('Guardar'));
+      await tester.tap(find.text(_l10n.commonSave));
       await tester.pumpAndSettle();
 
       expect(store.all().single.name, 'Temporada 2');
@@ -422,14 +426,14 @@ void main() {
       expect(c.read(playlistsSelectionProvider).length, 2);
       // …but the bar counts only what is on screen, so it agrees with the
       // delete it is about to offer.
-      expect(find.text('1 lista seleccionada'), findsOneWidget);
+      expect(find.text(_l10n.playlistsSelectedCount(1)), findsOneWidget);
 
       await tester.tap(find.byKey(const Key('playlists-bulk-borrar')));
       await tester.pumpAndSettle();
       // Names only the one still on screen, not both marked.
       expect(find.textContaining('¿Borrar 1 lista?'), findsOneWidget);
       await tester.tap(find.descendant(
-          of: find.byType(AlertDialog), matching: find.text('Borrar')));
+          of: find.byType(AlertDialog), matching: find.text(_l10n.commonDelete)));
       await tester.pumpAndSettle();
 
       expect(store.all().map((p) => p.name).toList(), ['Curso']);
@@ -451,9 +455,9 @@ void main() {
 
       expect(find.textContaining('Ninguna lista coincide con "zzz"'),
           findsOneWidget);
-      expect(find.text('Borrar búsqueda'), findsOneWidget);
+      expect(find.text(_l10n.librarySearchClearAction), findsOneWidget);
 
-      await tester.tap(find.text('Borrar búsqueda'));
+      await tester.tap(find.text(_l10n.librarySearchClearAction));
       await tester.pumpAndSettle();
 
       // No owner was wired in (this widget is standalone here), so the

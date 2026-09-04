@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../l10n/l10n.dart';
 import '../mini_player/mini_player_bar.dart';
 import '../settings/settings_screen.dart';
 import 'library_screen.dart';
@@ -119,8 +120,8 @@ class _BottomTabBar extends StatelessWidget {
           padding: const EdgeInsets.only(top: 8, bottom: 6),
           child: Row(
             children: [
-              _item(cs, 0, Icons.play_circle_outline, 'Videos'),
-              _item(cs, 1, Icons.settings_outlined, 'Ajustes'),
+              _item(cs, 0, Icons.play_circle_outline, context.l10n.homeTabVideos),
+              _item(cs, 1, Icons.settings_outlined, context.l10n.homeTabSettings),
             ],
           ),
         ),

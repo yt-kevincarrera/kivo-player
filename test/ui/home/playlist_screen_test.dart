@@ -20,6 +20,9 @@ import 'package:kivo_player/ui/home/playlists/playlist_screen.dart';
 import 'package:kivo_player/ui/home/state/library_selection.dart';
 import 'package:kivo_player/ui/home/widgets/thumbnail_image.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 /// Every row's ⋮ / options icon now lives inside a reused `VideoTile` (or,
 /// for an unavailable entry, the hand-matched row that mirrors it) rather
@@ -79,23 +82,22 @@ Future<ProviderContainer> _c(PlaylistStore store, List<VideoItem> index) async {
 /// `MaterialApp.home`) so tests that need the screen to actually POP —
 /// deleting the playlist you're looking at — have something to pop to.
 Future<void> _pushScreen(WidgetTester tester, ProviderContainer c, String playlistId) async {
-  await tester.pumpWidget(UncontrolledProviderScope(
-    container: c,
-    child: MaterialApp(
-      home: Builder(
-        builder: (context) => Scaffold(
-          body: Center(
-            child: TextButton(
-              onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => PlaylistScreen(playlistId: playlistId),
-              )),
-              child: const Text('open'),
-            ),
+  await pumpLocalized(
+    tester,
+    Builder(
+      builder: (context) => Scaffold(
+        body: Center(
+          child: TextButton(
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => PlaylistScreen(playlistId: playlistId),
+            )),
+            child: const Text('open'),
           ),
         ),
       ),
     ),
-  ));
+    container: c,
+  );
   await tester.tap(find.text('open'));
   await tester.pumpAndSettle();
 }
@@ -110,10 +112,7 @@ void main() {
     await c.read(playlistsProvider.notifier)
         .addVideos(p.id, [_v('2', 'b.mkv'), _v('1', 'a.mkv')]);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: MaterialApp(home: PlaylistScreen(playlistId: p.id)),
-    ));
+    await pumpLocalized(tester, PlaylistScreen(playlistId: p.id), container: c);
     await tester.pumpAndSettle();
 
     final rows = tester.widgetList<Text>(find.byType(Text))
@@ -131,10 +130,7 @@ void main() {
     final p = await c.read(playlistsProvider.notifier).create('Serie');
     await c.read(playlistsProvider.notifier).addVideos(p.id, [_v('1', 'a.mkv')]);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: MaterialApp(home: PlaylistScreen(playlistId: p.id)),
-    ));
+    await pumpLocalized(tester, PlaylistScreen(playlistId: p.id), container: c);
     await tester.pumpAndSettle();
 
     expect(find.text('a.mkv'), findsOneWidget);
@@ -149,10 +145,7 @@ void main() {
     final p = await c.read(playlistsProvider.notifier).create('Serie');
     await c.read(playlistsProvider.notifier).addVideos(p.id, [_v('1', 'a.mkv')]);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: MaterialApp(home: PlaylistScreen(playlistId: p.id)),
-    ));
+    await pumpLocalized(tester, PlaylistScreen(playlistId: p.id), container: c);
     await tester.pumpAndSettle();
     await tester.tap(find.text('a.mkv'));
     await tester.pumpAndSettle();
@@ -168,10 +161,7 @@ void main() {
     final p = await c.read(playlistsProvider.notifier).create('Serie');
     await c.read(playlistsProvider.notifier).addVideos(p.id, [_v('1', 'a.mkv')]);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: MaterialApp(home: PlaylistScreen(playlistId: p.id)),
-    ));
+    await pumpLocalized(tester, PlaylistScreen(playlistId: p.id), container: c);
     await tester.pumpAndSettle();
 
     final thumb = tester.widget<ThumbnailImage>(find.byType(ThumbnailImage));
@@ -188,10 +178,7 @@ void main() {
     final p = await c.read(playlistsProvider.notifier).create('Serie');
     await c.read(playlistsProvider.notifier).addVideos(p.id, [_v('1', 'a.mkv')]);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: MaterialApp(home: PlaylistScreen(playlistId: p.id)),
-    ));
+    await pumpLocalized(tester, PlaylistScreen(playlistId: p.id), container: c);
     await tester.pumpAndSettle();
 
     expect(find.byType(ThumbnailImage), findsNothing);
@@ -207,10 +194,7 @@ void main() {
     final p = await c.read(playlistsProvider.notifier).create('Serie');
     await c.read(playlistsProvider.notifier).addVideos(p.id, [_v('1', 'a.mkv')]);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: MaterialApp(home: PlaylistScreen(playlistId: p.id)),
-    ));
+    await pumpLocalized(tester, PlaylistScreen(playlistId: p.id), container: c);
     await tester.pumpAndSettle();
 
     await tester.tap(_optionsButton(0));
@@ -230,10 +214,7 @@ void main() {
     await c.read(playlistsProvider.notifier).addVideos(
         p.id, [_v('1', 'a.mkv'), _v('2', 'b.mkv'), _v('3', 'c.mkv')]);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: MaterialApp(home: PlaylistScreen(playlistId: p.id)),
-    ));
+    await pumpLocalized(tester, PlaylistScreen(playlistId: p.id), container: c);
     await tester.pumpAndSettle();
 
     // Remove the MIDDLE entry — proves undo restores position, not just presence.
@@ -242,9 +223,9 @@ void main() {
 
     expect(find.text('b.mkv'), findsNothing);
     expect(store.all().single.entries.map((e) => e.displayName), ['a.mkv', 'c.mkv']);
-    expect(find.text('Deshacer'), findsOneWidget);
+    expect(find.text(_l10n.commonUndo), findsOneWidget);
 
-    await tester.tap(find.text('Deshacer'));
+    await tester.tap(find.text(_l10n.commonUndo));
     await tester.pumpAndSettle();
 
     expect(store.all().single.entries.map((e) => e.displayName),
@@ -261,10 +242,7 @@ void main() {
     await c.read(playlistsProvider.notifier).addVideos(
         p.id, [_v('1', 'a.mkv'), _v('2', 'b.mkv'), _v('3', 'c.mkv')]);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: MaterialApp(home: PlaylistScreen(playlistId: p.id)),
-    ));
+    await pumpLocalized(tester, PlaylistScreen(playlistId: p.id), container: c);
     await tester.pumpAndSettle();
 
     // Remove three entries back-to-back without letting any snackbar settle.
@@ -298,10 +276,7 @@ void main() {
       await c.read(playlistsProvider.notifier).addVideos(
           p.id, [_v('1', 'a.mkv'), _v('2', 'b.mkv'), _v('3', 'c.mkv')]);
 
-      await tester.pumpWidget(UncontrolledProviderScope(
-        container: c,
-        child: MaterialApp(home: PlaylistScreen(playlistId: p.id)),
-      ));
+      await pumpLocalized(tester, PlaylistScreen(playlistId: p.id), container: c);
       await tester.pumpAndSettle();
 
       final list = tester.widget<ReorderableListView>(find.byType(ReorderableListView));
@@ -324,10 +299,7 @@ void main() {
       await c.read(playlistsProvider.notifier).addVideos(
           p.id, [_v('1', 'a.mkv'), _v('2', 'b.mkv'), _v('3', 'c.mkv')]);
 
-      await tester.pumpWidget(UncontrolledProviderScope(
-        container: c,
-        child: MaterialApp(home: PlaylistScreen(playlistId: p.id)),
-      ));
+      await pumpLocalized(tester, PlaylistScreen(playlistId: p.id), container: c);
       await tester.pumpAndSettle();
 
       final list = tester.widget<ReorderableListView>(find.byType(ReorderableListView));
@@ -350,10 +322,7 @@ void main() {
     final p = await c.read(playlistsProvider.notifier).create('Serie');
     await c.read(playlistsProvider.notifier).addVideos(p.id, [_v('1', 'a.mkv')]);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: MaterialApp(home: PlaylistScreen(playlistId: p.id)),
-    ));
+    await pumpLocalized(tester, PlaylistScreen(playlistId: p.id), container: c);
     await tester.pumpAndSettle();
     // Deliberately no pumpAndSettle after this tap: the row's onTap runs
     // synchronously (playAt + Navigator.push), and settling the pushed
@@ -378,7 +347,7 @@ void main() {
 
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Borrar lista'));
+    await tester.tap(find.text(_l10n.playlistDeleteTitle));
     await tester.pumpAndSettle();
 
     // Names the playlist and says it cannot be undone (spec: destructive
@@ -387,7 +356,7 @@ void main() {
     expect(find.textContaining('no se puede deshacer'), findsOneWidget);
 
     // Cancel leaves the playlist untouched.
-    await tester.tap(find.text('Cancelar'));
+    await tester.tap(find.text(_l10n.commonCancel));
     await tester.pumpAndSettle();
     expect(store.all().single.name, 'Curso de cocina');
   });
@@ -405,9 +374,9 @@ void main() {
 
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Borrar lista'));
+    await tester.tap(find.text(_l10n.playlistDeleteTitle));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Borrar'));
+    await tester.tap(find.text(_l10n.commonDelete));
     await tester.pumpAndSettle();
 
     expect(find.byType(PlaylistScreen), findsNothing);
@@ -422,25 +391,22 @@ void main() {
     await c.read(mediaIndexProvider.future);
     final p = await c.read(playlistsProvider.notifier).create('Serie');
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: MaterialApp(home: PlaylistScreen(playlistId: p.id)),
-    ));
+    await pumpLocalized(tester, PlaylistScreen(playlistId: p.id), container: c);
     await tester.pumpAndSettle();
 
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Renombrar lista'));
+    await tester.tap(find.text(_l10n.playlistRenameTitle));
     await tester.pumpAndSettle();
 
     // A blank name is refused — the dialog stays open.
     await tester.enterText(find.byType(TextField), '   ');
-    await tester.tap(find.text('Guardar'));
+    await tester.tap(find.text(_l10n.commonSave));
     await tester.pumpAndSettle();
     expect(store.all().single.name, 'Serie');
 
     await tester.enterText(find.byType(TextField), 'Otra serie');
-    await tester.tap(find.text('Guardar'));
+    await tester.tap(find.text(_l10n.commonSave));
     await tester.pumpAndSettle();
 
     expect(store.all().single.name, 'Otra serie');
@@ -457,10 +423,7 @@ void main() {
     await c.read(playlistsProvider.notifier)
         .addVideos(p.id, [_v('1', 'a.mkv'), _v('2', 'b.mkv')]);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: MaterialApp(home: PlaylistScreen(playlistId: p.id)),
-    ));
+    await pumpLocalized(tester, PlaylistScreen(playlistId: p.id), container: c);
     await tester.pumpAndSettle();
 
     await tester.longPress(find.text('a.mkv'));
@@ -469,7 +432,7 @@ void main() {
     expect(c.read(librarySelectionProvider), {'content://1'});
     // The normal AppBar (playlist name + rename/delete menu) is swapped for
     // the shared SelectionAppBar while marking is active.
-    expect(find.text('1 seleccionado'), findsOneWidget);
+    expect(find.text(_l10n.selectionCountLabel(1)), findsOneWidget);
     expect(find.text('Serie'), findsNothing);
 
     // Tapping the second (unmarked) entry while marking is active toggles
@@ -488,10 +451,7 @@ void main() {
     final p = await c.read(playlistsProvider.notifier).create('Serie');
     await c.read(playlistsProvider.notifier).addVideos(p.id, [_v('1', 'a.mkv')]);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: MaterialApp(home: PlaylistScreen(playlistId: p.id)),
-    ));
+    await pumpLocalized(tester, PlaylistScreen(playlistId: p.id), container: c);
     await tester.pumpAndSettle();
 
     await tester.longPress(find.text('a.mkv'));
@@ -513,10 +473,7 @@ void main() {
     await c.read(playlistsProvider.notifier).addVideos(
         p.id, [_v('1', 'a.mkv'), _v('2', 'b.mkv'), _v('3', 'c.mkv')]);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: MaterialApp(home: PlaylistScreen(playlistId: p.id)),
-    ));
+    await pumpLocalized(tester, PlaylistScreen(playlistId: p.id), container: c);
     await tester.pumpAndSettle();
 
     // A single one-shot drag() only registers one swap with

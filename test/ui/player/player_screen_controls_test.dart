@@ -21,6 +21,7 @@ import 'package:kivo_player/ui/player/state/controls_visibility.dart';
 import 'package:kivo_player/ui/player/state/mini_player_state.dart';
 import 'package:kivo_player/ui/player/controls/center_controls.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
 
 class NoopControls implements DeviceControls {
   @override Future<double> currentBrightness() async => 0.5;
@@ -59,10 +60,7 @@ void main() {
       const VideoSession(playbackPath: '/v/ep1.mkv', displayName: 'ep1.mkv', queue: ['/v/ep1.mkv'], index: 0),
     );
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: const MaterialApp(home: PlayerScreen()),
-    ));
+    await pumpLocalized(tester, const PlayerScreen(), container: c);
     await tester.pump();
 
     expect(c.read(controlsVisibleProvider), false);
@@ -98,21 +96,20 @@ void main() {
       const VideoSession(playbackPath: '/v/ep1.mkv', displayName: 'ep1.mkv', queue: ['/v/ep1.mkv'], index: 0),
     );
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: MaterialApp(
-        home: Builder(
-          builder: (context) => Scaffold(
-            body: ElevatedButton(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const PlayerScreen()),
-              ),
-              child: const Text('open'),
+    await pumpLocalized(
+      tester,
+      Builder(
+        builder: (context) => Scaffold(
+          body: ElevatedButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const PlayerScreen()),
             ),
+            child: const Text('open'),
           ),
         ),
       ),
-    ));
+      container: c,
+    );
     await tester.pump();
     await tester.tap(find.text('open'));
     // Drive the push transition without pumpAndSettle: PlayerScreen's
@@ -189,21 +186,20 @@ void main() {
       const VideoSession(playbackPath: '/v/ep1.mkv', displayName: 'ep1.mkv', queue: ['/v/ep1.mkv'], index: 0),
     );
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: MaterialApp(
-        home: Builder(
-          builder: (context) => Scaffold(
-            body: ElevatedButton(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const PlayerScreen()),
-              ),
-              child: const Text('open'),
+    await pumpLocalized(
+      tester,
+      Builder(
+        builder: (context) => Scaffold(
+          body: ElevatedButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const PlayerScreen()),
             ),
+            child: const Text('open'),
           ),
         ),
       ),
-    ));
+      container: c,
+    );
     await tester.pump();
     await tester.tap(find.text('open'));
     await tester.pump();
@@ -260,10 +256,7 @@ void main() {
       const VideoSession(playbackPath: '/v/ep2.mkv', displayName: 'ep2.mkv', queue: ['/v/ep2.mkv'], index: 0),
     );
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: const MaterialApp(home: PlayerScreen()),
-    ));
+    await pumpLocalized(tester, const PlayerScreen(), container: c);
     await tester.pump();
 
     expect(c.read(playerMinimizedProvider), false);
@@ -297,21 +290,20 @@ void main() {
       const VideoSession(playbackPath: '/v/ep1.mkv', displayName: 'ep1.mkv', queue: ['/v/ep1.mkv'], index: 0),
     );
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: MaterialApp(
-        home: Builder(
-          builder: (context) => Scaffold(
-            body: ElevatedButton(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const PlayerScreen()),
-              ),
-              child: const Text('open'),
+    await pumpLocalized(
+      tester,
+      Builder(
+        builder: (context) => Scaffold(
+          body: ElevatedButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const PlayerScreen()),
             ),
+            child: const Text('open'),
           ),
         ),
       ),
-    ));
+      container: c,
+    );
     await tester.pump();
     await tester.tap(find.text('open'));
     await tester.pump();
@@ -382,10 +374,7 @@ void main() {
       const VideoSession(playbackPath: '/v/ep1.mkv', displayName: 'ep1.mkv', queue: ['/v/ep1.mkv'], index: 0),
     );
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: const MaterialApp(home: PlayerScreen()),
-    ));
+    await pumpLocalized(tester, const PlayerScreen(), container: c);
     await tester.pump();
 
     // _applyDefaultTracks awaits the audio-tracks stream first (both streams
@@ -448,10 +437,7 @@ void main() {
       ),
     );
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: const MaterialApp(home: PlayerScreen()),
-    ));
+    await pumpLocalized(tester, const PlayerScreen(), container: c);
     await tester.pump();
 
     // Same mount-before-emit / audio-before-subtitle ordering as the

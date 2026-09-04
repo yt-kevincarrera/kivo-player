@@ -15,6 +15,9 @@ import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/ui/player/player_screen.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 class NoopControls implements DeviceControls {
   @override Future<double> currentBrightness() async => 0.5;
@@ -76,23 +79,20 @@ void main() {
     addTearDown(c.dispose);
     c.read(currentVideoProvider.notifier).open(_session);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: const MaterialApp(home: PlayerScreen()),
-    ));
+    await pumpLocalized(tester, const PlayerScreen(), container: c);
     await _settle(tester);
 
-    expect(find.text('TOQUES'), findsOneWidget);
+    expect(find.text(_l10n.playerTutorialPageTaps.toUpperCase()), findsOneWidget);
     expect(engine.lastPlayingCommand, false); // paused for the tutorial
 
-    await tester.tap(find.text('Siguiente'));
+    await tester.tap(find.text(_l10n.playerTutorialNextAction));
     await _settle(tester);
-    await tester.tap(find.text('Siguiente'));
+    await tester.tap(find.text(_l10n.playerTutorialNextAction));
     await _settle(tester);
-    await tester.tap(find.text('Entendido'));
+    await tester.tap(find.text(_l10n.playerTutorialDoneAction));
     await _settle(tester);
 
-    expect(find.text('BOTONES'), findsNothing);
+    expect(find.text(_l10n.playerTutorialPageButtons.toUpperCase()), findsNothing);
     expect(engine.lastPlayingCommand, true); // resumed
     expect(c.read(settingsProvider).gestureMapShown, true); // persisted on close
 
@@ -108,13 +108,10 @@ void main() {
     addTearDown(c.dispose);
     c.read(currentVideoProvider.notifier).open(_session);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: const MaterialApp(home: PlayerScreen()),
-    ));
+    await pumpLocalized(tester, const PlayerScreen(), container: c);
     await _settle(tester);
 
-    expect(find.text('TOQUES'), findsNothing);
+    expect(find.text(_l10n.playerTutorialPageTaps.toUpperCase()), findsNothing);
 
     await _unmount(tester);
   });

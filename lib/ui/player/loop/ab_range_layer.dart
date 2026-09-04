@@ -55,6 +55,8 @@ class _AbRangePainter extends CustomPainter {
         Paint()..color = color.withValues(alpha: 0.28),
       );
     }
+    // 'A'/'B' are the loop's own point identifiers, not language — same
+    // decision as the adjust popover in ab_loop_chip.dart. Not translated.
     _marker(canvas, xa, cy, 'A');
     if (bFrac != null) _marker(canvas, _x(size, bFrac!), cy, 'B');
   }

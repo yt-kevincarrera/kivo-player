@@ -11,6 +11,7 @@ import 'package:kivo_player/vault/vault_providers.dart';
 import 'package:kivo_player/vault/vault_auth.dart';
 import 'package:kivo_player/ui/vault/vault_gate.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
 
 Future<ProviderContainer> _container({
   required bool biometricEnabled,
@@ -29,12 +30,11 @@ Future<ProviderContainer> _container({
   ]);
 }
 
-Widget _app(ProviderContainer c) => UncontrolledProviderScope(
+Future<void> _pumpGate(WidgetTester tester, ProviderContainer c) => pumpLocalized(
+      tester,
+      const VaultGate(child: Text('VAULT-CONTENT')),
+      theme: KivoTheme.dark(),
       container: c,
-      child: MaterialApp(
-        theme: KivoTheme.dark(),
-        home: const VaultGate(child: Text('VAULT-CONTENT')),
-      ),
     );
 
 void main() {
@@ -42,7 +42,7 @@ void main() {
     final bio = FakeBiometricAuth(available: true, willSucceed: true);
     final c = await _container(biometricEnabled: true, bio: bio);
     addTearDown(c.dispose);
-    await tester.pumpWidget(_app(c));
+    await _pumpGate(tester, c);
     await tester.pumpAndSettle();
     expect(bio.authCalls, 1);
     expect(find.text('VAULT-CONTENT'), findsOneWidget);
@@ -53,7 +53,7 @@ void main() {
     final bio = FakeBiometricAuth(available: true, willSucceed: false);
     final c = await _container(biometricEnabled: true, bio: bio);
     addTearDown(c.dispose);
-    await tester.pumpWidget(_app(c));
+    await _pumpGate(tester, c);
     await tester.pumpAndSettle();
     expect(find.text('VAULT-CONTENT'), findsNothing);
     expect(find.byKey(const Key('pin-key-1')), findsOneWidget);
@@ -63,7 +63,7 @@ void main() {
     final bio = FakeBiometricAuth(available: false);
     final c = await _container(biometricEnabled: false, bio: bio);
     addTearDown(c.dispose);
-    await tester.pumpWidget(_app(c));
+    await _pumpGate(tester, c);
     await tester.pumpAndSettle();
 
     // wrong
@@ -88,7 +88,7 @@ void main() {
     final bio = FakeBiometricAuth(available: true, gate: gate);
     final c = await _container(biometricEnabled: true, bio: bio);
     addTearDown(c.dispose);
-    await tester.pumpWidget(_app(c));
+    await _pumpGate(tester, c);
     await tester.pump(); // let postFrame callback run and kick off the biometric attempt
     await tester.pump();
 
@@ -116,7 +116,7 @@ void main() {
     final bio = FakeBiometricAuth(available: true, willSucceed: false);
     final c = await _container(biometricEnabled: true, bio: bio);
     addTearDown(c.dispose);
-    await tester.pumpWidget(_app(c));
+    await _pumpGate(tester, c);
     await tester.pumpAndSettle();
 
     expect(bio.authCalls, 1);
@@ -148,7 +148,7 @@ void main() {
     final bio = FakeBiometricAuth(available: true, gate: gate);
     final c = await _container(biometricEnabled: true, bio: bio);
     addTearDown(c.dispose);
-    await tester.pumpWidget(_app(c));
+    await _pumpGate(tester, c);
     await tester.pump();
     await tester.pump();
 
@@ -173,7 +173,7 @@ void main() {
     final bio = FakeBiometricAuth(available: true, gate: gate);
     final c = await _container(biometricEnabled: true, bio: bio);
     addTearDown(c.dispose);
-    await tester.pumpWidget(_app(c));
+    await _pumpGate(tester, c);
     await tester.pump(); // let postFrame callback run and kick off the biometric attempt
     await tester.pump();
 

@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
@@ -13,6 +12,7 @@ import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/ui/home/library_screen.dart';
 import 'fakes/fakes.dart';
+import 'helpers/pump_app.dart';
 
 class _GrantedPerm implements MediaPermission {
   @override
@@ -27,20 +27,17 @@ void main() {
     final resumeStore = InMemoryResumeStore();
     final engine = FakePlaybackEngine();
 
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          settingsServiceProvider.overrideWithValue(s),
-          mediaPermissionImplProvider.overrideWithValue(_GrantedPerm()),
-          mediaIndexerProvider.overrideWithValue(FakeMediaIndexer()),
-          resumeServiceProvider.overrideWithValue(ResumeService(resumeStore)),
-          playbackEngineProvider.overrideWithValue(engine),
-          frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
-          playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
-        ],
-        child: const MaterialApp(home: LibraryScreen()),
-      ),
-    );
+    final container = ProviderContainer(overrides: [
+      settingsServiceProvider.overrideWithValue(s),
+      mediaPermissionImplProvider.overrideWithValue(_GrantedPerm()),
+      mediaIndexerProvider.overrideWithValue(FakeMediaIndexer()),
+      resumeServiceProvider.overrideWithValue(ResumeService(resumeStore)),
+      playbackEngineProvider.overrideWithValue(engine),
+      frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
+      playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
+    ]);
+    addTearDown(container.dispose);
+    await pumpLocalized(tester, const LibraryScreen(), container: container);
     await tester.pumpAndSettle();
     expect(find.byType(LibraryScreen), findsOneWidget);
   });

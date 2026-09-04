@@ -14,6 +14,9 @@ import 'package:kivo_player/vault/vault_auth.dart';
 import 'package:kivo_player/vault/vault_store.dart';
 import 'package:kivo_player/ui/vault/vault_screen.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 class _Perm implements MediaPermission {
   @override Future<MediaAccess> status() async => MediaAccess.granted;
@@ -38,16 +41,18 @@ void main() {
     addTearDown(c.dispose);
     await c.read(vaultEntriesProvider.future);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
+    await pumpLocalized(
+      tester,
+      const VaultScreen(),
+      theme: KivoTheme.dark(),
       container: c,
-      child: MaterialApp(theme: KivoTheme.dark(), home: const VaultScreen()),
-    ));
+    );
     await tester.pumpAndSettle(); // biometric auto-unlock
 
     expect(c.read(settingsProvider).vaultEntranceHidden, false);
     await tester.tap(find.byType(PopupMenuButton<String>));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Ocultar entrada'));
+    await tester.tap(find.text(_l10n.vaultMenuHideEntrance));
     await tester.pumpAndSettle();
     expect(c.read(settingsProvider).vaultEntranceHidden, true);
   });

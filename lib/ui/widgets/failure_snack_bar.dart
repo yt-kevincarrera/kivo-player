@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../core/errors/kivo_failure.dart';
+import '../../l10n/l10n.dart';
+import 'failure_l10n.dart';
 import 'failure_view.dart';
 
 /// The transient counterpart to [FailureView]: friendly copy plus the code,
@@ -27,11 +29,12 @@ void showFailureSnackBarOn(
   KivoOp op, {
   Object? cause,
 }) {
-  final failure = KivoFailure(op, cause ?? 'sin detalle técnico');
+  final l10n = detailsContext.l10n;
+  final failure = KivoFailure(op, cause ?? l10n.errorNoTechnicalDetail);
   messenger.showSnackBar(SnackBar(
-    content: Text('${failure.message} (${failure.code})'),
+    content: Text('${failureMessage(l10n, op)} (${failure.code})'),
     action: SnackBarAction(
-      label: 'Detalles',
+      label: l10n.errorDetailsAction,
       onPressed: () => showFailureDetailsSheet(detailsContext, failure),
     ),
   ));

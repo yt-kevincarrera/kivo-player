@@ -7,6 +7,9 @@ import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/player/sleep/sleep_timer.dart';
 import 'package:kivo_player/ui/player/sleep/sleep_warning_toast.dart';
 import '../../../fakes/fakes.dart';
+import '../../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 void main() {
   late FakePlaybackEngine engine;
@@ -21,10 +24,7 @@ void main() {
       playbackEngineProvider.overrideWithValue(engine),
     ]);
     addTearDown(c.dispose);
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: const MaterialApp(home: Scaffold(body: SleepWarningToast())),
-    ));
+    await pumpLocalized(tester, const Scaffold(body: SleepWarningToast()), container: c);
   }
 
   // Drives the notifier into a warning state without waiting real minutes:
@@ -39,26 +39,26 @@ void main() {
 
   testWidgets('hidden with no timer; visible in warning with countdown', (tester) async {
     await pumpToast(tester);
-    expect(find.textContaining('Pausando en'), findsNothing);
+    expect(find.textContaining(_l10n.playerSleepPausingInLabel.trim()), findsNothing);
     await enterWarning(tester);
-    expect(find.textContaining('Pausando en'), findsOneWidget);
-    expect(find.text('Extender'), findsOneWidget);
-    expect(find.text('Desactivar'), findsOneWidget);
+    expect(find.textContaining(_l10n.playerSleepPausingInLabel.trim()), findsOneWidget);
+    expect(find.text(_l10n.playerSleepExtendAction), findsOneWidget);
+    expect(find.text(_l10n.playerSleepDeactivate), findsOneWidget);
   });
 
   testWidgets('Desactivar cancels the timer', (tester) async {
     await pumpToast(tester);
     await enterWarning(tester);
-    await tester.tap(find.text('Desactivar'));
+    await tester.tap(find.text(_l10n.playerSleepDeactivate));
     await tester.pump();
     expect(c.read(sleepTimerProvider), isNull);
-    expect(find.textContaining('Pausando en'), findsNothing);
+    expect(find.textContaining(_l10n.playerSleepPausingInLabel.trim()), findsNothing);
   });
 
   testWidgets('Extender in episode mode cancels (keeps watching)', (tester) async {
     await pumpToast(tester);
     await enterWarning(tester);
-    await tester.tap(find.text('Extender'));
+    await tester.tap(find.text(_l10n.playerSleepExtendAction));
     await tester.pump();
     expect(c.read(sleepTimerProvider), isNull);
   });
@@ -68,7 +68,7 @@ void main() {
     await enterWarning(tester);
     await tester.tap(find.byIcon(Icons.close_rounded));
     await tester.pump();
-    expect(find.textContaining('Pausando en'), findsNothing);
+    expect(find.textContaining(_l10n.playerSleepPausingInLabel.trim()), findsNothing);
     expect(c.read(sleepTimerProvider), isNotNull);
     expect(c.read(sleepTimerProvider)!.warning, true);
   });

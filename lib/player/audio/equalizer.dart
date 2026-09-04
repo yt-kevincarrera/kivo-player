@@ -126,18 +126,37 @@ final Map<String, List<double>> equalizerPresetCurves = {
 /// Preset names in display order, for the chips row.
 const List<String> equalizerPresetNames = ['Plano', 'Graves', 'Voz', 'Agudos'];
 
+/// Structured counterpart to [equalizerPresetNames]' Spanish strings, in the
+/// same display order, plus [custom] for a hand-tuned curve. A UI maps each
+/// value to `context.l10n.settingsEqPreset*` rather than showing [name]
+/// directly.
+enum EqPreset {
+  flat('Plano'),
+  bass('Graves'),
+  voice('Voz'),
+  treble('Agudos'),
+  custom('Personalizado');
+
+  /// The internal Spanish identifier this preset corresponds to in
+  /// [equalizerPresetCurves] / [equalizerPresetNames] — what
+  /// `EqualizerController.applyPreset` still takes. Never shown in the UI.
+  final String name;
+  const EqPreset(this.name);
+}
+
 /// The preset whose curve matches [settings.gainsDb] exactly, or
-/// 'Personalizado' when the user has hand-tuned away from every preset.
+/// [EqPreset.custom] when the user has hand-tuned away from every preset.
 /// Preamp and enabled play no part in the match — a preset stays "itself"
 /// whether or not preamp is dialed in or the switch is off, since those are
 /// separate controls from the curve itself.
-String presetNameFor(EqualizerSettings settings) {
-  for (final name in equalizerPresetNames) {
-    if (_gainsEqual(settings.gainsDb, equalizerPresetCurves[name]!)) {
-      return name;
+EqPreset presetFor(EqualizerSettings settings) {
+  for (final preset in EqPreset.values) {
+    if (preset == EqPreset.custom) continue;
+    if (_gainsEqual(settings.gainsDb, equalizerPresetCurves[preset.name]!)) {
+      return preset;
     }
   }
-  return 'Personalizado';
+  return EqPreset.custom;
 }
 
 /// Builds the exact `af` mpv property value for [settings].

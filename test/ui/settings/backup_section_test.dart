@@ -22,6 +22,9 @@ import 'package:kivo_player/vault/vault_providers.dart';
 import 'package:kivo_player/vault/vault_store.dart';
 
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 /// A fake FilePicker.platform: `extends FilePicker` (not `implements`) so
 /// the base constructor supplies the private verification token the real
@@ -91,10 +94,7 @@ Future<_Env> _pump(WidgetTester t, {required String backupJson}) async {
     appInstallerProvider.overrideWithValue(FakeAppInstaller(version: '1.14.2')),
   ]);
   addTearDown(container.dispose);
-  await t.pumpWidget(UncontrolledProviderScope(
-    container: container,
-    child: MaterialApp(theme: KivoTheme.dark(), home: const BackupSection()),
-  ));
+  await pumpLocalized(t, const BackupSection(), container: container, theme: KivoTheme.dark());
   await t.pump();
   return _Env(container, playlists);
 }
@@ -118,21 +118,21 @@ void main() {
   testWidgets('restore dialog shows the plan\'s counts', (t) async {
     await _pump(t, backupJson: _twoNewPlaylistsBackup());
 
-    await t.tap(find.text('Restaurar copia'));
+    await t.tap(find.text(_l10n.settingsBackupRestoreTitle));
     await t.pumpAndSettle();
 
-    expect(find.text('Restaurar copia'), findsWidgets); // dialog title + row
-    expect(find.textContaining('2 listas'), findsOneWidget);
+    expect(find.text(_l10n.settingsBackupRestoreTitle), findsWidgets); // dialog title + row
+    expect(find.textContaining(_l10n.settingsBackupRestoreItemPlaylists(2)), findsOneWidget);
   });
 
   testWidgets('Cancelar in the confirm dialog applies nothing', (t) async {
     final env = await _pump(t, backupJson: _twoNewPlaylistsBackup());
 
-    await t.tap(find.text('Restaurar copia'));
+    await t.tap(find.text(_l10n.settingsBackupRestoreTitle));
     await t.pumpAndSettle();
-    expect(find.textContaining('2 listas'), findsOneWidget);
+    expect(find.textContaining(_l10n.settingsBackupRestoreItemPlaylists(2)), findsOneWidget);
 
-    await t.tap(find.text('Cancelar'));
+    await t.tap(find.text(_l10n.commonCancel));
     await t.pumpAndSettle();
 
     expect(env.container.read(playlistStoreProvider).all(), isEmpty);
@@ -142,13 +142,13 @@ void main() {
   testWidgets('Restaurar in the confirm dialog applies the plan', (t) async {
     final env = await _pump(t, backupJson: _twoNewPlaylistsBackup());
 
-    await t.tap(find.text('Restaurar copia'));
+    await t.tap(find.text(_l10n.settingsBackupRestoreTitle));
     await t.pumpAndSettle();
-    await t.tap(find.text('Restaurar'));
+    await t.tap(find.text(_l10n.settingsBackupRestoreConfirmAction));
     await t.pumpAndSettle();
 
     expect(env.container.read(playlistStoreProvider).all(), hasLength(2));
-    expect(find.text('Copia restaurada'), findsOneWidget);
+    expect(find.text(_l10n.settingsBackupRestoredSnackbar), findsOneWidget);
   });
 
   testWidgets('a newer-format backup shows a typed error dialog, not a raw exception',
@@ -156,10 +156,13 @@ void main() {
     final badJson = jsonEncode({'kivo': kBackupFormatVersion + 1});
     await _pump(t, backupJson: badJson);
 
-    await t.tap(find.text('Restaurar copia'));
+    await t.tap(find.text(_l10n.settingsBackupRestoreTitle));
     await t.pumpAndSettle();
 
-    expect(find.text('No se pudo leer la copia'), findsOneWidget);
-    expect(find.textContaining('más nueva de Kivo'), findsOneWidget);
+    expect(find.text(_l10n.settingsBackupReadFailedDialogTitle), findsOneWidget);
+    // The dialog shows the localized message, not BackupTooNewException's
+    // own hardcoded-Spanish toString() (that stays as the raw/log text —
+    // see lib/ui/settings/sections/backup_section.dart's catch clause).
+    expect(find.text(_l10n.settingsBackupTooNewMessage), findsOneWidget);
   });
 }

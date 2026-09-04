@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/icons/kivo_icons.dart';
 import '../../../core/settings/settings_provider.dart';
+import '../../../l10n/l10n.dart';
 import '../../../player/control/player_controller.dart';
 import '../../../player/engine/playback_provider.dart';
 import '../state/skip_feedback.dart';
@@ -52,7 +53,9 @@ class _SkipButtonState extends ConsumerState<_SkipButton>
         padding: const EdgeInsets.all(18),
         constraints: const BoxConstraints(minWidth: 68, minHeight: 68),
         splashRadius: 34,
-        tooltip: widget.forward ? 'Avanzar ${skip}s' : 'Retroceder ${skip}s',
+        tooltip: widget.forward
+            ? context.l10n.playerSkipForwardTooltip(skip)
+            : context.l10n.playerSkipBackTooltip(skip),
         icon: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -109,7 +112,7 @@ class CenterControls extends ConsumerWidget {
             style: IconButton.styleFrom(
               shape: const CircleBorder(side: BorderSide(color: Colors.white, width: 3)),
             ),
-            tooltip: playing ? 'Pausar' : 'Reproducir',
+            tooltip: playing ? context.l10n.playerPauseTooltip : context.l10n.playerPlayTooltip,
             icon: AnimatedSwitcher(
               duration: const Duration(milliseconds: 200),
               transitionBuilder: (child, anim) =>

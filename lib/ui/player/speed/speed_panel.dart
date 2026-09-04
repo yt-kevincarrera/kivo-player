@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/icons/kivo_icons.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
+import '../../../l10n/l10n.dart';
 import '../../../player/control/gesture_math.dart';
 import '../../../player/control/player_controller.dart';
 
@@ -118,7 +119,7 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     KivoIcon(KivoIcons.plus, size: 16, color: accent),
                     const SizedBox(width: 4),
-                    Text('Guardar ${round2(rate)}x',
+                    Text(context.l10n.playerSpeedSavePreset(round2(rate).toString()),
                         style: TextStyle(color: accent, fontWeight: FontWeight.w600, fontSize: 13)),
                   ]),
                 ),
@@ -130,7 +131,7 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
           child: TextButton(
             style: TextButton.styleFrom(foregroundColor: accent),
             onPressed: () => ctrl.setRate(1.0),
-            child: const Text('Restablecer (1x)'),
+            child: Text(context.l10n.playerSpeedResetAction),
           ),
         ),
       ],

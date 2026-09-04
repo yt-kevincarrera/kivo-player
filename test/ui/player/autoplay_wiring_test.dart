@@ -17,6 +17,7 @@ import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/ui/player/player_screen.dart';
 import 'package:kivo_player/ui/player/state/autoplay_state.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
 
 class NoopControls implements DeviceControls {
   @override Future<double> currentBrightness() async => 0.5;
@@ -68,10 +69,7 @@ void main() {
     addTearDown(c.dispose);
     c.read(currentVideoProvider.notifier).open(session);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: const MaterialApp(home: PlayerScreen()),
-    ));
+    await pumpLocalized(tester, const PlayerScreen(), container: c);
     await tester.pump();
     // Drain _applyDefaultTracks so it doesn't touch a torn-down engine later.
     engine.emitAudioTracks(const []);

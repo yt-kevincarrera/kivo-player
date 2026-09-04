@@ -7,6 +7,7 @@ import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import '../../core/icons/kivo_icons.dart';
 import '../../core/settings/settings_provider.dart';
 import '../../core/theme/kivo_theme.dart';
+import '../../l10n/l10n.dart';
 import '../../platform/interfaces/media_indexer.dart';
 import '../../platform/interfaces/media_permission.dart';
 import '../../player/library/continue_watching.dart';
@@ -227,8 +228,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                           // Listas' search filters playlists (by name, and
                           // by member-video name), not videos or folders —
                           // say so, or the hint just lies on that tab.
-                          hintText:
-                              tab == 2 ? 'Buscar listas' : 'Buscar videos o carpetas',
+                          hintText: tab == 2
+                              ? context.l10n.librarySearchHintPlaylists
+                              : context.l10n.librarySearchHintVideos,
                           border: InputBorder.none,
                         ),
                         onChanged: (q) =>
@@ -261,13 +263,13 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                   child: ref.watch(librarySearchActiveProvider)
                       ? IconButton(
                           key: const ValueKey('close'),
-                          tooltip: 'Cerrar búsqueda',
+                          tooltip: context.l10n.librarySearchClose,
                           icon: const Icon(Icons.close),
                           onPressed: _closeSearch,
                         )
                       : IconButton(
                           key: const ValueKey('search'),
-                          tooltip: 'Buscar',
+                          tooltip: context.l10n.librarySearchTooltip,
                           icon: const Icon(Icons.search),
                           onPressed: _openSearch,
                         ),
@@ -286,14 +288,12 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                     IconButton(
                       // Says what the tap DOES, not what the feature is
                       // called: "densidad" told the user nothing.
-                      tooltip: _nextColumns == 1
-                          ? 'Ver en 1 columna'
-                          : 'Ver en $_nextColumns columnas',
+                      tooltip: context.l10n.libraryDensityTooltip(_nextColumns),
                       icon: const Icon(Icons.grid_view),
                       onPressed: _cycleDensity,
                     ),
                   IconButton(
-                    tooltip: 'Abrir archivo',
+                    tooltip: context.l10n.libraryOpenFile,
                     icon: KivoIcon(KivoIcons.folderOpen, size: 22),
                     onPressed: _pick,
                   ),
@@ -430,8 +430,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                 ? null
                 : LibraryEmptyState(
                     icon: Icons.search_off,
-                    title: 'No se encontraron videos para "$query"',
-                    primaryLabel: 'Borrar búsqueda',
+                    title: context.l10n.libraryNoSearchResults(query),
+                    primaryLabel: context.l10n.librarySearchClearAction,
                     onPrimary: _closeSearch,
                   ),
           ),
@@ -468,9 +468,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     if (hiddenByFilter) {
       return LibraryEmptyState(
         icon: Icons.visibility_off_outlined,
-        title: 'Ya viste todo',
-        subtitle: 'No queda ningún video sin ver.',
-        primaryLabel: 'Quitar filtro',
+        title: context.l10n.libraryEmptyAllWatchedTitle,
+        subtitle: context.l10n.libraryEmptyAllWatchedSubtitle,
+        primaryLabel: context.l10n.libraryEmptyRemoveFilterAction,
         onPrimary: () =>
             ref.read(libraryUnwatchedOnlyProvider.notifier).state = false,
       );
@@ -481,23 +481,23 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     if (ref.watch(mediaPermissionProvider).valueOrNull == MediaAccess.limited) {
       return LibraryEmptyState(
         icon: Icons.rule_folder_outlined,
-        title: 'Kivo solo ve los videos que elegiste',
-        subtitle: 'Amplía la selección para ver el resto de tu galería.',
-        primaryLabel: 'Elegir más videos',
+        title: context.l10n.libraryEmptyLimitedAccessTitle,
+        subtitle: context.l10n.libraryEmptyLimitedAccessSubtitle,
+        primaryLabel: context.l10n.libraryEmptyChooseMoreAction,
         onPrimary: () => ref.read(mediaPermissionProvider.notifier).request(),
-        secondaryLabel: 'Abrir archivo',
+        secondaryLabel: context.l10n.libraryOpenFile,
         onSecondary: _pick,
       );
     }
     return LibraryEmptyState(
       icon: Icons.video_library_outlined,
-      title: 'Todavía no hay videos',
-      subtitle: 'Cuando grabes o descargues uno aparecerá aquí.',
-      primaryLabel: 'Abrir archivo',
+      title: context.l10n.libraryEmptyNoVideosTitle,
+      subtitle: context.l10n.libraryEmptyNoVideosSubtitle,
+      primaryLabel: context.l10n.libraryOpenFile,
       onPrimary: _pick,
       // MediaStore can index a file minutes after it lands, so a manual
       // re-scan is the difference between "empty" and "empty for now".
-      secondaryLabel: 'Volver a buscar',
+      secondaryLabel: context.l10n.libraryEmptyRescanAction,
       onSecondary: () => ref.read(mediaIndexProvider.notifier).refresh(),
     );
   }
@@ -516,7 +516,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'Da acceso a tus videos para verlos aquí',
+          context.l10n.libraryAccessPromptTitle,
           style: TextStyle(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
@@ -524,7 +524,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         const SizedBox(height: 12),
         FilledButton(
           onPressed: () => ref.read(mediaPermissionProvider.notifier).request(),
-          child: const Text('Dar acceso'),
+          child: Text(context.l10n.libraryAccessPromptAction),
         ),
       ],
     ),
@@ -556,11 +556,23 @@ class _FilterChips extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
       child: Row(
         children: [
-          _chip(context, cs, 'Todo', 0),
+          _chip(context, cs, context.l10n.libraryTabAll, 0),
           const SizedBox(width: 8),
-          _chip(context, cs, 'Carpetas', 1, icon: Icons.folder_outlined),
+          _chip(
+            context,
+            cs,
+            context.l10n.libraryTabFolders,
+            1,
+            icon: Icons.folder_outlined,
+          ),
           const SizedBox(width: 8),
-          _chip(context, cs, 'Listas', 2, icon: Icons.queue_music_outlined),
+          _chip(
+            context,
+            cs,
+            context.l10n.libraryTabPlaylists,
+            2,
+            icon: Icons.queue_music_outlined,
+          ),
           if (showUnwatchedToggle) ...[
             const SizedBox(width: 8),
             _UnwatchedChip(active: unwatchedOnly, onTap: onToggleUnwatched),
@@ -684,7 +696,7 @@ class _UnwatchedChip extends ConsumerWidget {
     final accent = Color(ref.watch(settingsProvider).accentColor);
     final fg = active ? onAccent(accent) : cs.onSurfaceVariant;
     return Semantics(
-      label: 'No vistos',
+      label: context.l10n.libraryUnwatchedFilter,
       button: true,
       selected: active,
       child: GestureDetector(
@@ -710,7 +722,7 @@ class _UnwatchedChip extends ConsumerWidget {
                 show: active,
                 gap: true,
                 child: Text(
-                  'No vistos',
+                  context.l10n.libraryUnwatchedFilter,
                   style: TextStyle(
                     color: fg,
                     fontSize: 13,
@@ -732,21 +744,21 @@ class _UnwatchedChip extends ConsumerWidget {
 class _SortMenuButton extends ConsumerWidget {
   const _SortMenuButton();
 
-  static const _labels = {
-    LibrarySort.recent: 'Más reciente',
-    LibrarySort.nameAsc: 'Nombre A-Z',
-    LibrarySort.nameDesc: 'Nombre Z-A',
-    LibrarySort.durationDesc: 'Duración: más larga',
-    LibrarySort.durationAsc: 'Duración: más corta',
-    LibrarySort.sizeDesc: 'Tamaño: más pesado',
-    LibrarySort.sizeAsc: 'Tamaño: más liviano',
+  Map<LibrarySort, String> _labels(BuildContext context) => {
+    LibrarySort.recent: context.l10n.librarySortRecent,
+    LibrarySort.nameAsc: context.l10n.librarySortNameAsc,
+    LibrarySort.nameDesc: context.l10n.librarySortNameDesc,
+    LibrarySort.durationDesc: context.l10n.librarySortDurationDesc,
+    LibrarySort.durationAsc: context.l10n.librarySortDurationAsc,
+    LibrarySort.sizeDesc: context.l10n.librarySortSizeDesc,
+    LibrarySort.sizeAsc: context.l10n.librarySortSizeAsc,
   };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final current = librarySortFor(ref.watch(settingsProvider).librarySort);
     return PopupMenuButton<LibrarySort>(
-      tooltip: 'Ordenar',
+      tooltip: context.l10n.librarySortTooltip,
       icon: const Icon(Icons.sort),
       onSelected: (sort) {
         final s = ref.read(settingsProvider);
@@ -754,7 +766,7 @@ class _SortMenuButton extends ConsumerWidget {
             .read(settingsProvider.notifier)
             .set(s.copyWith(librarySort: sort.name));
       },
-      itemBuilder: (context) => _labels.entries.map((e) {
+      itemBuilder: (context) => _labels(context).entries.map((e) {
         return PopupMenuItem<LibrarySort>(
           value: e.key,
           child: Row(
@@ -786,19 +798,19 @@ class _SortMenuButton extends ConsumerWidget {
 class _PlaylistSortMenuButton extends ConsumerWidget {
   const _PlaylistSortMenuButton();
 
-  static const _labels = {
-    PlaylistSort.recent: 'Más reciente',
-    PlaylistSort.nameAsc: 'Nombre A-Z',
-    PlaylistSort.nameDesc: 'Nombre Z-A',
-    PlaylistSort.mostVideos: 'Más videos primero',
-    PlaylistSort.lastPlayed: 'Última reproducida',
+  Map<PlaylistSort, String> _labels(BuildContext context) => {
+    PlaylistSort.recent: context.l10n.librarySortRecent,
+    PlaylistSort.nameAsc: context.l10n.librarySortNameAsc,
+    PlaylistSort.nameDesc: context.l10n.librarySortNameDesc,
+    PlaylistSort.mostVideos: context.l10n.playlistSortMostVideos,
+    PlaylistSort.lastPlayed: context.l10n.playlistSortLastPlayed,
   };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final current = playlistSortFor(ref.watch(settingsProvider).playlistSort);
     return PopupMenuButton<PlaylistSort>(
-      tooltip: 'Ordenar',
+      tooltip: context.l10n.librarySortTooltip,
       icon: const Icon(Icons.sort),
       onSelected: (sort) {
         final s = ref.read(settingsProvider);
@@ -806,7 +818,7 @@ class _PlaylistSortMenuButton extends ConsumerWidget {
             .read(settingsProvider.notifier)
             .set(s.copyWith(playlistSort: sort.name));
       },
-      itemBuilder: (context) => _labels.entries.map((e) {
+      itemBuilder: (context) => _labels(context).entries.map((e) {
         return PopupMenuItem<PlaylistSort>(
           value: e.key,
           child: Row(

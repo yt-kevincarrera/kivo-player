@@ -2,20 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kivo_player/platform/interfaces/media_indexer.dart';
 import 'package:kivo_player/ui/home/widgets/video_options_sheet.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 const _v = VideoItem(
   id: '1', uri: 'content://v/1', name: 'clip.mp4', folder: 'Movies',
   durationMs: 1000, sizeBytes: 10, dateAddedMs: 0,
 );
 
-Widget _sheet({
+Future<void> _pumpSheet(
+  WidgetTester tester, {
   List<String>? fired,
   bool isPlayed = false,
   bool hasResume = false,
 }) {
   final f = fired ?? <String>[];
-  return MaterialApp(
-    home: Scaffold(
+  return pumpLocalized(
+    tester,
+    Scaffold(
       body: VideoOptionsSheet(
         video: _v,
         onShare: () => f.add('share'),
@@ -36,55 +41,55 @@ Widget _sheet({
 void main() {
   testWidgets('VideoOptionsSheet shows seven actions and fires callbacks', (tester) async {
     final fired = <String>[];
-    await tester.pumpWidget(_sheet(fired: fired));
+    await _pumpSheet(tester, fired: fired);
 
     expect(find.text('clip.mp4'), findsOneWidget);
     for (final label in [
-      'Compartir',
-      'Renombrar',
-      'Detalles',
-      'Marcar como visto',
-      'Añadir a lista',
-      'Mover al Vault',
-      'Borrar',
+      _l10n.commonShare,
+      _l10n.commonRename,
+      _l10n.videoSheetDetails,
+      _l10n.videoSheetMarkWatched,
+      _l10n.playlistAddToListLabel,
+      _l10n.videoSheetMoveToVault,
+      _l10n.commonDelete,
     ]) {
       expect(find.text(label), findsOneWidget);
     }
     // No resume position — the "quitar de continuar viendo" row is hidden.
-    expect(find.text('Quitar de Continuar viendo'), findsNothing);
+    expect(find.text(_l10n.videoSheetClearResume), findsNothing);
 
-    await tester.tap(find.text('Compartir'));
-    await tester.tap(find.text('Borrar'));
+    await tester.tap(find.text(_l10n.commonShare));
+    await tester.tap(find.text(_l10n.commonDelete));
     expect(fired, ['share', 'delete']);
   });
 
   testWidgets('played row shows "Marcar como visto" when not played and fires onTogglePlayed',
       (tester) async {
     final fired = <String>[];
-    await tester.pumpWidget(_sheet(fired: fired, isPlayed: false));
+    await _pumpSheet(tester, fired: fired, isPlayed: false);
 
-    expect(find.text('Marcar como visto'), findsOneWidget);
-    expect(find.text('Marcar como no visto'), findsNothing);
+    expect(find.text(_l10n.videoSheetMarkWatched), findsOneWidget);
+    expect(find.text(_l10n.videoSheetMarkUnwatched), findsNothing);
 
-    await tester.tap(find.text('Marcar como visto'));
+    await tester.tap(find.text(_l10n.videoSheetMarkWatched));
     expect(fired, ['togglePlayed']);
   });
 
   testWidgets('played row shows "Marcar como no visto" when already played',
       (tester) async {
-    await tester.pumpWidget(_sheet(isPlayed: true));
+    await _pumpSheet(tester, isPlayed: true);
 
-    expect(find.text('Marcar como no visto'), findsOneWidget);
-    expect(find.text('Marcar como visto'), findsNothing);
+    expect(find.text(_l10n.videoSheetMarkUnwatched), findsOneWidget);
+    expect(find.text(_l10n.videoSheetMarkWatched), findsNothing);
   });
 
   testWidgets('continue row appears only with a resume position and fires onClearResume',
       (tester) async {
     final fired = <String>[];
-    await tester.pumpWidget(_sheet(fired: fired, hasResume: true));
+    await _pumpSheet(tester, fired: fired, hasResume: true);
 
-    expect(find.text('Quitar de Continuar viendo'), findsOneWidget);
-    await tester.tap(find.text('Quitar de Continuar viendo'));
+    expect(find.text(_l10n.videoSheetClearResume), findsOneWidget);
+    await tester.tap(find.text(_l10n.videoSheetClearResume));
     expect(fired, ['clearResume']);
   });
 }

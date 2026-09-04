@@ -7,8 +7,12 @@ import 'package:kivo_player/core/update/update_providers.dart';
 import 'package:kivo_player/platform/app_installer_provider.dart';
 import 'package:kivo_player/core/update/update_info.dart';
 import 'package:kivo_player/core/navigation.dart';
+import 'package:kivo_player/l10n/generated/app_localizations.dart';
 import 'package:kivo_player/ui/update/update_dialog.dart';
 import '../fakes/fakes.dart';
+import '../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 // Minimal host that reproduces KivoApp's post-frame auto-check without the full
 // widget tree (HomeShell needs many providers). Verifies the check + dialog.
@@ -28,6 +32,9 @@ void main() {
       container: c,
       child: MaterialApp(
         navigatorKey: kivoNavigatorKey,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('es'),
         home: Consumer(builder: (ctx, ref, _) {
           WidgetsBinding.instance.addPostFrameCallback((_) async {
             final r = await ref.read(updateControllerProvider).check();
@@ -41,6 +48,6 @@ void main() {
       ),
     ));
     await tester.pumpAndSettle();
-    expect(find.text('Nueva versión 1.1.0'), findsOneWidget);
+    expect(find.text(_l10n.updateTitleWithVersion('1.1.0')), findsOneWidget);
   });
 }

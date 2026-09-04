@@ -10,6 +10,9 @@ import 'package:kivo_player/platform/app_installer_provider.dart';
 import 'package:kivo_player/platform/interfaces/app_installer.dart';
 import 'package:kivo_player/ui/update/update_dialog.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 const _info = UpdateInfo(
     version: '1.1.0', tagName: 'v1.1.0', apkUrl: 'u', releaseUrl: 'r', notes: 'Novedades');
@@ -27,19 +30,18 @@ Future<ProviderContainer> _container(FakeAppInstaller installer) async {
 /// and the poll timer with it.
 Future<Future<void> Function()> _openDialog(
     WidgetTester tester, ProviderContainer c) async {
-  await tester.pumpWidget(UncontrolledProviderScope(
-    container: c,
-    child: MaterialApp(
-      home: Scaffold(
-        body: Builder(
-          builder: (b) => TextButton(
-            onPressed: () => showUpdateDialog(b, _info),
-            child: const Text('open'),
-          ),
+  await pumpLocalized(
+    tester,
+    Scaffold(
+      body: Builder(
+        builder: (b) => TextButton(
+          onPressed: () => showUpdateDialog(b, _info),
+          child: const Text('open'),
         ),
       ),
     ),
-  ));
+    container: c,
+  );
   await tester.tap(find.text('open'));
   await tester.pumpAndSettle();
   return () async {
@@ -57,17 +59,17 @@ void main() {
     addTearDown(c.dispose);
     final close = await _openDialog(tester, c);
 
-    expect(find.text('Nueva versión 1.1.0'), findsOneWidget);
+    expect(find.text(_l10n.updateTitleWithVersion('1.1.0')), findsOneWidget);
     expect(find.text('Novedades'), findsOneWidget);
 
-    await tester.tap(find.text('Descargar'));
+    await tester.tap(find.text(_l10n.updateDownloadAction));
     await tester.pumpAndSettle();
 
     expect(installer.enqueued.single, ('u', 'kivo-1.1.0.apk'));
     expect(find.text('Novedades'), findsNothing);
-    expect(find.text('Puedes salir de Kivo: la descarga sigue.'), findsOneWidget);
+    expect(find.text(_l10n.updateCanLeaveHint), findsOneWidget);
     // The install button is on screen from the start, just not usable yet.
-    expect(tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Instalar')).onPressed,
+    expect(tester.widget<FilledButton>(find.widgetWithText(FilledButton, _l10n.updateInstallAction)).onPressed,
         isNull);
 
     await close();
@@ -81,12 +83,12 @@ void main() {
     addTearDown(c.dispose);
     final close = await _openDialog(tester, c);
 
-    await tester.tap(find.text('Descargar'));
+    await tester.tap(find.text(_l10n.updateDownloadAction));
     await tester.pumpAndSettle();
     await c.read(updateDownloadProvider.notifier).refresh();
     await tester.pumpAndSettle();
 
-    expect(find.text('12,4 / 31,8 MB · 39 %'), findsOneWidget);
+    expect(find.text(_l10n.updateStatusSizePercent('12,4 / 31,8 MB', 39)), findsOneWidget);
 
     await close();
   });
@@ -98,14 +100,14 @@ void main() {
     addTearDown(c.dispose);
     final close = await _openDialog(tester, c);
 
-    await tester.tap(find.text('Descargar'));
+    await tester.tap(find.text(_l10n.updateDownloadAction));
     await tester.pumpAndSettle();
     await c.read(updateDownloadProvider.notifier).refresh();
     await tester.pumpAndSettle();
 
-    expect(find.text('En pausa · esperando conexión'), findsOneWidget);
+    expect(find.text(_l10n.updateStatusPausedNetwork), findsOneWidget);
     // Still a download in progress, not a failure.
-    expect(find.text('Reintentar'), findsNothing);
+    expect(find.text(_l10n.updateRetryAction), findsNothing);
 
     await close();
   });
@@ -116,12 +118,12 @@ void main() {
     addTearDown(c.dispose);
     await _openDialog(tester, c);
 
-    await tester.tap(find.text('Descargar'));
+    await tester.tap(find.text(_l10n.updateDownloadAction));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Ocultar'));
+    await tester.tap(find.text(_l10n.updateHideAction));
     await tester.pumpAndSettle();
 
-    expect(find.text('Nueva versión 1.1.0'), findsNothing);
+    expect(find.text(_l10n.updateTitleWithVersion('1.1.0')), findsNothing);
     expect(installer.cancelled, isEmpty);
     expect(c.read(updateDownloadProvider).phase, DownloadPhase.downloading);
   });
@@ -132,9 +134,9 @@ void main() {
     addTearDown(c.dispose);
     final close = await _openDialog(tester, c);
 
-    await tester.tap(find.text('Descargar'));
+    await tester.tap(find.text(_l10n.updateDownloadAction));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Cancelar'));
+    await tester.tap(find.text(_l10n.commonCancel));
     await tester.pumpAndSettle();
 
     expect(installer.cancelled.single, 9);
@@ -151,18 +153,18 @@ void main() {
     addTearDown(c.dispose);
     await _openDialog(tester, c);
 
-    await tester.tap(find.text('Descargar'));
+    await tester.tap(find.text(_l10n.updateDownloadAction));
     await tester.pumpAndSettle();
     await c.read(updateDownloadProvider.notifier).refresh();
     await tester.pumpAndSettle();
 
-    expect(find.text('Listo para instalar'), findsOneWidget);
-    await tester.tap(find.widgetWithText(FilledButton, 'Instalar'));
+    expect(find.text(_l10n.updateReadyCaption), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, _l10n.updateInstallAction));
     await tester.pumpAndSettle();
 
     expect(installer.installs.single, 4);
     // The system installer took over, so the dialog gets out of the way.
-    expect(find.text('Nueva versión 1.1.0'), findsNothing);
+    expect(find.text(_l10n.updateTitleWithVersion('1.1.0')), findsNothing);
   });
 
   testWidgets('a missing install permission is explained without losing the APK',
@@ -174,14 +176,14 @@ void main() {
     addTearDown(c.dispose);
     final close = await _openDialog(tester, c);
 
-    await tester.tap(find.text('Descargar'));
+    await tester.tap(find.text(_l10n.updateDownloadAction));
     await tester.pumpAndSettle();
     await c.read(updateDownloadProvider.notifier).refresh();
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'Instalar'));
+    await tester.tap(find.widgetWithText(FilledButton, _l10n.updateInstallAction));
     await tester.pumpAndSettle();
 
-    expect(find.text('Permite instalar apps para continuar, luego pulsa Instalar.'),
+    expect(find.text(_l10n.updateInstallNeedsPermissionSnackbar),
         findsOneWidget);
     expect(c.read(updateDownloadProvider).phase, DownloadPhase.ready);
 
@@ -194,11 +196,11 @@ void main() {
     addTearDown(c.dispose);
     final close = await _openDialog(tester, c);
 
-    await tester.tap(find.text('Descargar'));
+    await tester.tap(find.text(_l10n.updateDownloadAction));
     await tester.pumpAndSettle();
 
     expect(find.textContaining('KV-602'), findsOneWidget);
-    await tester.tap(find.text('Abrir en navegador'));
+    await tester.tap(find.text(_l10n.updateOpenInBrowserAction));
     await tester.pumpAndSettle();
     expect(installer.openedUrls.single, 'r');
 
@@ -216,27 +218,26 @@ void main() {
     await c.read(updateDownloadProvider.notifier).start(_info);
     await c.read(updateDownloadProvider.notifier).refresh();
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: MaterialApp(
-        home: Scaffold(
-          body: Builder(
-            builder: (b) => TextButton(
-              onPressed: () => showPendingUpdateDialog(b),
-              child: const Text('open'),
-            ),
+    await pumpLocalized(
+      tester,
+      Scaffold(
+        body: Builder(
+          builder: (b) => TextButton(
+            onPressed: () => showPendingUpdateDialog(b),
+            child: const Text('open'),
           ),
         ),
       ),
-    ));
+      container: c,
+    );
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
     // No UpdateInfo, so the version has to come from what was persisted.
-    expect(find.text('Nueva versión 1.1.0'), findsOneWidget);
-    expect(find.text('Listo para instalar'), findsOneWidget);
+    expect(find.text(_l10n.updateTitleWithVersion('1.1.0')), findsOneWidget);
+    expect(find.text(_l10n.updateReadyCaption), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Instalar'));
+    await tester.tap(find.widgetWithText(FilledButton, _l10n.updateInstallAction));
     await tester.pumpAndSettle();
     expect(installer.installs.single, 4);
   });
@@ -249,13 +250,13 @@ void main() {
     addTearDown(c.dispose);
     final close = await _openDialog(tester, c);
 
-    await tester.tap(find.text('Descargar'));
+    await tester.tap(find.text(_l10n.updateDownloadAction));
     await tester.pumpAndSettle();
     await c.read(updateDownloadProvider.notifier).refresh();
     await tester.pumpAndSettle();
-    expect(find.text('Listo para instalar'), findsOneWidget);
+    expect(find.text(_l10n.updateReadyCaption), findsOneWidget);
 
-    await tester.tap(find.text('Descartar'));
+    await tester.tap(find.text(_l10n.updateDiscardReadyAction));
     await tester.pumpAndSettle();
 
     // The APK is removed and the slot is free again — the release notes are
@@ -272,7 +273,7 @@ void main() {
     addTearDown(c.dispose);
     await _openDialog(tester, c);
 
-    await tester.tap(find.text('Omitir esta versión'));
+    await tester.tap(find.text(_l10n.updateSkipVersionAction));
     await tester.pumpAndSettle();
 
     expect(c.read(settingsProvider).skippedUpdateVersion, '1.1.0');

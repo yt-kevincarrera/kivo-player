@@ -5,6 +5,8 @@ import '../../../core/errors/kivo_failure.dart';
 import '../../../core/settings/kivo_settings.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
+import '../../../l10n/generated/app_localizations.dart';
+import '../../../l10n/l10n.dart';
 import '../../../platform/interfaces/subtitle_finder.dart';
 import '../../../platform/subtitle_finder_provider.dart';
 import '../../../player/engine/playback_provider.dart';
@@ -63,7 +65,11 @@ class _TrackPickerSheetState extends ConsumerState<_TrackPickerSheet> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const Center(child: _Grabber()),
-        _SheetHeader(title: widget.isSubtitles ? 'Subtítulos' : 'Audio'),
+        _SheetHeader(
+          title: widget.isSubtitles
+              ? context.l10n.playerSubtitlesTooltip
+              : context.l10n.playerAudioTooltip,
+        ),
         if (widget.isSubtitles) ...[
           const SizedBox(height: 4),
           _TabBar(
@@ -216,7 +222,7 @@ class _TabBar extends StatelessWidget {
         children: [
           Expanded(
             child: _TabLabel(
-              label: 'Pistas',
+              label: context.l10n.playerTracksTabLabel,
               active: !value,
               accent: accent,
               onTap: () => onChanged(false),
@@ -225,7 +231,7 @@ class _TabBar extends StatelessWidget {
           const SizedBox(width: 4),
           Expanded(
             child: _TabLabel(
-              label: 'Estilo',
+              label: context.l10n.playerTracksStyleTabLabel,
               active: value,
               accent: accent,
               onTap: () => onChanged(true),
@@ -415,6 +421,7 @@ class _TracksSection extends ConsumerWidget {
     final s = ref.watch(settingsProvider);
     final subsOn = s.subtitlesEnabledByDefault;
     final accent = Color(s.accentColor);
+    final l10n = context.l10n;
 
     return FutureBuilder<List<ExternalSubtitle>>(
       future: (isSubtitles && session?.folder != null)
@@ -438,10 +445,10 @@ class _TracksSection extends ConsumerWidget {
                 ),
                 child: Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'Mostrar subtítulos',
-                        style: TextStyle(
+                        l10n.playerTracksShowSubtitles,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 13.5,
                           fontWeight: FontWeight.w600,
@@ -458,7 +465,7 @@ class _TracksSection extends ConsumerWidget {
               ),
             ],
             if (tracks.isNotEmpty) ...[
-              if (isSubtitles) const _SectionEyebrow(label: 'En el video'),
+              if (isSubtitles) _SectionEyebrow(label: l10n.playerTracksSectionInVideo),
               for (final t in tracks)
                 _TrackCard(
                   icon: isSubtitles
@@ -466,14 +473,14 @@ class _TracksSection extends ConsumerWidget {
                       : Icons.graphic_eq_rounded,
                   label: t.title ?? t.language ?? t.id,
                   sublabel: t.isDefault
-                      ? 'Pista incrustada · predeterminada'
-                      : 'Pista incrustada',
+                      ? l10n.playerTracksEmbeddedDefault
+                      : l10n.playerTracksEmbedded,
                   active: current?.id == t.id,
                   accent: accent,
                   onTap: () => _pickTrack(context, ref, t),
                 ),
             ],
-            const _SectionEyebrow(label: 'Sincronía'),
+            _SectionEyebrow(label: l10n.playerTracksSectionSync),
             // Each picker opens the capsule on its own side; the capsule's
             // Sub|Audio switch moves between them from there. The subtitle row
             // is listed even with no subtitle showing — sub-delay would change
@@ -481,11 +488,11 @@ class _TracksSection extends ConsumerWidget {
             _TrackCard(
               icon: Icons.compare_arrows_rounded,
               label: isSubtitles
-                  ? 'Sincronizar subtítulos'
-                  : 'Sincronizar audio',
+                  ? l10n.playerTracksSyncSubtitles
+                  : l10n.playerTracksSyncAudio,
               sublabel: isSubtitles && current == null
-                  ? 'Activa un subtítulo para poder ajustarlo'
-                  : 'Ajustar el desfase mientras se reproduce',
+                  ? l10n.playerTracksSyncNeedsSubtitle
+                  : l10n.playerTracksSyncHint,
               active: false,
               enabled: !isSubtitles || current != null,
               accent: accent,
@@ -496,12 +503,12 @@ class _TracksSection extends ConsumerWidget {
               },
             ),
             if (isSubtitles && external.isNotEmpty) ...[
-              const _SectionEyebrow(label: 'En la carpeta'),
+              _SectionEyebrow(label: l10n.playerTracksSectionInFolder),
               for (final e in external)
                 _TrackCard(
                   icon: Icons.folder_outlined,
                   label: e.displayName,
-                  sublabel: 'Archivo local',
+                  sublabel: l10n.playerTracksLocalFile,
                   active: current?.id == e.uri,
                   accent: accent,
                   onTap: () => _pickExternal(context, ref, e),
@@ -514,8 +521,8 @@ class _TracksSection extends ConsumerWidget {
                   // Never "no hay subtítulos disponibles": the "Cargar
                   // subtítulo…" card sits right below this line.
                   isSubtitles
-                      ? 'Este video no trae subtítulos incrustados ni hay archivos junto a él.'
-                      : 'Este video no tiene otras pistas de audio.',
+                      ? l10n.playerTracksNoSubtitlesFound
+                      : l10n.playerTracksNoOtherAudioTracks,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.5),
                     fontSize: 13,
@@ -523,11 +530,11 @@ class _TracksSection extends ConsumerWidget {
                 ),
               ),
             if (isSubtitles) ...[
-              const _SectionEyebrow(label: 'Desde tu dispositivo'),
+              _SectionEyebrow(label: l10n.playerTracksSectionFromDevice),
               _TrackCard(
                 icon: Icons.upload_file_outlined,
-                label: 'Cargar subtítulo…',
-                sublabel: 'Elegir un archivo .srt, .ass o .vtt',
+                label: l10n.playerTracksLoadSubtitleAction,
+                sublabel: l10n.playerTracksLoadSubtitleHint,
                 active: false,
                 accent: accent,
                 onTap: () => _pickManualSubtitle(context, ref),
@@ -661,11 +668,11 @@ class _StyleSection extends ConsumerWidget {
     0xFF2D6CFF,
     0xFFE8B84B,
   ];
-  static const _bgSwatches = [
-    (value: 0x00000000, label: 'Transparente'),
-    (value: 0xFF000000, label: 'Negro'),
-    (value: 0xFFFFFFFF, label: 'Blanco'),
-  ];
+  List<({int value, String label})> _bgSwatches(AppLocalizations l10n) => [
+        (value: 0x00000000, label: l10n.playerTracksBgTransparent),
+        (value: 0xFF000000, label: l10n.playerTracksBgBlack),
+        (value: 0xFFFFFFFF, label: l10n.playerTracksBgWhite),
+      ];
 
   void _apply(WidgetRef ref, KivoSettingsPatch patch) {
     final s = ref.read(settingsProvider);
@@ -702,6 +709,7 @@ class _StyleSection extends ConsumerWidget {
     final s = ref.watch(settingsProvider);
     final accent = Color(s.accentColor);
     final fontSize = s.subtitleFontSize.clamp(16, 48);
+    final l10n = context.l10n;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -730,7 +738,7 @@ class _StyleSection extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(5),
               ),
               child: Text(
-                'Estamos cerca de encontrarlo.',
+                l10n.playerTracksStylePreviewSample,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Color(s.subtitleTextColor),
@@ -744,9 +752,11 @@ class _StyleSection extends ConsumerWidget {
             ),
           ),
         ),
-        const _SectionEyebrow(label: 'Tamaño'),
+        _SectionEyebrow(label: l10n.playerTracksSizeLabel),
         Row(
           children: [
+            // 'A' here is the size-adjust glyph (small/large), not language —
+            // same call as the ab-loop popover's 'A'/'B' markers.
             _StepButton(
               label: 'A',
               small: true,
@@ -797,7 +807,7 @@ class _StyleSection extends ConsumerWidget {
             ),
           ],
         ),
-        const _SectionEyebrow(label: 'Color de texto'),
+        _SectionEyebrow(label: l10n.playerTracksTextColorLabel),
         Row(
           children: [
             for (final c in _textSwatches)
@@ -812,10 +822,10 @@ class _StyleSection extends ConsumerWidget {
               ),
           ],
         ),
-        const _SectionEyebrow(label: 'Color de fondo'),
+        _SectionEyebrow(label: l10n.playerTracksBackgroundColorLabel),
         Row(
           children: [
-            for (final bg in _bgSwatches)
+            for (final bg in _bgSwatches(l10n))
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.only(right: 8),
@@ -840,7 +850,7 @@ class _StyleSection extends ConsumerWidget {
             style: TextButton.styleFrom(foregroundColor: accent),
             onPressed: () => _reset(ref),
             icon: const Icon(Icons.restart_alt_rounded, size: 17),
-            label: const Text('Restablecer estilo'),
+            label: Text(l10n.playerTracksResetStyleAction),
           ),
         ),
       ],
@@ -987,6 +997,8 @@ class _BackgroundChip extends StatelessWidget {
                   color: Color(background),
                   borderRadius: BorderRadius.circular(3),
                 ),
+                // 'Ab' is a generic font-sample glyph pair for the background
+                // swatch preview, not language — not translated.
                 child: Text(
                   'Ab',
                   style: TextStyle(

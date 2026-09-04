@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
+import '../../../l10n/l10n.dart';
 import '../../../platform/interfaces/media_indexer.dart';
 import '../../../player/library/library_query.dart';
 import '../../widgets/press_bounce.dart';
@@ -25,10 +26,10 @@ class FolderGrid extends ConsumerWidget {
     final accent = Color(ref.watch(settingsProvider).accentColor);
 
     if (folders.isEmpty) {
-      return const LibraryEmptyState(
+      return LibraryEmptyState(
         icon: Icons.folder_off_outlined,
-        title: 'No hay carpetas',
-        subtitle: 'Tus videos aparecerán aquí agrupados por carpeta.',
+        title: context.l10n.foldersEmptyTitle,
+        subtitle: context.l10n.foldersEmptySubtitle,
       );
     }
 
@@ -130,7 +131,7 @@ class _CountPill extends StatelessWidget {
         border: Border.all(color: accent.withValues(alpha: 0.55), width: 0.8),
       ),
       child: Text(
-        '$count vids',
+        context.l10n.folderCardVideoCount(count),
         style: TextStyle(
           color: accent,
           fontSize: 9,

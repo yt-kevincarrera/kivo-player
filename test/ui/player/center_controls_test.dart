@@ -7,6 +7,7 @@ import 'package:kivo_player/core/theme/kivo_theme.dart';
 import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/ui/player/controls/center_controls.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
 
 void main() {
   testWidgets('skip-seconds label is white (not the accent)', (t) async {
@@ -19,13 +20,12 @@ void main() {
       playbackEngineProvider.overrideWithValue(engine),
     ]);
     addTearDown(c.dispose);
-    await t.pumpWidget(UncontrolledProviderScope(
+    await pumpLocalized(
+      t,
+      const Scaffold(body: Center(child: CenterControls())),
       container: c,
-      child: MaterialApp(
-        theme: KivoTheme.dark(accent: const Color(0xFF2D6CFF)),
-        home: const Scaffold(body: Center(child: CenterControls())),
-      ),
-    ));
+      theme: KivoTheme.dark(accent: const Color(0xFF2D6CFF)),
+    );
     await t.pump();
     final label = t.widget<Text>(find.text('10s').first);
     expect(label.style!.color, Colors.white);

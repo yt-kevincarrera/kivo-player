@@ -8,6 +8,9 @@ import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/ui/home/widgets/video_options_sheet.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 const _a = VideoItem(
   id: '1',
@@ -23,34 +26,33 @@ Future<void> _openAndTapBorrar(
   WidgetTester tester, {
   required bool trash,
 }) async {
-  await tester.pumpWidget(
-    ProviderScope(
-      overrides: [
-        mediaFileOpsProvider.overrideWithValue(
-          FakeMediaFileOps()..movesToTrash = trash,
-        ),
-        playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
-        resumeServiceProvider.overrideWithValue(
-          ResumeService(InMemoryResumeStore()),
-        ),
-      ],
-      child: MaterialApp(
-        home: Scaffold(
-          body: Consumer(
-            builder: (ctx, ref, _) => Builder(
-              builder: (b) => TextButton(
-                onPressed: () => showVideoOptions(b, ref, _a),
-                child: const Text('open'),
-              ),
-            ),
+  final container = ProviderContainer(overrides: [
+    mediaFileOpsProvider.overrideWithValue(
+      FakeMediaFileOps()..movesToTrash = trash,
+    ),
+    playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
+    resumeServiceProvider.overrideWithValue(
+      ResumeService(InMemoryResumeStore()),
+    ),
+  ]);
+  addTearDown(container.dispose);
+  await pumpLocalized(
+    tester,
+    Scaffold(
+      body: Consumer(
+        builder: (ctx, ref, _) => Builder(
+          builder: (b) => TextButton(
+            onPressed: () => showVideoOptions(b, ref, _a),
+            child: const Text('open'),
           ),
         ),
       ),
     ),
+    container: container,
   );
   await tester.tap(find.text('open'));
   await tester.pumpAndSettle();
-  await tester.tap(find.text('Borrar'));
+  await tester.tap(find.text(_l10n.commonDelete));
   await tester.pumpAndSettle();
 }
 
@@ -59,7 +61,7 @@ void main() {
     'on Android 11+ the confirm says trash, not «no se puede deshacer»',
     (tester) async {
       await _openAndTapBorrar(tester, trash: true);
-      expect(find.text('Mover a la papelera'), findsWidgets);
+      expect(find.text(_l10n.trashMoveTitle), findsWidgets);
       expect(find.textContaining('30 días'), findsOneWidget);
       expect(find.textContaining('no se puede deshacer'), findsNothing);
     },
@@ -69,7 +71,7 @@ void main() {
     tester,
   ) async {
     await _openAndTapBorrar(tester, trash: false);
-    expect(find.text('Borrar video'), findsOneWidget);
+    expect(find.text(_l10n.videoSheetDeleteTitle), findsOneWidget);
     expect(find.textContaining('no se puede deshacer'), findsOneWidget);
   });
 }

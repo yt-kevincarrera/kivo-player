@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/icons/kivo_icons.dart';
 import '../../../core/settings/settings_provider.dart';
+import '../../../l10n/l10n.dart';
 import '../../../player/control/player_controller.dart';
 import '../speed/speed_panel.dart';
 import '../state/controls_visibility.dart';
@@ -35,10 +36,12 @@ class BottomBar extends ConsumerWidget {
       ],
     );
 
+    final l10n = context.l10n;
+
     // Tool buttons (unchanged behavior), reused in both layouts.
     final tools = <Widget>[
       Tooltip(
-        message: 'Velocidad',
+        message: l10n.playerSpeedTooltip,
         child: TextButton(
           onPressed: () => showSpeedPanel(context),
           child: Text('${rate.toStringAsFixed(2)}x',
@@ -47,7 +50,7 @@ class BottomBar extends ConsumerWidget {
       ),
       IconButton(
         color: Colors.white,
-        tooltip: 'Bloquear pantalla',
+        tooltip: l10n.playerLockScreenTooltip,
         icon: KivoIcon(KivoIcons.lock, size: 24, color: Colors.white),
         onPressed: () {
           ref.read(lockProvider.notifier).lock();
@@ -56,16 +59,18 @@ class BottomBar extends ConsumerWidget {
       ),
       IconButton(
         color: Colors.white,
-        tooltip: 'Relación de aspecto',
+        tooltip: l10n.playerAspectRatioTooltip,
         icon: KivoIcon(aspectIconFor(mode), size: 24, color: Colors.white),
         onPressed: () {
           ref.read(aspectModeProvider.notifier).cycle();
-          ref.read(flashProvider.notifier).show(aspectLabelFor(ref.read(aspectModeProvider)));
+          ref.read(flashProvider.notifier).show(
+                aspectLabelFor(l10n, ref.read(aspectModeProvider)),
+              );
         },
       ),
       IconButton(
         color: Colors.white,
-        tooltip: 'Rotar',
+        tooltip: l10n.playerRotateTooltip,
         icon: KivoIcon(KivoIcons.rotate, size: 24, color: Colors.white),
         onPressed: () => ref.read(orientationProvider.notifier).cycle(),
       ),

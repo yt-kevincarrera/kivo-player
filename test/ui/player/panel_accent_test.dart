@@ -7,6 +7,7 @@ import 'package:kivo_player/core/theme/kivo_theme.dart';
 import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/ui/player/speed/speed_panel.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
 
 void main() {
   testWidgets('speed panel active rate readout uses the accent', (t) async {
@@ -19,15 +20,14 @@ void main() {
       playbackEngineProvider.overrideWithValue(engine),
     ]);
     addTearDown(c.dispose);
-    await t.pumpWidget(UncontrolledProviderScope(
+    await pumpLocalized(
+      t,
+      Builder(builder: (ctx) => Scaffold(
+          body: Center(child: ElevatedButton(
+              onPressed: () => showSpeedPanel(ctx), child: const Text('open'))))),
       container: c,
-      child: MaterialApp(
-        theme: KivoTheme.dark(accent: const Color(0xFF2D6CFF)),
-        home: Builder(builder: (ctx) => Scaffold(
-            body: Center(child: ElevatedButton(
-                onPressed: () => showSpeedPanel(ctx), child: const Text('open'))))),
-      ),
-    ));
+      theme: KivoTheme.dark(accent: const Color(0xFF2D6CFF)),
+    );
     await t.tap(find.text('open'));
     await t.pumpAndSettle();
     // The current-rate readout (e.g. "1.00x") is painted with the accent.

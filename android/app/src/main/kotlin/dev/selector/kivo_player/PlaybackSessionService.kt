@@ -223,7 +223,7 @@ class PlaybackSessionService : Service() {
             .setSmallIcon(R.drawable.ic_stat_kivo)
             .setLargeIcon(artBitmap)
             .setContentTitle(PlaybackSessionHub.title)
-            .setContentText(if (playing) "Reproduciendo" else "En pausa")
+            .setContentText(getString(if (playing) R.string.notif_playing else R.string.notif_paused))
             .setContentIntent(contentIntent)
             .setDeleteIntent(deleteIntent)
             .setOngoing(true)
@@ -234,7 +234,7 @@ class PlaybackSessionService : Service() {
             )
             .addAction(
                 if (playing) android.R.drawable.ic_media_pause else android.R.drawable.ic_media_play,
-                if (playing) "Pausa" else "Reproducir",
+                getString(if (playing) R.string.pip_pause else R.string.pip_play),
                 MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PLAY_PAUSE)
             )
             .addAction(
@@ -252,7 +252,7 @@ class PlaybackSessionService : Service() {
     private fun createChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                CHANNEL_ID, "Reproducción", NotificationManager.IMPORTANCE_LOW
+                CHANNEL_ID, getString(R.string.notif_channel_playback), NotificationManager.IMPORTANCE_LOW
             )
             channel.setShowBadge(false)
             val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

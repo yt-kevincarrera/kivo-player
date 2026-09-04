@@ -30,6 +30,7 @@ class KivoSettings {
   final int accentColor;
   final int libraryColumns;
   final String themeMode; // 'auto' | 'light' | 'dark'
+  final String locale; // 'system' | 'es' | 'en'
   final String librarySort; // LibrarySort enum name — see lib/player/library/library_filter.dart
   final String playlistSort; // PlaylistSort enum name — see lib/player/playlists/playlist_filter.dart
   final bool subtitlesEnabledByDefault;
@@ -98,6 +99,7 @@ class KivoSettings {
     required this.accentColor,
     required this.libraryColumns,
     required this.themeMode,
+    required this.locale,
     required this.librarySort,
     required this.playlistSort,
     required this.subtitlesEnabledByDefault,
@@ -161,6 +163,7 @@ class KivoSettings {
         accentColor: 0xFFE8B84B,
         libraryColumns: 1,
         themeMode: 'auto',
+        locale: 'system',
         librarySort: 'recent',
         playlistSort: 'recent',
         subtitlesEnabledByDefault: true,
@@ -230,6 +233,7 @@ class KivoSettings {
     int? accentColor,
     int? libraryColumns,
     String? themeMode,
+    String? locale,
     String? librarySort,
     String? playlistSort,
     bool? subtitlesEnabledByDefault,
@@ -292,6 +296,7 @@ class KivoSettings {
       accentColor: accentColor ?? this.accentColor,
       libraryColumns: libraryColumns ?? this.libraryColumns,
       themeMode: themeMode ?? this.themeMode,
+      locale: locale ?? this.locale,
       librarySort: librarySort ?? this.librarySort,
       playlistSort: playlistSort ?? this.playlistSort,
       subtitlesEnabledByDefault: subtitlesEnabledByDefault ?? this.subtitlesEnabledByDefault,
@@ -365,6 +370,7 @@ class KivoSettings {
         'accentColor': accentColor,
         'libraryColumns': libraryColumns,
         'themeMode': themeMode,
+        'locale': locale,
         'librarySort': librarySort,
         'playlistSort': playlistSort,
         'subtitlesEnabledByDefault': subtitlesEnabledByDefault,
@@ -430,6 +436,7 @@ class KivoSettings {
       accentColor: m['accentColor'] ?? d.accentColor,
       libraryColumns: m['libraryColumns'] ?? d.libraryColumns,
       themeMode: m['themeMode'] ?? d.themeMode,
+      locale: m['locale'] ?? d.locale,
       librarySort: m['librarySort'] ?? d.librarySort,
       playlistSort: m['playlistSort'] ?? d.playlistSort,
       subtitlesEnabledByDefault: m['subtitlesEnabledByDefault'] ?? d.subtitlesEnabledByDefault,

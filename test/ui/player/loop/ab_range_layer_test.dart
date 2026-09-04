@@ -8,6 +8,9 @@ import 'package:kivo_player/player/loop/ab_loop.dart';
 import 'package:kivo_player/ui/player/loop/ab_range_layer.dart';
 import 'package:kivo_player/ui/player/more/more_menu.dart';
 import '../../../fakes/fakes.dart';
+import '../../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 Future<(ProviderContainer, FakePlaybackEngine)> _setUp(WidgetTester tester, Widget child) async {
   final engine = FakePlaybackEngine();
@@ -18,10 +21,7 @@ Future<(ProviderContainer, FakePlaybackEngine)> _setUp(WidgetTester tester, Widg
     playbackEngineProvider.overrideWithValue(engine),
   ]);
   addTearDown(c.dispose);
-  await tester.pumpWidget(UncontrolledProviderScope(
-    container: c,
-    child: MaterialApp(home: Scaffold(body: child)),
-  ));
+  await pumpLocalized(tester, Scaffold(body: child), container: c);
   await tester.pump();
   return (c, engine);
 }
@@ -56,9 +56,9 @@ void main() {
     );
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
-    expect(find.text('Bucle A-B'), findsOneWidget);
-    expect(find.text('Repetir un fragmento del video'), findsOneWidget);
-    await tester.tap(find.text('Bucle A-B'));
+    expect(find.text(_l10n.playerMenuAbLoop), findsOneWidget);
+    expect(find.text(_l10n.playerLoopSubtitleIdle), findsOneWidget);
+    await tester.tap(find.text(_l10n.playerMenuAbLoop));
     await tester.pumpAndSettle();
     expect(c.read(abLoopProvider)!.phase, AbLoopPhase.armedA);
     // begin() also calls controlsVisibleProvider.show(), which starts an
@@ -80,8 +80,8 @@ void main() {
     await _makeActiveLoop(tester, c, engine);
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
-    expect(find.text('Activo · 02:00–03:00'), findsOneWidget);
-    await tester.tap(find.text('Bucle A-B'));
+    expect(find.text(_l10n.playerLoopSubtitleActive('02:00–03:00')), findsOneWidget);
+    await tester.tap(find.text(_l10n.playerMenuAbLoop));
     await tester.pumpAndSettle();
     expect(c.read(abLoopProvider), isNull);
   });

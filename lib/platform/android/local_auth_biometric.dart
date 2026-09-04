@@ -25,25 +25,24 @@ class LocalAuthBiometric implements BiometricAuth {
     }
   }
   @override
-  Future<bool> authenticate(String reason) async {
+  Future<bool> authenticate(BiometricAuthMessages messages) async {
     try {
       return await _auth.authenticate(
-        localizedReason: reason,
-        authMessages: const [
+        localizedReason: messages.reason,
+        authMessages: [
           AndroidAuthMessages(
-            signInTitle: 'Desbloquear Vault',
-            biometricHint: 'Toca el sensor de huella',
-            biometricNotRecognized: 'No reconocida. Inténtalo de nuevo.',
-            biometricSuccess: 'Huella reconocida',
-            cancelButton: 'Cancelar',
-            biometricRequiredTitle: 'Huella no configurada',
-            goToSettingsButton: 'Ir a ajustes',
-            goToSettingsDescription:
-                'No tienes ninguna huella configurada en este dispositivo. '
-                "Ve a Ajustes > Seguridad para añadir una.",
-            deviceCredentialsRequiredTitle: 'Bloqueo de pantalla requerido',
+            signInTitle: messages.signInTitle,
+            biometricHint: messages.biometricHint,
+            biometricNotRecognized: messages.biometricNotRecognized,
+            biometricSuccess: messages.biometricSuccess,
+            cancelButton: messages.cancelButton,
+            biometricRequiredTitle: messages.biometricRequiredTitle,
+            goToSettingsButton: messages.goToSettingsButton,
+            goToSettingsDescription: messages.goToSettingsDescription,
+            deviceCredentialsRequiredTitle:
+                messages.deviceCredentialsRequiredTitle,
             deviceCredentialsSetupDescription:
-                'Configura un bloqueo de pantalla en Ajustes para poder usarlo.',
+                messages.deviceCredentialsSetupDescription,
           ),
         ],
         // false (the local_auth default) is deliberate: with stickyAuth

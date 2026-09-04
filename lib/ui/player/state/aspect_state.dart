@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/icons/kivo_icons.dart';
 import '../../../core/settings/settings_provider.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 enum AspectMode { fit, fill, stretch }
 
@@ -20,10 +21,13 @@ String aspectIconFor(AspectMode m) => switch (m) {
       AspectMode.stretch => KivoIcons.aspectStretch,
     };
 
-String aspectLabelFor(AspectMode m) => switch (m) {
-      AspectMode.fit => 'Ajustar',
-      AspectMode.fill => 'Llenar',
-      AspectMode.stretch => 'Estirar',
+// Takes the resolved AppLocalizations rather than a BuildContext: this file
+// otherwise has no Flutter widget dependency, and the caller (bottom_bar.dart)
+// already has a context to resolve it from.
+String aspectLabelFor(AppLocalizations l10n, AspectMode m) => switch (m) {
+      AspectMode.fit => l10n.playerAspectFit,
+      AspectMode.fill => l10n.playerAspectFill,
+      AspectMode.stretch => l10n.playerAspectStretch,
     };
 
 AspectMode aspectFromSetting(String s) => switch (s) {
