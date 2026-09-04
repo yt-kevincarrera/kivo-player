@@ -27,6 +27,10 @@ void main() {
   testWidgets('root lists Acerca de and Restablecer', (t) async {
     await _pump(t);
     expect(find.text('Acerca de'), findsOneWidget);
+    // The list grew past one screen (Copia de seguridad added a row) —
+    // the reset tile below it needs a scroll to be built at all.
+    await t.drag(find.byType(Scrollable).first, const Offset(0, -300));
+    await t.pump();
     expect(find.text('Restablecer valores'), findsOneWidget);
   });
 
@@ -43,6 +47,9 @@ void main() {
     // Put a non-default value.
     final n = c.read(settingsProvider.notifier);
     n.set(c.read(settingsProvider).copyWith(accentColor: 0xFF5B9BE8));
+    await t.pump();
+    // Same as above: scroll the reset tile into view before tapping it.
+    await t.drag(find.byType(Scrollable).first, const Offset(0, -300));
     await t.pump();
     await t.tap(find.text('Restablecer valores'));
     await t.pumpAndSettle();
