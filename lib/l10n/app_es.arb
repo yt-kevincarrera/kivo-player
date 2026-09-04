@@ -1,0 +1,23 @@
+{
+  "@@locale": "es",
+
+  "settingsLanguage": "Idioma",
+  "@settingsLanguage": {
+    "description": "Título de la fila selectora de idioma en Ajustes → General."
+  },
+
+  "settingsLanguageSystem": "Sistema",
+  "@settingsLanguageSystem": {
+    "description": "Opción del selector de idioma: seguir el idioma del sistema operativo."
+  },
+
+  "settingsLanguageSpanish": "Español",
+  "@settingsLanguageSpanish": {
+    "description": "Opción del selector de idioma: fijar español, sin importar el idioma del sistema. El nombre del idioma se muestra siempre en ese mismo idioma, no se traduce."
+  },
+
+  "settingsLanguageEnglish": "English",
+  "@settingsLanguageEnglish": {
+    "description": "Opción del selector de idioma: fijar inglés, sin importar el idioma del sistema. El nombre del idioma se muestra siempre en ese mismo idioma, no se traduce."
+  }
+}

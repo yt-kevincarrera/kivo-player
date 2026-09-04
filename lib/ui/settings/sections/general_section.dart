@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
+import '../../../l10n/l10n.dart';
 import '../widgets/setting_tiles.dart';
 import 'hidden_folders_section.dart';
 
@@ -11,6 +12,7 @@ class GeneralSettingsSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(settingsProvider);
     final n = ref.read(settingsProvider.notifier);
+    final l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(title: const Text('General')),
       body: ListView(
@@ -36,6 +38,16 @@ class GeneralSettingsSection extends ConsumerWidget {
               options: const [('duotone', 'Duotono'), ('flat', 'Plano')],
               value: s.iconStyle,
               onChanged: (v) => n.set(s.copyWith(iconStyle: v)),
+            ),
+            SettingSegmented<String>(
+              title: l10n.settingsLanguage,
+              options: [
+                ('system', l10n.settingsLanguageSystem),
+                ('es', l10n.settingsLanguageSpanish),
+                ('en', l10n.settingsLanguageEnglish),
+              ],
+              value: s.locale,
+              onChanged: (v) => n.set(s.copyWith(locale: v)),
             ),
           ]),
           const SizedBox(height: 16),

@@ -1,0 +1,23 @@
+{
+  "@@locale": "en",
+
+  "settingsLanguage": "Language",
+  "@settingsLanguage": {
+    "description": "Title of the language selector row in Settings → General."
+  },
+
+  "settingsLanguageSystem": "System",
+  "@settingsLanguageSystem": {
+    "description": "Language selector option: follow the operating system's language."
+  },
+
+  "settingsLanguageSpanish": "Español",
+  "@settingsLanguageSpanish": {
+    "description": "Language selector option: pin Spanish regardless of the system language. The language name is always shown in that language itself, never translated."
+  },
+
+  "settingsLanguageEnglish": "English",
+  "@settingsLanguageEnglish": {
+    "description": "Language selector option: pin English regardless of the system language. The language name is always shown in that language itself, never translated."
+  }
+}

@@ -30,6 +30,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: 0.20.2
   flutter_riverpod: ^2.5.1
   media_kit: ^1.1.11
   media_kit_video: ^2.0.1
@@ -69,6 +72,9 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  # Generates AppLocalizations (see l10n.yaml) from lib/l10n/*.arb on every build.
+  generate: true
 
   # To add assets to your application, add an assets section, like this:
   # assets:

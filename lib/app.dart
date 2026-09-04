@@ -4,6 +4,7 @@ import 'core/navigation.dart';
 import 'core/settings/settings_provider.dart';
 import 'core/theme/kivo_theme.dart';
 import 'core/update/update_providers.dart';
+import 'l10n/generated/app_localizations.dart';
 import 'player/autoplay/autoplay_coordinator.dart';
 import 'player/background/background_playback.dart';
 import 'ui/home/home_shell.dart';
@@ -44,6 +45,7 @@ class _KivoAppState extends ConsumerState<KivoApp> {
     ref.watch(autoplayCoordinatorProvider);
     final mode = ref.watch(settingsProvider.select((s) => s.themeMode));
     final accent = Color(ref.watch(settingsProvider.select((s) => s.accentColor)));
+    final localeSetting = ref.watch(settingsProvider.select((s) => s.locale));
     return MaterialApp(
       navigatorKey: kivoNavigatorKey,
       title: 'Kivo',
@@ -51,6 +53,9 @@ class _KivoAppState extends ConsumerState<KivoApp> {
       theme: KivoTheme.light(accent: accent),
       darkTheme: KivoTheme.dark(accent: accent),
       themeMode: themeModeFor(mode),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: localeSetting == 'system' ? null : Locale(localeSetting),
       home: const HomeShell(),
     );
   }
