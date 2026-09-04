@@ -654,5 +654,816 @@
   "playlistEntryUnavailable": "Unavailable",
   "@playlistEntryUnavailable": {
     "description": "Label shown on a playlist row whose original video can no longer be found."
+  },
+
+  "playerAutoplayNextLabel": "NEXT",
+  "@playerAutoplayNextLabel": {
+    "description": "Eyebrow of the autoplay corner card announcing the pending next video."
+  },
+
+  "playerAutoplayPlayAction": "Play",
+  "@playerAutoplayPlayAction": {
+    "description": "Button on the autoplay corner card that confirms advancing to the next video immediately."
+  },
+
+  "playerBookmarksTitle": "Bookmarks",
+  "@playerBookmarksTitle": {
+    "description": "Title of the bookmarks sheet, reused as the \"Bookmarks\" row title in the more menu."
+  },
+
+  "playerBookmarksEmpty": "You haven't marked anything in this video yet.",
+  "@playerBookmarksEmpty": {
+    "description": "Empty state of the bookmarks sheet when the video has none."
+  },
+
+  "playerBookmarksRenameDialogTitle": "Name bookmark",
+  "@playerBookmarksRenameDialogTitle": {
+    "description": "Title of the dialog to name or rename a bookmark."
+  },
+
+  "playerBookmarksDeletedUnnamedSnackbar": "Bookmark deleted · {time}",
+  "@playerBookmarksDeletedUnnamedSnackbar": {
+    "description": "Snackbar when deleting an unnamed bookmark; {time} already comes formatted by fmtDuration.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerBookmarksDeletedNamedSnackbar": "\"{name}\" deleted",
+  "@playerBookmarksDeletedNamedSnackbar": {
+    "description": "Snackbar when deleting a named bookmark, naming it.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerChaptersTitle": "Chapters",
+  "@playerChaptersTitle": {
+    "description": "Title of the chapters sheet, reused as the \"Chapters\" row title in the more menu."
+  },
+
+  "playerChaptersEmpty": "This video has no chapters.",
+  "@playerChaptersEmpty": {
+    "description": "Empty state of the chapters sheet when the video has none."
+  },
+
+  "playerChaptersPrevious": "Previous",
+  "@playerChaptersPrevious": {
+    "description": "Button that jumps to the previous chapter, in the chapters sheet."
+  },
+
+  "playerChaptersNext": "Next",
+  "@playerChaptersNext": {
+    "description": "Button that jumps to the next chapter, in the chapters sheet."
+  },
+
+  "playerSpeedTooltip": "Speed",
+  "@playerSpeedTooltip": {
+    "description": "Tooltip of the speed button in the player's bottom bar, reused as a label in the gesture tutorial."
+  },
+
+  "playerLockScreenTooltip": "Lock screen",
+  "@playerLockScreenTooltip": {
+    "description": "Tooltip of the button that locks the screen, in the player's bottom bar."
+  },
+
+  "playerAspectRatioTooltip": "Aspect ratio",
+  "@playerAspectRatioTooltip": {
+    "description": "Tooltip of the aspect ratio button in the bottom bar, reused as a label in the gesture tutorial."
+  },
+
+  "playerRotateTooltip": "Rotate",
+  "@playerRotateTooltip": {
+    "description": "Tooltip of the rotate button in the bottom bar, reused as a label in the gesture tutorial."
+  },
+
+  "playerSkipForwardTooltip": "Forward {seconds}s",
+  "@playerSkipForwardTooltip": {
+    "description": "Tooltip of the center fast-forward button, naming the configured seconds.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerSkipBackTooltip": "Back {seconds}s",
+  "@playerSkipBackTooltip": {
+    "description": "Tooltip of the center rewind button, naming the configured seconds.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerPauseTooltip": "Pause",
+  "@playerPauseTooltip": {
+    "description": "Tooltip of the center play/pause button while the video is playing."
+  },
+
+  "playerPlayTooltip": "Play",
+  "@playerPlayTooltip": {
+    "description": "Tooltip of the center play/pause button while the video is paused."
+  },
+
+  "playerHoldToUnlockHint": "hold to unlock",
+  "@playerHoldToUnlockHint": {
+    "description": "Instruction under the lock icon on the player's locked screen."
+  },
+
+  "playerResumeUndoneMessage": "Resumed from {pos}",
+  "@playerResumeUndoneMessage": {
+    "description": "Toast confirming the video resumed from a saved position; {pos} already comes formatted by fmtDuration.",
+    "placeholders": {
+      "pos": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerResumeRestartAction": "Restart",
+  "@playerResumeRestartAction": {
+    "description": "Button on the resume toast that restarts the video from the beginning."
+  },
+
+  "playerResumeAskMessage": "Resume from {pos}?",
+  "@playerResumeAskMessage": {
+    "description": "Question on the resume prompt; {pos} already comes formatted by fmtDuration.",
+    "placeholders": {
+      "pos": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerResumeFromStartAction": "From the start",
+  "@playerResumeFromStartAction": {
+    "description": "Button on the resume prompt that starts the video from the beginning."
+  },
+
+  "playerResumeAction": "Resume",
+  "@playerResumeAction": {
+    "description": "Button on the resume prompt that continues from the saved position."
+  },
+
+  "playerBackTooltip": "Back",
+  "@playerBackTooltip": {
+    "description": "Tooltip of the back button, in the player's top bar."
+  },
+
+  "playerInfoOverlayHideTooltip": "Hide on-screen info",
+  "@playerInfoOverlayHideTooltip": {
+    "description": "Tooltip of the info button while the overlay is visible."
+  },
+
+  "playerInfoOverlayShowTooltip": "Show on-screen info",
+  "@playerInfoOverlayShowTooltip": {
+    "description": "Tooltip of the info button while the overlay is hidden."
+  },
+
+  "playerSubtitlesTooltip": "Subtitles",
+  "@playerSubtitlesTooltip": {
+    "description": "Tooltip of the subtitles button in the top bar, reused as the subtitles sheet title and as a label in the gesture tutorial."
+  },
+
+  "playerPipTooltip": "Picture in picture",
+  "@playerPipTooltip": {
+    "description": "Tooltip of the picture-in-picture button, reused as a label in the gesture tutorial."
+  },
+
+  "playerAudioTooltip": "Audio",
+  "@playerAudioTooltip": {
+    "description": "Tooltip of the audio button in the top bar, reused as the audio tracks sheet title."
+  },
+
+  "playerMoreOptionsTooltip": "More options",
+  "@playerMoreOptionsTooltip": {
+    "description": "Tooltip of the button that opens the more menu, in the player's top bar."
+  },
+
+  "playerLoopMarkA": "Mark A",
+  "@playerLoopMarkA": {
+    "description": "Text of the A-B loop pill while waiting for point A to be marked."
+  },
+
+  "playerLoopMarkB": "Mark B",
+  "@playerLoopMarkB": {
+    "description": "Text of the A-B loop pill while waiting for point B to be marked."
+  },
+
+  "playerLoopPointALabel": "A {time}",
+  "@playerLoopPointALabel": {
+    "description": "Reminder of the already-marked point A, next to the pill, while waiting for point B; {time} already comes formatted by fmtDuration.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerLoopSubtitleIdle": "Repeat a section of the video",
+  "@playerLoopSubtitleIdle": {
+    "description": "Subtitle of the \"A-B loop\" row in the more menu when no loop is marked."
+  },
+
+  "playerLoopSubtitleMarking": "Marking…",
+  "@playerLoopSubtitleMarking": {
+    "description": "Subtitle of the \"A-B loop\" row in the more menu while marking point A or B."
+  },
+
+  "playerLoopSubtitleActive": "Active · {range}",
+  "@playerLoopSubtitleActive": {
+    "description": "Subtitle of the \"A-B loop\" row in the more menu with the loop active; {range} already comes formatted by fmtDuration.",
+    "placeholders": {
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerMenuChaptersSubtitle": "{count, plural, =0{No chapters} =1{1 chapter} other{{count} chapters}}",
+  "@playerMenuChaptersSubtitle": {
+    "description": "Subtitle of the \"Chapters\" row in the more menu with the video's chapter count.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerMenuSleepBadgeEpisode": "At the end",
+  "@playerMenuSleepBadgeEpisode": {
+    "description": "Badge on the \"Sleep timer\" tile in the more menu when the timer is set to stop at the end of the episode."
+  },
+
+  "playerMenuSleepBadgeEpisodes": "{count} ep",
+  "@playerMenuSleepBadgeEpisodes": {
+    "description": "Badge on the \"Sleep timer\" tile in the more menu when the timer is counting down episodes.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerMenuMarkHere": "Mark here",
+  "@playerMenuMarkHere": {
+    "description": "Tile in the more menu that saves a bookmark at the current position."
+  },
+
+  "playerMenuCapture": "Capture",
+  "@playerMenuCapture": {
+    "description": "Tile in the more menu that captures the current frame."
+  },
+
+  "playerMenuSleepTimer": "Sleep timer",
+  "@playerMenuSleepTimer": {
+    "description": "Tile in the more menu that opens the sleep timer panel."
+  },
+
+  "playerMenuSync": "Sync",
+  "@playerMenuSync": {
+    "description": "Tile in the more menu that opens the audio/subtitle sync panel."
+  },
+
+  "playerMenuGroupPlayback": "Playback",
+  "@playerMenuGroupPlayback": {
+    "description": "Title of the Repeat/Shuffle/A-B loop group of rows in the more menu."
+  },
+
+  "playerMenuRepeat": "Repeat",
+  "@playerMenuRepeat": {
+    "description": "Row in the more menu with the repeat mode selector."
+  },
+
+  "playerMenuOptionOff": "Off",
+  "@playerMenuOptionOff": {
+    "description": "\"Off\" segment of the Repeat/Shuffle selectors in the more menu."
+  },
+
+  "playerMenuRepeatList": "List",
+  "@playerMenuRepeatList": {
+    "description": "Segment of the Repeat selector: repeat the whole playlist/queue."
+  },
+
+  "playerMenuRepeatVideoOption": "Video",
+  "@playerMenuRepeatVideoOption": {
+    "description": "Segment of the Repeat selector: repeat only the current video."
+  },
+
+  "playerMenuShuffle": "Shuffle",
+  "@playerMenuShuffle": {
+    "description": "Row in the more menu with the shuffle order selector."
+  },
+
+  "playerMenuOptionOn": "On",
+  "@playerMenuOptionOn": {
+    "description": "\"On\" segment of the Shuffle selector in the more menu."
+  },
+
+  "playerMenuAbLoop": "A-B loop",
+  "@playerMenuAbLoop": {
+    "description": "Row in the more menu that arms or cancels the A-B loop."
+  },
+
+  "playerMenuGroupGoTo": "Go to",
+  "@playerMenuGroupGoTo": {
+    "description": "Title of the Chapters/Bookmarks group of rows in the more menu."
+  },
+
+  "playerMenuBookmarksSubtitle": "{count, plural, =0{No bookmarks} =1{1 bookmark} other{{count} bookmarks}}",
+  "@playerMenuBookmarksSubtitle": {
+    "description": "Subtitle of the \"Bookmarks\" row in the more menu with the video's bookmark count.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerMenuGroupAudio": "Audio",
+  "@playerMenuGroupAudio": {
+    "description": "Title of the group holding the Equalizer row in the more menu."
+  },
+
+  "playerMenuEqualizer": "Equalizer",
+  "@playerMenuEqualizer": {
+    "description": "Row in the more menu that opens the equalizer."
+  },
+
+  "playerMenuBookmarkSavedSnackbar": "Bookmark saved · {time}",
+  "@playerMenuBookmarkSavedSnackbar": {
+    "description": "Snackbar after saving a bookmark with \"Mark here\"; {time} already comes formatted by fmtDuration.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerMenuBookmarkNameAction": "Name",
+  "@playerMenuBookmarkNameAction": {
+    "description": "Action on the bookmark-saved snackbar that opens the dialog to name it."
+  },
+
+  "playerMenuCaptureSavedSnackbar": "Frame captured",
+  "@playerMenuCaptureSavedSnackbar": {
+    "description": "Snackbar shown after successfully capturing a frame."
+  },
+
+  "playerMenuCaptureViewAction": "View",
+  "@playerMenuCaptureViewAction": {
+    "description": "Action on the frame-captured snackbar that opens the image."
+  },
+
+  "playerQueueNowBadge": "NOW",
+  "@playerQueueNowBadge": {
+    "description": "Badge over the current video's thumbnail, in the queue strip."
+  },
+
+  "playerSleepPanelTitle": "Sleep timer",
+  "@playerSleepPanelTitle": {
+    "description": "Title of the sleep timer panel."
+  },
+
+  "playerSleepDurationLabel": "Duration",
+  "@playerSleepDurationLabel": {
+    "description": "Eyebrow above the minutes selector, in the sleep timer panel."
+  },
+
+  "playerSleepMinutesValue": "{minutes} min",
+  "@playerSleepMinutesValue": {
+    "description": "Value of the minutes selector, in the sleep timer panel.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerSleepOrLabel": "Or",
+  "@playerSleepOrLabel": {
+    "description": "Eyebrow between the minutes selector and the episode cards, in the sleep timer panel."
+  },
+
+  "playerSleepStartAfterEpisodes": "Start · After {count} episodes",
+  "@playerSleepStartAfterEpisodes": {
+    "description": "Primary button of the sleep timer panel when \"after N episodes\" was chosen.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerSleepStartAtEpisodeEnd": "Start · At the end of the episode",
+  "@playerSleepStartAtEpisodeEnd": {
+    "description": "Primary button of the sleep timer panel when \"at the end of the episode\" was chosen."
+  },
+
+  "playerSleepStartFixedMinutes": "Start · {minutes} min",
+  "@playerSleepStartFixedMinutes": {
+    "description": "Primary button of the sleep timer panel when a fixed duration was chosen.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerSleepRemainingOfMinutes": "remaining · of {minutes} min",
+  "@playerSleepRemainingOfMinutes": {
+    "description": "Subtitle under the remaining time, in the sleep timer panel with a fixed duration active.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerSleepEpisodesRemaining": "{count, plural, =1{episode remaining} other{episodes remaining}}",
+  "@playerSleepEpisodesRemaining": {
+    "description": "Subtitle under the episode counter, in the sleep timer panel with episodes mode active. The number is already shown separately above.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerSleepUntilEpisodeEnd": "until the end of the episode",
+  "@playerSleepUntilEpisodeEnd": {
+    "description": "Subtitle under the remaining time, in the sleep timer panel with \"at the end of the episode\" mode active."
+  },
+
+  "playerSleepDeactivate": "Turn off",
+  "@playerSleepDeactivate": {
+    "description": "Button that cancels the active sleep timer, in the sleep timer panel and the warning toast."
+  },
+
+  "playerSleepExtendByMinutes": "Extend +{minutes}",
+  "@playerSleepExtendByMinutes": {
+    "description": "Button that extends the active sleep timer by its own duration, in the sleep timer panel.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerSleepEpisodeCardTitle": "At the end of the episode",
+  "@playerSleepEpisodeCardTitle": {
+    "description": "Title of the card that arms the timer to stop at the end of the episode."
+  },
+
+  "playerSleepEpisodeCardSubtitle": "Stops when this video ends",
+  "@playerSleepEpisodeCardSubtitle": {
+    "description": "Clarifying subtitle of the \"At the end of the episode\" card."
+  },
+
+  "playerSleepEpisodesCardTitle": "After N episodes",
+  "@playerSleepEpisodesCardTitle": {
+    "description": "Title of the card that arms the timer to stop after a number of episodes chosen with the card's own −/+ buttons."
+  },
+
+  "playerSleepEpisodesCardSubtitle": "Lets autoplay run and then stops",
+  "@playerSleepEpisodesCardSubtitle": {
+    "description": "Clarifying subtitle of the \"After N episodes\" card."
+  },
+
+  "playerSleepPausingInLabel": "Pausing in ",
+  "@playerSleepPausingInLabel": {
+    "description": "Prefix of the sleep timer warning toast, followed by the remaining time in its own style (rich text, not interpolated). Keep the trailing space.",
+    "placeholders": {}
+  },
+
+  "playerSleepExtendAction": "Extend",
+  "@playerSleepExtendAction": {
+    "description": "Button on the sleep timer warning toast that extends it by its own duration."
+  },
+
+  "playerSpeedSavePreset": "Save {rate}x",
+  "@playerSpeedSavePreset": {
+    "description": "Button on the speed panel that saves the current speed as a new preset; {rate} already comes formatted (rounded to two decimals).",
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerSpeedResetAction": "Reset (1x)",
+  "@playerSpeedResetAction": {
+    "description": "Button on the speed panel that resets the speed to 1x."
+  },
+
+  "playerAspectFit": "Fit",
+  "@playerAspectFit": {
+    "description": "Name of the \"fit to box\" aspect mode, shown in the flash when the mode changes."
+  },
+
+  "playerAspectFill": "Fill",
+  "@playerAspectFill": {
+    "description": "Name of the \"fill the screen\" aspect mode, shown in the flash when the mode changes."
+  },
+
+  "playerAspectStretch": "Stretch",
+  "@playerAspectStretch": {
+    "description": "Name of the \"stretch\" aspect mode, shown in the flash when the mode changes."
+  },
+
+  "playerTracksTabLabel": "Tracks",
+  "@playerTracksTabLabel": {
+    "description": "Tab of the subtitles sheet listing the available tracks."
+  },
+
+  "playerTracksStyleTabLabel": "Style",
+  "@playerTracksStyleTabLabel": {
+    "description": "Tab of the subtitles sheet that edits the style (size and color)."
+  },
+
+  "playerTracksShowSubtitles": "Show subtitles",
+  "@playerTracksShowSubtitles": {
+    "description": "Switch that turns subtitles on or off, in the subtitles sheet."
+  },
+
+  "playerTracksSectionInVideo": "In the video",
+  "@playerTracksSectionInVideo": {
+    "description": "Eyebrow of the section listing tracks embedded in the file, in the tracks sheet."
+  },
+
+  "playerTracksEmbeddedDefault": "Embedded track · default",
+  "@playerTracksEmbeddedDefault": {
+    "description": "Subtitle of an embedded track flagged as default by the file."
+  },
+
+  "playerTracksEmbedded": "Embedded track",
+  "@playerTracksEmbedded": {
+    "description": "Subtitle of a regular embedded track (not the default)."
+  },
+
+  "playerTracksSectionSync": "Sync",
+  "@playerTracksSectionSync": {
+    "description": "Eyebrow of the sync section, in the tracks sheet."
+  },
+
+  "playerTracksSyncSubtitles": "Sync subtitles",
+  "@playerTracksSyncSubtitles": {
+    "description": "Card that opens the sync panel, in the subtitles sheet."
+  },
+
+  "playerTracksSyncAudio": "Sync audio",
+  "@playerTracksSyncAudio": {
+    "description": "Card that opens the sync panel, in the audio sheet."
+  },
+
+  "playerTracksSyncNeedsSubtitle": "Turn on a subtitle to adjust it",
+  "@playerTracksSyncNeedsSubtitle": {
+    "description": "Subtitle of the sync card when no subtitle is active yet."
+  },
+
+  "playerTracksSyncHint": "Adjust the offset during playback",
+  "@playerTracksSyncHint": {
+    "description": "Subtitle of the sync card once the offset can be adjusted."
+  },
+
+  "playerTracksSectionInFolder": "In the folder",
+  "@playerTracksSectionInFolder": {
+    "description": "Eyebrow of the section listing subtitle files found next to the video, in the subtitles sheet."
+  },
+
+  "playerTracksLocalFile": "Local file",
+  "@playerTracksLocalFile": {
+    "description": "Subtitle of a subtitle track found as a file next to the video."
+  },
+
+  "playerTracksNoSubtitlesFound": "This video has no embedded subtitles and there are no files next to it.",
+  "@playerTracksNoSubtitlesFound": {
+    "description": "Empty state of the subtitles sheet when there are no embedded tracks or nearby files."
+  },
+
+  "playerTracksNoOtherAudioTracks": "This video has no other audio tracks.",
+  "@playerTracksNoOtherAudioTracks": {
+    "description": "Empty state of the audio sheet when the video has no other tracks."
+  },
+
+  "playerTracksSectionFromDevice": "From your device",
+  "@playerTracksSectionFromDevice": {
+    "description": "Eyebrow of the section with the action to load a subtitle manually, in the subtitles sheet."
+  },
+
+  "playerTracksLoadSubtitleAction": "Load subtitle…",
+  "@playerTracksLoadSubtitleAction": {
+    "description": "Card that opens the file picker to load a subtitle manually."
+  },
+
+  "playerTracksLoadSubtitleHint": "Choose a .srt, .ass or .vtt file",
+  "@playerTracksLoadSubtitleHint": {
+    "description": "Subtitle of the \"Load subtitle…\" card, with the accepted formats."
+  },
+
+  "playerTracksBgTransparent": "Transparent",
+  "@playerTracksBgTransparent": {
+    "description": "Subtitle background option: no background, in the Style tab."
+  },
+
+  "playerTracksBgBlack": "Black",
+  "@playerTracksBgBlack": {
+    "description": "Subtitle background option: black, in the Style tab."
+  },
+
+  "playerTracksBgWhite": "White",
+  "@playerTracksBgWhite": {
+    "description": "Subtitle background option: white, in the Style tab."
+  },
+
+  "playerTracksStylePreviewSample": "We're close to finding it.",
+  "@playerTracksStylePreviewSample": {
+    "description": "Sample phrase shown in the live subtitle style preview, in the Style tab."
+  },
+
+  "playerTracksSizeLabel": "Size",
+  "@playerTracksSizeLabel": {
+    "description": "Eyebrow above the font size control, in the Style tab."
+  },
+
+  "playerTracksTextColorLabel": "Text color",
+  "@playerTracksTextColorLabel": {
+    "description": "Eyebrow above the text color swatches, in the Style tab."
+  },
+
+  "playerTracksBackgroundColorLabel": "Background color",
+  "@playerTracksBackgroundColorLabel": {
+    "description": "Eyebrow above the background color swatches, in the Style tab."
+  },
+
+  "playerTracksResetStyleAction": "Reset style",
+  "@playerTracksResetStyleAction": {
+    "description": "Button that restores the subtitle style to its defaults, in the Style tab."
+  },
+
+  "playerSyncDragHint": "drag the bar or use the buttons",
+  "@playerSyncDragHint": {
+    "description": "Instruction under the drag bar of the audio/subtitle sync panel."
+  },
+
+  "playerTutorialPageTaps": "Taps",
+  "@playerTutorialPageTaps": {
+    "description": "Title of the gesture tutorial's first page."
+  },
+
+  "playerTutorialDoubleTapBack": "Double tap · −{seconds} s",
+  "@playerTutorialDoubleTapBack": {
+    "description": "Gesture tutorial label for the double tap that skips back, with the configured seconds.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerTutorialDoubleTapPause": "Double tap · Pause",
+  "@playerTutorialDoubleTapPause": {
+    "description": "Gesture tutorial label for the center double tap that pauses."
+  },
+
+  "playerTutorialDoubleTapForward": "Double tap · +{seconds} s",
+  "@playerTutorialDoubleTapForward": {
+    "description": "Gesture tutorial label for the double tap that skips forward, with the configured seconds.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerTutorialSingleTapToggleControls": "Single tap · Show or hide the controls",
+  "@playerTutorialSingleTapToggleControls": {
+    "description": "Gesture tutorial label for the single tap that shows or hides the controls."
+  },
+
+  "playerTutorialPageDrags": "Drags",
+  "@playerTutorialPageDrags": {
+    "description": "Title of the gesture tutorial's second page."
+  },
+
+  "playerTutorialDragBrightness": "Drag · Brightness",
+  "@playerTutorialDragBrightness": {
+    "description": "Gesture tutorial label for the vertical brightness drag."
+  },
+
+  "playerTutorialDragVolume": "Drag · Volume (up to {percent}%)",
+  "@playerTutorialDragVolume": {
+    "description": "Gesture tutorial label for the vertical volume drag, with the configured maximum.",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerTutorialDragSeekPreview": "Drag · Seek with preview",
+  "@playerTutorialDragSeekPreview": {
+    "description": "Gesture tutorial label for the horizontal seek drag."
+  },
+
+  "playerTutorialDragEdgeMinimize": "Drag on the edge · Minimize",
+  "@playerTutorialDragEdgeMinimize": {
+    "description": "Gesture tutorial label for the lateral-edge drag that minimizes."
+  },
+
+  "playerTutorialDragCenterRotate": "Drag in the center · Rotate (with the controls hidden)",
+  "@playerTutorialDragCenterRotate": {
+    "description": "Gesture tutorial label for the center drag that rotates the screen."
+  },
+
+  "playerTutorialPinchZoom": "Pinch · Zoom (up to {zoom})",
+  "@playerTutorialPinchZoom": {
+    "description": "Gesture tutorial label for the pinch-to-zoom gesture, with the configured maximum already formatted (e.g. \"8×\").",
+    "placeholders": {
+      "zoom": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerTutorialZoomPan": "While zoomed, drag · Pan · Tap the pill to return to 1×",
+  "@playerTutorialZoomPan": {
+    "description": "Gesture tutorial label for panning while zoomed in."
+  },
+
+  "playerTutorialHoldLeftSpeed": "Hold on the left · {speed}",
+  "@playerTutorialHoldLeftSpeed": {
+    "description": "Gesture tutorial label for holding on the left, with the configured speed already formatted (e.g. \"2×\").",
+    "placeholders": {
+      "speed": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerTutorialHoldRightLadder": "Hold and slide up or down on the right · Speed ladder",
+  "@playerTutorialHoldRightLadder": {
+    "description": "Gesture tutorial label for holding and sliding on the right."
+  },
+
+  "playerTutorialPageButtons": "Buttons",
+  "@playerTutorialPageButtons": {
+    "description": "Title of the gesture tutorial's third page."
+  },
+
+  "playerTutorialMinimize": "Minimize to the mini-bar",
+  "@playerTutorialMinimize": {
+    "description": "Gesture tutorial label for the minimize button."
+  },
+
+  "playerTutorialInfoOverlay": "On-screen info",
+  "@playerTutorialInfoOverlay": {
+    "description": "Gesture tutorial label for the on-screen info button."
+  },
+
+  "playerTutorialAudioTracks": "Audio tracks",
+  "@playerTutorialAudioTracks": {
+    "description": "Gesture tutorial label for the audio tracks button."
+  },
+
+  "playerTutorialMoreOptions": "More options · sleep timer and A-B loop",
+  "@playerTutorialMoreOptions": {
+    "description": "Gesture tutorial label for the button that opens the more menu."
+  },
+
+  "playerTutorialLockScreen": "Lock the screen",
+  "@playerTutorialLockScreen": {
+    "description": "Gesture tutorial label for the lock screen button."
+  },
+
+  "playerTutorialQueueHint": "With more than one video in the folder, the queue appears above the buttons",
+  "@playerTutorialQueueHint": {
+    "description": "Closing note on the \"Buttons\" page of the gesture tutorial, about the queue strip."
+  },
+
+  "playerTutorialDoneAction": "Got it",
+  "@playerTutorialDoneAction": {
+    "description": "Button that closes the gesture tutorial, on its last page."
+  },
+
+  "playerTutorialNextAction": "Next",
+  "@playerTutorialNextAction": {
+    "description": "Button that advances to the next page of the gesture tutorial."
+  },
+
+  "playerTutorialTopBarSection": "Top bar",
+  "@playerTutorialTopBarSection": {
+    "description": "Title of the top bar section, on the \"Buttons\" page of the gesture tutorial."
+  },
+
+  "playerTutorialBottomBarSection": "Bottom bar",
+  "@playerTutorialBottomBarSection": {
+    "description": "Title of the bottom bar section, on the \"Buttons\" page of the gesture tutorial."
   }
 }

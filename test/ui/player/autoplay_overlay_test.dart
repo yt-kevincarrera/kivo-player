@@ -7,6 +7,9 @@ import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/ui/player/autoplay/autoplay_overlay.dart';
 import 'package:kivo_player/ui/player/state/autoplay_state.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 void main() {
   const pending = VideoSession(
@@ -23,16 +26,17 @@ void main() {
       settingsServiceProvider.overrideWithValue(s),
     ]);
     addTearDown(c.dispose);
-    await tester.pumpWidget(UncontrolledProviderScope(
+    await pumpLocalized(
+      tester,
+      const Scaffold(body: AutoplayOverlay()),
       container: c,
-      child: const MaterialApp(home: Scaffold(body: AutoplayOverlay())),
-    ));
+    );
     return c;
   }
 
   testWidgets('hidden when nothing pending', (tester) async {
     await pumpOverlay(tester);
-    expect(find.text('PRÓXIMO'), findsNothing);
+    expect(find.text(_l10n.playerAutoplayNextLabel), findsNothing);
   });
 
   testWidgets('shows PRÓXIMO and the next video name when pending is set', (tester) async {
@@ -40,7 +44,7 @@ void main() {
     c.read(autoplayPendingProvider.notifier).state = pending;
     await tester.pump();
 
-    expect(find.text('PRÓXIMO'), findsOneWidget);
+    expect(find.text(_l10n.playerAutoplayNextLabel), findsOneWidget);
     expect(find.text('ep2.mkv'), findsOneWidget);
 
     await tester.pump(const Duration(seconds: 4));
@@ -51,7 +55,7 @@ void main() {
     c.read(autoplayPendingProvider.notifier).state = pending;
     await tester.pump();
 
-    await tester.tap(find.text('Cancelar'));
+    await tester.tap(find.text(_l10n.commonCancel));
     await tester.pump();
 
     expect(c.read(autoplayPendingProvider), isNull);
@@ -64,7 +68,7 @@ void main() {
     c.read(autoplayPendingProvider.notifier).state = pending;
     await tester.pump();
 
-    await tester.tap(find.text('Reproducir'));
+    await tester.tap(find.text(_l10n.playerAutoplayPlayAction));
     await tester.pump();
 
     expect(c.read(autoplayConfirmProvider), true);

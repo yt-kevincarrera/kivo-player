@@ -10,6 +10,9 @@ import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/ui/player/controls/top_bar.dart';
 import 'package:kivo_player/ui/player/state/pip_state.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 Future<ProviderContainer> _pumpTopBar(WidgetTester tester, {required bool supported}) async {
   final engine = FakePlaybackEngine();
@@ -25,10 +28,7 @@ Future<ProviderContainer> _pumpTopBar(WidgetTester tester, {required bool suppor
   c.read(currentVideoProvider.notifier).open(
     const VideoSession(playbackPath: '/v/ep1.mkv', displayName: 'ep1.mkv', queue: ['/v/ep1.mkv'], index: 0),
   );
-  await tester.pumpWidget(UncontrolledProviderScope(
-    container: c,
-    child: MaterialApp(theme: KivoTheme.dark(), home: const Scaffold(body: TopBar())),
-  ));
+  await pumpLocalized(tester, const Scaffold(body: TopBar()), container: c, theme: KivoTheme.dark());
   await tester.pumpAndSettle();
   return c;
 }
@@ -36,13 +36,13 @@ Future<ProviderContainer> _pumpTopBar(WidgetTester tester, {required bool suppor
 void main() {
   testWidgets('PiP button hidden when unsupported', (tester) async {
     await _pumpTopBar(tester, supported: false);
-    expect(find.byTooltip('Imagen en imagen'), findsNothing);
+    expect(find.byTooltip(_l10n.playerPipTooltip), findsNothing);
   });
 
   testWidgets('PiP button enters PiP when tapped', (tester) async {
     final c = await _pumpTopBar(tester, supported: true);
-    expect(find.byTooltip('Imagen en imagen'), findsOneWidget);
-    await tester.tap(find.byTooltip('Imagen en imagen'));
+    expect(find.byTooltip(_l10n.playerPipTooltip), findsOneWidget);
+    await tester.tap(find.byTooltip(_l10n.playerPipTooltip));
     await tester.pump();
     final pip = c.read(pipControllerProvider) as FakePipController;
     expect(pip.enterCount, 1);

@@ -7,6 +7,9 @@ import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/player/loop/ab_loop.dart';
 import 'package:kivo_player/ui/player/loop/ab_loop_chip.dart';
 import '../../../fakes/fakes.dart';
+import '../../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 void main() {
   late FakePlaybackEngine engine;
@@ -21,32 +24,31 @@ void main() {
       playbackEngineProvider.overrideWithValue(engine),
     ]);
     addTearDown(c.dispose);
-    await tester.pumpWidget(UncontrolledProviderScope(
+    await pumpLocalized(
+      tester,
+      const Scaffold(body: Align(alignment: Alignment.bottomRight, child: AbLoopChip())),
       container: c,
-      child: const MaterialApp(
-        home: Scaffold(body: Align(alignment: Alignment.bottomRight, child: AbLoopChip())),
-      ),
-    ));
+    );
     await tester.pump();
   }
 
   testWidgets('hidden without loop; cycles Marcar A → Marcar B → range on taps', (tester) async {
     await pumpChip(tester);
-    expect(find.text('Marcar A'), findsNothing);
+    expect(find.text(_l10n.playerLoopMarkA), findsNothing);
 
     c.read(abLoopProvider.notifier).begin();
     engine.emitDuration(const Duration(minutes: 10));
     engine.emitPosition(const Duration(minutes: 2));
     await tester.pump();
-    expect(find.text('Marcar A'), findsOneWidget);
+    expect(find.text(_l10n.playerLoopMarkA), findsOneWidget);
 
-    await tester.tap(find.text('Marcar A'));
+    await tester.tap(find.text(_l10n.playerLoopMarkA));
     await tester.pump();
-    expect(find.text('Marcar B'), findsOneWidget);
+    expect(find.text(_l10n.playerLoopMarkB), findsOneWidget);
 
     engine.emitPosition(const Duration(minutes: 3));
     await tester.pump();
-    await tester.tap(find.text('Marcar B'));
+    await tester.tap(find.text(_l10n.playerLoopMarkB));
     await tester.pump();
     expect(find.textContaining('–'), findsOneWidget); // "02:00–03:00"
 
@@ -54,7 +56,7 @@ void main() {
     await tester.tap(find.textContaining('–'));
     await tester.pump();
     expect(c.read(abLoopProvider), isNull);
-    expect(find.text('Marcar A'), findsNothing);
+    expect(find.text(_l10n.playerLoopMarkA), findsNothing);
     expect(find.textContaining('–'), findsNothing);
   });
 

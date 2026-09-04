@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
+import '../../../l10n/l10n.dart';
 import '../state/autoplay_state.dart';
 
 /// Bottom-right "Próximo" corner card shown for 3s (foreground fullscreen
@@ -93,7 +94,7 @@ class _AutoplayOverlayState extends ConsumerState<AutoplayOverlay>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'PRÓXIMO',
+                          context.l10n.playerAutoplayNextLabel,
                           style: TextStyle(
                             color: accent,
                             fontSize: 10.5,
@@ -166,8 +167,8 @@ class _AutoplayOverlayState extends ConsumerState<AutoplayOverlay>
                         _ring.stop();
                         ref.read(autoplayPendingProvider.notifier).state = null;
                       },
-                      child: const Text('Cancelar',
-                          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                      child: Text(context.l10n.commonCancel,
+                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -183,8 +184,8 @@ class _AutoplayOverlayState extends ConsumerState<AutoplayOverlay>
                       onPressed: () {
                         ref.read(autoplayConfirmProvider.notifier).state = true;
                       },
-                      child: const Text('Reproducir',
-                          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+                      child: Text(context.l10n.playerAutoplayPlayAction,
+                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
                     ),
                   ),
                 ],

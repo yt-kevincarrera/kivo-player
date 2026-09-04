@@ -15,6 +15,9 @@ import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/ui/player/more/more_menu.dart';
 import '../../../fakes/fakes.dart';
+import '../../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 Future<ProviderContainer> _pump(WidgetTester tester) async {
   final engine = FakePlaybackEngine();
@@ -33,22 +36,21 @@ Future<ProviderContainer> _pump(WidgetTester tester) async {
         index: 0,
       ));
 
-  await tester.pumpWidget(UncontrolledProviderScope(
-    container: c,
-    child: MaterialApp(
-      theme: KivoTheme.dark(),
-      home: Scaffold(
-        body: Center(
-          child: Consumer(
-            builder: (context, ref, _) => ElevatedButton(
-              onPressed: () => showMoreMenu(context, ref),
-              child: const Text('open'),
-            ),
+  await pumpLocalized(
+    tester,
+    Scaffold(
+      body: Center(
+        child: Consumer(
+          builder: (context, ref, _) => ElevatedButton(
+            onPressed: () => showMoreMenu(context, ref),
+            child: const Text('open'),
           ),
         ),
       ),
     ),
-  ));
+    container: c,
+    theme: KivoTheme.dark(),
+  );
   await tester.pump();
   await tester.tap(find.text('open'));
   await tester.pumpAndSettle();
@@ -64,7 +66,7 @@ void main() {
     // FrameCaptureController.capture() and the outcome was reported, not
     // that the capture succeeded (that's frame_capture_controller_test.dart's
     // job).
-    await tester.tap(find.text('Capturar'));
+    await tester.tap(find.text(_l10n.playerMenuCapture));
     await tester.pumpAndSettle();
 
     expect(find.text('Detalles'), findsOneWidget); // the failure SnackBar's action
@@ -75,18 +77,18 @@ void main() {
     final c = await _pump(tester);
     expect(c.read(settingsProvider).repeatMode, 'off');
 
-    await tester.tap(find.text('Lista'));
+    await tester.tap(find.text(_l10n.playerMenuRepeatList));
     await tester.pump();
 
     expect(c.read(settingsProvider).repeatMode, 'list');
     // Sheet is still up: its caption and the next group are still visible.
-    expect(find.text('Reproducción'), findsOneWidget);
-    expect(find.text('Bucle A-B'), findsOneWidget);
+    expect(find.text(_l10n.playerMenuGroupPlayback), findsOneWidget);
+    expect(find.text(_l10n.playerMenuAbLoop), findsOneWidget);
 
-    await tester.tap(find.text('Video'));
+    await tester.tap(find.text(_l10n.playerMenuRepeatVideoOption));
     await tester.pump();
     expect(c.read(settingsProvider).repeatMode, 'video');
-    expect(find.text('Reproducción'), findsOneWidget);
+    expect(find.text(_l10n.playerMenuGroupPlayback), findsOneWidget);
   });
 
   testWidgets('the Aleatorio toggle flips settings.shuffle and leaves the sheet open',
@@ -94,15 +96,15 @@ void main() {
     final c = await _pump(tester);
     expect(c.read(settingsProvider).shuffle, isFalse);
 
-    await tester.tap(find.text('Sí'));
+    await tester.tap(find.text(_l10n.playerMenuOptionOn));
     await tester.pumpAndSettle();
 
     expect(c.read(settingsProvider).shuffle, isTrue);
-    expect(find.text('Reproducción'), findsOneWidget);
+    expect(find.text(_l10n.playerMenuGroupPlayback), findsOneWidget);
 
-    // 'No' also labels the Repetir row's off segment, right above this one —
-    // the Aleatorio row's is the second (last) match.
-    await tester.tap(find.text('No').last);
+    // The "off" label also labels the Repetir row's off segment, right above
+    // this one — the Aleatorio row's is the second (last) match.
+    await tester.tap(find.text(_l10n.playerMenuOptionOff).last);
     await tester.pumpAndSettle();
     expect(c.read(settingsProvider).shuffle, isFalse);
   });
@@ -150,28 +152,28 @@ void main() {
   testWidgets('the menu fits a 640x360 landscape viewport (two columns, 0.92 cap)',
       (tester) async {
     await measure(tester, 640, 360);
-    expect(find.text('Sincronizar'), findsOneWidget);
-    expect(find.text('Audio'), findsOneWidget);
+    expect(find.text(_l10n.playerMenuSync), findsOneWidget);
+    expect(find.text(_l10n.playerMenuGroupAudio), findsOneWidget);
   });
 
   testWidgets('the menu renders without overflow at 800x360 (taller-aspect landscape)',
       (tester) async {
     await measure(tester, 800, 360);
-    expect(find.text('Sincronizar'), findsOneWidget);
-    expect(find.text('Audio'), findsOneWidget);
+    expect(find.text(_l10n.playerMenuSync), findsOneWidget);
+    expect(find.text(_l10n.playerMenuGroupAudio), findsOneWidget);
   });
 
   testWidgets('the menu still renders as a single column at 360x640 portrait',
       (tester) async {
     await measure(tester, 360, 640);
-    expect(find.text('Sincronizar'), findsOneWidget);
-    expect(find.text('Audio'), findsOneWidget);
+    expect(find.text(_l10n.playerMenuSync), findsOneWidget);
+    expect(find.text(_l10n.playerMenuGroupAudio), findsOneWidget);
   });
 
   testWidgets('the menu still renders as a single column at 360x800 portrait',
       (tester) async {
     await measure(tester, 360, 800);
-    expect(find.text('Sincronizar'), findsOneWidget);
-    expect(find.text('Audio'), findsOneWidget);
+    expect(find.text(_l10n.playerMenuSync), findsOneWidget);
+    expect(find.text(_l10n.playerMenuGroupAudio), findsOneWidget);
   });
 }

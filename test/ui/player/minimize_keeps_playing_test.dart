@@ -18,6 +18,7 @@ import 'package:kivo_player/ui/mini_player/mini_player_bar.dart';
 import 'package:kivo_player/ui/player/player_screen.dart';
 import 'package:kivo_player/ui/player/state/mini_player_state.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
 
 class _NoopControls implements DeviceControls {
   @override Future<double> currentBrightness() async => 0.5;
@@ -64,10 +65,7 @@ Future<({ProviderContainer container, FakePlaybackEngine engine})> _pumpMinimize
   c.read(playerMinimizedProvider.notifier).state = true;
   await engine.play();
 
-  await tester.pumpWidget(UncontrolledProviderScope(
-    container: c,
-    child: const MaterialApp(home: Scaffold(body: MiniPlayerBar())),
-  ));
+  await pumpLocalized(tester, const Scaffold(body: MiniPlayerBar()), container: c);
   await tester.pumpAndSettle();
   return (container: c, engine: engine);
 }
@@ -104,21 +102,20 @@ Future<bool?> _minimizeRealPlayer(WidgetTester tester,
             index: 0),
       );
 
-  await tester.pumpWidget(UncontrolledProviderScope(
-    container: c,
-    child: MaterialApp(
-      home: Builder(
-        builder: (context) => Scaffold(
-          body: ElevatedButton(
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const PlayerScreen()),
-            ),
-            child: const Text('open'),
+  await pumpLocalized(
+    tester,
+    Builder(
+      builder: (context) => Scaffold(
+        body: ElevatedButton(
+          onPressed: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const PlayerScreen()),
           ),
+          child: const Text('open'),
         ),
       ),
     ),
-  ));
+    container: c,
+  );
   await tester.pump();
   await tester.tap(find.text('open'));
   // No pumpAndSettle: PlayerScreen's periodic 4s save timer schedules frames

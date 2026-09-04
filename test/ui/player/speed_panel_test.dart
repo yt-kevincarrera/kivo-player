@@ -7,6 +7,7 @@ import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/player/control/player_controller.dart';
 import 'package:kivo_player/ui/player/speed/speed_panel.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
 
 void main() {
   testWidgets('tapping the 2.0x preset chip sets the rate', (tester) async {
@@ -19,10 +20,7 @@ void main() {
     ]);
     addTearDown(c.dispose);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: const MaterialApp(home: Scaffold(body: SpeedPanel())),
-    ));
+    await pumpLocalized(tester, const Scaffold(body: SpeedPanel()), container: c);
 
     await tester.tap(find.text('2.0x'));
     await tester.pump();

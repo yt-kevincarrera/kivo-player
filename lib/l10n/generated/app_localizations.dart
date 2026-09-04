@@ -763,6 +763,834 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'No disponible'**
   String get playlistEntryUnavailable;
+
+  /// Eyebrow del corner card de autoplay que anuncia el siguiente video pendiente.
+  ///
+  /// In es, this message translates to:
+  /// **'PRÓXIMO'**
+  String get playerAutoplayNextLabel;
+
+  /// Botón del corner card de autoplay que confirma el avance inmediato al siguiente video.
+  ///
+  /// In es, this message translates to:
+  /// **'Reproducir'**
+  String get playerAutoplayPlayAction;
+
+  /// Título de la hoja de marcadores, reutilizado como título de la fila «Marcadores» en el menú ⋮.
+  ///
+  /// In es, this message translates to:
+  /// **'Marcadores'**
+  String get playerBookmarksTitle;
+
+  /// Estado vacío de la hoja de marcadores cuando el video no tiene ninguno.
+  ///
+  /// In es, this message translates to:
+  /// **'Todavía no marcaste nada en este video.'**
+  String get playerBookmarksEmpty;
+
+  /// Título del diálogo para nombrar o renombrar un marcador.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombrar marcador'**
+  String get playerBookmarksRenameDialogTitle;
+
+  /// Snackbar al borrar un marcador sin nombre; {time} ya viene formateado por fmtDuration.
+  ///
+  /// In es, this message translates to:
+  /// **'Marcador borrado · {time}'**
+  String playerBookmarksDeletedUnnamedSnackbar(String time);
+
+  /// Snackbar al borrar un marcador con nombre, nombrándolo.
+  ///
+  /// In es, this message translates to:
+  /// **'«{name}» borrado'**
+  String playerBookmarksDeletedNamedSnackbar(String name);
+
+  /// Título de la hoja de capítulos, reutilizado como título de la fila «Capítulos» en el menú ⋮.
+  ///
+  /// In es, this message translates to:
+  /// **'Capítulos'**
+  String get playerChaptersTitle;
+
+  /// Estado vacío de la hoja de capítulos cuando el video no tiene ninguno.
+  ///
+  /// In es, this message translates to:
+  /// **'Este video no tiene capítulos.'**
+  String get playerChaptersEmpty;
+
+  /// Botón que salta al capítulo anterior, en la hoja de capítulos.
+  ///
+  /// In es, this message translates to:
+  /// **'Anterior'**
+  String get playerChaptersPrevious;
+
+  /// Botón que salta al siguiente capítulo, en la hoja de capítulos.
+  ///
+  /// In es, this message translates to:
+  /// **'Siguiente'**
+  String get playerChaptersNext;
+
+  /// Tooltip del botón de velocidad en la barra inferior del reproductor, reutilizado como rótulo en el tutorial de gestos.
+  ///
+  /// In es, this message translates to:
+  /// **'Velocidad'**
+  String get playerSpeedTooltip;
+
+  /// Tooltip del botón que bloquea la pantalla, en la barra inferior del reproductor.
+  ///
+  /// In es, this message translates to:
+  /// **'Bloquear pantalla'**
+  String get playerLockScreenTooltip;
+
+  /// Tooltip del botón de relación de aspecto en la barra inferior, reutilizado como rótulo en el tutorial de gestos.
+  ///
+  /// In es, this message translates to:
+  /// **'Relación de aspecto'**
+  String get playerAspectRatioTooltip;
+
+  /// Tooltip del botón de rotar en la barra inferior, reutilizado como rótulo en el tutorial de gestos.
+  ///
+  /// In es, this message translates to:
+  /// **'Rotar'**
+  String get playerRotateTooltip;
+
+  /// Tooltip del botón central de avance rápido, nombrando los segundos configurados.
+  ///
+  /// In es, this message translates to:
+  /// **'Avanzar {seconds}s'**
+  String playerSkipForwardTooltip(int seconds);
+
+  /// Tooltip del botón central de retroceso rápido, nombrando los segundos configurados.
+  ///
+  /// In es, this message translates to:
+  /// **'Retroceder {seconds}s'**
+  String playerSkipBackTooltip(int seconds);
+
+  /// Tooltip del botón central de reproducir/pausar cuando el video está reproduciéndose.
+  ///
+  /// In es, this message translates to:
+  /// **'Pausar'**
+  String get playerPauseTooltip;
+
+  /// Tooltip del botón central de reproducir/pausar cuando el video está pausado.
+  ///
+  /// In es, this message translates to:
+  /// **'Reproducir'**
+  String get playerPlayTooltip;
+
+  /// Instrucción bajo el candado de la pantalla bloqueada del reproductor.
+  ///
+  /// In es, this message translates to:
+  /// **'mantén para desbloquear'**
+  String get playerHoldToUnlockHint;
+
+  /// Toast que confirma que el video se reanudó desde una posición guardada; {pos} ya viene formateado por fmtDuration.
+  ///
+  /// In es, this message translates to:
+  /// **'Reanudado desde {pos}'**
+  String playerResumeUndoneMessage(String pos);
+
+  /// Botón del toast de reanudación que reinicia el video desde el principio.
+  ///
+  /// In es, this message translates to:
+  /// **'Reiniciar'**
+  String get playerResumeRestartAction;
+
+  /// Pregunta del prompt de reanudación; {pos} ya viene formateado por fmtDuration.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Reanudar desde {pos}?'**
+  String playerResumeAskMessage(String pos);
+
+  /// Botón del prompt de reanudación que empieza el video desde el principio.
+  ///
+  /// In es, this message translates to:
+  /// **'Desde el inicio'**
+  String get playerResumeFromStartAction;
+
+  /// Botón del prompt de reanudación que continúa desde la posición guardada.
+  ///
+  /// In es, this message translates to:
+  /// **'Reanudar'**
+  String get playerResumeAction;
+
+  /// Tooltip del botón de volver, en la barra superior del reproductor.
+  ///
+  /// In es, this message translates to:
+  /// **'Atrás'**
+  String get playerBackTooltip;
+
+  /// Tooltip del botón de información cuando la superposición está visible.
+  ///
+  /// In es, this message translates to:
+  /// **'Ocultar información en pantalla'**
+  String get playerInfoOverlayHideTooltip;
+
+  /// Tooltip del botón de información cuando la superposición está oculta.
+  ///
+  /// In es, this message translates to:
+  /// **'Mostrar información en pantalla'**
+  String get playerInfoOverlayShowTooltip;
+
+  /// Tooltip del botón de subtítulos en la barra superior, reutilizado como título de la hoja de subtítulos y como rótulo en el tutorial de gestos.
+  ///
+  /// In es, this message translates to:
+  /// **'Subtítulos'**
+  String get playerSubtitlesTooltip;
+
+  /// Tooltip del botón de imagen en imagen, reutilizado como rótulo en el tutorial de gestos.
+  ///
+  /// In es, this message translates to:
+  /// **'Imagen en imagen'**
+  String get playerPipTooltip;
+
+  /// Tooltip del botón de audio en la barra superior, reutilizado como título de la hoja de pistas de audio.
+  ///
+  /// In es, this message translates to:
+  /// **'Audio'**
+  String get playerAudioTooltip;
+
+  /// Tooltip del botón que abre el menú ⋮, en la barra superior del reproductor.
+  ///
+  /// In es, this message translates to:
+  /// **'Más opciones'**
+  String get playerMoreOptionsTooltip;
+
+  /// Texto de la píldora de bucle A-B mientras espera que se marque el punto A.
+  ///
+  /// In es, this message translates to:
+  /// **'Marcar A'**
+  String get playerLoopMarkA;
+
+  /// Texto de la píldora de bucle A-B mientras espera que se marque el punto B.
+  ///
+  /// In es, this message translates to:
+  /// **'Marcar B'**
+  String get playerLoopMarkB;
+
+  /// Recordatorio del punto A ya marcado, junto a la píldora, mientras se espera el punto B; {time} ya viene formateado por fmtDuration.
+  ///
+  /// In es, this message translates to:
+  /// **'A {time}'**
+  String playerLoopPointALabel(String time);
+
+  /// Subtítulo de la fila «Bucle A-B» del menú ⋮ cuando no hay bucle marcado.
+  ///
+  /// In es, this message translates to:
+  /// **'Repetir un fragmento del video'**
+  String get playerLoopSubtitleIdle;
+
+  /// Subtítulo de la fila «Bucle A-B» del menú ⋮ mientras se está marcando el punto A o B.
+  ///
+  /// In es, this message translates to:
+  /// **'Marcando…'**
+  String get playerLoopSubtitleMarking;
+
+  /// Subtítulo de la fila «Bucle A-B» del menú ⋮ con el bucle activo; {range} ya viene formateado por fmtDuration.
+  ///
+  /// In es, this message translates to:
+  /// **'Activo · {range}'**
+  String playerLoopSubtitleActive(String range);
+
+  /// Subtítulo de la fila «Capítulos» del menú ⋮ con la cantidad de capítulos del video.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =0{Sin capítulos} =1{1 capítulo} other{{count} capítulos}}'**
+  String playerMenuChaptersSubtitle(int count);
+
+  /// Insignia de la tile «Temporizador» del menú ⋮ cuando el temporizador está en modo «al terminar el episodio».
+  ///
+  /// In es, this message translates to:
+  /// **'Al terminar'**
+  String get playerMenuSleepBadgeEpisode;
+
+  /// Insignia de la tile «Temporizador» del menú ⋮ cuando el temporizador cuenta episodios restantes.
+  ///
+  /// In es, this message translates to:
+  /// **'{count} ep'**
+  String playerMenuSleepBadgeEpisodes(int count);
+
+  /// Tile del menú ⋮ que guarda un marcador en la posición actual.
+  ///
+  /// In es, this message translates to:
+  /// **'Marcar aquí'**
+  String get playerMenuMarkHere;
+
+  /// Tile del menú ⋮ que captura el fotograma actual.
+  ///
+  /// In es, this message translates to:
+  /// **'Capturar'**
+  String get playerMenuCapture;
+
+  /// Tile del menú ⋮ que abre el panel del temporizador de apagado.
+  ///
+  /// In es, this message translates to:
+  /// **'Temporizador'**
+  String get playerMenuSleepTimer;
+
+  /// Tile del menú ⋮ que abre el panel de sincronía de audio/subtítulos.
+  ///
+  /// In es, this message translates to:
+  /// **'Sincronizar'**
+  String get playerMenuSync;
+
+  /// Título del grupo de filas Repetir/Aleatorio/Bucle A-B en el menú ⋮.
+  ///
+  /// In es, this message translates to:
+  /// **'Reproducción'**
+  String get playerMenuGroupPlayback;
+
+  /// Fila del menú ⋮ con el selector de modo de repetición.
+  ///
+  /// In es, this message translates to:
+  /// **'Repetir'**
+  String get playerMenuRepeat;
+
+  /// Segmento «apagado» de los selectores Repetir/Aleatorio del menú ⋮.
+  ///
+  /// In es, this message translates to:
+  /// **'No'**
+  String get playerMenuOptionOff;
+
+  /// Segmento del selector de Repetir: repetir toda la lista/cola.
+  ///
+  /// In es, this message translates to:
+  /// **'Lista'**
+  String get playerMenuRepeatList;
+
+  /// Segmento del selector de Repetir: repetir solo el video actual.
+  ///
+  /// In es, this message translates to:
+  /// **'Video'**
+  String get playerMenuRepeatVideoOption;
+
+  /// Fila del menú ⋮ con el selector de orden aleatorio.
+  ///
+  /// In es, this message translates to:
+  /// **'Aleatorio'**
+  String get playerMenuShuffle;
+
+  /// Segmento «encendido» del selector Aleatorio del menú ⋮.
+  ///
+  /// In es, this message translates to:
+  /// **'Sí'**
+  String get playerMenuOptionOn;
+
+  /// Fila del menú ⋮ que arma o cancela el bucle A-B.
+  ///
+  /// In es, this message translates to:
+  /// **'Bucle A-B'**
+  String get playerMenuAbLoop;
+
+  /// Título del grupo de filas Capítulos/Marcadores en el menú ⋮.
+  ///
+  /// In es, this message translates to:
+  /// **'Ir a'**
+  String get playerMenuGroupGoTo;
+
+  /// Subtítulo de la fila «Marcadores» del menú ⋮ con la cantidad de marcadores del video.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =0{Sin marcadores} =1{1 marcador} other{{count} marcadores}}'**
+  String playerMenuBookmarksSubtitle(int count);
+
+  /// Título del grupo de la fila Ecualizador en el menú ⋮.
+  ///
+  /// In es, this message translates to:
+  /// **'Audio'**
+  String get playerMenuGroupAudio;
+
+  /// Fila del menú ⋮ que abre el ecualizador.
+  ///
+  /// In es, this message translates to:
+  /// **'Ecualizador'**
+  String get playerMenuEqualizer;
+
+  /// Snackbar tras guardar un marcador con «Marcar aquí»; {time} ya viene formateado por fmtDuration.
+  ///
+  /// In es, this message translates to:
+  /// **'Marcador guardado · {time}'**
+  String playerMenuBookmarkSavedSnackbar(String time);
+
+  /// Acción del snackbar de marcador guardado que abre el diálogo para nombrarlo.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombrar'**
+  String get playerMenuBookmarkNameAction;
+
+  /// Snackbar mostrado tras capturar un fotograma con éxito.
+  ///
+  /// In es, this message translates to:
+  /// **'Captura guardada'**
+  String get playerMenuCaptureSavedSnackbar;
+
+  /// Acción del snackbar de captura guardada que abre la imagen.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver'**
+  String get playerMenuCaptureViewAction;
+
+  /// Insignia sobre la miniatura del video actual, en la tira de la cola.
+  ///
+  /// In es, this message translates to:
+  /// **'AHORA'**
+  String get playerQueueNowBadge;
+
+  /// Título del panel del temporizador de apagado.
+  ///
+  /// In es, this message translates to:
+  /// **'Temporizador de apagado'**
+  String get playerSleepPanelTitle;
+
+  /// Eyebrow sobre el selector de minutos, en el panel del temporizador.
+  ///
+  /// In es, this message translates to:
+  /// **'Duración'**
+  String get playerSleepDurationLabel;
+
+  /// Valor del selector de minutos, en el panel del temporizador.
+  ///
+  /// In es, this message translates to:
+  /// **'{minutes} min'**
+  String playerSleepMinutesValue(int minutes);
+
+  /// Eyebrow entre el selector de minutos y las tarjetas de episodio, en el panel del temporizador.
+  ///
+  /// In es, this message translates to:
+  /// **'O bien'**
+  String get playerSleepOrLabel;
+
+  /// Botón principal del panel del temporizador cuando se eligió «tras N episodios».
+  ///
+  /// In es, this message translates to:
+  /// **'Iniciar · Tras {count} episodios'**
+  String playerSleepStartAfterEpisodes(int count);
+
+  /// Botón principal del panel del temporizador cuando se eligió «al terminar el episodio».
+  ///
+  /// In es, this message translates to:
+  /// **'Iniciar · Al terminar el episodio'**
+  String get playerSleepStartAtEpisodeEnd;
+
+  /// Botón principal del panel del temporizador cuando se eligió una duración fija.
+  ///
+  /// In es, this message translates to:
+  /// **'Iniciar · {minutes} min'**
+  String playerSleepStartFixedMinutes(int minutes);
+
+  /// Subtítulo bajo el tiempo restante, en el panel del temporizador con duración fija activa.
+  ///
+  /// In es, this message translates to:
+  /// **'restante · de {minutes} min'**
+  String playerSleepRemainingOfMinutes(int minutes);
+
+  /// Subtítulo bajo el contador de episodios, en el panel del temporizador con modo episodios activo. El número ya se muestra por separado arriba.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{episodio restante} other{episodios restantes}}'**
+  String playerSleepEpisodesRemaining(int count);
+
+  /// Subtítulo bajo el tiempo restante, en el panel del temporizador con modo «al terminar el episodio» activo.
+  ///
+  /// In es, this message translates to:
+  /// **'hasta el final del episodio'**
+  String get playerSleepUntilEpisodeEnd;
+
+  /// Botón que cancela el temporizador de apagado activo, en el panel del temporizador y en el toast de aviso.
+  ///
+  /// In es, this message translates to:
+  /// **'Desactivar'**
+  String get playerSleepDeactivate;
+
+  /// Botón que extiende el temporizador de apagado activo en su misma duración, en el panel del temporizador.
+  ///
+  /// In es, this message translates to:
+  /// **'Extender +{minutes}'**
+  String playerSleepExtendByMinutes(int minutes);
+
+  /// Título de la tarjeta que arma el temporizador para detenerse al terminar el episodio.
+  ///
+  /// In es, this message translates to:
+  /// **'Al terminar el episodio'**
+  String get playerSleepEpisodeCardTitle;
+
+  /// Subtítulo aclaratorio de la tarjeta «Al terminar el episodio».
+  ///
+  /// In es, this message translates to:
+  /// **'Se detiene cuando termine este video'**
+  String get playerSleepEpisodeCardSubtitle;
+
+  /// Título de la tarjeta que arma el temporizador para detenerse tras una cantidad de episodios elegida con los botones −/+ de la propia tarjeta.
+  ///
+  /// In es, this message translates to:
+  /// **'Tras N episodios'**
+  String get playerSleepEpisodesCardTitle;
+
+  /// Subtítulo aclaratorio de la tarjeta «Tras N episodios».
+  ///
+  /// In es, this message translates to:
+  /// **'Deja correr el autoplay y detiene'**
+  String get playerSleepEpisodesCardSubtitle;
+
+  /// Prefijo del toast de aviso del temporizador, seguido del tiempo restante con su propio estilo (texto enriquecido, no interpolado). Conserva el espacio final.
+  ///
+  /// In es, this message translates to:
+  /// **'Pausando en '**
+  String get playerSleepPausingInLabel;
+
+  /// Botón del toast de aviso del temporizador que lo extiende en su misma duración.
+  ///
+  /// In es, this message translates to:
+  /// **'Extender'**
+  String get playerSleepExtendAction;
+
+  /// Botón del panel de velocidad que guarda la velocidad actual como preset nuevo; {rate} ya viene formateado (dos decimales redondeados).
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar {rate}x'**
+  String playerSpeedSavePreset(String rate);
+
+  /// Botón del panel de velocidad que vuelve la velocidad a 1x.
+  ///
+  /// In es, this message translates to:
+  /// **'Restablecer (1x)'**
+  String get playerSpeedResetAction;
+
+  /// Nombre del modo de aspecto «ajustar al recuadro», mostrado en el flash al cambiar de modo.
+  ///
+  /// In es, this message translates to:
+  /// **'Ajustar'**
+  String get playerAspectFit;
+
+  /// Nombre del modo de aspecto «llenar la pantalla», mostrado en el flash al cambiar de modo.
+  ///
+  /// In es, this message translates to:
+  /// **'Llenar'**
+  String get playerAspectFill;
+
+  /// Nombre del modo de aspecto «estirar», mostrado en el flash al cambiar de modo.
+  ///
+  /// In es, this message translates to:
+  /// **'Estirar'**
+  String get playerAspectStretch;
+
+  /// Pestaña de la hoja de subtítulos que lista las pistas disponibles.
+  ///
+  /// In es, this message translates to:
+  /// **'Pistas'**
+  String get playerTracksTabLabel;
+
+  /// Pestaña de la hoja de subtítulos que edita el estilo (tamaño y color).
+  ///
+  /// In es, this message translates to:
+  /// **'Estilo'**
+  String get playerTracksStyleTabLabel;
+
+  /// Interruptor que activa o desactiva los subtítulos, en la hoja de subtítulos.
+  ///
+  /// In es, this message translates to:
+  /// **'Mostrar subtítulos'**
+  String get playerTracksShowSubtitles;
+
+  /// Eyebrow de la sección con las pistas incrustadas en el archivo, en la hoja de pistas.
+  ///
+  /// In es, this message translates to:
+  /// **'En el video'**
+  String get playerTracksSectionInVideo;
+
+  /// Subtítulo de una pista incrustada marcada como predeterminada por el archivo.
+  ///
+  /// In es, this message translates to:
+  /// **'Pista incrustada · predeterminada'**
+  String get playerTracksEmbeddedDefault;
+
+  /// Subtítulo de una pista incrustada normal (no predeterminada).
+  ///
+  /// In es, this message translates to:
+  /// **'Pista incrustada'**
+  String get playerTracksEmbedded;
+
+  /// Eyebrow de la sección de sincronía, en la hoja de pistas.
+  ///
+  /// In es, this message translates to:
+  /// **'Sincronía'**
+  String get playerTracksSectionSync;
+
+  /// Tarjeta que abre el panel de sincronía, en la hoja de subtítulos.
+  ///
+  /// In es, this message translates to:
+  /// **'Sincronizar subtítulos'**
+  String get playerTracksSyncSubtitles;
+
+  /// Tarjeta que abre el panel de sincronía, en la hoja de audio.
+  ///
+  /// In es, this message translates to:
+  /// **'Sincronizar audio'**
+  String get playerTracksSyncAudio;
+
+  /// Subtítulo de la tarjeta de sincronía cuando no hay ningún subtítulo activo todavía.
+  ///
+  /// In es, this message translates to:
+  /// **'Activa un subtítulo para poder ajustarlo'**
+  String get playerTracksSyncNeedsSubtitle;
+
+  /// Subtítulo de la tarjeta de sincronía cuando ya se puede ajustar el desfase.
+  ///
+  /// In es, this message translates to:
+  /// **'Ajustar el desfase mientras se reproduce'**
+  String get playerTracksSyncHint;
+
+  /// Eyebrow de la sección con los archivos de subtítulo encontrados junto al video, en la hoja de subtítulos.
+  ///
+  /// In es, this message translates to:
+  /// **'En la carpeta'**
+  String get playerTracksSectionInFolder;
+
+  /// Subtítulo de una pista de subtítulo encontrada como archivo junto al video.
+  ///
+  /// In es, this message translates to:
+  /// **'Archivo local'**
+  String get playerTracksLocalFile;
+
+  /// Estado vacío de la hoja de subtítulos cuando no hay pistas incrustadas ni archivos cercanos.
+  ///
+  /// In es, this message translates to:
+  /// **'Este video no trae subtítulos incrustados ni hay archivos junto a él.'**
+  String get playerTracksNoSubtitlesFound;
+
+  /// Estado vacío de la hoja de audio cuando el video no tiene otras pistas.
+  ///
+  /// In es, this message translates to:
+  /// **'Este video no tiene otras pistas de audio.'**
+  String get playerTracksNoOtherAudioTracks;
+
+  /// Eyebrow de la sección con la acción de cargar un subtítulo manualmente, en la hoja de subtítulos.
+  ///
+  /// In es, this message translates to:
+  /// **'Desde tu dispositivo'**
+  String get playerTracksSectionFromDevice;
+
+  /// Tarjeta que abre el selector de archivos para cargar un subtítulo manualmente.
+  ///
+  /// In es, this message translates to:
+  /// **'Cargar subtítulo…'**
+  String get playerTracksLoadSubtitleAction;
+
+  /// Subtítulo de la tarjeta «Cargar subtítulo…», con los formatos aceptados.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegir un archivo .srt, .ass o .vtt'**
+  String get playerTracksLoadSubtitleHint;
+
+  /// Opción de fondo de subtítulo: sin fondo, en la pestaña Estilo.
+  ///
+  /// In es, this message translates to:
+  /// **'Transparente'**
+  String get playerTracksBgTransparent;
+
+  /// Opción de fondo de subtítulo: negro, en la pestaña Estilo.
+  ///
+  /// In es, this message translates to:
+  /// **'Negro'**
+  String get playerTracksBgBlack;
+
+  /// Opción de fondo de subtítulo: blanco, en la pestaña Estilo.
+  ///
+  /// In es, this message translates to:
+  /// **'Blanco'**
+  String get playerTracksBgWhite;
+
+  /// Frase de muestra mostrada en la vista previa en vivo del estilo de subtítulo, en la pestaña Estilo.
+  ///
+  /// In es, this message translates to:
+  /// **'Estamos cerca de encontrarlo.'**
+  String get playerTracksStylePreviewSample;
+
+  /// Eyebrow sobre el control de tamaño de fuente, en la pestaña Estilo.
+  ///
+  /// In es, this message translates to:
+  /// **'Tamaño'**
+  String get playerTracksSizeLabel;
+
+  /// Eyebrow sobre las muestras de color de texto, en la pestaña Estilo.
+  ///
+  /// In es, this message translates to:
+  /// **'Color de texto'**
+  String get playerTracksTextColorLabel;
+
+  /// Eyebrow sobre las muestras de color de fondo, en la pestaña Estilo.
+  ///
+  /// In es, this message translates to:
+  /// **'Color de fondo'**
+  String get playerTracksBackgroundColorLabel;
+
+  /// Botón que restaura el estilo de subtítulo a los valores por defecto, en la pestaña Estilo.
+  ///
+  /// In es, this message translates to:
+  /// **'Restablecer estilo'**
+  String get playerTracksResetStyleAction;
+
+  /// Instrucción bajo la barra de arrastre del panel de sincronía de audio/subtítulos.
+  ///
+  /// In es, this message translates to:
+  /// **'arrastra la barra o usa los botones'**
+  String get playerSyncDragHint;
+
+  /// Título de la primera página del tutorial de gestos.
+  ///
+  /// In es, this message translates to:
+  /// **'Toques'**
+  String get playerTutorialPageTaps;
+
+  /// Rótulo del tutorial de gestos para el doble toque que retrocede, con los segundos configurados.
+  ///
+  /// In es, this message translates to:
+  /// **'Doble toque · −{seconds} s'**
+  String playerTutorialDoubleTapBack(int seconds);
+
+  /// Rótulo del tutorial de gestos para el doble toque central que pausa.
+  ///
+  /// In es, this message translates to:
+  /// **'Doble toque · Pausa'**
+  String get playerTutorialDoubleTapPause;
+
+  /// Rótulo del tutorial de gestos para el doble toque que avanza, con los segundos configurados.
+  ///
+  /// In es, this message translates to:
+  /// **'Doble toque · +{seconds} s'**
+  String playerTutorialDoubleTapForward(int seconds);
+
+  /// Rótulo del tutorial de gestos para el toque simple que muestra u oculta los controles.
+  ///
+  /// In es, this message translates to:
+  /// **'Un toque · Mostrar u ocultar los controles'**
+  String get playerTutorialSingleTapToggleControls;
+
+  /// Título de la segunda página del tutorial de gestos.
+  ///
+  /// In es, this message translates to:
+  /// **'Arrastres'**
+  String get playerTutorialPageDrags;
+
+  /// Rótulo del tutorial de gestos para el arrastre vertical de brillo.
+  ///
+  /// In es, this message translates to:
+  /// **'Arrastra · Brillo'**
+  String get playerTutorialDragBrightness;
+
+  /// Rótulo del tutorial de gestos para el arrastre vertical de volumen, con el máximo configurado.
+  ///
+  /// In es, this message translates to:
+  /// **'Arrastra · Volumen (hasta {percent}%)'**
+  String playerTutorialDragVolume(int percent);
+
+  /// Rótulo del tutorial de gestos para el arrastre horizontal de búsqueda.
+  ///
+  /// In es, this message translates to:
+  /// **'Arrastra · Buscar con vista previa'**
+  String get playerTutorialDragSeekPreview;
+
+  /// Rótulo del tutorial de gestos para el arrastre en los bordes laterales que minimiza.
+  ///
+  /// In es, this message translates to:
+  /// **'Arrastra en el borde · Minimizar'**
+  String get playerTutorialDragEdgeMinimize;
+
+  /// Rótulo del tutorial de gestos para el arrastre central que gira la pantalla.
+  ///
+  /// In es, this message translates to:
+  /// **'Arrastra en el centro · Girar (con los controles ocultos)'**
+  String get playerTutorialDragCenterRotate;
+
+  /// Rótulo del tutorial de gestos para el pellizco de zoom, con el máximo configurado ya formateado (p. ej. «8×»).
+  ///
+  /// In es, this message translates to:
+  /// **'Pellizca · Zoom (hasta {zoom})'**
+  String playerTutorialPinchZoom(String zoom);
+
+  /// Rótulo del tutorial de gestos para el encuadre con zoom activo.
+  ///
+  /// In es, this message translates to:
+  /// **'Con zoom, arrastra · Encuadrar · Toca la píldora para volver a 1×'**
+  String get playerTutorialZoomPan;
+
+  /// Rótulo del tutorial de gestos para mantener pulsado a la izquierda, con la velocidad configurada ya formateada (p. ej. «2×»).
+  ///
+  /// In es, this message translates to:
+  /// **'Mantén pulsado a la izquierda · {speed}'**
+  String playerTutorialHoldLeftSpeed(String speed);
+
+  /// Rótulo del tutorial de gestos para mantener y deslizar a la derecha.
+  ///
+  /// In es, this message translates to:
+  /// **'Mantén y desliza arriba o abajo a la derecha · Escalera de velocidad'**
+  String get playerTutorialHoldRightLadder;
+
+  /// Título de la tercera página del tutorial de gestos.
+  ///
+  /// In es, this message translates to:
+  /// **'Botones'**
+  String get playerTutorialPageButtons;
+
+  /// Rótulo del tutorial de gestos para el botón de minimizar.
+  ///
+  /// In es, this message translates to:
+  /// **'Minimizar a la mini-barra'**
+  String get playerTutorialMinimize;
+
+  /// Rótulo del tutorial de gestos para el botón de información en pantalla.
+  ///
+  /// In es, this message translates to:
+  /// **'Información en pantalla'**
+  String get playerTutorialInfoOverlay;
+
+  /// Rótulo del tutorial de gestos para el botón de pistas de audio.
+  ///
+  /// In es, this message translates to:
+  /// **'Pistas de audio'**
+  String get playerTutorialAudioTracks;
+
+  /// Rótulo del tutorial de gestos para el botón que abre el menú ⋮.
+  ///
+  /// In es, this message translates to:
+  /// **'Más opciones · temporizador y bucle A-B'**
+  String get playerTutorialMoreOptions;
+
+  /// Rótulo del tutorial de gestos para el botón de bloquear pantalla.
+  ///
+  /// In es, this message translates to:
+  /// **'Bloquear la pantalla'**
+  String get playerTutorialLockScreen;
+
+  /// Nota final de la página «Botones» del tutorial de gestos, sobre la tira de cola.
+  ///
+  /// In es, this message translates to:
+  /// **'Con más de un video en la carpeta aparece la cola sobre los botones'**
+  String get playerTutorialQueueHint;
+
+  /// Botón que cierra el tutorial de gestos, en su última página.
+  ///
+  /// In es, this message translates to:
+  /// **'Entendido'**
+  String get playerTutorialDoneAction;
+
+  /// Botón que avanza a la siguiente página del tutorial de gestos.
+  ///
+  /// In es, this message translates to:
+  /// **'Siguiente'**
+  String get playerTutorialNextAction;
+
+  /// Título de la sección de la barra superior, en la página «Botones» del tutorial de gestos.
+  ///
+  /// In es, this message translates to:
+  /// **'Barra de arriba'**
+  String get playerTutorialTopBarSection;
+
+  /// Título de la sección de la barra inferior, en la página «Botones» del tutorial de gestos.
+  ///
+  /// In es, this message translates to:
+  /// **'Barra de abajo'**
+  String get playerTutorialBottomBarSection;
 }
 
 class _AppLocalizationsDelegate

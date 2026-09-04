@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/format.dart';
 import '../../../core/icons/kivo_icons.dart';
 import '../../../core/settings/settings_provider.dart';
+import '../../../l10n/l10n.dart';
 import '../../../platform/pip_controller_provider.dart';
 import '../../../player/engine/playback_provider.dart';
 import '../../../player/open/video_source.dart';
@@ -19,11 +20,12 @@ class TopBar extends ConsumerWidget {
     final session = ref.watch(currentVideoProvider);
     final infoOn = ref.watch(settingsProvider).showInfoOverlay;
     final accent = Color(ref.watch(settingsProvider).accentColor);
+    final l10n = context.l10n;
     return Row(
       children: [
         IconButton(
           color: Colors.white,
-          tooltip: 'Atrás',
+          tooltip: l10n.playerBackTooltip,
           icon: KivoIcon(KivoIcons.back, size: 24, color: Colors.white),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
@@ -35,7 +37,7 @@ class TopBar extends ConsumerWidget {
         ),
         IconButton(
           color: infoOn ? accent : Colors.white54,
-          tooltip: infoOn ? 'Ocultar información en pantalla' : 'Mostrar información en pantalla',
+          tooltip: infoOn ? l10n.playerInfoOverlayHideTooltip : l10n.playerInfoOverlayShowTooltip,
           icon: KivoIcon(KivoIcons.info, size: 24, color: infoOn ? accent : Colors.white54),
           onPressed: () {
             final s = ref.read(settingsProvider);
@@ -49,7 +51,7 @@ class TopBar extends ConsumerWidget {
             final subsActive = ref.watch(currentSubtitleTrackProvider).valueOrNull != null;
             return IconButton(
               color: subsActive ? accent : Colors.white,
-              tooltip: 'Subtítulos',
+              tooltip: l10n.playerSubtitlesTooltip,
               icon: Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -76,7 +78,7 @@ class TopBar extends ConsumerWidget {
             if (!supported) return const SizedBox.shrink();
             return IconButton(
               color: Colors.white,
-              tooltip: 'Imagen en imagen',
+              tooltip: context.l10n.playerPipTooltip,
               icon: KivoIcon(KivoIcons.pip, size: 24, color: Colors.white),
               onPressed: () => ref.read(pipControllerProvider).enterNow(),
             );
@@ -85,7 +87,7 @@ class TopBar extends ConsumerWidget {
         Builder(
           builder: (context) => IconButton(
             color: Colors.white,
-            tooltip: 'Audio',
+            tooltip: context.l10n.playerAudioTooltip,
             icon: KivoIcon(KivoIcons.audio, size: 24, color: Colors.white),
             onPressed: () => showAudioPicker(context, ref),
           ),
@@ -96,7 +98,7 @@ class TopBar extends ConsumerWidget {
             final active = sleep != null;
             return IconButton(
               color: active ? accent : Colors.white,
-              tooltip: 'Más opciones',
+              tooltip: context.l10n.playerMoreOptionsTooltip,
               icon: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [

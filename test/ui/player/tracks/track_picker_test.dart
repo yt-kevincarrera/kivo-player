@@ -11,6 +11,9 @@ import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/ui/player/tracks/track_picker.dart';
 import '../../../fakes/fakes.dart';
+import '../../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 Future<ProviderContainer> _pumpAndOpenSheet(
   WidgetTester tester, {
@@ -29,26 +32,25 @@ Future<ProviderContainer> _pumpAndOpenSheet(
     const VideoSession(playbackPath: '/v/ep1.mkv', displayName: 'ep1.mkv', queue: ['/v/ep1.mkv'], index: 0),
   );
 
-  await tester.pumpWidget(UncontrolledProviderScope(
-    container: c,
-    child: MaterialApp(
-      theme: KivoTheme.dark(),
-      home: Scaffold(
-        body: Center(
-          // Consumer (not a plain Builder) is what gives this callback a
-          // real WidgetRef — showSubtitlePicker/showAudioPicker take
-          // (BuildContext, WidgetRef), not a raw ProviderContainer.
-          child: Consumer(
-            builder: (context, ref, _) => ElevatedButton(
-              onPressed: () =>
-                  subtitles ? showSubtitlePicker(context, ref) : showAudioPicker(context, ref),
-              child: const Text('open'),
-            ),
+  await pumpLocalized(
+    tester,
+    Scaffold(
+      body: Center(
+        // Consumer (not a plain Builder) is what gives this callback a
+        // real WidgetRef — showSubtitlePicker/showAudioPicker take
+        // (BuildContext, WidgetRef), not a raw ProviderContainer.
+        child: Consumer(
+          builder: (context, ref, _) => ElevatedButton(
+            onPressed: () =>
+                subtitles ? showSubtitlePicker(context, ref) : showAudioPicker(context, ref),
+            child: const Text('open'),
           ),
         ),
       ),
     ),
-  ));
+    container: c,
+    theme: KivoTheme.dark(),
+  );
   await tester.pump();
 
   // Open the sheet first so its StreamBuilders are subscribed, then emit —
@@ -70,14 +72,14 @@ Future<ProviderContainer> _pumpAndOpenSheet(
 void main() {
   testWidgets('subtitle sheet shows the "Mostrar subtítulos" switch plus tracks', (tester) async {
     await _pumpAndOpenSheet(tester, subtitles: true);
-    expect(find.text('Mostrar subtítulos'), findsOneWidget);
+    expect(find.text(_l10n.playerTracksShowSubtitles), findsOneWidget);
     expect(find.byType(Switch), findsOneWidget);
     expect(find.text('English'), findsOneWidget);
   });
 
   testWidgets('audio sheet lists tracks without the subtitles switch', (tester) async {
     await _pumpAndOpenSheet(tester, subtitles: false);
-    expect(find.text('Mostrar subtítulos'), findsNothing);
+    expect(find.text(_l10n.playerTracksShowSubtitles), findsNothing);
     expect(find.byType(Switch), findsNothing);
     expect(find.text('English'), findsOneWidget);
   });
@@ -94,10 +96,10 @@ void main() {
       (tester) async {
     await _pumpAndOpenSheet(tester, subtitles: true);
     expect(find.text('English'), findsOneWidget);
-    await tester.tap(find.text('Estilo'));
+    await tester.tap(find.text(_l10n.playerTracksStyleTabLabel));
     await tester.pumpAndSettle();
     expect(find.text('English'), findsNothing);
-    expect(find.text('Estamos cerca de encontrarlo.'), findsOneWidget);
+    expect(find.text(_l10n.playerTracksStylePreviewSample), findsOneWidget);
   });
 
   testWidgets('Restablecer estilo resets font size and colors to defaults', (tester) async {
@@ -119,35 +121,34 @@ void main() {
       const VideoSession(playbackPath: '/v/ep1.mkv', displayName: 'ep1.mkv', queue: ['/v/ep1.mkv'], index: 0),
     );
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: MaterialApp(
-        theme: KivoTheme.dark(),
-        home: Scaffold(
-          body: Center(
-            child: Consumer(
-              builder: (context, ref, _) => ElevatedButton(
-                onPressed: () => showSubtitlePicker(context, ref),
-                child: const Text('open'),
-              ),
+    await pumpLocalized(
+      tester,
+      Scaffold(
+        body: Center(
+          child: Consumer(
+            builder: (context, ref, _) => ElevatedButton(
+              onPressed: () => showSubtitlePicker(context, ref),
+              child: const Text('open'),
             ),
           ),
         ),
       ),
-    ));
+      container: c,
+      theme: KivoTheme.dark(),
+    );
     await tester.pump();
     await tester.tap(find.text('open'));
     await tester.pump();
     engine.emitSubtitleTracks(const []);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Estilo'));
+    await tester.tap(find.text(_l10n.playerTracksStyleTabLabel));
     await tester.pumpAndSettle();
     // The style tab scrolls inside the sheet's fixed-height body — bring the
     // reset button into view before tapping it.
-    await tester.ensureVisible(find.text('Restablecer estilo'));
+    await tester.ensureVisible(find.text(_l10n.playerTracksResetStyleAction));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Restablecer estilo'));
+    await tester.tap(find.text(_l10n.playerTracksResetStyleAction));
     await tester.pumpAndSettle();
 
     final defaults = KivoSettings.defaults();

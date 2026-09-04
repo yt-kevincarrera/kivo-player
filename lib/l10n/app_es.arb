@@ -654,5 +654,815 @@
   "playlistEntryUnavailable": "No disponible",
   "@playlistEntryUnavailable": {
     "description": "Etiqueta mostrada en una fila de lista cuyo video original ya no se encuentra."
+  },
+
+  "playerAutoplayNextLabel": "PRÓXIMO",
+  "@playerAutoplayNextLabel": {
+    "description": "Eyebrow del corner card de autoplay que anuncia el siguiente video pendiente."
+  },
+
+  "playerAutoplayPlayAction": "Reproducir",
+  "@playerAutoplayPlayAction": {
+    "description": "Botón del corner card de autoplay que confirma el avance inmediato al siguiente video."
+  },
+
+  "playerBookmarksTitle": "Marcadores",
+  "@playerBookmarksTitle": {
+    "description": "Título de la hoja de marcadores, reutilizado como título de la fila «Marcadores» en el menú ⋮."
+  },
+
+  "playerBookmarksEmpty": "Todavía no marcaste nada en este video.",
+  "@playerBookmarksEmpty": {
+    "description": "Estado vacío de la hoja de marcadores cuando el video no tiene ninguno."
+  },
+
+  "playerBookmarksRenameDialogTitle": "Nombrar marcador",
+  "@playerBookmarksRenameDialogTitle": {
+    "description": "Título del diálogo para nombrar o renombrar un marcador."
+  },
+
+  "playerBookmarksDeletedUnnamedSnackbar": "Marcador borrado · {time}",
+  "@playerBookmarksDeletedUnnamedSnackbar": {
+    "description": "Snackbar al borrar un marcador sin nombre; {time} ya viene formateado por fmtDuration.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerBookmarksDeletedNamedSnackbar": "«{name}» borrado",
+  "@playerBookmarksDeletedNamedSnackbar": {
+    "description": "Snackbar al borrar un marcador con nombre, nombrándolo.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerChaptersTitle": "Capítulos",
+  "@playerChaptersTitle": {
+    "description": "Título de la hoja de capítulos, reutilizado como título de la fila «Capítulos» en el menú ⋮."
+  },
+
+  "playerChaptersEmpty": "Este video no tiene capítulos.",
+  "@playerChaptersEmpty": {
+    "description": "Estado vacío de la hoja de capítulos cuando el video no tiene ninguno."
+  },
+
+  "playerChaptersPrevious": "Anterior",
+  "@playerChaptersPrevious": {
+    "description": "Botón que salta al capítulo anterior, en la hoja de capítulos."
+  },
+
+  "playerChaptersNext": "Siguiente",
+  "@playerChaptersNext": {
+    "description": "Botón que salta al siguiente capítulo, en la hoja de capítulos."
+  },
+
+  "playerSpeedTooltip": "Velocidad",
+  "@playerSpeedTooltip": {
+    "description": "Tooltip del botón de velocidad en la barra inferior del reproductor, reutilizado como rótulo en el tutorial de gestos."
+  },
+
+  "playerLockScreenTooltip": "Bloquear pantalla",
+  "@playerLockScreenTooltip": {
+    "description": "Tooltip del botón que bloquea la pantalla, en la barra inferior del reproductor."
+  },
+
+  "playerAspectRatioTooltip": "Relación de aspecto",
+  "@playerAspectRatioTooltip": {
+    "description": "Tooltip del botón de relación de aspecto en la barra inferior, reutilizado como rótulo en el tutorial de gestos."
+  },
+
+  "playerRotateTooltip": "Rotar",
+  "@playerRotateTooltip": {
+    "description": "Tooltip del botón de rotar en la barra inferior, reutilizado como rótulo en el tutorial de gestos."
+  },
+
+  "playerSkipForwardTooltip": "Avanzar {seconds}s",
+  "@playerSkipForwardTooltip": {
+    "description": "Tooltip del botón central de avance rápido, nombrando los segundos configurados.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerSkipBackTooltip": "Retroceder {seconds}s",
+  "@playerSkipBackTooltip": {
+    "description": "Tooltip del botón central de retroceso rápido, nombrando los segundos configurados.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerPauseTooltip": "Pausar",
+  "@playerPauseTooltip": {
+    "description": "Tooltip del botón central de reproducir/pausar cuando el video está reproduciéndose."
+  },
+
+  "playerPlayTooltip": "Reproducir",
+  "@playerPlayTooltip": {
+    "description": "Tooltip del botón central de reproducir/pausar cuando el video está pausado."
+  },
+
+  "playerHoldToUnlockHint": "mantén para desbloquear",
+  "@playerHoldToUnlockHint": {
+    "description": "Instrucción bajo el candado de la pantalla bloqueada del reproductor."
+  },
+
+  "playerResumeUndoneMessage": "Reanudado desde {pos}",
+  "@playerResumeUndoneMessage": {
+    "description": "Toast que confirma que el video se reanudó desde una posición guardada; {pos} ya viene formateado por fmtDuration.",
+    "placeholders": {
+      "pos": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerResumeRestartAction": "Reiniciar",
+  "@playerResumeRestartAction": {
+    "description": "Botón del toast de reanudación que reinicia el video desde el principio."
+  },
+
+  "playerResumeAskMessage": "¿Reanudar desde {pos}?",
+  "@playerResumeAskMessage": {
+    "description": "Pregunta del prompt de reanudación; {pos} ya viene formateado por fmtDuration.",
+    "placeholders": {
+      "pos": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerResumeFromStartAction": "Desde el inicio",
+  "@playerResumeFromStartAction": {
+    "description": "Botón del prompt de reanudación que empieza el video desde el principio."
+  },
+
+  "playerResumeAction": "Reanudar",
+  "@playerResumeAction": {
+    "description": "Botón del prompt de reanudación que continúa desde la posición guardada."
+  },
+
+  "playerBackTooltip": "Atrás",
+  "@playerBackTooltip": {
+    "description": "Tooltip del botón de volver, en la barra superior del reproductor."
+  },
+
+  "playerInfoOverlayHideTooltip": "Ocultar información en pantalla",
+  "@playerInfoOverlayHideTooltip": {
+    "description": "Tooltip del botón de información cuando la superposición está visible."
+  },
+
+  "playerInfoOverlayShowTooltip": "Mostrar información en pantalla",
+  "@playerInfoOverlayShowTooltip": {
+    "description": "Tooltip del botón de información cuando la superposición está oculta."
+  },
+
+  "playerSubtitlesTooltip": "Subtítulos",
+  "@playerSubtitlesTooltip": {
+    "description": "Tooltip del botón de subtítulos en la barra superior, reutilizado como título de la hoja de subtítulos y como rótulo en el tutorial de gestos."
+  },
+
+  "playerPipTooltip": "Imagen en imagen",
+  "@playerPipTooltip": {
+    "description": "Tooltip del botón de imagen en imagen, reutilizado como rótulo en el tutorial de gestos."
+  },
+
+  "playerAudioTooltip": "Audio",
+  "@playerAudioTooltip": {
+    "description": "Tooltip del botón de audio en la barra superior, reutilizado como título de la hoja de pistas de audio."
+  },
+
+  "playerMoreOptionsTooltip": "Más opciones",
+  "@playerMoreOptionsTooltip": {
+    "description": "Tooltip del botón que abre el menú ⋮, en la barra superior del reproductor."
+  },
+
+  "playerLoopMarkA": "Marcar A",
+  "@playerLoopMarkA": {
+    "description": "Texto de la píldora de bucle A-B mientras espera que se marque el punto A."
+  },
+
+  "playerLoopMarkB": "Marcar B",
+  "@playerLoopMarkB": {
+    "description": "Texto de la píldora de bucle A-B mientras espera que se marque el punto B."
+  },
+
+  "playerLoopPointALabel": "A {time}",
+  "@playerLoopPointALabel": {
+    "description": "Recordatorio del punto A ya marcado, junto a la píldora, mientras se espera el punto B; {time} ya viene formateado por fmtDuration.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerLoopSubtitleIdle": "Repetir un fragmento del video",
+  "@playerLoopSubtitleIdle": {
+    "description": "Subtítulo de la fila «Bucle A-B» del menú ⋮ cuando no hay bucle marcado."
+  },
+
+  "playerLoopSubtitleMarking": "Marcando…",
+  "@playerLoopSubtitleMarking": {
+    "description": "Subtítulo de la fila «Bucle A-B» del menú ⋮ mientras se está marcando el punto A o B."
+  },
+
+  "playerLoopSubtitleActive": "Activo · {range}",
+  "@playerLoopSubtitleActive": {
+    "description": "Subtítulo de la fila «Bucle A-B» del menú ⋮ con el bucle activo; {range} ya viene formateado por fmtDuration.",
+    "placeholders": {
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerMenuChaptersSubtitle": "{count, plural, =0{Sin capítulos} =1{1 capítulo} other{{count} capítulos}}",
+  "@playerMenuChaptersSubtitle": {
+    "description": "Subtítulo de la fila «Capítulos» del menú ⋮ con la cantidad de capítulos del video.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerMenuSleepBadgeEpisode": "Al terminar",
+  "@playerMenuSleepBadgeEpisode": {
+    "description": "Insignia de la tile «Temporizador» del menú ⋮ cuando el temporizador está en modo «al terminar el episodio»."
+  },
+
+  "playerMenuSleepBadgeEpisodes": "{count} ep",
+  "@playerMenuSleepBadgeEpisodes": {
+    "description": "Insignia de la tile «Temporizador» del menú ⋮ cuando el temporizador cuenta episodios restantes.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerMenuMarkHere": "Marcar aquí",
+  "@playerMenuMarkHere": {
+    "description": "Tile del menú ⋮ que guarda un marcador en la posición actual."
+  },
+
+  "playerMenuCapture": "Capturar",
+  "@playerMenuCapture": {
+    "description": "Tile del menú ⋮ que captura el fotograma actual."
+  },
+
+  "playerMenuSleepTimer": "Temporizador",
+  "@playerMenuSleepTimer": {
+    "description": "Tile del menú ⋮ que abre el panel del temporizador de apagado."
+  },
+
+  "playerMenuSync": "Sincronizar",
+  "@playerMenuSync": {
+    "description": "Tile del menú ⋮ que abre el panel de sincronía de audio/subtítulos."
+  },
+
+  "playerMenuGroupPlayback": "Reproducción",
+  "@playerMenuGroupPlayback": {
+    "description": "Título del grupo de filas Repetir/Aleatorio/Bucle A-B en el menú ⋮."
+  },
+
+  "playerMenuRepeat": "Repetir",
+  "@playerMenuRepeat": {
+    "description": "Fila del menú ⋮ con el selector de modo de repetición."
+  },
+
+  "playerMenuOptionOff": "No",
+  "@playerMenuOptionOff": {
+    "description": "Segmento «apagado» de los selectores Repetir/Aleatorio del menú ⋮."
+  },
+
+  "playerMenuRepeatList": "Lista",
+  "@playerMenuRepeatList": {
+    "description": "Segmento del selector de Repetir: repetir toda la lista/cola."
+  },
+
+  "playerMenuRepeatVideoOption": "Video",
+  "@playerMenuRepeatVideoOption": {
+    "description": "Segmento del selector de Repetir: repetir solo el video actual."
+  },
+
+  "playerMenuShuffle": "Aleatorio",
+  "@playerMenuShuffle": {
+    "description": "Fila del menú ⋮ con el selector de orden aleatorio."
+  },
+
+  "playerMenuOptionOn": "Sí",
+  "@playerMenuOptionOn": {
+    "description": "Segmento «encendido» del selector Aleatorio del menú ⋮."
+  },
+
+  "playerMenuAbLoop": "Bucle A-B",
+  "@playerMenuAbLoop": {
+    "description": "Fila del menú ⋮ que arma o cancela el bucle A-B."
+  },
+
+  "playerMenuGroupGoTo": "Ir a",
+  "@playerMenuGroupGoTo": {
+    "description": "Título del grupo de filas Capítulos/Marcadores en el menú ⋮."
+  },
+
+  "playerMenuBookmarksSubtitle": "{count, plural, =0{Sin marcadores} =1{1 marcador} other{{count} marcadores}}",
+  "@playerMenuBookmarksSubtitle": {
+    "description": "Subtítulo de la fila «Marcadores» del menú ⋮ con la cantidad de marcadores del video.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerMenuGroupAudio": "Audio",
+  "@playerMenuGroupAudio": {
+    "description": "Título del grupo de la fila Ecualizador en el menú ⋮."
+  },
+
+  "playerMenuEqualizer": "Ecualizador",
+  "@playerMenuEqualizer": {
+    "description": "Fila del menú ⋮ que abre el ecualizador."
+  },
+
+  "playerMenuBookmarkSavedSnackbar": "Marcador guardado · {time}",
+  "@playerMenuBookmarkSavedSnackbar": {
+    "description": "Snackbar tras guardar un marcador con «Marcar aquí»; {time} ya viene formateado por fmtDuration.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerMenuBookmarkNameAction": "Nombrar",
+  "@playerMenuBookmarkNameAction": {
+    "description": "Acción del snackbar de marcador guardado que abre el diálogo para nombrarlo."
+  },
+
+  "playerMenuCaptureSavedSnackbar": "Captura guardada",
+  "@playerMenuCaptureSavedSnackbar": {
+    "description": "Snackbar mostrado tras capturar un fotograma con éxito."
+  },
+
+  "playerMenuCaptureViewAction": "Ver",
+  "@playerMenuCaptureViewAction": {
+    "description": "Acción del snackbar de captura guardada que abre la imagen."
+  },
+
+  "playerQueueNowBadge": "AHORA",
+  "@playerQueueNowBadge": {
+    "description": "Insignia sobre la miniatura del video actual, en la tira de la cola."
+  },
+
+  "playerSleepPanelTitle": "Temporizador de apagado",
+  "@playerSleepPanelTitle": {
+    "description": "Título del panel del temporizador de apagado."
+  },
+
+  "playerSleepDurationLabel": "Duración",
+  "@playerSleepDurationLabel": {
+    "description": "Eyebrow sobre el selector de minutos, en el panel del temporizador."
+  },
+
+  "playerSleepMinutesValue": "{minutes} min",
+  "@playerSleepMinutesValue": {
+    "description": "Valor del selector de minutos, en el panel del temporizador.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerSleepOrLabel": "O bien",
+  "@playerSleepOrLabel": {
+    "description": "Eyebrow entre el selector de minutos y las tarjetas de episodio, en el panel del temporizador."
+  },
+
+  "playerSleepStartAfterEpisodes": "Iniciar · Tras {count} episodios",
+  "@playerSleepStartAfterEpisodes": {
+    "description": "Botón principal del panel del temporizador cuando se eligió «tras N episodios».",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerSleepStartAtEpisodeEnd": "Iniciar · Al terminar el episodio",
+  "@playerSleepStartAtEpisodeEnd": {
+    "description": "Botón principal del panel del temporizador cuando se eligió «al terminar el episodio»."
+  },
+
+  "playerSleepStartFixedMinutes": "Iniciar · {minutes} min",
+  "@playerSleepStartFixedMinutes": {
+    "description": "Botón principal del panel del temporizador cuando se eligió una duración fija.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerSleepRemainingOfMinutes": "restante · de {minutes} min",
+  "@playerSleepRemainingOfMinutes": {
+    "description": "Subtítulo bajo el tiempo restante, en el panel del temporizador con duración fija activa.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerSleepEpisodesRemaining": "{count, plural, =1{episodio restante} other{episodios restantes}}",
+  "@playerSleepEpisodesRemaining": {
+    "description": "Subtítulo bajo el contador de episodios, en el panel del temporizador con modo episodios activo. El número ya se muestra por separado arriba.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerSleepUntilEpisodeEnd": "hasta el final del episodio",
+  "@playerSleepUntilEpisodeEnd": {
+    "description": "Subtítulo bajo el tiempo restante, en el panel del temporizador con modo «al terminar el episodio» activo."
+  },
+
+  "playerSleepDeactivate": "Desactivar",
+  "@playerSleepDeactivate": {
+    "description": "Botón que cancela el temporizador de apagado activo, en el panel del temporizador y en el toast de aviso."
+  },
+
+  "playerSleepExtendByMinutes": "Extender +{minutes}",
+  "@playerSleepExtendByMinutes": {
+    "description": "Botón que extiende el temporizador de apagado activo en su misma duración, en el panel del temporizador.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerSleepEpisodeCardTitle": "Al terminar el episodio",
+  "@playerSleepEpisodeCardTitle": {
+    "description": "Título de la tarjeta que arma el temporizador para detenerse al terminar el episodio."
+  },
+
+  "playerSleepEpisodeCardSubtitle": "Se detiene cuando termine este video",
+  "@playerSleepEpisodeCardSubtitle": {
+    "description": "Subtítulo aclaratorio de la tarjeta «Al terminar el episodio»."
+  },
+
+  "playerSleepEpisodesCardTitle": "Tras N episodios",
+  "@playerSleepEpisodesCardTitle": {
+    "description": "Título de la tarjeta que arma el temporizador para detenerse tras una cantidad de episodios elegida con los botones −/+ de la propia tarjeta."
+  },
+
+  "playerSleepEpisodesCardSubtitle": "Deja correr el autoplay y detiene",
+  "@playerSleepEpisodesCardSubtitle": {
+    "description": "Subtítulo aclaratorio de la tarjeta «Tras N episodios»."
+  },
+
+  "playerSleepPausingInLabel": "Pausando en ",
+  "@playerSleepPausingInLabel": {
+    "description": "Prefijo del toast de aviso del temporizador, seguido del tiempo restante con su propio estilo (texto enriquecido, no interpolado). Conserva el espacio final."
+  },
+
+  "playerSleepExtendAction": "Extender",
+  "@playerSleepExtendAction": {
+    "description": "Botón del toast de aviso del temporizador que lo extiende en su misma duración."
+  },
+
+  "playerSpeedSavePreset": "Guardar {rate}x",
+  "@playerSpeedSavePreset": {
+    "description": "Botón del panel de velocidad que guarda la velocidad actual como preset nuevo; {rate} ya viene formateado (dos decimales redondeados).",
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerSpeedResetAction": "Restablecer (1x)",
+  "@playerSpeedResetAction": {
+    "description": "Botón del panel de velocidad que vuelve la velocidad a 1x."
+  },
+
+  "playerAspectFit": "Ajustar",
+  "@playerAspectFit": {
+    "description": "Nombre del modo de aspecto «ajustar al recuadro», mostrado en el flash al cambiar de modo."
+  },
+
+  "playerAspectFill": "Llenar",
+  "@playerAspectFill": {
+    "description": "Nombre del modo de aspecto «llenar la pantalla», mostrado en el flash al cambiar de modo."
+  },
+
+  "playerAspectStretch": "Estirar",
+  "@playerAspectStretch": {
+    "description": "Nombre del modo de aspecto «estirar», mostrado en el flash al cambiar de modo."
+  },
+
+  "playerTracksTabLabel": "Pistas",
+  "@playerTracksTabLabel": {
+    "description": "Pestaña de la hoja de subtítulos que lista las pistas disponibles."
+  },
+
+  "playerTracksStyleTabLabel": "Estilo",
+  "@playerTracksStyleTabLabel": {
+    "description": "Pestaña de la hoja de subtítulos que edita el estilo (tamaño y color)."
+  },
+
+  "playerTracksShowSubtitles": "Mostrar subtítulos",
+  "@playerTracksShowSubtitles": {
+    "description": "Interruptor que activa o desactiva los subtítulos, en la hoja de subtítulos."
+  },
+
+  "playerTracksSectionInVideo": "En el video",
+  "@playerTracksSectionInVideo": {
+    "description": "Eyebrow de la sección con las pistas incrustadas en el archivo, en la hoja de pistas."
+  },
+
+  "playerTracksEmbeddedDefault": "Pista incrustada · predeterminada",
+  "@playerTracksEmbeddedDefault": {
+    "description": "Subtítulo de una pista incrustada marcada como predeterminada por el archivo."
+  },
+
+  "playerTracksEmbedded": "Pista incrustada",
+  "@playerTracksEmbedded": {
+    "description": "Subtítulo de una pista incrustada normal (no predeterminada)."
+  },
+
+  "playerTracksSectionSync": "Sincronía",
+  "@playerTracksSectionSync": {
+    "description": "Eyebrow de la sección de sincronía, en la hoja de pistas."
+  },
+
+  "playerTracksSyncSubtitles": "Sincronizar subtítulos",
+  "@playerTracksSyncSubtitles": {
+    "description": "Tarjeta que abre el panel de sincronía, en la hoja de subtítulos."
+  },
+
+  "playerTracksSyncAudio": "Sincronizar audio",
+  "@playerTracksSyncAudio": {
+    "description": "Tarjeta que abre el panel de sincronía, en la hoja de audio."
+  },
+
+  "playerTracksSyncNeedsSubtitle": "Activa un subtítulo para poder ajustarlo",
+  "@playerTracksSyncNeedsSubtitle": {
+    "description": "Subtítulo de la tarjeta de sincronía cuando no hay ningún subtítulo activo todavía."
+  },
+
+  "playerTracksSyncHint": "Ajustar el desfase mientras se reproduce",
+  "@playerTracksSyncHint": {
+    "description": "Subtítulo de la tarjeta de sincronía cuando ya se puede ajustar el desfase."
+  },
+
+  "playerTracksSectionInFolder": "En la carpeta",
+  "@playerTracksSectionInFolder": {
+    "description": "Eyebrow de la sección con los archivos de subtítulo encontrados junto al video, en la hoja de subtítulos."
+  },
+
+  "playerTracksLocalFile": "Archivo local",
+  "@playerTracksLocalFile": {
+    "description": "Subtítulo de una pista de subtítulo encontrada como archivo junto al video."
+  },
+
+  "playerTracksNoSubtitlesFound": "Este video no trae subtítulos incrustados ni hay archivos junto a él.",
+  "@playerTracksNoSubtitlesFound": {
+    "description": "Estado vacío de la hoja de subtítulos cuando no hay pistas incrustadas ni archivos cercanos."
+  },
+
+  "playerTracksNoOtherAudioTracks": "Este video no tiene otras pistas de audio.",
+  "@playerTracksNoOtherAudioTracks": {
+    "description": "Estado vacío de la hoja de audio cuando el video no tiene otras pistas."
+  },
+
+  "playerTracksSectionFromDevice": "Desde tu dispositivo",
+  "@playerTracksSectionFromDevice": {
+    "description": "Eyebrow de la sección con la acción de cargar un subtítulo manualmente, en la hoja de subtítulos."
+  },
+
+  "playerTracksLoadSubtitleAction": "Cargar subtítulo…",
+  "@playerTracksLoadSubtitleAction": {
+    "description": "Tarjeta que abre el selector de archivos para cargar un subtítulo manualmente."
+  },
+
+  "playerTracksLoadSubtitleHint": "Elegir un archivo .srt, .ass o .vtt",
+  "@playerTracksLoadSubtitleHint": {
+    "description": "Subtítulo de la tarjeta «Cargar subtítulo…», con los formatos aceptados."
+  },
+
+  "playerTracksBgTransparent": "Transparente",
+  "@playerTracksBgTransparent": {
+    "description": "Opción de fondo de subtítulo: sin fondo, en la pestaña Estilo."
+  },
+
+  "playerTracksBgBlack": "Negro",
+  "@playerTracksBgBlack": {
+    "description": "Opción de fondo de subtítulo: negro, en la pestaña Estilo."
+  },
+
+  "playerTracksBgWhite": "Blanco",
+  "@playerTracksBgWhite": {
+    "description": "Opción de fondo de subtítulo: blanco, en la pestaña Estilo."
+  },
+
+  "playerTracksStylePreviewSample": "Estamos cerca de encontrarlo.",
+  "@playerTracksStylePreviewSample": {
+    "description": "Frase de muestra mostrada en la vista previa en vivo del estilo de subtítulo, en la pestaña Estilo."
+  },
+
+  "playerTracksSizeLabel": "Tamaño",
+  "@playerTracksSizeLabel": {
+    "description": "Eyebrow sobre el control de tamaño de fuente, en la pestaña Estilo."
+  },
+
+  "playerTracksTextColorLabel": "Color de texto",
+  "@playerTracksTextColorLabel": {
+    "description": "Eyebrow sobre las muestras de color de texto, en la pestaña Estilo."
+  },
+
+  "playerTracksBackgroundColorLabel": "Color de fondo",
+  "@playerTracksBackgroundColorLabel": {
+    "description": "Eyebrow sobre las muestras de color de fondo, en la pestaña Estilo."
+  },
+
+  "playerTracksResetStyleAction": "Restablecer estilo",
+  "@playerTracksResetStyleAction": {
+    "description": "Botón que restaura el estilo de subtítulo a los valores por defecto, en la pestaña Estilo."
+  },
+
+  "playerSyncDragHint": "arrastra la barra o usa los botones",
+  "@playerSyncDragHint": {
+    "description": "Instrucción bajo la barra de arrastre del panel de sincronía de audio/subtítulos."
+  },
+
+  "playerTutorialPageTaps": "Toques",
+  "@playerTutorialPageTaps": {
+    "description": "Título de la primera página del tutorial de gestos."
+  },
+
+  "playerTutorialDoubleTapBack": "Doble toque · −{seconds} s",
+  "@playerTutorialDoubleTapBack": {
+    "description": "Rótulo del tutorial de gestos para el doble toque que retrocede, con los segundos configurados.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerTutorialDoubleTapPause": "Doble toque · Pausa",
+  "@playerTutorialDoubleTapPause": {
+    "description": "Rótulo del tutorial de gestos para el doble toque central que pausa."
+  },
+
+  "playerTutorialDoubleTapForward": "Doble toque · +{seconds} s",
+  "@playerTutorialDoubleTapForward": {
+    "description": "Rótulo del tutorial de gestos para el doble toque que avanza, con los segundos configurados.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerTutorialSingleTapToggleControls": "Un toque · Mostrar u ocultar los controles",
+  "@playerTutorialSingleTapToggleControls": {
+    "description": "Rótulo del tutorial de gestos para el toque simple que muestra u oculta los controles."
+  },
+
+  "playerTutorialPageDrags": "Arrastres",
+  "@playerTutorialPageDrags": {
+    "description": "Título de la segunda página del tutorial de gestos."
+  },
+
+  "playerTutorialDragBrightness": "Arrastra · Brillo",
+  "@playerTutorialDragBrightness": {
+    "description": "Rótulo del tutorial de gestos para el arrastre vertical de brillo."
+  },
+
+  "playerTutorialDragVolume": "Arrastra · Volumen (hasta {percent}%)",
+  "@playerTutorialDragVolume": {
+    "description": "Rótulo del tutorial de gestos para el arrastre vertical de volumen, con el máximo configurado.",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerTutorialDragSeekPreview": "Arrastra · Buscar con vista previa",
+  "@playerTutorialDragSeekPreview": {
+    "description": "Rótulo del tutorial de gestos para el arrastre horizontal de búsqueda."
+  },
+
+  "playerTutorialDragEdgeMinimize": "Arrastra en el borde · Minimizar",
+  "@playerTutorialDragEdgeMinimize": {
+    "description": "Rótulo del tutorial de gestos para el arrastre en los bordes laterales que minimiza."
+  },
+
+  "playerTutorialDragCenterRotate": "Arrastra en el centro · Girar (con los controles ocultos)",
+  "@playerTutorialDragCenterRotate": {
+    "description": "Rótulo del tutorial de gestos para el arrastre central que gira la pantalla."
+  },
+
+  "playerTutorialPinchZoom": "Pellizca · Zoom (hasta {zoom})",
+  "@playerTutorialPinchZoom": {
+    "description": "Rótulo del tutorial de gestos para el pellizco de zoom, con el máximo configurado ya formateado (p. ej. «8×»).",
+    "placeholders": {
+      "zoom": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerTutorialZoomPan": "Con zoom, arrastra · Encuadrar · Toca la píldora para volver a 1×",
+  "@playerTutorialZoomPan": {
+    "description": "Rótulo del tutorial de gestos para el encuadre con zoom activo."
+  },
+
+  "playerTutorialHoldLeftSpeed": "Mantén pulsado a la izquierda · {speed}",
+  "@playerTutorialHoldLeftSpeed": {
+    "description": "Rótulo del tutorial de gestos para mantener pulsado a la izquierda, con la velocidad configurada ya formateada (p. ej. «2×»).",
+    "placeholders": {
+      "speed": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerTutorialHoldRightLadder": "Mantén y desliza arriba o abajo a la derecha · Escalera de velocidad",
+  "@playerTutorialHoldRightLadder": {
+    "description": "Rótulo del tutorial de gestos para mantener y deslizar a la derecha."
+  },
+
+  "playerTutorialPageButtons": "Botones",
+  "@playerTutorialPageButtons": {
+    "description": "Título de la tercera página del tutorial de gestos."
+  },
+
+  "playerTutorialMinimize": "Minimizar a la mini-barra",
+  "@playerTutorialMinimize": {
+    "description": "Rótulo del tutorial de gestos para el botón de minimizar."
+  },
+
+  "playerTutorialInfoOverlay": "Información en pantalla",
+  "@playerTutorialInfoOverlay": {
+    "description": "Rótulo del tutorial de gestos para el botón de información en pantalla."
+  },
+
+  "playerTutorialAudioTracks": "Pistas de audio",
+  "@playerTutorialAudioTracks": {
+    "description": "Rótulo del tutorial de gestos para el botón de pistas de audio."
+  },
+
+  "playerTutorialMoreOptions": "Más opciones · temporizador y bucle A-B",
+  "@playerTutorialMoreOptions": {
+    "description": "Rótulo del tutorial de gestos para el botón que abre el menú ⋮."
+  },
+
+  "playerTutorialLockScreen": "Bloquear la pantalla",
+  "@playerTutorialLockScreen": {
+    "description": "Rótulo del tutorial de gestos para el botón de bloquear pantalla."
+  },
+
+  "playerTutorialQueueHint": "Con más de un video en la carpeta aparece la cola sobre los botones",
+  "@playerTutorialQueueHint": {
+    "description": "Nota final de la página «Botones» del tutorial de gestos, sobre la tira de cola."
+  },
+
+  "playerTutorialDoneAction": "Entendido",
+  "@playerTutorialDoneAction": {
+    "description": "Botón que cierra el tutorial de gestos, en su última página."
+  },
+
+  "playerTutorialNextAction": "Siguiente",
+  "@playerTutorialNextAction": {
+    "description": "Botón que avanza a la siguiente página del tutorial de gestos."
+  },
+
+  "playerTutorialTopBarSection": "Barra de arriba",
+  "@playerTutorialTopBarSection": {
+    "description": "Título de la sección de la barra superior, en la página «Botones» del tutorial de gestos."
+  },
+
+  "playerTutorialBottomBarSection": "Barra de abajo",
+  "@playerTutorialBottomBarSection": {
+    "description": "Título de la sección de la barra inferior, en la página «Botones» del tutorial de gestos."
   }
 }

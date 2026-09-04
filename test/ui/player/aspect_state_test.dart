@@ -2,6 +2,9 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kivo_player/core/icons/kivo_icons.dart';
 import 'package:kivo_player/ui/player/state/aspect_state.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 void main() {
   test('nextAspect cycles fit->fill->stretch->fit', () {
@@ -25,8 +28,8 @@ void main() {
     expect(aspectIconFor(AspectMode.stretch), KivoIcons.aspectStretch);
   });
   test('aspectLabelFor returns the correct label per mode', () {
-    expect(aspectLabelFor(AspectMode.fit), 'Ajustar');
-    expect(aspectLabelFor(AspectMode.fill), 'Llenar');
-    expect(aspectLabelFor(AspectMode.stretch), 'Estirar');
+    expect(aspectLabelFor(_l10n, AspectMode.fit), _l10n.playerAspectFit);
+    expect(aspectLabelFor(_l10n, AspectMode.fill), _l10n.playerAspectFill);
+    expect(aspectLabelFor(_l10n, AspectMode.stretch), _l10n.playerAspectStretch);
   });
 }

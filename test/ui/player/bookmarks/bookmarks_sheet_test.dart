@@ -11,6 +11,9 @@ import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/ui/player/bookmarks/bookmarks_sheet.dart';
 import '../../../fakes/fakes.dart';
+import '../../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 Future<ProviderContainer> _pump(
   WidgetTester tester, {
@@ -32,22 +35,21 @@ Future<ProviderContainer> _pump(
         index: 0,
       ));
 
-  await tester.pumpWidget(UncontrolledProviderScope(
-    container: c,
-    child: MaterialApp(
-      theme: KivoTheme.dark(),
-      home: Scaffold(
-        body: Center(
-          child: Builder(
-            builder: (context) => ElevatedButton(
-              onPressed: () => showBookmarksSheet(context),
-              child: const Text('open'),
-            ),
+  await pumpLocalized(
+    tester,
+    Scaffold(
+      body: Center(
+        child: Builder(
+          builder: (context) => ElevatedButton(
+            onPressed: () => showBookmarksSheet(context),
+            child: const Text('open'),
           ),
         ),
       ),
     ),
-  ));
+    container: c,
+    theme: KivoTheme.dark(),
+  );
   await tester.pump();
   await tester.tap(find.text('open'));
   await tester.pumpAndSettle();
@@ -57,7 +59,7 @@ Future<ProviderContainer> _pump(
 void main() {
   testWidgets('no bookmarks shows the empty message', (tester) async {
     await _pump(tester, bookmarkStore: InMemoryBookmarkStore());
-    expect(find.text('Todavía no marcaste nada en este video.'), findsOneWidget);
+    expect(find.text(_l10n.playerBookmarksEmpty), findsOneWidget);
   });
 
   testWidgets('unnamed bookmarks show their time; named ones show name and time',
@@ -99,12 +101,12 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('bookmark-rename-0')));
     await tester.pumpAndSettle();
     // Blank is refused by not popping — the dialog stays up.
-    await tester.tap(find.text('Guardar'));
+    await tester.tap(find.text(_l10n.commonSave));
     await tester.pump();
-    expect(find.text('Nombrar marcador'), findsOneWidget);
+    expect(find.text(_l10n.playerBookmarksRenameDialogTitle), findsOneWidget);
 
     await tester.enterText(find.byType(TextField), 'Momentazo');
-    await tester.tap(find.text('Guardar'));
+    await tester.tap(find.text(_l10n.commonSave));
     await tester.pumpAndSettle();
 
     expect(find.text('Momentazo'), findsOneWidget);
@@ -125,7 +127,7 @@ void main() {
 
     expect(find.text('Uno'), findsNothing);
     expect(c.read(bookmarksProvider).map((b) => b.name), ['Dos']);
-    expect(find.text('Deshacer'), findsOneWidget);
+    expect(find.text(_l10n.commonUndo), findsOneWidget);
 
     // Invoked directly rather than tapped: the SnackBar renders under the
     // still-open modal sheet, which in the small test viewport leaves its

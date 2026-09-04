@@ -455,4 +455,501 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get playlistEntryUnavailable => 'No disponible';
+
+  @override
+  String get playerAutoplayNextLabel => 'PRÓXIMO';
+
+  @override
+  String get playerAutoplayPlayAction => 'Reproducir';
+
+  @override
+  String get playerBookmarksTitle => 'Marcadores';
+
+  @override
+  String get playerBookmarksEmpty => 'Todavía no marcaste nada en este video.';
+
+  @override
+  String get playerBookmarksRenameDialogTitle => 'Nombrar marcador';
+
+  @override
+  String playerBookmarksDeletedUnnamedSnackbar(String time) {
+    return 'Marcador borrado · $time';
+  }
+
+  @override
+  String playerBookmarksDeletedNamedSnackbar(String name) {
+    return '«$name» borrado';
+  }
+
+  @override
+  String get playerChaptersTitle => 'Capítulos';
+
+  @override
+  String get playerChaptersEmpty => 'Este video no tiene capítulos.';
+
+  @override
+  String get playerChaptersPrevious => 'Anterior';
+
+  @override
+  String get playerChaptersNext => 'Siguiente';
+
+  @override
+  String get playerSpeedTooltip => 'Velocidad';
+
+  @override
+  String get playerLockScreenTooltip => 'Bloquear pantalla';
+
+  @override
+  String get playerAspectRatioTooltip => 'Relación de aspecto';
+
+  @override
+  String get playerRotateTooltip => 'Rotar';
+
+  @override
+  String playerSkipForwardTooltip(int seconds) {
+    return 'Avanzar ${seconds}s';
+  }
+
+  @override
+  String playerSkipBackTooltip(int seconds) {
+    return 'Retroceder ${seconds}s';
+  }
+
+  @override
+  String get playerPauseTooltip => 'Pausar';
+
+  @override
+  String get playerPlayTooltip => 'Reproducir';
+
+  @override
+  String get playerHoldToUnlockHint => 'mantén para desbloquear';
+
+  @override
+  String playerResumeUndoneMessage(String pos) {
+    return 'Reanudado desde $pos';
+  }
+
+  @override
+  String get playerResumeRestartAction => 'Reiniciar';
+
+  @override
+  String playerResumeAskMessage(String pos) {
+    return '¿Reanudar desde $pos?';
+  }
+
+  @override
+  String get playerResumeFromStartAction => 'Desde el inicio';
+
+  @override
+  String get playerResumeAction => 'Reanudar';
+
+  @override
+  String get playerBackTooltip => 'Atrás';
+
+  @override
+  String get playerInfoOverlayHideTooltip => 'Ocultar información en pantalla';
+
+  @override
+  String get playerInfoOverlayShowTooltip => 'Mostrar información en pantalla';
+
+  @override
+  String get playerSubtitlesTooltip => 'Subtítulos';
+
+  @override
+  String get playerPipTooltip => 'Imagen en imagen';
+
+  @override
+  String get playerAudioTooltip => 'Audio';
+
+  @override
+  String get playerMoreOptionsTooltip => 'Más opciones';
+
+  @override
+  String get playerLoopMarkA => 'Marcar A';
+
+  @override
+  String get playerLoopMarkB => 'Marcar B';
+
+  @override
+  String playerLoopPointALabel(String time) {
+    return 'A $time';
+  }
+
+  @override
+  String get playerLoopSubtitleIdle => 'Repetir un fragmento del video';
+
+  @override
+  String get playerLoopSubtitleMarking => 'Marcando…';
+
+  @override
+  String playerLoopSubtitleActive(String range) {
+    return 'Activo · $range';
+  }
+
+  @override
+  String playerMenuChaptersSubtitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count capítulos',
+      one: '1 capítulo',
+      zero: 'Sin capítulos',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get playerMenuSleepBadgeEpisode => 'Al terminar';
+
+  @override
+  String playerMenuSleepBadgeEpisodes(int count) {
+    return '$count ep';
+  }
+
+  @override
+  String get playerMenuMarkHere => 'Marcar aquí';
+
+  @override
+  String get playerMenuCapture => 'Capturar';
+
+  @override
+  String get playerMenuSleepTimer => 'Temporizador';
+
+  @override
+  String get playerMenuSync => 'Sincronizar';
+
+  @override
+  String get playerMenuGroupPlayback => 'Reproducción';
+
+  @override
+  String get playerMenuRepeat => 'Repetir';
+
+  @override
+  String get playerMenuOptionOff => 'No';
+
+  @override
+  String get playerMenuRepeatList => 'Lista';
+
+  @override
+  String get playerMenuRepeatVideoOption => 'Video';
+
+  @override
+  String get playerMenuShuffle => 'Aleatorio';
+
+  @override
+  String get playerMenuOptionOn => 'Sí';
+
+  @override
+  String get playerMenuAbLoop => 'Bucle A-B';
+
+  @override
+  String get playerMenuGroupGoTo => 'Ir a';
+
+  @override
+  String playerMenuBookmarksSubtitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count marcadores',
+      one: '1 marcador',
+      zero: 'Sin marcadores',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get playerMenuGroupAudio => 'Audio';
+
+  @override
+  String get playerMenuEqualizer => 'Ecualizador';
+
+  @override
+  String playerMenuBookmarkSavedSnackbar(String time) {
+    return 'Marcador guardado · $time';
+  }
+
+  @override
+  String get playerMenuBookmarkNameAction => 'Nombrar';
+
+  @override
+  String get playerMenuCaptureSavedSnackbar => 'Captura guardada';
+
+  @override
+  String get playerMenuCaptureViewAction => 'Ver';
+
+  @override
+  String get playerQueueNowBadge => 'AHORA';
+
+  @override
+  String get playerSleepPanelTitle => 'Temporizador de apagado';
+
+  @override
+  String get playerSleepDurationLabel => 'Duración';
+
+  @override
+  String playerSleepMinutesValue(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String get playerSleepOrLabel => 'O bien';
+
+  @override
+  String playerSleepStartAfterEpisodes(int count) {
+    return 'Iniciar · Tras $count episodios';
+  }
+
+  @override
+  String get playerSleepStartAtEpisodeEnd =>
+      'Iniciar · Al terminar el episodio';
+
+  @override
+  String playerSleepStartFixedMinutes(int minutes) {
+    return 'Iniciar · $minutes min';
+  }
+
+  @override
+  String playerSleepRemainingOfMinutes(int minutes) {
+    return 'restante · de $minutes min';
+  }
+
+  @override
+  String playerSleepEpisodesRemaining(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'episodios restantes',
+      one: 'episodio restante',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get playerSleepUntilEpisodeEnd => 'hasta el final del episodio';
+
+  @override
+  String get playerSleepDeactivate => 'Desactivar';
+
+  @override
+  String playerSleepExtendByMinutes(int minutes) {
+    return 'Extender +$minutes';
+  }
+
+  @override
+  String get playerSleepEpisodeCardTitle => 'Al terminar el episodio';
+
+  @override
+  String get playerSleepEpisodeCardSubtitle =>
+      'Se detiene cuando termine este video';
+
+  @override
+  String get playerSleepEpisodesCardTitle => 'Tras N episodios';
+
+  @override
+  String get playerSleepEpisodesCardSubtitle =>
+      'Deja correr el autoplay y detiene';
+
+  @override
+  String get playerSleepPausingInLabel => 'Pausando en ';
+
+  @override
+  String get playerSleepExtendAction => 'Extender';
+
+  @override
+  String playerSpeedSavePreset(String rate) {
+    return 'Guardar ${rate}x';
+  }
+
+  @override
+  String get playerSpeedResetAction => 'Restablecer (1x)';
+
+  @override
+  String get playerAspectFit => 'Ajustar';
+
+  @override
+  String get playerAspectFill => 'Llenar';
+
+  @override
+  String get playerAspectStretch => 'Estirar';
+
+  @override
+  String get playerTracksTabLabel => 'Pistas';
+
+  @override
+  String get playerTracksStyleTabLabel => 'Estilo';
+
+  @override
+  String get playerTracksShowSubtitles => 'Mostrar subtítulos';
+
+  @override
+  String get playerTracksSectionInVideo => 'En el video';
+
+  @override
+  String get playerTracksEmbeddedDefault => 'Pista incrustada · predeterminada';
+
+  @override
+  String get playerTracksEmbedded => 'Pista incrustada';
+
+  @override
+  String get playerTracksSectionSync => 'Sincronía';
+
+  @override
+  String get playerTracksSyncSubtitles => 'Sincronizar subtítulos';
+
+  @override
+  String get playerTracksSyncAudio => 'Sincronizar audio';
+
+  @override
+  String get playerTracksSyncNeedsSubtitle =>
+      'Activa un subtítulo para poder ajustarlo';
+
+  @override
+  String get playerTracksSyncHint => 'Ajustar el desfase mientras se reproduce';
+
+  @override
+  String get playerTracksSectionInFolder => 'En la carpeta';
+
+  @override
+  String get playerTracksLocalFile => 'Archivo local';
+
+  @override
+  String get playerTracksNoSubtitlesFound =>
+      'Este video no trae subtítulos incrustados ni hay archivos junto a él.';
+
+  @override
+  String get playerTracksNoOtherAudioTracks =>
+      'Este video no tiene otras pistas de audio.';
+
+  @override
+  String get playerTracksSectionFromDevice => 'Desde tu dispositivo';
+
+  @override
+  String get playerTracksLoadSubtitleAction => 'Cargar subtítulo…';
+
+  @override
+  String get playerTracksLoadSubtitleHint =>
+      'Elegir un archivo .srt, .ass o .vtt';
+
+  @override
+  String get playerTracksBgTransparent => 'Transparente';
+
+  @override
+  String get playerTracksBgBlack => 'Negro';
+
+  @override
+  String get playerTracksBgWhite => 'Blanco';
+
+  @override
+  String get playerTracksStylePreviewSample => 'Estamos cerca de encontrarlo.';
+
+  @override
+  String get playerTracksSizeLabel => 'Tamaño';
+
+  @override
+  String get playerTracksTextColorLabel => 'Color de texto';
+
+  @override
+  String get playerTracksBackgroundColorLabel => 'Color de fondo';
+
+  @override
+  String get playerTracksResetStyleAction => 'Restablecer estilo';
+
+  @override
+  String get playerSyncDragHint => 'arrastra la barra o usa los botones';
+
+  @override
+  String get playerTutorialPageTaps => 'Toques';
+
+  @override
+  String playerTutorialDoubleTapBack(int seconds) {
+    return 'Doble toque · −$seconds s';
+  }
+
+  @override
+  String get playerTutorialDoubleTapPause => 'Doble toque · Pausa';
+
+  @override
+  String playerTutorialDoubleTapForward(int seconds) {
+    return 'Doble toque · +$seconds s';
+  }
+
+  @override
+  String get playerTutorialSingleTapToggleControls =>
+      'Un toque · Mostrar u ocultar los controles';
+
+  @override
+  String get playerTutorialPageDrags => 'Arrastres';
+
+  @override
+  String get playerTutorialDragBrightness => 'Arrastra · Brillo';
+
+  @override
+  String playerTutorialDragVolume(int percent) {
+    return 'Arrastra · Volumen (hasta $percent%)';
+  }
+
+  @override
+  String get playerTutorialDragSeekPreview =>
+      'Arrastra · Buscar con vista previa';
+
+  @override
+  String get playerTutorialDragEdgeMinimize =>
+      'Arrastra en el borde · Minimizar';
+
+  @override
+  String get playerTutorialDragCenterRotate =>
+      'Arrastra en el centro · Girar (con los controles ocultos)';
+
+  @override
+  String playerTutorialPinchZoom(String zoom) {
+    return 'Pellizca · Zoom (hasta $zoom)';
+  }
+
+  @override
+  String get playerTutorialZoomPan =>
+      'Con zoom, arrastra · Encuadrar · Toca la píldora para volver a 1×';
+
+  @override
+  String playerTutorialHoldLeftSpeed(String speed) {
+    return 'Mantén pulsado a la izquierda · $speed';
+  }
+
+  @override
+  String get playerTutorialHoldRightLadder =>
+      'Mantén y desliza arriba o abajo a la derecha · Escalera de velocidad';
+
+  @override
+  String get playerTutorialPageButtons => 'Botones';
+
+  @override
+  String get playerTutorialMinimize => 'Minimizar a la mini-barra';
+
+  @override
+  String get playerTutorialInfoOverlay => 'Información en pantalla';
+
+  @override
+  String get playerTutorialAudioTracks => 'Pistas de audio';
+
+  @override
+  String get playerTutorialMoreOptions =>
+      'Más opciones · temporizador y bucle A-B';
+
+  @override
+  String get playerTutorialLockScreen => 'Bloquear la pantalla';
+
+  @override
+  String get playerTutorialQueueHint =>
+      'Con más de un video en la carpeta aparece la cola sobre los botones';
+
+  @override
+  String get playerTutorialDoneAction => 'Entendido';
+
+  @override
+  String get playerTutorialNextAction => 'Siguiente';
+
+  @override
+  String get playerTutorialTopBarSection => 'Barra de arriba';
+
+  @override
+  String get playerTutorialBottomBarSection => 'Barra de abajo';
 }

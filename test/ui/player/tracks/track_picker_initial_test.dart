@@ -9,6 +9,7 @@ import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/ui/player/tracks/track_picker.dart';
 import '../../../fakes/fakes.dart';
+import '../../../helpers/pump_app.dart';
 
 void main() {
   testWidgets('subtitle picker shows tracks from the snapshot without any stream emission', (tester) async {
@@ -35,23 +36,22 @@ void main() {
       const VideoSession(playbackPath: '/v/x.mkv', displayName: 'x.mkv', queue: ['/v/x.mkv'], index: 0),
     );
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: MaterialApp(
-        home: Scaffold(
-          body: Center(
-            // Consumer (not a plain Builder) gives this callback a real
-            // WidgetRef — showSubtitlePicker takes (BuildContext, WidgetRef).
-            child: Consumer(
-              builder: (context, ref, _) => ElevatedButton(
-                onPressed: () => showSubtitlePicker(context, ref),
-                child: const Text('go'),
-              ),
+    await pumpLocalized(
+      tester,
+      Scaffold(
+        body: Center(
+          // Consumer (not a plain Builder) gives this callback a real
+          // WidgetRef — showSubtitlePicker takes (BuildContext, WidgetRef).
+          child: Consumer(
+            builder: (context, ref, _) => ElevatedButton(
+              onPressed: () => showSubtitlePicker(context, ref),
+              child: const Text('go'),
             ),
           ),
         ),
       ),
-    ));
+      container: c,
+    );
 
     await tester.tap(find.text('go'));
     // Deliberately pumpAndSettle with no engine.emitSubtitleTracks/

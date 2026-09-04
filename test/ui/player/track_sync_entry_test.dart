@@ -9,21 +9,23 @@ import 'package:kivo_player/player/tracks/track_prefs_store.dart';
 import 'package:kivo_player/ui/player/more/more_menu.dart';
 import 'package:kivo_player/ui/player/tracks/track_sync_hud.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 Future<void> _pumpMenu(WidgetTester tester, ProviderContainer c) async {
-  await tester.pumpWidget(UncontrolledProviderScope(
+  await pumpLocalized(
+    tester,
+    Consumer(builder: (ctx, ref, _) {
+      return Scaffold(body: Builder(builder: (b) {
+        return TextButton(
+          onPressed: () => showMoreMenu(b, ref),
+          child: const Text('open'),
+        );
+      }));
+    }),
     container: c,
-    child: MaterialApp(
-      home: Consumer(builder: (ctx, ref, _) {
-        return Scaffold(body: Builder(builder: (b) {
-          return TextButton(
-            onPressed: () => showMoreMenu(b, ref),
-            child: const Text('open'),
-          );
-        }));
-      }),
-    ),
-  ));
+  );
   await tester.tap(find.text('open'));
   await tester.pumpAndSettle();
 }
@@ -40,31 +42,30 @@ void main() {
     ]);
     addTearDown(c.dispose);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
+    await pumpLocalized(
+      tester,
+      Consumer(builder: (ctx, ref, _) {
+        return Scaffold(body: Builder(builder: (b) {
+          return TextButton(
+            onPressed: () => showMoreMenu(b, ref),
+            child: const Text('open'),
+          );
+        }));
+      }),
       container: c,
-      child: MaterialApp(
-        home: Consumer(builder: (ctx, ref, _) {
-          return Scaffold(body: Builder(builder: (b) {
-            return TextButton(
-              onPressed: () => showMoreMenu(b, ref),
-              child: const Text('open'),
-            );
-          }));
-        }),
-      ),
-    ));
+    );
 
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
-    expect(find.text('Sincronizar'), findsOneWidget);
+    expect(find.text(_l10n.playerMenuSync), findsOneWidget);
 
-    await tester.tap(find.text('Sincronizar'));
+    await tester.tap(find.text(_l10n.playerMenuSync));
     await tester.pumpAndSettle();
 
     // A subtitle is showing, so the capsule opens on that side.
     expect(c.read(syncHudProvider), SyncTarget.subtitles);
     // The sheet is gone — it would otherwise cover the subtitle being adjusted.
-    expect(find.text('Bucle A-B'), findsNothing);
+    expect(find.text(_l10n.playerMenuAbLoop), findsNothing);
   });
 
   // With no subtitle showing there is still audio to adjust, so the entry
@@ -82,13 +83,13 @@ void main() {
     addTearDown(c.dispose);
 
     await _pumpMenu(tester, c);
-    expect(find.text('Sincronizar'), findsOneWidget);
+    expect(find.text(_l10n.playerMenuSync), findsOneWidget);
 
-    await tester.tap(find.text('Sincronizar'));
+    await tester.tap(find.text(_l10n.playerMenuSync));
     await tester.pumpAndSettle();
 
     expect(c.read(syncHudProvider), SyncTarget.audio);
-    expect(find.text('Bucle A-B'), findsNothing);
+    expect(find.text(_l10n.playerMenuAbLoop), findsNothing);
   });
 
   testWidgets('the entry follows the subtitle track going active',
@@ -106,7 +107,7 @@ void main() {
     engine.emitCurrentSubtitle(const MediaTrack(id: 'sub1'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Sincronizar'));
+    await tester.tap(find.text(_l10n.playerMenuSync));
     await tester.pumpAndSettle();
     expect(c.read(syncHudProvider), SyncTarget.subtitles);
   });

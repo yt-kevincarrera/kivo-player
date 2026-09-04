@@ -1,4 +1,5 @@
 import '../../../core/settings/kivo_settings.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 /// Where a hint is anchored. The thirds and the halves are BOTH real: double
 /// taps use thirds (`tapZoneOf`) while brightness/volume drags split the screen
@@ -46,64 +47,65 @@ String _zoom(double v) => '${v.toStringAsFixed(0)}×';
 
 /// The whole tutorial, derived from what the user actually has configured: the
 /// numbers come from [s], and a gesture the user turned OFF is not taught.
+///
+/// Takes the resolved [AppLocalizations] rather than a BuildContext: this file
+/// otherwise has no Flutter widget dependency, and the only caller
+/// (gesture_map_page.dart) already has a context to resolve it from.
 List<GestureMapPage> gestureMapPages(
+  AppLocalizations l10n,
   KivoSettings s, {
   required bool pipSupported,
 }) =>
     [
-      GestureMapPage('Toques', [
-        GestureHint(MapZone.leftThird, 'Doble toque · −${s.doubleTapSkipLeft} s'),
+      GestureMapPage(l10n.playerTutorialPageTaps, [
+        GestureHint(MapZone.leftThird, l10n.playerTutorialDoubleTapBack(s.doubleTapSkipLeft)),
         if (s.doubleTapCenterPause)
-          const GestureHint(MapZone.centerThird, 'Doble toque · Pausa'),
-        GestureHint(MapZone.rightThird, 'Doble toque · +${s.doubleTapSkipRight} s'),
-        const GestureHint(
-            MapZone.footer, 'Un toque · Mostrar u ocultar los controles'),
+          GestureHint(MapZone.centerThird, l10n.playerTutorialDoubleTapPause),
+        GestureHint(MapZone.rightThird, l10n.playerTutorialDoubleTapForward(s.doubleTapSkipRight)),
+        GestureHint(MapZone.footer, l10n.playerTutorialSingleTapToggleControls),
       ]),
-      GestureMapPage('Arrastres', [
-        const GestureHint(MapZone.leftHalf, 'Arrastra · Brillo',
+      GestureMapPage(l10n.playerTutorialPageDrags, [
+        GestureHint(MapZone.leftHalf, l10n.playerTutorialDragBrightness,
             arrow: HintArrow.vertical),
         GestureHint(
-            MapZone.rightHalf, 'Arrastra · Volumen (hasta ${s.volumeBoostMax}%)',
+            MapZone.rightHalf, l10n.playerTutorialDragVolume(s.volumeBoostMax),
             arrow: HintArrow.vertical),
         if (s.horizontalSeek)
-          const GestureHint(
-              MapZone.fullWidth, 'Arrastra · Buscar con vista previa',
+          GestureHint(
+              MapZone.fullWidth, l10n.playerTutorialDragSeekPreview,
               arrow: HintArrow.horizontal),
-        const GestureHint(
-            MapZone.lateralEdges, 'Arrastra en el borde · Minimizar',
+        GestureHint(
+            MapZone.lateralEdges, l10n.playerTutorialDragEdgeMinimize,
             arrow: HintArrow.down),
-        const GestureHint(MapZone.centerBand,
-            'Arrastra en el centro · Girar (con los controles ocultos)',
+        GestureHint(MapZone.centerBand,
+            l10n.playerTutorialDragCenterRotate,
             arrow: HintArrow.vertical),
         if (s.pinchZoom) ...[
-          GestureHint(MapZone.fullWidth, 'Pellizca · Zoom (hasta ${_zoom(s.zoomMax)})'),
-          const GestureHint(MapZone.footer,
-              'Con zoom, arrastra · Encuadrar · Toca la píldora para volver a 1×'),
+          GestureHint(MapZone.fullWidth, l10n.playerTutorialPinchZoom(_zoom(s.zoomMax))),
+          GestureHint(MapZone.footer, l10n.playerTutorialZoomPan),
         ],
         GestureHint(MapZone.footer,
-            'Mantén pulsado a la izquierda · ${_speed(s.holdLeftSpeed)}'),
-        const GestureHint(MapZone.footer,
-            'Mantén y desliza arriba o abajo a la derecha · Escalera de velocidad'),
+            l10n.playerTutorialHoldLeftSpeed(_speed(s.holdLeftSpeed))),
+        GestureHint(MapZone.footer, l10n.playerTutorialHoldRightLadder),
       ]),
-      GestureMapPage('Botones', [
-        const GestureHint(MapZone.topBar, 'Minimizar a la mini-barra',
+      GestureMapPage(l10n.playerTutorialPageButtons, [
+        GestureHint(MapZone.topBar, l10n.playerTutorialMinimize,
             icon: MapIcon.back),
-        const GestureHint(MapZone.topBar, 'Información en pantalla',
+        GestureHint(MapZone.topBar, l10n.playerTutorialInfoOverlay,
             icon: MapIcon.info),
-        const GestureHint(MapZone.topBar, 'Subtítulos', icon: MapIcon.subtitles),
+        GestureHint(MapZone.topBar, l10n.playerSubtitlesTooltip, icon: MapIcon.subtitles),
         if (pipSupported)
-          const GestureHint(MapZone.topBar, 'Imagen en imagen', icon: MapIcon.pip),
-        const GestureHint(MapZone.topBar, 'Pistas de audio', icon: MapIcon.audio),
-        const GestureHint(
-            MapZone.topBar, 'Más opciones · temporizador y bucle A-B',
+          GestureHint(MapZone.topBar, l10n.playerPipTooltip, icon: MapIcon.pip),
+        GestureHint(MapZone.topBar, l10n.playerTutorialAudioTracks, icon: MapIcon.audio),
+        GestureHint(
+            MapZone.topBar, l10n.playerTutorialMoreOptions,
             icon: MapIcon.more),
-        const GestureHint(MapZone.bottomBar, 'Velocidad', icon: MapIcon.speed),
-        const GestureHint(MapZone.bottomBar, 'Bloquear la pantalla',
+        GestureHint(MapZone.bottomBar, l10n.playerSpeedTooltip, icon: MapIcon.speed),
+        GestureHint(MapZone.bottomBar, l10n.playerTutorialLockScreen,
             icon: MapIcon.lock),
-        const GestureHint(MapZone.bottomBar, 'Relación de aspecto',
+        GestureHint(MapZone.bottomBar, l10n.playerAspectRatioTooltip,
             icon: MapIcon.aspect),
-        const GestureHint(MapZone.bottomBar, 'Rotar', icon: MapIcon.rotate),
-        const GestureHint(MapZone.footer,
-            'Con más de un video en la carpeta aparece la cola sobre los botones'),
+        GestureHint(MapZone.bottomBar, l10n.playerRotateTooltip, icon: MapIcon.rotate),
+        GestureHint(MapZone.footer, l10n.playerTutorialQueueHint),
       ]),
     ];

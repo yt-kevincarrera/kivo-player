@@ -8,6 +8,7 @@ import '../../../core/theme/kivo_theme.dart';
 import '../../../player/engine/playback_engine.dart';
 import '../../../player/engine/playback_provider.dart';
 import '../../../core/errors/kivo_failure.dart';
+import '../../../l10n/l10n.dart';
 import '../../../player/audio/equalizer.dart';
 import '../../../player/audio/equalizer_controller.dart';
 import '../../../player/bookmarks/bookmark.dart';
@@ -74,13 +75,15 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
               padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
               child: Consumer(
                 builder: (_, sheetRef, __) {
+                  final l10n = sheetContext.l10n;
                   final engine = sheetRef.read(playbackEngineProvider);
                   final loop = sheetRef.watch(abLoopProvider);
                   final loopSubtitle = switch (loop?.phase) {
-                    null => 'Repetir un fragmento del video',
-                    AbLoopPhase.armedA || AbLoopPhase.armedB => 'Marcando…',
-                    AbLoopPhase.active =>
-                      'Activo · ${fmtDuration(loop!.a!)}–${fmtDuration(loop.b!)}',
+                    null => l10n.playerLoopSubtitleIdle,
+                    AbLoopPhase.armedA || AbLoopPhase.armedB => l10n.playerLoopSubtitleMarking,
+                    AbLoopPhase.active => l10n.playerLoopSubtitleActive(
+                        '${fmtDuration(loop!.a!)}–${fmtDuration(loop.b!)}',
+                      ),
                   };
                   final settings = sheetRef.watch(settingsProvider);
                   final accent = Color(settings.accentColor);
@@ -93,17 +96,14 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                       ? Colors.white70
                       : accent;
                   final chapters = sheetRef.watch(chaptersProvider);
-                  final chaptersSubtitle = switch (chapters.length) {
-                    0 => 'Sin capítulos',
-                    1 => '1 capítulo',
-                    final n => '$n capítulos',
-                  };
+                  final chaptersSubtitle = l10n.playerMenuChaptersSubtitle(chapters.length);
                   final sleepState = sheetRef.watch(sleepTimerProvider);
                   final sleepBadge = switch (sleepState?.mode) {
                     null => null,
                     SleepTimerMode.fixed => fmtDuration(sleepState!.remaining),
-                    SleepTimerMode.episode => 'Al terminar',
-                    SleepTimerMode.episodes => '${sleepState!.episodesLeft} ep',
+                    SleepTimerMode.episode => l10n.playerMenuSleepBadgeEpisode,
+                    SleepTimerMode.episodes =>
+                      l10n.playerMenuSleepBadgeEpisodes(sleepState!.episodesLeft),
                   };
 
                   // Built once each, then placed either in a single column
@@ -117,7 +117,7 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                       Expanded(
                         child: _MenuTile(
                           icon: Icons.bookmark_add_outlined,
-                          label: 'Marcar aquí',
+                          label: l10n.playerMenuMarkHere,
                           accent: accent,
                           onTap: () {
                             // Popped first, then acted on — same rule as
@@ -131,7 +131,7 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                       Expanded(
                         child: _MenuTile(
                           icon: Icons.photo_camera_outlined,
-                          label: 'Capturar',
+                          label: l10n.playerMenuCapture,
                           accent: accent,
                           onTap: () {
                             Navigator.of(sheetContext).pop();
@@ -143,7 +143,7 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                       Expanded(
                         child: _MenuTile(
                           icon: Icons.bedtime_outlined,
-                          label: 'Temporizador',
+                          label: l10n.playerMenuSleepTimer,
                           accent: accent,
                           active: sleepState != null,
                           badge: sleepBadge,
@@ -171,7 +171,7 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                             final subsActive = snap.data != null;
                             return _MenuTile(
                               icon: Icons.compare_arrows_rounded,
-                              label: 'Sincronizar',
+                              label: l10n.playerMenuSync,
                               accent: accent,
                               onTap: () {
                                 Navigator.of(sheetContext).pop();
@@ -194,18 +194,18 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const _GroupCaption('Reproducción'),
+                      _GroupCaption(l10n.playerMenuGroupPlayback),
                       _GroupCard(
                         children: [
                           _MenuRow(
                             icon: repeatIcon,
                             iconColor: repeatIconColor,
-                            title: 'Repetir',
+                            title: l10n.playerMenuRepeat,
                             trailing: _SegmentedPill<RepeatMode>(
-                              options: const [
-                                (RepeatMode.off, 'No'),
-                                (RepeatMode.list, 'Lista'),
-                                (RepeatMode.video, 'Video'),
+                              options: [
+                                (RepeatMode.off, l10n.playerMenuOptionOff),
+                                (RepeatMode.list, l10n.playerMenuRepeatList),
+                                (RepeatMode.video, l10n.playerMenuRepeatVideoOption),
                               ],
                               selected: repeatMode,
                               accent: accent,
@@ -225,9 +225,12 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                             iconColor: settings.shuffle
                                 ? accent
                                 : Colors.white70,
-                            title: 'Aleatorio',
+                            title: l10n.playerMenuShuffle,
                             trailing: _SegmentedPill<bool>(
-                              options: const [(false, 'No'), (true, 'Sí')],
+                              options: [
+                                (false, l10n.playerMenuOptionOff),
+                                (true, l10n.playerMenuOptionOn),
+                              ],
                               selected: settings.shuffle,
                               accent: accent,
                               onChanged: (next) => ref
@@ -238,7 +241,7 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                           _MenuRow(
                             icon: Icons
                                 .linear_scale_rounded, // two points on a line: a range, not a repeat
-                            title: 'Bucle A-B',
+                            title: l10n.playerMenuAbLoop,
                             subtitle: loopSubtitle,
                             onTap: () {
                               Navigator.of(sheetContext).pop();
@@ -263,7 +266,7 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const _GroupCaption('Ir a'),
+                      _GroupCaption(l10n.playerMenuGroupGoTo),
                       _GroupCard(
                         children: [
                           // Always listed. Whether this video has chapters
@@ -273,7 +276,7 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                           // answers instead.
                           _MenuRow(
                             icon: Icons.format_list_numbered_rounded,
-                            title: 'Capítulos',
+                            title: l10n.playerChaptersTitle,
                             subtitle: chaptersSubtitle,
                             onTap: () {
                               // Opens ON TOP of the menu: back returns here
@@ -287,14 +290,10 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                           // this row is what shows it.
                           _MenuRow(
                             icon: Icons.bookmark_outline_rounded,
-                            title: 'Marcadores',
-                            subtitle: switch (sheetRef
-                                .watch(bookmarksProvider)
-                                .length) {
-                              0 => 'Sin marcadores',
-                              1 => '1 marcador',
-                              final n => '$n marcadores',
-                            },
+                            title: l10n.playerBookmarksTitle,
+                            subtitle: l10n.playerMenuBookmarksSubtitle(
+                              sheetRef.watch(bookmarksProvider).length,
+                            ),
                             onTap: () {
                               showBookmarksSheet(context);
                             },
@@ -308,13 +307,13 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const _GroupCaption('Audio'),
+                      _GroupCaption(l10n.playerMenuGroupAudio),
                       _GroupCard(
                         children: [
                           _MenuRow(
                             icon: Icons.equalizer_rounded,
                             iconColor: eq.enabled ? accent : Colors.white70,
-                            title: 'Ecualizador',
+                            title: l10n.playerMenuEqualizer,
                             subtitle: presetNameFor(eq),
                             onTap: () {
                               Navigator.of(context, rootNavigator: true).push(
@@ -414,6 +413,7 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
 /// await regardless, same rule as [_captureFrame] below.
 Future<void> _addBookmarkHere(BuildContext context, WidgetRef ref) async {
   final messenger = ScaffoldMessenger.of(context);
+  final l10n = context.l10n;
   // The video this mark belongs to, captured NOW: «Nombrar» fires from a
   // SnackBar that can outlive the video, and a rename must never land on
   // whatever opened next.
@@ -426,9 +426,9 @@ Future<void> _addBookmarkHere(BuildContext context, WidgetRef ref) async {
   messenger.hideCurrentSnackBar();
   messenger.showSnackBar(
     SnackBar(
-      content: Text('Marcador guardado · ${fmtDuration(position)}'),
+      content: Text(l10n.playerMenuBookmarkSavedSnackbar(fmtDuration(position))),
       action: SnackBarAction(
-        label: 'Nombrar',
+        label: l10n.playerMenuBookmarkNameAction,
         onPressed: () => _nameBookmark(context, ref, bookmark, videoKey),
       ),
     ),
@@ -464,13 +464,17 @@ Future<void> _nameBookmark(
 /// The messenger is captured before the await: the sheet this was tapped in is
 /// already gone by the time the capture finishes.
 Future<void> _captureFrame(BuildContext context, WidgetRef ref) async {
-  // Captured before the await: the sheet this was tapped in is gone by the
-  // time the capture finishes.
+  // Both captured before the await: the sheet this was tapped in is gone by
+  // the time the capture finishes, so `context` itself must not cross it —
+  // only values already resolved from it.
   final messenger = ScaffoldMessenger.of(context);
+  final l10n = context.l10n;
   _reportCapture(
     messenger,
     ref,
     await ref.read(frameCaptureProvider).capture(),
+    savedLabel: l10n.playerMenuCaptureSavedSnackbar,
+    viewLabel: l10n.playerMenuCaptureViewAction,
   );
 }
 
@@ -479,8 +483,10 @@ Future<void> _captureFrame(BuildContext context, WidgetRef ref) async {
 void _reportCapture(
   ScaffoldMessengerState messenger,
   WidgetRef ref,
-  FrameCapture capture,
-) {
+  FrameCapture capture, {
+  required String savedLabel,
+  required String viewLabel,
+}) {
   if (!capture.ok) {
     showFailureSnackBarOn(messenger, messenger.context, KivoOp.frameCapture);
     return;
@@ -504,11 +510,11 @@ void _reportCapture(
             ),
           ),
           const SizedBox(width: 12),
-          const Expanded(child: Text('Captura guardada')),
+          Expanded(child: Text(savedLabel)),
         ],
       ),
       action: SnackBarAction(
-        label: 'Ver',
+        label: viewLabel,
         onPressed: () => ref.read(frameCaptureProvider).view(capture.uri!),
       ),
     ),

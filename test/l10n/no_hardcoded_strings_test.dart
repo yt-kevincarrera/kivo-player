@@ -20,22 +20,9 @@ import 'package:flutter_test/flutter_test.dart';
 /// when wave 0 (foundation) landed. See the file header for what this means
 /// and does not mean.
 const Map<String, int> _baseline = {
-  'lib/ui/player/autoplay/autoplay_overlay.dart': 3,
-  'lib/ui/player/bookmarks/bookmarks_sheet.dart': 2,
-  'lib/ui/player/chapters/chapters_sheet.dart': 4,
-  'lib/ui/player/controls/bottom_bar.dart': 4,
-  'lib/ui/player/controls/center_controls.dart': 4,
-  'lib/ui/player/controls/resume_prompt.dart': 5,
-  'lib/ui/player/controls/top_bar.dart': 3,
-  'lib/ui/player/loop/ab_loop_chip.dart': 3,
-  'lib/ui/player/more/more_menu.dart': 8,
-  'lib/ui/player/queue/queue_strip.dart': 1,
-  'lib/ui/player/sleep/sleep_timer_panel.dart': 13,
-  'lib/ui/player/speed/speed_panel.dart': 2,
-  'lib/ui/player/state/aspect_state.dart': 3,
-  'lib/ui/player/tracks/track_picker.dart': 21,
-  'lib/ui/player/tracks/track_sync_hud.dart': 1,
-  'lib/ui/player/tutorial/gesture_map_content.dart': 27,
+  // Wave 2 (2026-09-04) localized every lib/ui/player/** file; their entries
+  // are gone (0 is the default via `_baseline[rel] ?? 0`). Do not re-add one
+  // to make room for new hardcoded copy there.
   'lib/ui/settings/sections/about_section.dart': 16,
   'lib/ui/settings/sections/advanced_playback_section.dart': 23,
   'lib/ui/settings/sections/backup_section.dart': 14,
@@ -57,8 +44,13 @@ const Map<String, int> _baseline = {
 final _stringLiteral = RegExp(r"'((?:[^'\\]|\\.)*)'");
 
 // Proper nouns that read as "hardcoded UI text" by the heuristic below but
-// are never translated.
-const _properNouns = {'Kivo', 'Vault', 'Android', 'Hive', 'GitHub', 'MediaStore'};
+// are never translated. 'Audio' is here too, deliberately: the Sub|Audio
+// track-sync-target chip labels (track_sync_hud.dart) are short technical
+// track-kind labels, not sentences — same call as leaving 'Sub' unlocalized
+// (it's under the length-4 floor below so it never needed whitelisting).
+const _properNouns = {
+  'Kivo', 'Vault', 'Android', 'Hive', 'GitHub', 'MediaStore', 'Audio',
+};
 final _kvCode = RegExp(r'KV-\d+');
 final _wordSplit = RegExp(r'[^A-Za-zÁÉÍÓÚÑÜáéíóúñü]+');
 

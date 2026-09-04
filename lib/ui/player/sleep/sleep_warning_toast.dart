@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/format.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
+import '../../../l10n/l10n.dart';
 import '../../../player/sleep/sleep_timer.dart';
 
 /// Bottom toast shown during the sleep timer's 10s warning window, over the
@@ -58,7 +59,7 @@ class _SleepWarningToastState extends ConsumerState<SleepWarningToast> {
                   Expanded(
                     child: Text.rich(
                       TextSpan(
-                        text: 'Pausando en ',
+                        text: context.l10n.playerSleepPausingInLabel,
                         style: const TextStyle(
                             color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.w600),
                         children: [
@@ -114,7 +115,7 @@ class _SleepWarningToastState extends ConsumerState<SleepWarningToast> {
                     onTap: () => n.cancel(),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                      child: Text('Desactivar',
+                      child: Text(context.l10n.playerSleepDeactivate,
                           style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.6),
                               fontWeight: FontWeight.w700,
@@ -131,7 +132,7 @@ class _SleepWarningToastState extends ConsumerState<SleepWarningToast> {
                         color: accent,
                         borderRadius: BorderRadius.circular(9),
                       ),
-                      child: Text('Extender',
+                      child: Text(context.l10n.playerSleepExtendAction,
                           style: TextStyle(
                               color: onAccent(accent),
                               fontWeight: FontWeight.w800,

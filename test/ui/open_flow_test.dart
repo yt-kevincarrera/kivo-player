@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kivo_player/player/bookmarks/bookmark_store.dart';
@@ -13,6 +12,7 @@ import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/ui/player/player_screen.dart';
 import '../fakes/fakes.dart';
+import '../helpers/pump_app.dart';
 
 void main() {
   testWidgets('opening a video with saved resume seeks engine to that position',
@@ -39,10 +39,7 @@ void main() {
     container.read(currentVideoProvider.notifier).open(
           const VideoSession(playbackPath: '/movies/ep1.mkv', displayName: 'ep1.mkv', queue: ['/movies/ep1.mkv'], index: 0),
         );
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: container,
-      child: const MaterialApp(home: PlayerScreen()),
-    ));
+    await pumpLocalized(tester, const PlayerScreen(), container: container);
     await tester.pump();
 
     expect(engine.openedPath, '/movies/ep1.mkv');

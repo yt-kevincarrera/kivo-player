@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/format.dart';
 import '../../../core/settings/settings_provider.dart';
+import '../../../l10n/l10n.dart';
 import '../../../player/loop/ab_loop.dart';
 
 /// Floating pill: tap cycles mark A → mark B → loop on → off. Long-press
@@ -73,8 +74,8 @@ class _AbLoopChipState extends ConsumerState<AbLoopChip> {
                   const SizedBox(width: 6),
                   Text(
                     switch (loop.phase) {
-                      AbLoopPhase.armedA => 'Marcar A',
-                      AbLoopPhase.armedB => 'Marcar B',
+                      AbLoopPhase.armedA => context.l10n.playerLoopMarkA,
+                      AbLoopPhase.armedB => context.l10n.playerLoopMarkB,
                       AbLoopPhase.active =>
                         '${fmtDuration(loop.a!)}–${fmtDuration(loop.b!)}',
                     },
@@ -88,7 +89,7 @@ class _AbLoopChipState extends ConsumerState<AbLoopChip> {
                   if (loop.phase == AbLoopPhase.armedB) ...[
                     const SizedBox(width: 6),
                     Text(
-                      'A ${fmtDuration(loop.a!)}',
+                      context.l10n.playerLoopPointALabel(fmtDuration(loop.a!)),
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.42),
                         fontSize: 9,
@@ -134,6 +135,9 @@ class _AdjustPopover extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // 'A'/'B' here are the loop's own point identifiers (like a variable
+          // name), not language — same call as the "Sub"/"Audio" chip labels
+          // in track_sync_hud.dart. Not translated.
           _row('A', a, onNudgeA),
           const SizedBox(height: 6),
           _row('B', b, onNudgeB),
@@ -158,6 +162,8 @@ class _AdjustPopover extends StatelessWidget {
                   color: accent, fontSize: 10, fontWeight: FontWeight.w800)),
         ),
         const SizedBox(width: 8),
+        // '−1s'/'+1s': a numeric step with a unit abbreviation, same as
+        // fmtDuration's own output — not localized (spec §2).
         _StepBtn(label: '−1s', onTap: () => onNudge(-1)),
         Expanded(
           child: Text(

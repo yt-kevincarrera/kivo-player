@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/format.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
+import '../../../l10n/l10n.dart';
 import '../../../player/bookmarks/bookmark.dart';
 import '../../../player/bookmarks/bookmarks_provider.dart';
 import '../../../player/control/player_controller.dart';
@@ -54,9 +55,9 @@ class _BookmarksSheet extends ConsumerWidget {
                 ),
               ),
             ),
-            const Text(
-              'Marcadores',
-              style: TextStyle(
+            Text(
+              context.l10n.playerBookmarksTitle,
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 15,
                 fontWeight: FontWeight.w800,
@@ -68,7 +69,7 @@ class _BookmarksSheet extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 child: Text(
-                  'Todavía no marcaste nada en este video.',
+                  context.l10n.playerBookmarksEmpty,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.5),
                     fontSize: 13,
@@ -120,12 +121,12 @@ Future<String?> promptBookmarkName(BuildContext context, {String initial = ''}) 
     return await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Nombrar marcador'),
+        title: Text(dialogContext.l10n.playerBookmarksRenameDialogTitle),
         content: TextField(controller: controller, autofocus: true),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancelar'),
+            child: Text(dialogContext.l10n.commonCancel),
           ),
           TextButton(
             onPressed: () {
@@ -133,7 +134,7 @@ Future<String?> promptBookmarkName(BuildContext context, {String initial = ''}) 
               if (trimmed.isEmpty) return;
               Navigator.pop(dialogContext, trimmed);
             },
-            child: const Text('Guardar'),
+            child: Text(dialogContext.l10n.commonSave),
           ),
         ],
       ),
@@ -179,6 +180,7 @@ void _deleteBookmark(
 ) {
   final messenger = ScaffoldMessenger.of(context);
   final notifier = ref.read(bookmarksProvider.notifier);
+  final l10n = context.l10n;
 
   notifier.removeAt(index, key: videoKey);
 
@@ -187,11 +189,13 @@ void _deleteBookmark(
     SnackBar(
       content: Text(
         bookmark.name.isEmpty
-            ? 'Marcador borrado · ${fmtDuration(Duration(milliseconds: bookmark.positionMs))}'
-            : '«${bookmark.name}» borrado',
+            ? l10n.playerBookmarksDeletedUnnamedSnackbar(
+                fmtDuration(Duration(milliseconds: bookmark.positionMs)),
+              )
+            : l10n.playerBookmarksDeletedNamedSnackbar(bookmark.name),
       ),
       action: SnackBarAction(
-        label: 'Deshacer',
+        label: l10n.commonUndo,
         onPressed: () => notifier.insert(bookmark, key: videoKey),
       ),
     ),

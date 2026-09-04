@@ -11,6 +11,7 @@ import 'package:kivo_player/player/tracks/track_prefs_store.dart';
 import 'package:kivo_player/ui/player/state/controls_visibility.dart';
 import 'package:kivo_player/ui/player/tracks/track_sync_hud.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
 
 Future<ProviderContainer> _c(FakePlaybackEngine engine) async {
   final svc = await SettingsService.load(InMemorySettingsStore());
@@ -24,12 +25,7 @@ Future<ProviderContainer> _c(FakePlaybackEngine engine) async {
 }
 
 Future<void> _pump(WidgetTester tester, ProviderContainer c) =>
-    tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: c,
-        child: const MaterialApp(home: Scaffold(body: TrackSyncHud())),
-      ),
-    );
+    pumpLocalized(tester, const Scaffold(body: TrackSyncHud()), container: c);
 
 void main() {
   testWidgets('stays out of the way until it is shown', (tester) async {
