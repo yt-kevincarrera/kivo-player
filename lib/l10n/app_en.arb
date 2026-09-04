@@ -1465,5 +1465,1059 @@
   "playerTutorialBottomBarSection": "Bottom bar",
   "@playerTutorialBottomBarSection": {
     "description": "Title of the bottom bar section, on the \"Buttons\" page of the gesture tutorial."
+  },
+
+  "settingsGeneralTitle": "General",
+  "@settingsGeneralTitle": {
+    "description": "Title of the General section in Settings; reused as its row title on the Settings root screen."
+  },
+
+  "settingsGeneralNavSubtitle": "Theme, accent color, haptics",
+  "@settingsGeneralNavSubtitle": {
+    "description": "Subtitle of the \"General\" row on the Settings root screen."
+  },
+
+  "settingsGeneralGroupAppearance": "Appearance",
+  "@settingsGeneralGroupAppearance": {
+    "description": "Group label for appearance (theme, accent color, icons, language) in Settings → General."
+  },
+
+  "settingsGeneralTheme": "Theme",
+  "@settingsGeneralTheme": {
+    "description": "Title of the theme segmented selector in Settings → General."
+  },
+
+  "settingsGeneralThemeSubtitle": "Light, dark, or match the system",
+  "@settingsGeneralThemeSubtitle": {
+    "description": "Subtitle of the theme selector in Settings → General."
+  },
+
+  "settingsGeneralThemeAuto": "Auto",
+  "@settingsGeneralThemeAuto": {
+    "description": "Theme selector option: follow the system theme."
+  },
+
+  "settingsGeneralThemeDark": "Dark",
+  "@settingsGeneralThemeDark": {
+    "description": "Theme selector option: pin dark."
+  },
+
+  "settingsGeneralThemeLight": "Light",
+  "@settingsGeneralThemeLight": {
+    "description": "Theme selector option: pin light."
+  },
+
+  "settingsGeneralAccentColor": "Accent color",
+  "@settingsGeneralAccentColor": {
+    "description": "Title of the accent color picker in Settings → General."
+  },
+
+  "settingsGeneralIcons": "Icons",
+  "@settingsGeneralIcons": {
+    "description": "Title of the icon style segmented selector in Settings → General."
+  },
+
+  "settingsGeneralIconsSubtitle": "Duotone or flat (white)",
+  "@settingsGeneralIconsSubtitle": {
+    "description": "Subtitle of the icon style selector in Settings → General."
+  },
+
+  "settingsGeneralIconsDuotone": "Duotone",
+  "@settingsGeneralIconsDuotone": {
+    "description": "Icon style selector option: duotone."
+  },
+
+  "settingsGeneralIconsFlat": "Flat",
+  "@settingsGeneralIconsFlat": {
+    "description": "Icon style selector option: flat (white)."
+  },
+
+  "settingsGeneralGroupInteraction": "Interaction",
+  "@settingsGeneralGroupInteraction": {
+    "description": "Group label for interaction (haptics) in Settings → General."
+  },
+
+  "settingsGeneralHaptics": "Haptics on gestures",
+  "@settingsGeneralHaptics": {
+    "description": "Title of the haptics-on-gestures switch in Settings → General."
+  },
+
+  "settingsGeneralHapticsSubtitle": "Subtle vibration when crossing thresholds",
+  "@settingsGeneralHapticsSubtitle": {
+    "description": "Subtitle of the haptics-on-gestures switch in Settings → General."
+  },
+
+  "settingsGroupLibrary": "Library",
+  "@settingsGroupLibrary": {
+    "description": "Group label \"Library\", shared by Settings → General (hidden folders) and Settings → Interface (columns)."
+  },
+
+  "settingsHiddenFoldersTitle": "Hidden folders",
+  "@settingsHiddenFoldersTitle": {
+    "description": "Title of the hidden folders screen, reused as its row title in Settings → General."
+  },
+
+  "settingsHiddenFoldersNavSubtitle": "Folders that don't appear in your library",
+  "@settingsHiddenFoldersNavSubtitle": {
+    "description": "Subtitle of the \"Hidden folders\" row in Settings → General."
+  },
+
+  "settingsHiddenFoldersEmpty": "You haven't hidden any folder.\nPress and hold a folder in Videos to hide it.",
+  "@settingsHiddenFoldersEmpty": {
+    "description": "Empty state of the hidden folders screen."
+  },
+
+  "settingsHiddenFoldersShowAction": "Show",
+  "@settingsHiddenFoldersShowAction": {
+    "description": "Button that unhides a hidden folder, on its row."
+  },
+
+  "settingsRootTitle": "Settings",
+  "@settingsRootTitle": {
+    "description": "AppBar title of the Settings root screen."
+  },
+
+  "settingsPlaybackGesturesTitle": "Playback and gestures",
+  "@settingsPlaybackGesturesTitle": {
+    "description": "Title of the playback-and-gestures section, reused as its row title on the Settings root screen."
+  },
+
+  "settingsPlaybackGesturesNavSubtitle": "Skips, sensitivities, speed",
+  "@settingsPlaybackGesturesNavSubtitle": {
+    "description": "Subtitle of the \"Playback and gestures\" row on the Settings root screen."
+  },
+
+  "settingsInterfaceTitle": "Interface",
+  "@settingsInterfaceTitle": {
+    "description": "Title of the interface section, reused as its row title on the Settings root screen."
+  },
+
+  "settingsInterfaceNavSubtitle": "Controls, overlay, aspect, columns",
+  "@settingsInterfaceNavSubtitle": {
+    "description": "Subtitle of the \"Interface\" row on the Settings root screen."
+  },
+
+  "settingsAdvancedPlaybackTitle": "Advanced playback",
+  "@settingsAdvancedPlaybackTitle": {
+    "description": "Title of the advanced playback section, reused as its row title on the Settings root screen."
+  },
+
+  "settingsAdvancedPlaybackNavSubtitle": "Resume, autoplay, subtitles, PiP",
+  "@settingsAdvancedPlaybackNavSubtitle": {
+    "description": "Subtitle of the \"Advanced playback\" row on the Settings root screen."
+  },
+
+  "settingsEqualizerTitle": "Equalizer",
+  "@settingsEqualizerTitle": {
+    "description": "Title of the equalizer screen, reused as its row title in Settings and as its switch title."
+  },
+
+  "settingsEqualizerNavSubtitle": "Bass, voice, treble and preamp",
+  "@settingsEqualizerNavSubtitle": {
+    "description": "Subtitle of the \"Equalizer\" row on the Settings root screen."
+  },
+
+  "settingsBackupTitle": "Backup",
+  "@settingsBackupTitle": {
+    "description": "Title of the backup screen, reused as its row title in Settings."
+  },
+
+  "settingsBackupNavSubtitle": "Export or restore your playlists, bookmarks and settings",
+  "@settingsBackupNavSubtitle": {
+    "description": "Subtitle of the \"Backup\" row on the Settings root screen."
+  },
+
+  "settingsAboutTitle": "About",
+  "@settingsAboutTitle": {
+    "description": "Title of the \"About\" screen, reused as its row title in Settings."
+  },
+
+  "settingsAboutNavSubtitle": "Version and updates",
+  "@settingsAboutNavSubtitle": {
+    "description": "Subtitle of the \"About\" row on the Settings root screen."
+  },
+
+  "settingsVaultNavSubtitle": "Hidden videos",
+  "@settingsVaultNavSubtitle": {
+    "description": "Subtitle of the \"Vault\" row on the Settings root screen."
+  },
+
+  "settingsResetAction": "Reset",
+  "@settingsResetAction": {
+    "description": "Short reset button, reused as the confirm action of the reset-all-settings dialog and as the equalizer curve reset action."
+  },
+
+  "settingsResetAllTitle": "Reset values",
+  "@settingsResetAllTitle": {
+    "description": "Title of the confirmation dialog and text of the button that resets every setting to its default."
+  },
+
+  "settingsResetAllBody": "Reset every setting to its default value?",
+  "@settingsResetAllBody": {
+    "description": "Body of the reset-all-settings confirmation dialog."
+  },
+
+  "settingsAboutDownloading": "Downloading the update",
+  "@settingsAboutDownloading": {
+    "description": "Title of the row shown while the update downloads, in Settings → About."
+  },
+
+  "settingsAboutDownloadingSubtitleWithVersion": "Kivo {version} · tap to see the progress",
+  "@settingsAboutDownloadingSubtitleWithVersion": {
+    "description": "Subtitle of the in-progress download row when the version is known.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+
+  "settingsAboutDownloadingSubtitleNoVersion": "Tap to see the progress",
+  "@settingsAboutDownloadingSubtitleNoVersion": {
+    "description": "Subtitle of the in-progress download row when the version is not known yet."
+  },
+
+  "settingsAboutReady": "Update ready to install",
+  "@settingsAboutReady": {
+    "description": "Title of the row shown once the update finished downloading, in Settings → About."
+  },
+
+  "settingsAboutReadySubtitleWithVersion": "Kivo {version} · tap to install it",
+  "@settingsAboutReadySubtitleWithVersion": {
+    "description": "Subtitle of the ready-to-install row when the version is known.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+
+  "settingsAboutReadySubtitleNoVersion": "Tap to install it",
+  "@settingsAboutReadySubtitleNoVersion": {
+    "description": "Subtitle of the ready-to-install row when the version is not known yet."
+  },
+
+  "settingsAboutCheckForUpdates": "Check for updates",
+  "@settingsAboutCheckForUpdates": {
+    "description": "Row that triggers the manual update check, in Settings → About."
+  },
+
+  "settingsAboutUpToDateSnackbar": "You're up to date ✓",
+  "@settingsAboutUpToDateSnackbar": {
+    "description": "Snackbar shown after a manual check finds no update."
+  },
+
+  "settingsAboutVersion": "Version {version}",
+  "@settingsAboutVersion": {
+    "description": "Version number shown under the app name, in Settings → About.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+
+  "settingsAboutTagline": "Local video player",
+  "@settingsAboutTagline": {
+    "description": "Short app description, in Settings → About."
+  },
+
+  "settingsAboutByAuthor": "By Kevin Carrera",
+  "@settingsAboutByAuthor": {
+    "description": "Author credit, in Settings → About."
+  },
+
+  "settingsAboutErrorLogTitle": "Error log",
+  "@settingsAboutErrorLogTitle": {
+    "description": "Title of the error log screen, reused as its row title in Settings → About."
+  },
+
+  "settingsAboutErrorLogSubtitle": "The latest failures, with their technical detail",
+  "@settingsAboutErrorLogSubtitle": {
+    "description": "Subtitle of the \"Error log\" row in Settings → About."
+  },
+
+  "settingsAboutAutoCheck": "Check automatically",
+  "@settingsAboutAutoCheck": {
+    "description": "Title of the automatic-check switch, in Settings → About."
+  },
+
+  "settingsAboutAutoCheckSubtitle": "Checks on open, at most once a day",
+  "@settingsAboutAutoCheckSubtitle": {
+    "description": "Subtitle of the automatic-check switch, in Settings → About."
+  },
+
+  "settingsAdvancedAutomaticOption": "Automatic",
+  "@settingsAdvancedAutomaticOption": {
+    "description": "Option \"automatic\", reused by the resume mode and by the subtitle/audio language selectors."
+  },
+
+  "settingsAdvancedLangChosen": "{lang} (chosen)",
+  "@settingsAdvancedLangChosen": {
+    "description": "The already-chosen language option in the subtitle/audio language selectors, naming the chosen code.",
+    "placeholders": {
+      "lang": {
+        "type": "String"
+      }
+    }
+  },
+
+  "settingsAdvancedGroupContinueWatching": "Continue watching",
+  "@settingsAdvancedGroupContinueWatching": {
+    "description": "Group label for resume, in Settings → Advanced playback."
+  },
+
+  "settingsAdvancedResumeBehavior": "When reopening a video",
+  "@settingsAdvancedResumeBehavior": {
+    "description": "Title of the resume-behavior selector, in Settings → Advanced playback."
+  },
+
+  "settingsAdvancedResumeAsk": "Ask",
+  "@settingsAdvancedResumeAsk": {
+    "description": "Resume selector option: always ask."
+  },
+
+  "settingsAdvancedResumeOff": "Off",
+  "@settingsAdvancedResumeOff": {
+    "description": "Resume selector option: off."
+  },
+
+  "settingsAdvancedResumeMinSeconds": "Minimum to remember position",
+  "@settingsAdvancedResumeMinSeconds": {
+    "description": "Title of the minimum-seconds-to-remember-position stepper, in Settings → Advanced playback."
+  },
+
+  "settingsAdvancedGroupPlayback": "Playback",
+  "@settingsAdvancedGroupPlayback": {
+    "description": "Group label for playback, in Settings → Advanced playback."
+  },
+
+  "settingsAdvancedAutoplayNext": "Play the next one automatically",
+  "@settingsAdvancedAutoplayNext": {
+    "description": "Title of the autoplay switch, in Settings → Advanced playback."
+  },
+
+  "settingsAdvancedPipAutoOnHome": "Floating thumbnail (PiP) when leaving to home",
+  "@settingsAdvancedPipAutoOnHome": {
+    "description": "Title of the auto-PiP-on-leaving-to-library switch, in Settings → Advanced playback."
+  },
+
+  "settingsAdvancedMinimizeKeepsPlaying": "Keep playing when minimized",
+  "@settingsAdvancedMinimizeKeepsPlaying": {
+    "description": "Title of the keep-playing-when-minimized switch, in Settings → Advanced playback."
+  },
+
+  "settingsAdvancedMinimizeKeepsPlayingSubtitle": "Audio keeps going in the bottom bar instead of pausing",
+  "@settingsAdvancedMinimizeKeepsPlayingSubtitle": {
+    "description": "Subtitle of the keep-playing-when-minimized switch."
+  },
+
+  "settingsAdvancedGroupSubtitlesAudio": "Subtitles and audio",
+  "@settingsAdvancedGroupSubtitlesAudio": {
+    "description": "Group label for subtitles and audio, in Settings → Advanced playback."
+  },
+
+  "settingsAdvancedSubtitlesDefault": "Enable subtitles by default",
+  "@settingsAdvancedSubtitlesDefault": {
+    "description": "Title of the subtitles-enabled-by-default switch, in Settings → Advanced playback."
+  },
+
+  "settingsAdvancedPreferredSubtitleLang": "Preferred subtitle language",
+  "@settingsAdvancedPreferredSubtitleLang": {
+    "description": "Title of the preferred subtitle language selector, in Settings → Advanced playback."
+  },
+
+  "settingsAdvancedPreferredLangSubtitle": "Set when you choose a track; here you can go back to Automatic",
+  "@settingsAdvancedPreferredLangSubtitle": {
+    "description": "Subtitle shared by the preferred-subtitle and preferred-audio language selectors."
+  },
+
+  "settingsAdvancedPreferredAudioLang": "Preferred audio language",
+  "@settingsAdvancedPreferredAudioLang": {
+    "description": "Title of the preferred audio language selector, in Settings → Advanced playback."
+  },
+
+  "settingsAdvancedGroupStorage": "Storage",
+  "@settingsAdvancedGroupStorage": {
+    "description": "Group label for storage, in Settings → Advanced playback."
+  },
+
+  "settingsAdvancedAllFilesAccess": "Access to all files",
+  "@settingsAdvancedAllFilesAccess": {
+    "description": "Title of the all-files-access row, in Settings → Advanced playback."
+  },
+
+  "settingsAdvancedAllFilesAccessGranted": "Granted",
+  "@settingsAdvancedAllFilesAccessGranted": {
+    "description": "Subtitle of the all-files-access row once it is already granted."
+  },
+
+  "settingsAdvancedAllFilesAccessPrompt": "Tap to delete and rename without confirmation",
+  "@settingsAdvancedAllFilesAccessPrompt": {
+    "description": "Subtitle of the all-files-access row while it is not granted yet."
+  },
+
+  "settingsGesturesGroupLearn": "Learn",
+  "@settingsGesturesGroupLearn": {
+    "description": "Group label for learning, in Settings → Playback and gestures."
+  },
+
+  "settingsGesturesViewMap": "View the gesture map",
+  "@settingsGesturesViewMap": {
+    "description": "Row that opens the gesture tutorial, in Settings → Playback and gestures."
+  },
+
+  "settingsGesturesViewMapSubtitle": "Taps, drags and the player's buttons",
+  "@settingsGesturesViewMapSubtitle": {
+    "description": "Subtitle of the \"View the gesture map\" row."
+  },
+
+  "settingsGesturesGroupDoubleTap": "Double tap",
+  "@settingsGesturesGroupDoubleTap": {
+    "description": "Group label for double tap, in Settings → Playback and gestures."
+  },
+
+  "settingsGesturesSkipBack": "Skip back",
+  "@settingsGesturesSkipBack": {
+    "description": "Title of the skip-back-by-double-tap stepper."
+  },
+
+  "settingsGesturesSkipForward": "Skip forward",
+  "@settingsGesturesSkipForward": {
+    "description": "Title of the skip-forward-by-double-tap stepper."
+  },
+
+  "settingsGesturesDoubleTapPause": "Pause with a double tap in the center",
+  "@settingsGesturesDoubleTapPause": {
+    "description": "Title of the pause-on-center-double-tap switch."
+  },
+
+  "settingsGesturesGroupSeek": "Skip and seek",
+  "@settingsGesturesGroupSeek": {
+    "description": "Group label for skip and seek, in Settings → Playback and gestures."
+  },
+
+  "settingsGesturesCenterSkip": "Skip of the ± buttons",
+  "@settingsGesturesCenterSkip": {
+    "description": "Title of the center ± buttons skip stepper."
+  },
+
+  "settingsGesturesHorizontalSeek": "Seek by dragging horizontally",
+  "@settingsGesturesHorizontalSeek": {
+    "description": "Title of the seek-by-horizontal-drag switch."
+  },
+
+  "settingsGesturesGroupZoom": "Zoom",
+  "@settingsGesturesGroupZoom": {
+    "description": "Group label for zoom, in Settings → Playback and gestures."
+  },
+
+  "settingsGesturesPinchZoom": "Pinch to zoom",
+  "@settingsGesturesPinchZoom": {
+    "description": "Title of the pinch-to-zoom switch."
+  },
+
+  "settingsGesturesPinchZoomSubtitle": "Pinch to zoom in and drag to pan",
+  "@settingsGesturesPinchZoomSubtitle": {
+    "description": "Subtitle of the pinch-to-zoom switch."
+  },
+
+  "settingsGesturesZoomMax": "Maximum zoom",
+  "@settingsGesturesZoomMax": {
+    "description": "Title of the maximum-zoom segmented selector."
+  },
+
+  "settingsGesturesZoomReset": "Reset zoom",
+  "@settingsGesturesZoomReset": {
+    "description": "Title of the when-zoom-resets segmented selector."
+  },
+
+  "settingsGesturesZoomResetSubtitle": "When it goes back to 1× on its own",
+  "@settingsGesturesZoomResetSubtitle": {
+    "description": "Subtitle of the zoom-reset selector."
+  },
+
+  "settingsGesturesZoomResetExit": "On exit",
+  "@settingsGesturesZoomResetExit": {
+    "description": "Zoom-reset selector option: on leaving the video."
+  },
+
+  "settingsGesturesZoomResetVideo": "Every video",
+  "@settingsGesturesZoomResetVideo": {
+    "description": "Zoom-reset selector option: on every new video."
+  },
+
+  "settingsGesturesZoomResetNever": "Never",
+  "@settingsGesturesZoomResetNever": {
+    "description": "Zoom-reset selector option: never automatically."
+  },
+
+  "settingsGesturesGroupSensitivity": "Gesture sensitivity",
+  "@settingsGesturesGroupSensitivity": {
+    "description": "Group label for sensitivity, in Settings → Playback and gestures."
+  },
+
+  "settingsGesturesBrightness": "Brightness",
+  "@settingsGesturesBrightness": {
+    "description": "Title of the brightness sensitivity slider."
+  },
+
+  "settingsGesturesVolume": "Volume",
+  "@settingsGesturesVolume": {
+    "description": "Title of the volume sensitivity slider."
+  },
+
+  "settingsGesturesSeek": "Seek",
+  "@settingsGesturesSeek": {
+    "description": "Title of the seek sensitivity slider."
+  },
+
+  "settingsGesturesVolumeBoostMax": "Maximum volume boost",
+  "@settingsGesturesVolumeBoostMax": {
+    "description": "Title of the maximum volume boost stepper."
+  },
+
+  "settingsGesturesGroupSpeed": "Speed",
+  "@settingsGesturesGroupSpeed": {
+    "description": "Group label for speed, in Settings → Playback and gestures."
+  },
+
+  "settingsGesturesRememberSpeed": "Remember speed between videos",
+  "@settingsGesturesRememberSpeed": {
+    "description": "Title of the remember-speed switch."
+  },
+
+  "settingsGesturesHoldLeftSpeed": "Speed when holding (left)",
+  "@settingsGesturesHoldLeftSpeed": {
+    "description": "Title of the hold-left speed slider."
+  },
+
+  "settingsGesturesHoldRightMax": "Maximum speed",
+  "@settingsGesturesHoldRightMax": {
+    "description": "Title of the hold-right maximum speed slider."
+  },
+
+  "settingsGesturesHoldRightRelease": "When releasing the accelerator, go back to the previous speed",
+  "@settingsGesturesHoldRightRelease": {
+    "description": "Title of the revert-to-previous-speed-on-release switch."
+  },
+
+  "settingsGesturesSpeedFineStep": "Fine speed step",
+  "@settingsGesturesSpeedFineStep": {
+    "description": "Title of the fine-speed-step segmented selector."
+  },
+
+  "settingsGesturesSpeedPresets": "Preset speeds",
+  "@settingsGesturesSpeedPresets": {
+    "description": "Title of the editable preset-speeds list."
+  },
+
+  "settingsGesturesSpeedPresetsSubtitle": "The ones shown in the speed panel",
+  "@settingsGesturesSpeedPresetsSubtitle": {
+    "description": "Subtitle of the preset-speeds list."
+  },
+
+  "settingsGesturesHoldRightDetents": "Accelerator steps (right hold)",
+  "@settingsGesturesHoldRightDetents": {
+    "description": "Title of the editable accelerator-steps list."
+  },
+
+  "settingsGesturesHoldRightDetentsSubtitle": "The speed ladder when holding on the right",
+  "@settingsGesturesHoldRightDetentsSubtitle": {
+    "description": "Subtitle of the accelerator-steps list."
+  },
+
+  "settingsInterfaceGroupControls": "Controls",
+  "@settingsInterfaceGroupControls": {
+    "description": "Group label for controls, in Settings → Interface."
+  },
+
+  "settingsInterfaceAutoHide": "Auto-hide controls",
+  "@settingsInterfaceAutoHide": {
+    "description": "Title of the controls-auto-hide-time stepper."
+  },
+
+  "settingsInterfaceRememberOrientation": "Remember orientation between videos",
+  "@settingsInterfaceRememberOrientation": {
+    "description": "Title of the remember-orientation-lock switch."
+  },
+
+  "settingsInterfaceGroupVideo": "Video",
+  "@settingsInterfaceGroupVideo": {
+    "description": "Group label for video, in Settings → Interface."
+  },
+
+  "settingsInterfaceDefaultAspect": "Default aspect",
+  "@settingsInterfaceDefaultAspect": {
+    "description": "Title of the default-aspect-ratio segmented selector."
+  },
+
+  "settingsInterfaceAspectFit": "Fit",
+  "@settingsInterfaceAspectFit": {
+    "description": "Default aspect selector option: fit inside the frame."
+  },
+
+  "settingsInterfaceAspectFill": "Fill",
+  "@settingsInterfaceAspectFill": {
+    "description": "Default aspect selector option: fill the screen."
+  },
+
+  "settingsInterfaceAspectStretch": "Stretch",
+  "@settingsInterfaceAspectStretch": {
+    "description": "Default aspect selector option: stretch."
+  },
+
+  "settingsInterfaceGroupOverlay": "Info overlay",
+  "@settingsInterfaceGroupOverlay": {
+    "description": "Group label for the info overlay, in Settings → Interface."
+  },
+
+  "settingsInterfaceShowOverlay": "Show info overlay",
+  "@settingsInterfaceShowOverlay": {
+    "description": "Title of the show-info-overlay switch."
+  },
+
+  "settingsInterfaceOverlayContent": "Content",
+  "@settingsInterfaceOverlayContent": {
+    "description": "Title of the info-overlay content selector."
+  },
+
+  "settingsInterfaceOverlayContentNameTime": "Name and time",
+  "@settingsInterfaceOverlayContentNameTime": {
+    "description": "Info overlay content selector option: name and time."
+  },
+
+  "settingsInterfaceOverlayContentNameOnly": "Name only",
+  "@settingsInterfaceOverlayContentNameOnly": {
+    "description": "Info overlay content selector option: name only."
+  },
+
+  "settingsInterfaceOverlayContentRemaining": "Remaining time",
+  "@settingsInterfaceOverlayContentRemaining": {
+    "description": "Info overlay content selector option: remaining time."
+  },
+
+  "settingsInterfaceOverlayCorner": "Corner",
+  "@settingsInterfaceOverlayCorner": {
+    "description": "Title of the info-overlay corner picker."
+  },
+
+  "settingsInterfaceColumns": "Default columns",
+  "@settingsInterfaceColumns": {
+    "description": "Title of the default-library-columns segmented selector."
+  },
+
+  "settingsEqSwitchSubtitle": "Applies the bass, voice and treble curve to the audio",
+  "@settingsEqSwitchSubtitle": {
+    "description": "Subtitle of the enable-equalizer switch."
+  },
+
+  "settingsEqGroupPresets": "Presets",
+  "@settingsEqGroupPresets": {
+    "description": "Group label for presets, in Settings → Equalizer."
+  },
+
+  "settingsEqPresetFlat": "Flat",
+  "@settingsEqPresetFlat": {
+    "description": "Name of the \"Flat\" equalizer preset: every band at 0 dB."
+  },
+
+  "settingsEqPresetBass": "Bass",
+  "@settingsEqPresetBass": {
+    "description": "Name of the \"Bass\" equalizer preset: low-frequency boost."
+  },
+
+  "settingsEqPresetVoice": "Voice",
+  "@settingsEqPresetVoice": {
+    "description": "Name of the \"Voice\" equalizer preset: boost centered on dialogue."
+  },
+
+  "settingsEqPresetTreble": "Treble",
+  "@settingsEqPresetTreble": {
+    "description": "Name of the \"Treble\" equalizer preset: high-frequency boost."
+  },
+
+  "settingsEqPresetCustom": "Custom",
+  "@settingsEqPresetCustom": {
+    "description": "Name shown when the equalizer curve does not match any preset."
+  },
+
+  "settingsEqGroupBands": "Bands",
+  "@settingsEqGroupBands": {
+    "description": "Group label for bands, in Settings → Equalizer."
+  },
+
+  "settingsEqGroupPreamp": "Preamp",
+  "@settingsEqGroupPreamp": {
+    "description": "Group label for preamp, in Settings → Equalizer."
+  },
+
+  "settingsEqPreampGain": "Overall gain",
+  "@settingsEqPreampGain": {
+    "description": "Title of the overall preamp gain slider."
+  },
+
+  "settingsBackupExport": "Export backup",
+  "@settingsBackupExport": {
+    "description": "Title of the export-backup row."
+  },
+
+  "settingsBackupExportSubtitle": "Saves your playlists, bookmarks and settings to a file",
+  "@settingsBackupExportSubtitle": {
+    "description": "Subtitle of the export-backup row."
+  },
+
+  "settingsBackupRestoreTitle": "Restore backup",
+  "@settingsBackupRestoreTitle": {
+    "description": "Title of the restore-backup row and dialog."
+  },
+
+  "settingsBackupRestoreSubtitle": "Adds whatever is in a backup file saved before",
+  "@settingsBackupRestoreSubtitle": {
+    "description": "Subtitle of the restore-backup row."
+  },
+
+  "settingsBackupExportSavedSnackbar": "Backup saved",
+  "@settingsBackupExportSavedSnackbar": {
+    "description": "Snackbar shown after the exported backup is saved."
+  },
+
+  "settingsBackupExportCancelledSnackbar": "Cancelled",
+  "@settingsBackupExportCancelledSnackbar": {
+    "description": "Snackbar shown when the save-exported-backup dialog is cancelled."
+  },
+
+  "settingsBackupReadFileFailedSnackbar": "Couldn't read the file",
+  "@settingsBackupReadFileFailedSnackbar": {
+    "description": "Snackbar shown when the file chosen to restore can't be read."
+  },
+
+  "settingsBackupRestoreConfirmAction": "Restore",
+  "@settingsBackupRestoreConfirmAction": {
+    "description": "Confirm button of the restore-backup dialog."
+  },
+
+  "settingsBackupRestoredSnackbar": "Backup restored",
+  "@settingsBackupRestoredSnackbar": {
+    "description": "Snackbar shown after the backup restore is applied."
+  },
+
+  "settingsBackupReadFailedDialogTitle": "Couldn't read the backup",
+  "@settingsBackupReadFailedDialogTitle": {
+    "description": "Title of the error dialog when a backup file can't be read."
+  },
+
+  "settingsBackupRestoreItemPlaylists": "{count, plural, =1{1 playlist} other{{count} playlists}}",
+  "@settingsBackupRestoreItemPlaylists": {
+    "description": "Count of playlists that would be added on restore, inside the confirmation dialog sentence.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsBackupRestoreItemBookmarks": "{count, plural, =1{1 bookmark} other{{count} bookmarks}}",
+  "@settingsBackupRestoreItemBookmarks": {
+    "description": "Count of bookmarks that would be added on restore, inside the confirmation dialog sentence.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsBackupRestoreItemPositions": "{count, plural, =1{1 position} other{{count} positions}}",
+  "@settingsBackupRestoreItemPositions": {
+    "description": "Count of resume positions that would be added or updated on restore.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsBackupRestoreItemWatchedVideos": "{count, plural, =1{1 watched video} other{{count} watched videos}}",
+  "@settingsBackupRestoreItemWatchedVideos": {
+    "description": "Count of watched videos that would be added on restore.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsBackupRestoreItemHiddenVideos": "{count, plural, =1{1 hidden video} other{{count} hidden videos}}",
+  "@settingsBackupRestoreItemHiddenVideos": {
+    "description": "Count of Vault videos that would be added on restore.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsBackupRestoreItemTrackSettings": "{count, plural, =1{1 track setting} other{{count} track settings}}",
+  "@settingsBackupRestoreItemTrackSettings": {
+    "description": "Count of track settings (sync, chosen subtitle) that would be added or updated on restore.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsBackupRestoreJoinWord": "and",
+  "@settingsBackupRestoreJoinWord": {
+    "description": "Joining word before the last item in the restore dialog sentence, e.g. \"3 playlists and 2 bookmarks\"."
+  },
+
+  "settingsBackupRestoreWillAdd": "{items} will be added.",
+  "@settingsBackupRestoreWillAdd": {
+    "description": "Main sentence of the restore dialog, with the item list already joined.",
+    "placeholders": {
+      "items": {
+        "type": "String"
+      }
+    }
+  },
+
+  "settingsBackupRestoreNothingNew": "There's nothing new to add.",
+  "@settingsBackupRestoreNothingNew": {
+    "description": "Restore dialog sentence when the backup would bring no change at all."
+  },
+
+  "settingsBackupRestoreSettingsReplace": "Settings will be replaced.",
+  "@settingsBackupRestoreSettingsReplace": {
+    "description": "Sentence appended to the restore dialog when the backup also carries settings."
+  },
+
+  "settingsErrorLogCopyAllTooltip": "Copy all",
+  "@settingsErrorLogCopyAllTooltip": {
+    "description": "Tooltip of the button that copies the whole error log to the clipboard."
+  },
+
+  "settingsErrorLogClearTooltip": "Clear log",
+  "@settingsErrorLogClearTooltip": {
+    "description": "Tooltip of the button that clears the error log."
+  },
+
+  "settingsErrorLogCopiedSnackbar": "Log copied",
+  "@settingsErrorLogCopiedSnackbar": {
+    "description": "Snackbar shown after the error log is copied to the clipboard."
+  },
+
+  "settingsErrorLogEmpty": "No errors logged",
+  "@settingsErrorLogEmpty": {
+    "description": "Empty state of the error log screen."
+  },
+
+  "settingsErrorLogAgeJustNow": "just now",
+  "@settingsErrorLogAgeJustNow": {
+    "description": "Age of an error log entry, under one minute."
+  },
+
+  "settingsErrorLogAgeMinutes": "{count} min ago",
+  "@settingsErrorLogAgeMinutes": {
+    "description": "Age of an error log entry, in minutes.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsErrorLogAgeHours": "{count} h ago",
+  "@settingsErrorLogAgeHours": {
+    "description": "Age of an error log entry, in hours.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsErrorLogAgeDays": "{count} d ago",
+  "@settingsErrorLogAgeDays": {
+    "description": "Age of an error log entry, in days.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsErrorLogDetailLine": "Kivo {version} · Android API {sdk}",
+  "@settingsErrorLogDetailLine": {
+    "description": "Technical line \"Kivo {version} · Android API {sdk}\", reused in an error log entry's expanded detail and in the text copied to the clipboard.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "sdk": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsColorPickerTitle": "Custom",
+  "@settingsColorPickerTitle": {
+    "description": "Header of the custom HSV color picker sheet."
+  },
+
+  "settingsColorPickerHue": "Hue",
+  "@settingsColorPickerHue": {
+    "description": "Label of the hue channel, in the custom color sheet."
+  },
+
+  "settingsColorPickerSaturation": "Saturation",
+  "@settingsColorPickerSaturation": {
+    "description": "Label of the saturation channel, in the custom color sheet."
+  },
+
+  "settingsColorPickerBrightness": "Brightness",
+  "@settingsColorPickerBrightness": {
+    "description": "Label of the brightness (HSV value) channel, in the custom color sheet."
+  },
+
+  "settingsColorPickerApplyAction": "Apply",
+  "@settingsColorPickerApplyAction": {
+    "description": "Button that confirms the chosen color, in the custom color sheet."
+  },
+
+  "settingsSpeedAddDialogTitle": "Add speed",
+  "@settingsSpeedAddDialogTitle": {
+    "description": "Header of the sheet to add a new speed to a speed list."
+  },
+
+  "settingsSpeedAddAction": "Add",
+  "@settingsSpeedAddAction": {
+    "description": "Button that confirms the chosen speed, in the add-speed sheet."
+  },
+
+  "commonClose": "Close",
+  "@commonClose": {
+    "description": "Generic close button in dialogs."
+  },
+
+  "updateGenericTitle": "Update",
+  "@updateGenericTitle": {
+    "description": "Title of the update dialog while the version is not known yet."
+  },
+
+  "updateTitleWithVersion": "New version {version}",
+  "@updateTitleWithVersion": {
+    "description": "Title of the update dialog, naming the available version.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+
+  "updateNoActiveDownload": "There's no download in progress anymore.",
+  "@updateNoActiveDownload": {
+    "description": "Body of the update dialog when reopened over a download that no longer exists."
+  },
+
+  "updateNoNotesAvailable": "A newer version is available.",
+  "@updateNoNotesAvailable": {
+    "description": "Body of the update dialog when the release notes come back empty."
+  },
+
+  "updateCanLeaveHint": "You can leave Kivo: the download keeps going.",
+  "@updateCanLeaveHint": {
+    "description": "Hint under the progress bar while the update downloads."
+  },
+
+  "updateReadyCaption": "Ready to install",
+  "@updateReadyCaption": {
+    "description": "Status text of the update dialog once the download is finished."
+  },
+
+  "updateReadyHint": "Tap Install to continue.",
+  "@updateReadyHint": {
+    "description": "Hint under the \"Ready to install\" status."
+  },
+
+  "updateFailedMessage": "{message} ({code}).\nYou can retry or download it from the browser.",
+  "@updateFailedMessage": {
+    "description": "Body of the update dialog when the download or install failed; {message} and {code} come from the KV-nnn error catalog.",
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+
+  "updateSkipVersionAction": "Skip this version",
+  "@updateSkipVersionAction": {
+    "description": "Button that skips the offered version, in the update dialog."
+  },
+
+  "updateOpenInBrowserAction": "Open in browser",
+  "@updateOpenInBrowserAction": {
+    "description": "Button that opens the update page in the browser."
+  },
+
+  "updateDownloadAction": "Download",
+  "@updateDownloadAction": {
+    "description": "Button that starts downloading the update."
+  },
+
+  "updateHideAction": "Hide",
+  "@updateHideAction": {
+    "description": "Button that closes the dialog without cancelling the ongoing download."
+  },
+
+  "updateInstallAction": "Install",
+  "@updateInstallAction": {
+    "description": "Button that installs the already-downloaded update."
+  },
+
+  "updateDiscardReadyAction": "Dismiss",
+  "@updateDiscardReadyAction": {
+    "description": "Button that discards an already-downloaded update and frees the download slot."
+  },
+
+  "updateRetryAction": "Retry",
+  "@updateRetryAction": {
+    "description": "Button that retries a failed download or install."
+  },
+
+  "updateInstallNeedsPermissionSnackbar": "Allow installing apps to continue, then tap Install.",
+  "@updateInstallNeedsPermissionSnackbar": {
+    "description": "Snackbar shown when the install-apps permission is missing."
+  },
+
+  "updateStatusQueued": "Queued…",
+  "@updateStatusQueued": {
+    "description": "Download status text while it is queued."
+  },
+
+  "updateStatusPausedNetwork": "Paused · waiting for connection",
+  "@updateStatusPausedNetwork": {
+    "description": "Download status text while paused for lack of network."
+  },
+
+  "updateStatusPausedRetry": "Paused · retrying",
+  "@updateStatusPausedRetry": {
+    "description": "Download status text while paused and retrying."
+  },
+
+  "updateStatusSizePercent": "{size} · {percent}%",
+  "@updateStatusSizePercent": {
+    "description": "Status text of an in-progress download: already-formatted size and percentage.",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
   }
 }

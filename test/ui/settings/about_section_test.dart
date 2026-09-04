@@ -8,6 +8,9 @@ import 'package:kivo_player/platform/app_installer_provider.dart';
 import 'package:kivo_player/platform/interfaces/app_installer.dart';
 import 'package:kivo_player/ui/settings/sections/about_section.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 void main() {
   testWidgets('shows the real version and the manual check → up to date', (tester) async {
@@ -19,11 +22,10 @@ void main() {
     ]);
     addTearDown(c.dispose);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-        container: c, child: const MaterialApp(home: AboutSection())));
+    await pumpLocalized(tester, const AboutSection(), container: c);
     await tester.pumpAndSettle();
-    expect(find.text('Versión 1.2.3'), findsOneWidget);
-    expect(find.text('Buscar actualizaciones'), findsOneWidget);
+    expect(find.text(_l10n.settingsAboutVersion('1.2.3')), findsOneWidget);
+    expect(find.text(_l10n.settingsAboutCheckForUpdates), findsOneWidget);
   });
 
   testWidgets('toggle flips autoCheckUpdates', (tester) async {
@@ -34,8 +36,7 @@ void main() {
       updateCheckerProvider.overrideWithValue(FakeUpdateChecker()),
     ]);
     addTearDown(c.dispose);
-    await tester.pumpWidget(UncontrolledProviderScope(
-        container: c, child: const MaterialApp(home: AboutSection())));
+    await pumpLocalized(tester, const AboutSection(), container: c);
     await tester.pumpAndSettle();
     expect(c.read(settingsProvider).autoCheckUpdates, true);
     await tester.tap(find.byType(Switch));
@@ -59,11 +60,10 @@ void main() {
     ]);
     addTearDown(c.dispose);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-        container: c, child: const MaterialApp(home: AboutSection())));
+    await pumpLocalized(tester, const AboutSection(), container: c);
     await tester.pumpAndSettle();
 
-    expect(find.text('Actualización lista para instalar'), findsOneWidget);
-    expect(find.text('Buscar actualizaciones'), findsOneWidget);
+    expect(find.text(_l10n.settingsAboutReady), findsOneWidget);
+    expect(find.text(_l10n.settingsAboutCheckForUpdates), findsOneWidget);
   });
 }

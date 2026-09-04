@@ -314,7 +314,7 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                             icon: Icons.equalizer_rounded,
                             iconColor: eq.enabled ? accent : Colors.white70,
                             title: l10n.playerMenuEqualizer,
-                            subtitle: presetNameFor(eq),
+                            subtitle: eqPresetLabel(l10n, presetFor(eq)),
                             onTap: () {
                               Navigator.of(context, rootNavigator: true).push(
                                 MaterialPageRoute(

@@ -6,15 +6,15 @@ import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/core/theme/kivo_theme.dart';
 import 'package:kivo_player/ui/settings/sections/interface_section.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 Future<ProviderContainer> _pump(WidgetTester t) async {
   final s = await SettingsService.load(InMemorySettingsStore());
   final c = ProviderContainer(overrides: [settingsServiceProvider.overrideWithValue(s)]);
   addTearDown(c.dispose);
-  await t.pumpWidget(UncontrolledProviderScope(
-    container: c,
-    child: MaterialApp(theme: KivoTheme.dark(), home: const InterfaceSettingsSection()),
-  ));
+  await pumpLocalized(t, const InterfaceSettingsSection(), container: c, theme: KivoTheme.dark());
   await t.pump();
   return c;
 }
@@ -22,7 +22,7 @@ Future<ProviderContainer> _pump(WidgetTester t) async {
 void main() {
   testWidgets('aspect segmented persists defaultAspectMode', (t) async {
     final c = await _pump(t);
-    await t.tap(find.text('Llenar'));
+    await t.tap(find.text(_l10n.settingsInterfaceAspectFill));
     await t.pump();
     expect(c.read(settingsProvider).defaultAspectMode, 'fill');
   });
@@ -30,18 +30,18 @@ void main() {
   testWidgets('info-overlay content/corner hide when the overlay is off', (t) async {
     final c = await _pump(t);
     // Default showInfoOverlay is true → the content choice is present.
-    expect(find.text('Contenido'), findsOneWidget);
+    expect(find.text(_l10n.settingsInterfaceOverlayContent), findsOneWidget);
     // Turn the overlay off (its switch) → content/corner disappear.
-    final showRow = find.ancestor(of: find.text('Mostrar overlay de info'), matching: find.byType(Row)).first;
+    final showRow = find.ancestor(of: find.text(_l10n.settingsInterfaceShowOverlay), matching: find.byType(Row)).first;
     await t.tap(find.descendant(of: showRow, matching: find.byType(Switch)));
     await t.pump();
     expect(c.read(settingsProvider).showInfoOverlay, isFalse);
-    expect(find.text('Contenido'), findsNothing);
+    expect(find.text(_l10n.settingsInterfaceOverlayContent), findsNothing);
   });
 
   testWidgets('choosing a content mode persists infoOverlayContent', (t) async {
     final c = await _pump(t);
-    await t.tap(find.text('Solo nombre'));
+    await t.tap(find.text(_l10n.settingsInterfaceOverlayContentNameOnly));
     await t.pump();
     expect(c.read(settingsProvider).infoOverlayContent, 'name');
   });

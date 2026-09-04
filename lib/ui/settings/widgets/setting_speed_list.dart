@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/l10n.dart';
 import '../../../player/control/gesture_math.dart';
 
 /// Edits a list of playback speeds as removable chips plus an "add" sheet.
@@ -126,7 +127,7 @@ class _AddSpeedSheetState extends State<_AddSpeedSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Center(child: Text('Añadir velocidad',
+            Center(child: Text(context.l10n.settingsSpeedAddDialogTitle,
                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: cs.onSurface))),
             const SizedBox(height: 12),
             Center(child: Text('${SettingSpeedList.fmt(_v)}×',
@@ -138,12 +139,12 @@ class _AddSpeedSheetState extends State<_AddSpeedSheet> {
             ),
             Row(children: [
               Expanded(child: TextButton(
-                onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar'))),
+                onPressed: () => Navigator.of(context).pop(), child: Text(context.l10n.commonCancel))),
               const SizedBox(width: 8),
               Expanded(child: FilledButton(
                 style: FilledButton.styleFrom(backgroundColor: cs.secondary, foregroundColor: cs.onSecondary),
                 onPressed: () => Navigator.of(context).pop(_v),
-                child: const Text('Añadir'))),
+                child: Text(context.l10n.settingsSpeedAddAction))),
             ]),
           ],
         ),

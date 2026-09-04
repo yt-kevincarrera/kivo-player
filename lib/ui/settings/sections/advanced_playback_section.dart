@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
+import '../../../l10n/l10n.dart';
 import '../../../platform/all_files_access_provider.dart';
 import '../widgets/setting_tiles.dart';
 import '../widgets/setting_choice.dart';
@@ -12,71 +13,76 @@ class AdvancedPlaybackSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(settingsProvider);
     final n = ref.read(settingsProvider.notifier);
+    final l10n = context.l10n;
 
     List<(String?, String)> langOptions(String? current) => [
-          (null, 'Automático'),
-          if (current != null) (current, '$current (elegido)'),
+          (null, l10n.settingsAdvancedAutomaticOption),
+          if (current != null) (current, l10n.settingsAdvancedLangChosen(current)),
         ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Reproducción avanzada')),
+      appBar: AppBar(title: Text(l10n.settingsAdvancedPlaybackTitle)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 28),
         children: [
-          _label(context, 'Continuar viendo'),
+          _label(context, l10n.settingsAdvancedGroupContinueWatching),
           SettingsCard(children: [
             SettingChoice<String>(
-              title: 'Al reabrir un video', value: s.resumeBehavior,
-              options: const [('auto', 'Automático'), ('ask', 'Preguntar'), ('off', 'Desactivado')],
+              title: l10n.settingsAdvancedResumeBehavior, value: s.resumeBehavior,
+              options: [
+                ('auto', l10n.settingsAdvancedAutomaticOption),
+                ('ask', l10n.settingsAdvancedResumeAsk),
+                ('off', l10n.settingsAdvancedResumeOff),
+              ],
               onChanged: (v) => n.set(s.copyWith(resumeBehavior: v))),
             SettingStepper(
-              title: 'Mínimo para recordar posición', value: s.resumeMinSeconds,
+              title: l10n.settingsAdvancedResumeMinSeconds, value: s.resumeMinSeconds,
               min: 0, max: 120, step: 5, label: (v) => '$v s',
               onChanged: (v) => n.set(s.copyWith(resumeMinSeconds: v))),
           ]),
           const SizedBox(height: 16),
-          _label(context, 'Reproducción'),
+          _label(context, l10n.settingsAdvancedGroupPlayback),
           SettingsCard(children: [
             SettingSwitch(
-              title: 'Reproducir el siguiente automáticamente', value: s.autoplayNext,
+              title: l10n.settingsAdvancedAutoplayNext, value: s.autoplayNext,
               onChanged: (v) => n.set(s.copyWith(autoplayNext: v))),
             SettingSwitch(
-              title: 'Miniatura flotante (PiP) al salir al inicio', value: s.pipAutoOnHome,
+              title: l10n.settingsAdvancedPipAutoOnHome, value: s.pipAutoOnHome,
               onChanged: (v) => n.set(s.copyWith(pipAutoOnHome: v))),
             SettingSwitch(
-              title: 'Seguir reproduciendo al minimizar',
-              subtitle: 'El audio continúa en la barra inferior en vez de pausarse',
+              title: l10n.settingsAdvancedMinimizeKeepsPlaying,
+              subtitle: l10n.settingsAdvancedMinimizeKeepsPlayingSubtitle,
               value: s.minimizeKeepsPlaying,
               onChanged: (v) => n.set(s.copyWith(minimizeKeepsPlaying: v))),
           ]),
           const SizedBox(height: 16),
-          _label(context, 'Subtítulos y audio'),
+          _label(context, l10n.settingsAdvancedGroupSubtitlesAudio),
           SettingsCard(children: [
             SettingSwitch(
-              title: 'Activar subtítulos por defecto', value: s.subtitlesEnabledByDefault,
+              title: l10n.settingsAdvancedSubtitlesDefault, value: s.subtitlesEnabledByDefault,
               onChanged: (v) => n.set(s.copyWith(subtitlesEnabledByDefault: v))),
             SettingChoice<String?>(
-              title: 'Idioma de subtítulos preferido',
-              subtitle: 'Se fija al elegir una pista; aquí puedes volver a Automático',
+              title: l10n.settingsAdvancedPreferredSubtitleLang,
+              subtitle: l10n.settingsAdvancedPreferredLangSubtitle,
               value: s.preferredSubtitleLanguage, options: langOptions(s.preferredSubtitleLanguage),
               onChanged: (v) => n.set(s.copyWith(preferredSubtitleLanguage: v))),
             SettingChoice<String?>(
-              title: 'Idioma de audio preferido',
-              subtitle: 'Se fija al elegir una pista; aquí puedes volver a Automático',
+              title: l10n.settingsAdvancedPreferredAudioLang,
+              subtitle: l10n.settingsAdvancedPreferredLangSubtitle,
               value: s.preferredAudioLanguage, options: langOptions(s.preferredAudioLanguage),
               onChanged: (v) => n.set(s.copyWith(preferredAudioLanguage: v))),
           ]),
           const SizedBox(height: 16),
-          _label(context, 'Almacenamiento'),
+          _label(context, l10n.settingsAdvancedGroupStorage),
           SettingsCard(children: [
             Builder(builder: (context) {
               final granted = ref.watch(allFilesAccessGrantedProvider).valueOrNull ?? false;
               return SettingNavRow(
                 icon: Icons.folder_open_outlined,
-                title: 'Acceso a todos los archivos',
+                title: l10n.settingsAdvancedAllFilesAccess,
                 subtitle: granted
-                    ? 'Concedido'
-                    : 'Toca para borrar y renombrar sin confirmación',
+                    ? l10n.settingsAdvancedAllFilesAccessGranted
+                    : l10n.settingsAdvancedAllFilesAccessPrompt,
                 onTap: () async {
                   await ref.read(allFilesAccessProvider).request();
                   ref.invalidate(allFilesAccessGrantedProvider);

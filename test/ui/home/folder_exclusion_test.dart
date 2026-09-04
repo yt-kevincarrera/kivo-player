@@ -85,10 +85,7 @@ void main() {
     await c.read(settingsProvider.notifier)
         .set(s.copyWith(excludedFolders: const ['WhatsApp', 'Telegram']));
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: const MaterialApp(home: HiddenFoldersSection()),
-    ));
+    await pumpLocalized(tester, const HiddenFoldersSection(), container: c);
     await tester.pumpAndSettle();
 
     expect(find.text('WhatsApp'), findsOneWidget);
@@ -104,11 +101,8 @@ void main() {
       (tester) async {
     final c = await _c();
     addTearDown(c.dispose);
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: const MaterialApp(home: HiddenFoldersSection()),
-    ));
+    await pumpLocalized(tester, const HiddenFoldersSection(), container: c);
     await tester.pumpAndSettle();
-    expect(find.textContaining('No has ocultado'), findsOneWidget);
+    expect(find.text(_l10n.settingsHiddenFoldersEmpty), findsOneWidget);
   });
 }

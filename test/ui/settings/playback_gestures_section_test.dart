@@ -6,15 +6,15 @@ import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/core/theme/kivo_theme.dart';
 import 'package:kivo_player/ui/settings/sections/playback_gestures_section.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 Future<ProviderContainer> _pump(WidgetTester t) async {
   final s = await SettingsService.load(InMemorySettingsStore());
   final c = ProviderContainer(overrides: [settingsServiceProvider.overrideWithValue(s)]);
   addTearDown(c.dispose);
-  await t.pumpWidget(UncontrolledProviderScope(
-    container: c,
-    child: MaterialApp(theme: KivoTheme.dark(), home: const PlaybackGesturesSection()),
-  ));
+  await pumpLocalized(t, const PlaybackGesturesSection(), container: c, theme: KivoTheme.dark());
   await t.pump();
   return c;
 }
@@ -46,7 +46,7 @@ void main() {
     final c = await _pump(t);
     final before = c.read(settingsProvider).speedPresets.length;
     // Remove the first removable preset chip.
-    await t.scrollUntilVisible(find.text('Velocidades preseleccionadas'), 300,
+    await t.scrollUntilVisible(find.text(_l10n.settingsGesturesSpeedPresets), 300,
         scrollable: find.byType(Scrollable).first);
     await t.pumpAndSettle();
     final closeIcons = find.byIcon(Icons.close);

@@ -1464,5 +1464,1059 @@
   "playerTutorialBottomBarSection": "Barra de abajo",
   "@playerTutorialBottomBarSection": {
     "description": "Título de la sección de la barra inferior, en la página «Botones» del tutorial de gestos."
+  },
+
+  "settingsGeneralTitle": "General",
+  "@settingsGeneralTitle": {
+    "description": "Título de la sección General en Ajustes; reutilizado como título de su fila en la pantalla raíz de Ajustes."
+  },
+
+  "settingsGeneralNavSubtitle": "Tema, color de acento, háptica",
+  "@settingsGeneralNavSubtitle": {
+    "description": "Subtítulo de la fila «General» en la pantalla raíz de Ajustes."
+  },
+
+  "settingsGeneralGroupAppearance": "Apariencia",
+  "@settingsGeneralGroupAppearance": {
+    "description": "Etiqueta del grupo de apariencia (tema, color de acento, iconos, idioma) en Ajustes → General."
+  },
+
+  "settingsGeneralTheme": "Tema",
+  "@settingsGeneralTheme": {
+    "description": "Título del selector segmentado de tema en Ajustes → General."
+  },
+
+  "settingsGeneralThemeSubtitle": "Claro, oscuro o según el sistema",
+  "@settingsGeneralThemeSubtitle": {
+    "description": "Subtítulo del selector de tema en Ajustes → General."
+  },
+
+  "settingsGeneralThemeAuto": "Auto",
+  "@settingsGeneralThemeAuto": {
+    "description": "Opción del selector de tema: seguir el tema del sistema."
+  },
+
+  "settingsGeneralThemeDark": "Oscuro",
+  "@settingsGeneralThemeDark": {
+    "description": "Opción del selector de tema: oscuro fijo."
+  },
+
+  "settingsGeneralThemeLight": "Claro",
+  "@settingsGeneralThemeLight": {
+    "description": "Opción del selector de tema: claro fijo."
+  },
+
+  "settingsGeneralAccentColor": "Color de acento",
+  "@settingsGeneralAccentColor": {
+    "description": "Título del selector de color de acento en Ajustes → General."
+  },
+
+  "settingsGeneralIcons": "Iconos",
+  "@settingsGeneralIcons": {
+    "description": "Título del selector segmentado de estilo de icono en Ajustes → General."
+  },
+
+  "settingsGeneralIconsSubtitle": "Duotono o plano (blanco)",
+  "@settingsGeneralIconsSubtitle": {
+    "description": "Subtítulo del selector de estilo de icono en Ajustes → General."
+  },
+
+  "settingsGeneralIconsDuotone": "Duotono",
+  "@settingsGeneralIconsDuotone": {
+    "description": "Opción del selector de estilo de icono: duotono."
+  },
+
+  "settingsGeneralIconsFlat": "Plano",
+  "@settingsGeneralIconsFlat": {
+    "description": "Opción del selector de estilo de icono: plano (blanco)."
+  },
+
+  "settingsGeneralGroupInteraction": "Interacción",
+  "@settingsGeneralGroupInteraction": {
+    "description": "Etiqueta del grupo de interacción (háptica) en Ajustes → General."
+  },
+
+  "settingsGeneralHaptics": "Háptica en gestos",
+  "@settingsGeneralHaptics": {
+    "description": "Título del interruptor de háptica en gestos, en Ajustes → General."
+  },
+
+  "settingsGeneralHapticsSubtitle": "Vibración sutil al cruzar umbrales",
+  "@settingsGeneralHapticsSubtitle": {
+    "description": "Subtítulo del interruptor de háptica en gestos, en Ajustes → General."
+  },
+
+  "settingsGroupLibrary": "Biblioteca",
+  "@settingsGroupLibrary": {
+    "description": "Etiqueta de grupo «Biblioteca», compartida por Ajustes → General (carpetas ocultas) y Ajustes → Interfaz (columnas)."
+  },
+
+  "settingsHiddenFoldersTitle": "Carpetas ocultas",
+  "@settingsHiddenFoldersTitle": {
+    "description": "Título de la pantalla de carpetas ocultas, reutilizado como título de su fila en Ajustes → General."
+  },
+
+  "settingsHiddenFoldersNavSubtitle": "Carpetas que no aparecen en tu biblioteca",
+  "@settingsHiddenFoldersNavSubtitle": {
+    "description": "Subtítulo de la fila «Carpetas ocultas» en Ajustes → General."
+  },
+
+  "settingsHiddenFoldersEmpty": "No has ocultado ninguna carpeta.\nMantén pulsada una carpeta en Videos para ocultarla.",
+  "@settingsHiddenFoldersEmpty": {
+    "description": "Estado vacío de la pantalla de carpetas ocultas."
+  },
+
+  "settingsHiddenFoldersShowAction": "Mostrar",
+  "@settingsHiddenFoldersShowAction": {
+    "description": "Botón que vuelve a mostrar una carpeta oculta, en su fila."
+  },
+
+  "settingsRootTitle": "Ajustes",
+  "@settingsRootTitle": {
+    "description": "Título de la AppBar de la pantalla raíz de Ajustes."
+  },
+
+  "settingsPlaybackGesturesTitle": "Reproducción y gestos",
+  "@settingsPlaybackGesturesTitle": {
+    "description": "Título de la sección de reproducción y gestos, reutilizado como título de su fila en la pantalla raíz de Ajustes."
+  },
+
+  "settingsPlaybackGesturesNavSubtitle": "Saltos, sensibilidades, velocidad",
+  "@settingsPlaybackGesturesNavSubtitle": {
+    "description": "Subtítulo de la fila «Reproducción y gestos» en la pantalla raíz de Ajustes."
+  },
+
+  "settingsInterfaceTitle": "Interfaz",
+  "@settingsInterfaceTitle": {
+    "description": "Título de la sección de interfaz, reutilizado como título de su fila en la pantalla raíz de Ajustes."
+  },
+
+  "settingsInterfaceNavSubtitle": "Controles, overlay, aspecto, columnas",
+  "@settingsInterfaceNavSubtitle": {
+    "description": "Subtítulo de la fila «Interfaz» en la pantalla raíz de Ajustes."
+  },
+
+  "settingsAdvancedPlaybackTitle": "Reproducción avanzada",
+  "@settingsAdvancedPlaybackTitle": {
+    "description": "Título de la sección de reproducción avanzada, reutilizado como título de su fila en la pantalla raíz de Ajustes."
+  },
+
+  "settingsAdvancedPlaybackNavSubtitle": "Continuar, autoplay, subtítulos, PiP",
+  "@settingsAdvancedPlaybackNavSubtitle": {
+    "description": "Subtítulo de la fila «Reproducción avanzada» en la pantalla raíz de Ajustes."
+  },
+
+  "settingsEqualizerTitle": "Ecualizador",
+  "@settingsEqualizerTitle": {
+    "description": "Título de la pantalla del ecualizador, reutilizado como título de su fila en Ajustes y como título de su interruptor."
+  },
+
+  "settingsEqualizerNavSubtitle": "Graves, voz, agudos y preamplificación",
+  "@settingsEqualizerNavSubtitle": {
+    "description": "Subtítulo de la fila «Ecualizador» en la pantalla raíz de Ajustes."
+  },
+
+  "settingsBackupTitle": "Copia de seguridad",
+  "@settingsBackupTitle": {
+    "description": "Título de la pantalla de copia de seguridad, reutilizado como título de su fila en Ajustes."
+  },
+
+  "settingsBackupNavSubtitle": "Exporta o restaura tus listas, marcadores y ajustes",
+  "@settingsBackupNavSubtitle": {
+    "description": "Subtítulo de la fila «Copia de seguridad» en la pantalla raíz de Ajustes."
+  },
+
+  "settingsAboutTitle": "Acerca de",
+  "@settingsAboutTitle": {
+    "description": "Título de la pantalla «Acerca de», reutilizado como título de su fila en Ajustes."
+  },
+
+  "settingsAboutNavSubtitle": "Versión y actualizaciones",
+  "@settingsAboutNavSubtitle": {
+    "description": "Subtítulo de la fila «Acerca de» en la pantalla raíz de Ajustes."
+  },
+
+  "settingsVaultNavSubtitle": "Videos ocultos",
+  "@settingsVaultNavSubtitle": {
+    "description": "Subtítulo de la fila «Vault» en la pantalla raíz de Ajustes."
+  },
+
+  "settingsResetAction": "Restablecer",
+  "@settingsResetAction": {
+    "description": "Botón corto de restablecer, reutilizado como confirmación del diálogo de restablecer todos los ajustes y como acción de restablecer la curva del ecualizador."
+  },
+
+  "settingsResetAllTitle": "Restablecer valores",
+  "@settingsResetAllTitle": {
+    "description": "Título del diálogo de confirmación y texto del botón que restablece todos los ajustes a sus valores por defecto."
+  },
+
+  "settingsResetAllBody": "¿Restablecer todos los ajustes a sus valores por defecto?",
+  "@settingsResetAllBody": {
+    "description": "Cuerpo del diálogo de confirmación de restablecer todos los ajustes."
+  },
+
+  "settingsAboutDownloading": "Descargando la actualización",
+  "@settingsAboutDownloading": {
+    "description": "Título de la fila mostrada mientras la actualización se descarga, en Ajustes → Acerca de."
+  },
+
+  "settingsAboutDownloadingSubtitleWithVersion": "Kivo {version} · toca para ver el progreso",
+  "@settingsAboutDownloadingSubtitleWithVersion": {
+    "description": "Subtítulo de la fila de descarga en curso cuando se conoce la versión.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+
+  "settingsAboutDownloadingSubtitleNoVersion": "Toca para ver el progreso",
+  "@settingsAboutDownloadingSubtitleNoVersion": {
+    "description": "Subtítulo de la fila de descarga en curso cuando la versión no se conoce todavía."
+  },
+
+  "settingsAboutReady": "Actualización lista para instalar",
+  "@settingsAboutReady": {
+    "description": "Título de la fila mostrada cuando la actualización terminó de descargarse, en Ajustes → Acerca de."
+  },
+
+  "settingsAboutReadySubtitleWithVersion": "Kivo {version} · toca para instalarla",
+  "@settingsAboutReadySubtitleWithVersion": {
+    "description": "Subtítulo de la fila de actualización lista cuando se conoce la versión.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+
+  "settingsAboutReadySubtitleNoVersion": "Toca para instalarla",
+  "@settingsAboutReadySubtitleNoVersion": {
+    "description": "Subtítulo de la fila de actualización lista cuando la versión no se conoce todavía."
+  },
+
+  "settingsAboutCheckForUpdates": "Buscar actualizaciones",
+  "@settingsAboutCheckForUpdates": {
+    "description": "Fila que dispara la comprobación manual de actualizaciones, en Ajustes → Acerca de."
+  },
+
+  "settingsAboutUpToDateSnackbar": "Estás al día ✓",
+  "@settingsAboutUpToDateSnackbar": {
+    "description": "Snackbar mostrado tras comprobar manualmente y no haber ninguna actualización."
+  },
+
+  "settingsAboutVersion": "Versión {version}",
+  "@settingsAboutVersion": {
+    "description": "Número de versión mostrado bajo el nombre de la app, en Ajustes → Acerca de.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+
+  "settingsAboutTagline": "Reproductor de video local",
+  "@settingsAboutTagline": {
+    "description": "Descripción corta de la app, en Ajustes → Acerca de."
+  },
+
+  "settingsAboutByAuthor": "Por Kevin Carrera",
+  "@settingsAboutByAuthor": {
+    "description": "Crédito de autoría, en Ajustes → Acerca de."
+  },
+
+  "settingsAboutErrorLogTitle": "Registro de errores",
+  "@settingsAboutErrorLogTitle": {
+    "description": "Título de la pantalla de registro de errores, reutilizado como título de su fila en Ajustes → Acerca de."
+  },
+
+  "settingsAboutErrorLogSubtitle": "Los últimos fallos, con su detalle técnico",
+  "@settingsAboutErrorLogSubtitle": {
+    "description": "Subtítulo de la fila «Registro de errores» en Ajustes → Acerca de."
+  },
+
+  "settingsAboutAutoCheck": "Buscar automáticamente",
+  "@settingsAboutAutoCheck": {
+    "description": "Título del interruptor de comprobación automática, en Ajustes → Acerca de."
+  },
+
+  "settingsAboutAutoCheckSubtitle": "Comprueba al abrir, máximo una vez al día",
+  "@settingsAboutAutoCheckSubtitle": {
+    "description": "Subtítulo del interruptor de comprobación automática, en Ajustes → Acerca de."
+  },
+
+  "settingsAdvancedAutomaticOption": "Automático",
+  "@settingsAdvancedAutomaticOption": {
+    "description": "Opción «automático», reutilizada por el modo de reanudación y por los selectores de idioma de subtítulos/audio."
+  },
+
+  "settingsAdvancedLangChosen": "{lang} (elegido)",
+  "@settingsAdvancedLangChosen": {
+    "description": "Opción de idioma ya elegida en los selectores de idioma de subtítulos/audio, nombrando el código elegido.",
+    "placeholders": {
+      "lang": {
+        "type": "String"
+      }
+    }
+  },
+
+  "settingsAdvancedGroupContinueWatching": "Continuar viendo",
+  "@settingsAdvancedGroupContinueWatching": {
+    "description": "Etiqueta del grupo de reanudación, en Ajustes → Reproducción avanzada."
+  },
+
+  "settingsAdvancedResumeBehavior": "Al reabrir un video",
+  "@settingsAdvancedResumeBehavior": {
+    "description": "Título del selector de comportamiento de reanudación, en Ajustes → Reproducción avanzada."
+  },
+
+  "settingsAdvancedResumeAsk": "Preguntar",
+  "@settingsAdvancedResumeAsk": {
+    "description": "Opción del selector de reanudación: preguntar siempre."
+  },
+
+  "settingsAdvancedResumeOff": "Desactivado",
+  "@settingsAdvancedResumeOff": {
+    "description": "Opción del selector de reanudación: desactivada."
+  },
+
+  "settingsAdvancedResumeMinSeconds": "Mínimo para recordar posición",
+  "@settingsAdvancedResumeMinSeconds": {
+    "description": "Título del stepper de segundos mínimos para recordar la posición, en Ajustes → Reproducción avanzada."
+  },
+
+  "settingsAdvancedGroupPlayback": "Reproducción",
+  "@settingsAdvancedGroupPlayback": {
+    "description": "Etiqueta del grupo de reproducción, en Ajustes → Reproducción avanzada."
+  },
+
+  "settingsAdvancedAutoplayNext": "Reproducir el siguiente automáticamente",
+  "@settingsAdvancedAutoplayNext": {
+    "description": "Título del interruptor de autoplay, en Ajustes → Reproducción avanzada."
+  },
+
+  "settingsAdvancedPipAutoOnHome": "Miniatura flotante (PiP) al salir al inicio",
+  "@settingsAdvancedPipAutoOnHome": {
+    "description": "Título del interruptor de PiP automático al salir a la biblioteca, en Ajustes → Reproducción avanzada."
+  },
+
+  "settingsAdvancedMinimizeKeepsPlaying": "Seguir reproduciendo al minimizar",
+  "@settingsAdvancedMinimizeKeepsPlaying": {
+    "description": "Título del interruptor de seguir reproduciendo al minimizar, en Ajustes → Reproducción avanzada."
+  },
+
+  "settingsAdvancedMinimizeKeepsPlayingSubtitle": "El audio continúa en la barra inferior en vez de pausarse",
+  "@settingsAdvancedMinimizeKeepsPlayingSubtitle": {
+    "description": "Subtítulo del interruptor de seguir reproduciendo al minimizar."
+  },
+
+  "settingsAdvancedGroupSubtitlesAudio": "Subtítulos y audio",
+  "@settingsAdvancedGroupSubtitlesAudio": {
+    "description": "Etiqueta del grupo de subtítulos y audio, en Ajustes → Reproducción avanzada."
+  },
+
+  "settingsAdvancedSubtitlesDefault": "Activar subtítulos por defecto",
+  "@settingsAdvancedSubtitlesDefault": {
+    "description": "Título del interruptor de subtítulos activados por defecto, en Ajustes → Reproducción avanzada."
+  },
+
+  "settingsAdvancedPreferredSubtitleLang": "Idioma de subtítulos preferido",
+  "@settingsAdvancedPreferredSubtitleLang": {
+    "description": "Título del selector de idioma de subtítulos preferido, en Ajustes → Reproducción avanzada."
+  },
+
+  "settingsAdvancedPreferredLangSubtitle": "Se fija al elegir una pista; aquí puedes volver a Automático",
+  "@settingsAdvancedPreferredLangSubtitle": {
+    "description": "Subtítulo compartido por los selectores de idioma de subtítulos y de audio preferidos."
+  },
+
+  "settingsAdvancedPreferredAudioLang": "Idioma de audio preferido",
+  "@settingsAdvancedPreferredAudioLang": {
+    "description": "Título del selector de idioma de audio preferido, en Ajustes → Reproducción avanzada."
+  },
+
+  "settingsAdvancedGroupStorage": "Almacenamiento",
+  "@settingsAdvancedGroupStorage": {
+    "description": "Etiqueta del grupo de almacenamiento, en Ajustes → Reproducción avanzada."
+  },
+
+  "settingsAdvancedAllFilesAccess": "Acceso a todos los archivos",
+  "@settingsAdvancedAllFilesAccess": {
+    "description": "Título de la fila de acceso a todos los archivos, en Ajustes → Reproducción avanzada."
+  },
+
+  "settingsAdvancedAllFilesAccessGranted": "Concedido",
+  "@settingsAdvancedAllFilesAccessGranted": {
+    "description": "Subtítulo de la fila de acceso a todos los archivos cuando ya está concedido."
+  },
+
+  "settingsAdvancedAllFilesAccessPrompt": "Toca para borrar y renombrar sin confirmación",
+  "@settingsAdvancedAllFilesAccessPrompt": {
+    "description": "Subtítulo de la fila de acceso a todos los archivos cuando todavía no está concedido."
+  },
+
+  "settingsGesturesGroupLearn": "Aprender",
+  "@settingsGesturesGroupLearn": {
+    "description": "Etiqueta del grupo de aprendizaje, en Ajustes → Reproducción y gestos."
+  },
+
+  "settingsGesturesViewMap": "Ver el mapa de gestos",
+  "@settingsGesturesViewMap": {
+    "description": "Fila que abre el tutorial de gestos, en Ajustes → Reproducción y gestos."
+  },
+
+  "settingsGesturesViewMapSubtitle": "Toques, arrastres y botones del reproductor",
+  "@settingsGesturesViewMapSubtitle": {
+    "description": "Subtítulo de la fila «Ver el mapa de gestos»."
+  },
+
+  "settingsGesturesGroupDoubleTap": "Doble toque",
+  "@settingsGesturesGroupDoubleTap": {
+    "description": "Etiqueta del grupo de doble toque, en Ajustes → Reproducción y gestos."
+  },
+
+  "settingsGesturesSkipBack": "Saltar atrás",
+  "@settingsGesturesSkipBack": {
+    "description": "Título del stepper de salto atrás por doble toque."
+  },
+
+  "settingsGesturesSkipForward": "Saltar adelante",
+  "@settingsGesturesSkipForward": {
+    "description": "Título del stepper de salto adelante por doble toque."
+  },
+
+  "settingsGesturesDoubleTapPause": "Pausar con doble toque al centro",
+  "@settingsGesturesDoubleTapPause": {
+    "description": "Título del interruptor de pausa por doble toque central."
+  },
+
+  "settingsGesturesGroupSeek": "Salto y seek",
+  "@settingsGesturesGroupSeek": {
+    "description": "Etiqueta del grupo de salto y búsqueda, en Ajustes → Reproducción y gestos."
+  },
+
+  "settingsGesturesCenterSkip": "Salto de los botones ±",
+  "@settingsGesturesCenterSkip": {
+    "description": "Título del stepper de salto de los botones centrales ±."
+  },
+
+  "settingsGesturesHorizontalSeek": "Buscar deslizando en horizontal",
+  "@settingsGesturesHorizontalSeek": {
+    "description": "Título del interruptor de búsqueda por arrastre horizontal."
+  },
+
+  "settingsGesturesGroupZoom": "Zoom",
+  "@settingsGesturesGroupZoom": {
+    "description": "Etiqueta del grupo de zoom, en Ajustes → Reproducción y gestos."
+  },
+
+  "settingsGesturesPinchZoom": "Zoom con pinch",
+  "@settingsGesturesPinchZoom": {
+    "description": "Título del interruptor de zoom con pellizco."
+  },
+
+  "settingsGesturesPinchZoomSubtitle": "Pellizca para ampliar y arrastra para encuadrar",
+  "@settingsGesturesPinchZoomSubtitle": {
+    "description": "Subtítulo del interruptor de zoom con pellizco."
+  },
+
+  "settingsGesturesZoomMax": "Zoom máximo",
+  "@settingsGesturesZoomMax": {
+    "description": "Título del selector segmentado de zoom máximo."
+  },
+
+  "settingsGesturesZoomReset": "Reiniciar el zoom",
+  "@settingsGesturesZoomReset": {
+    "description": "Título del selector segmentado de cuándo se reinicia el zoom."
+  },
+
+  "settingsGesturesZoomResetSubtitle": "Cuándo vuelve solo a 1×",
+  "@settingsGesturesZoomResetSubtitle": {
+    "description": "Subtítulo del selector de reinicio de zoom."
+  },
+
+  "settingsGesturesZoomResetExit": "Al salir",
+  "@settingsGesturesZoomResetExit": {
+    "description": "Opción del selector de reinicio de zoom: al salir del video."
+  },
+
+  "settingsGesturesZoomResetVideo": "Cada video",
+  "@settingsGesturesZoomResetVideo": {
+    "description": "Opción del selector de reinicio de zoom: en cada video nuevo."
+  },
+
+  "settingsGesturesZoomResetNever": "Nunca",
+  "@settingsGesturesZoomResetNever": {
+    "description": "Opción del selector de reinicio de zoom: nunca automáticamente."
+  },
+
+  "settingsGesturesGroupSensitivity": "Sensibilidad de gestos",
+  "@settingsGesturesGroupSensitivity": {
+    "description": "Etiqueta del grupo de sensibilidad, en Ajustes → Reproducción y gestos."
+  },
+
+  "settingsGesturesBrightness": "Brillo",
+  "@settingsGesturesBrightness": {
+    "description": "Título del slider de sensibilidad de brillo."
+  },
+
+  "settingsGesturesVolume": "Volumen",
+  "@settingsGesturesVolume": {
+    "description": "Título del slider de sensibilidad de volumen."
+  },
+
+  "settingsGesturesSeek": "Seek",
+  "@settingsGesturesSeek": {
+    "description": "Título del slider de sensibilidad de búsqueda."
+  },
+
+  "settingsGesturesVolumeBoostMax": "Boost máximo de volumen",
+  "@settingsGesturesVolumeBoostMax": {
+    "description": "Título del stepper de boost máximo de volumen."
+  },
+
+  "settingsGesturesGroupSpeed": "Velocidad",
+  "@settingsGesturesGroupSpeed": {
+    "description": "Etiqueta del grupo de velocidad, en Ajustes → Reproducción y gestos."
+  },
+
+  "settingsGesturesRememberSpeed": "Recordar velocidad entre videos",
+  "@settingsGesturesRememberSpeed": {
+    "description": "Título del interruptor de recordar velocidad."
+  },
+
+  "settingsGesturesHoldLeftSpeed": "Velocidad al mantener (izquierda)",
+  "@settingsGesturesHoldLeftSpeed": {
+    "description": "Título del slider de velocidad al mantener presionado a la izquierda."
+  },
+
+  "settingsGesturesHoldRightMax": "Velocidad máxima",
+  "@settingsGesturesHoldRightMax": {
+    "description": "Título del slider de velocidad máxima al mantener a la derecha."
+  },
+
+  "settingsGesturesHoldRightRelease": "Al soltar el acelerador, volver a la velocidad anterior",
+  "@settingsGesturesHoldRightRelease": {
+    "description": "Título del interruptor de volver a la velocidad anterior al soltar."
+  },
+
+  "settingsGesturesSpeedFineStep": "Paso fino de velocidad",
+  "@settingsGesturesSpeedFineStep": {
+    "description": "Título del selector segmentado de paso fino de velocidad."
+  },
+
+  "settingsGesturesSpeedPresets": "Velocidades preseleccionadas",
+  "@settingsGesturesSpeedPresets": {
+    "description": "Título de la lista editable de velocidades preseleccionadas."
+  },
+
+  "settingsGesturesSpeedPresetsSubtitle": "Las que aparecen en el panel de velocidad",
+  "@settingsGesturesSpeedPresetsSubtitle": {
+    "description": "Subtítulo de la lista de velocidades preseleccionadas."
+  },
+
+  "settingsGesturesHoldRightDetents": "Escalones del acelerador (hold derecho)",
+  "@settingsGesturesHoldRightDetents": {
+    "description": "Título de la lista editable de escalones del acelerador."
+  },
+
+  "settingsGesturesHoldRightDetentsSubtitle": "La escalera de velocidades al mantener a la derecha",
+  "@settingsGesturesHoldRightDetentsSubtitle": {
+    "description": "Subtítulo de la lista de escalones del acelerador."
+  },
+
+  "settingsInterfaceGroupControls": "Controles",
+  "@settingsInterfaceGroupControls": {
+    "description": "Etiqueta del grupo de controles, en Ajustes → Interfaz."
+  },
+
+  "settingsInterfaceAutoHide": "Auto-ocultar controles",
+  "@settingsInterfaceAutoHide": {
+    "description": "Título del stepper de tiempo de auto-ocultado de controles."
+  },
+
+  "settingsInterfaceRememberOrientation": "Recordar orientación entre videos",
+  "@settingsInterfaceRememberOrientation": {
+    "description": "Título del interruptor de recordar el bloqueo de orientación."
+  },
+
+  "settingsInterfaceGroupVideo": "Video",
+  "@settingsInterfaceGroupVideo": {
+    "description": "Etiqueta del grupo de video, en Ajustes → Interfaz."
+  },
+
+  "settingsInterfaceDefaultAspect": "Aspecto por defecto",
+  "@settingsInterfaceDefaultAspect": {
+    "description": "Título del selector segmentado de relación de aspecto por defecto."
+  },
+
+  "settingsInterfaceAspectFit": "Ajustar",
+  "@settingsInterfaceAspectFit": {
+    "description": "Opción del selector de aspecto por defecto: ajustar al recuadro."
+  },
+
+  "settingsInterfaceAspectFill": "Llenar",
+  "@settingsInterfaceAspectFill": {
+    "description": "Opción del selector de aspecto por defecto: llenar la pantalla."
+  },
+
+  "settingsInterfaceAspectStretch": "Estirar",
+  "@settingsInterfaceAspectStretch": {
+    "description": "Opción del selector de aspecto por defecto: estirar."
+  },
+
+  "settingsInterfaceGroupOverlay": "Overlay de información",
+  "@settingsInterfaceGroupOverlay": {
+    "description": "Etiqueta del grupo de overlay de información, en Ajustes → Interfaz."
+  },
+
+  "settingsInterfaceShowOverlay": "Mostrar overlay de info",
+  "@settingsInterfaceShowOverlay": {
+    "description": "Título del interruptor de mostrar el overlay de información."
+  },
+
+  "settingsInterfaceOverlayContent": "Contenido",
+  "@settingsInterfaceOverlayContent": {
+    "description": "Título del selector de contenido del overlay de información."
+  },
+
+  "settingsInterfaceOverlayContentNameTime": "Nombre y tiempo",
+  "@settingsInterfaceOverlayContentNameTime": {
+    "description": "Opción del selector de contenido del overlay: nombre y tiempo."
+  },
+
+  "settingsInterfaceOverlayContentNameOnly": "Solo nombre",
+  "@settingsInterfaceOverlayContentNameOnly": {
+    "description": "Opción del selector de contenido del overlay: solo el nombre."
+  },
+
+  "settingsInterfaceOverlayContentRemaining": "Tiempo restante",
+  "@settingsInterfaceOverlayContentRemaining": {
+    "description": "Opción del selector de contenido del overlay: tiempo restante."
+  },
+
+  "settingsInterfaceOverlayCorner": "Esquina",
+  "@settingsInterfaceOverlayCorner": {
+    "description": "Título del selector de esquina del overlay de información."
+  },
+
+  "settingsInterfaceColumns": "Columnas por defecto",
+  "@settingsInterfaceColumns": {
+    "description": "Título del selector segmentado de columnas por defecto de la biblioteca."
+  },
+
+  "settingsEqSwitchSubtitle": "Aplica la curva de graves, voz y agudos al audio",
+  "@settingsEqSwitchSubtitle": {
+    "description": "Subtítulo del interruptor de activar el ecualizador."
+  },
+
+  "settingsEqGroupPresets": "Preajustes",
+  "@settingsEqGroupPresets": {
+    "description": "Etiqueta del grupo de preajustes, en Ajustes → Ecualizador."
+  },
+
+  "settingsEqPresetFlat": "Plano",
+  "@settingsEqPresetFlat": {
+    "description": "Nombre del preajuste de ecualizador «Plano»: todas las bandas en 0 dB."
+  },
+
+  "settingsEqPresetBass": "Graves",
+  "@settingsEqPresetBass": {
+    "description": "Nombre del preajuste de ecualizador «Graves»: realce de frecuencias bajas."
+  },
+
+  "settingsEqPresetVoice": "Voz",
+  "@settingsEqPresetVoice": {
+    "description": "Nombre del preajuste de ecualizador «Voz»: realce centrado en el diálogo."
+  },
+
+  "settingsEqPresetTreble": "Agudos",
+  "@settingsEqPresetTreble": {
+    "description": "Nombre del preajuste de ecualizador «Agudos»: realce de frecuencias altas."
+  },
+
+  "settingsEqPresetCustom": "Personalizado",
+  "@settingsEqPresetCustom": {
+    "description": "Nombre mostrado cuando la curva del ecualizador no coincide con ningún preajuste."
+  },
+
+  "settingsEqGroupBands": "Bandas",
+  "@settingsEqGroupBands": {
+    "description": "Etiqueta del grupo de bandas, en Ajustes → Ecualizador."
+  },
+
+  "settingsEqGroupPreamp": "Preamplificación",
+  "@settingsEqGroupPreamp": {
+    "description": "Etiqueta del grupo de preamplificación, en Ajustes → Ecualizador."
+  },
+
+  "settingsEqPreampGain": "Ganancia general",
+  "@settingsEqPreampGain": {
+    "description": "Título del slider de preamplificación general."
+  },
+
+  "settingsBackupExport": "Exportar copia",
+  "@settingsBackupExport": {
+    "description": "Título de la fila de exportar copia de seguridad."
+  },
+
+  "settingsBackupExportSubtitle": "Guarda tus listas, marcadores y ajustes en un archivo",
+  "@settingsBackupExportSubtitle": {
+    "description": "Subtítulo de la fila de exportar copia de seguridad."
+  },
+
+  "settingsBackupRestoreTitle": "Restaurar copia",
+  "@settingsBackupRestoreTitle": {
+    "description": "Título de la fila y del diálogo de restaurar una copia de seguridad."
+  },
+
+  "settingsBackupRestoreSubtitle": "Añade lo que haya en un archivo de copia guardado antes",
+  "@settingsBackupRestoreSubtitle": {
+    "description": "Subtítulo de la fila de restaurar copia de seguridad."
+  },
+
+  "settingsBackupExportSavedSnackbar": "Copia guardada",
+  "@settingsBackupExportSavedSnackbar": {
+    "description": "Snackbar mostrado tras guardar la copia de seguridad exportada."
+  },
+
+  "settingsBackupExportCancelledSnackbar": "Cancelado",
+  "@settingsBackupExportCancelledSnackbar": {
+    "description": "Snackbar mostrado cuando se cancela el diálogo de guardar la copia exportada."
+  },
+
+  "settingsBackupReadFileFailedSnackbar": "No se pudo leer el archivo",
+  "@settingsBackupReadFileFailedSnackbar": {
+    "description": "Snackbar mostrado cuando el archivo elegido para restaurar no se puede leer."
+  },
+
+  "settingsBackupRestoreConfirmAction": "Restaurar",
+  "@settingsBackupRestoreConfirmAction": {
+    "description": "Botón de confirmar del diálogo de restaurar copia de seguridad."
+  },
+
+  "settingsBackupRestoredSnackbar": "Copia restaurada",
+  "@settingsBackupRestoredSnackbar": {
+    "description": "Snackbar mostrado tras aplicar la restauración de la copia de seguridad."
+  },
+
+  "settingsBackupReadFailedDialogTitle": "No se pudo leer la copia",
+  "@settingsBackupReadFailedDialogTitle": {
+    "description": "Título del diálogo de error al no poder leer un archivo de copia de seguridad."
+  },
+
+  "settingsBackupRestoreItemPlaylists": "{count, plural, =1{1 lista} other{{count} listas}}",
+  "@settingsBackupRestoreItemPlaylists": {
+    "description": "Cantidad de listas que se añadirían al restaurar, dentro de la frase del diálogo de confirmación.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsBackupRestoreItemBookmarks": "{count, plural, =1{1 marcador} other{{count} marcadores}}",
+  "@settingsBackupRestoreItemBookmarks": {
+    "description": "Cantidad de marcadores que se añadirían al restaurar, dentro de la frase del diálogo de confirmación.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsBackupRestoreItemPositions": "{count, plural, =1{1 posición} other{{count} posiciones}}",
+  "@settingsBackupRestoreItemPositions": {
+    "description": "Cantidad de posiciones de reanudación que se añadirían o actualizarían al restaurar.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsBackupRestoreItemWatchedVideos": "{count, plural, =1{1 video visto} other{{count} videos vistos}}",
+  "@settingsBackupRestoreItemWatchedVideos": {
+    "description": "Cantidad de videos marcados como vistos que se añadirían al restaurar.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsBackupRestoreItemHiddenVideos": "{count, plural, =1{1 video oculto} other{{count} videos ocultos}}",
+  "@settingsBackupRestoreItemHiddenVideos": {
+    "description": "Cantidad de videos del Vault que se añadirían al restaurar.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsBackupRestoreItemTrackSettings": "{count, plural, =1{1 ajuste de pista} other{{count} ajustes de pista}}",
+  "@settingsBackupRestoreItemTrackSettings": {
+    "description": "Cantidad de ajustes de pista (sincronía, subtítulo elegido) que se añadirían o actualizarían al restaurar.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsBackupRestoreJoinWord": "y",
+  "@settingsBackupRestoreJoinWord": {
+    "description": "Palabra de unión antes del último elemento en la frase del diálogo de restaurar, p. ej. «3 listas y 2 marcadores»."
+  },
+
+  "settingsBackupRestoreWillAdd": "Se añadirán {items}.",
+  "@settingsBackupRestoreWillAdd": {
+    "description": "Frase principal del diálogo de restaurar, con la lista de elementos ya unida.",
+    "placeholders": {
+      "items": {
+        "type": "String"
+      }
+    }
+  },
+
+  "settingsBackupRestoreNothingNew": "No hay nada nuevo que añadir.",
+  "@settingsBackupRestoreNothingNew": {
+    "description": "Frase del diálogo de restaurar cuando la copia no aportaría ningún cambio."
+  },
+
+  "settingsBackupRestoreSettingsReplace": "Los ajustes se reemplazarán.",
+  "@settingsBackupRestoreSettingsReplace": {
+    "description": "Frase añadida al diálogo de restaurar cuando la copia también trae ajustes."
+  },
+
+  "settingsErrorLogCopyAllTooltip": "Copiar todo",
+  "@settingsErrorLogCopyAllTooltip": {
+    "description": "Tooltip del botón que copia todo el registro de errores al portapapeles."
+  },
+
+  "settingsErrorLogClearTooltip": "Borrar registro",
+  "@settingsErrorLogClearTooltip": {
+    "description": "Tooltip del botón que borra el registro de errores."
+  },
+
+  "settingsErrorLogCopiedSnackbar": "Registro copiado",
+  "@settingsErrorLogCopiedSnackbar": {
+    "description": "Snackbar mostrado tras copiar el registro de errores al portapapeles."
+  },
+
+  "settingsErrorLogEmpty": "Sin errores registrados",
+  "@settingsErrorLogEmpty": {
+    "description": "Estado vacío de la pantalla de registro de errores."
+  },
+
+  "settingsErrorLogAgeJustNow": "ahora mismo",
+  "@settingsErrorLogAgeJustNow": {
+    "description": "Antigüedad de una entrada del registro de errores, menor a un minuto."
+  },
+
+  "settingsErrorLogAgeMinutes": "hace {count} min",
+  "@settingsErrorLogAgeMinutes": {
+    "description": "Antigüedad de una entrada del registro de errores, en minutos.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsErrorLogAgeHours": "hace {count} h",
+  "@settingsErrorLogAgeHours": {
+    "description": "Antigüedad de una entrada del registro de errores, en horas.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsErrorLogAgeDays": "hace {count} d",
+  "@settingsErrorLogAgeDays": {
+    "description": "Antigüedad de una entrada del registro de errores, en días.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsErrorLogDetailLine": "Kivo {version} · Android API {sdk}",
+  "@settingsErrorLogDetailLine": {
+    "description": "Línea técnica «Kivo {version} · Android API {sdk}», reutilizada en el detalle expandido de una entrada del registro de errores y en el texto copiado al portapapeles.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "sdk": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsColorPickerTitle": "Personalizado",
+  "@settingsColorPickerTitle": {
+    "description": "Encabezado de la hoja de selección de color HSV personalizado."
+  },
+
+  "settingsColorPickerHue": "Matiz",
+  "@settingsColorPickerHue": {
+    "description": "Etiqueta del canal de matiz, en la hoja de color personalizado."
+  },
+
+  "settingsColorPickerSaturation": "Saturación",
+  "@settingsColorPickerSaturation": {
+    "description": "Etiqueta del canal de saturación, en la hoja de color personalizado."
+  },
+
+  "settingsColorPickerBrightness": "Brillo",
+  "@settingsColorPickerBrightness": {
+    "description": "Etiqueta del canal de brillo (valor HSV), en la hoja de color personalizado."
+  },
+
+  "settingsColorPickerApplyAction": "Aplicar",
+  "@settingsColorPickerApplyAction": {
+    "description": "Botón que confirma el color elegido, en la hoja de color personalizado."
+  },
+
+  "settingsSpeedAddDialogTitle": "Añadir velocidad",
+  "@settingsSpeedAddDialogTitle": {
+    "description": "Encabezado de la hoja para añadir una velocidad nueva a una lista de velocidades."
+  },
+
+  "settingsSpeedAddAction": "Añadir",
+  "@settingsSpeedAddAction": {
+    "description": "Botón que confirma la velocidad elegida, en la hoja de añadir velocidad."
+  },
+
+  "commonClose": "Cerrar",
+  "@commonClose": {
+    "description": "Botón genérico de cerrar en diálogos."
+  },
+
+  "updateGenericTitle": "Actualización",
+  "@updateGenericTitle": {
+    "description": "Título del diálogo de actualización cuando todavía no se conoce la versión."
+  },
+
+  "updateTitleWithVersion": "Nueva versión {version}",
+  "@updateTitleWithVersion": {
+    "description": "Título del diálogo de actualización, nombrando la versión disponible.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+
+  "updateNoActiveDownload": "Ya no hay ninguna descarga en curso.",
+  "@updateNoActiveDownload": {
+    "description": "Cuerpo del diálogo de actualización cuando se reabre sobre una descarga que ya no existe."
+  },
+
+  "updateNoNotesAvailable": "Hay una versión más reciente disponible.",
+  "@updateNoNotesAvailable": {
+    "description": "Cuerpo del diálogo de actualización cuando las notas de la versión vienen vacías."
+  },
+
+  "updateCanLeaveHint": "Puedes salir de Kivo: la descarga sigue.",
+  "@updateCanLeaveHint": {
+    "description": "Aclaración bajo la barra de progreso mientras la actualización se descarga."
+  },
+
+  "updateReadyCaption": "Listo para instalar",
+  "@updateReadyCaption": {
+    "description": "Texto de estado del diálogo de actualización cuando la descarga terminó."
+  },
+
+  "updateReadyHint": "Pulsa Instalar para continuar.",
+  "@updateReadyHint": {
+    "description": "Aclaración bajo el estado «Listo para instalar»."
+  },
+
+  "updateFailedMessage": "{message} ({code}).\nPuedes reintentar o bajarla desde el navegador.",
+  "@updateFailedMessage": {
+    "description": "Cuerpo del diálogo de actualización cuando la descarga o instalación falló; {message} y {code} vienen del catálogo de errores KV-nnn.",
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+
+  "updateSkipVersionAction": "Omitir esta versión",
+  "@updateSkipVersionAction": {
+    "description": "Botón que omite la versión ofrecida, en el diálogo de actualización."
+  },
+
+  "updateOpenInBrowserAction": "Abrir en navegador",
+  "@updateOpenInBrowserAction": {
+    "description": "Botón que abre la página de la actualización en el navegador."
+  },
+
+  "updateDownloadAction": "Descargar",
+  "@updateDownloadAction": {
+    "description": "Botón que empieza la descarga de la actualización."
+  },
+
+  "updateHideAction": "Ocultar",
+  "@updateHideAction": {
+    "description": "Botón que cierra el diálogo sin cancelar la descarga en curso."
+  },
+
+  "updateInstallAction": "Instalar",
+  "@updateInstallAction": {
+    "description": "Botón que instala la actualización ya descargada."
+  },
+
+  "updateDiscardReadyAction": "Descartar",
+  "@updateDiscardReadyAction": {
+    "description": "Botón que descarta una actualización ya descargada y libera el cupo de descarga."
+  },
+
+  "updateRetryAction": "Reintentar",
+  "@updateRetryAction": {
+    "description": "Botón que reintenta una descarga o instalación fallida."
+  },
+
+  "updateInstallNeedsPermissionSnackbar": "Permite instalar apps para continuar, luego pulsa Instalar.",
+  "@updateInstallNeedsPermissionSnackbar": {
+    "description": "Snackbar mostrado cuando falta el permiso de instalar apps."
+  },
+
+  "updateStatusQueued": "En cola…",
+  "@updateStatusQueued": {
+    "description": "Texto de estado de la descarga mientras está en cola."
+  },
+
+  "updateStatusPausedNetwork": "En pausa · esperando conexión",
+  "@updateStatusPausedNetwork": {
+    "description": "Texto de estado de la descarga en pausa por falta de red."
+  },
+
+  "updateStatusPausedRetry": "En pausa · reintentando",
+  "@updateStatusPausedRetry": {
+    "description": "Texto de estado de la descarga en pausa mientras reintenta."
+  },
+
+  "updateStatusSizePercent": "{size} · {percent} %",
+  "@updateStatusSizePercent": {
+    "description": "Texto de estado de la descarga en curso: tamaño ya formateado y porcentaje.",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
   }
 }

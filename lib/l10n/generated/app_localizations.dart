@@ -1591,6 +1591,1152 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Barra de abajo'**
   String get playerTutorialBottomBarSection;
+
+  /// Título de la sección General en Ajustes; reutilizado como título de su fila en la pantalla raíz de Ajustes.
+  ///
+  /// In es, this message translates to:
+  /// **'General'**
+  String get settingsGeneralTitle;
+
+  /// Subtítulo de la fila «General» en la pantalla raíz de Ajustes.
+  ///
+  /// In es, this message translates to:
+  /// **'Tema, color de acento, háptica'**
+  String get settingsGeneralNavSubtitle;
+
+  /// Etiqueta del grupo de apariencia (tema, color de acento, iconos, idioma) en Ajustes → General.
+  ///
+  /// In es, this message translates to:
+  /// **'Apariencia'**
+  String get settingsGeneralGroupAppearance;
+
+  /// Título del selector segmentado de tema en Ajustes → General.
+  ///
+  /// In es, this message translates to:
+  /// **'Tema'**
+  String get settingsGeneralTheme;
+
+  /// Subtítulo del selector de tema en Ajustes → General.
+  ///
+  /// In es, this message translates to:
+  /// **'Claro, oscuro o según el sistema'**
+  String get settingsGeneralThemeSubtitle;
+
+  /// Opción del selector de tema: seguir el tema del sistema.
+  ///
+  /// In es, this message translates to:
+  /// **'Auto'**
+  String get settingsGeneralThemeAuto;
+
+  /// Opción del selector de tema: oscuro fijo.
+  ///
+  /// In es, this message translates to:
+  /// **'Oscuro'**
+  String get settingsGeneralThemeDark;
+
+  /// Opción del selector de tema: claro fijo.
+  ///
+  /// In es, this message translates to:
+  /// **'Claro'**
+  String get settingsGeneralThemeLight;
+
+  /// Título del selector de color de acento en Ajustes → General.
+  ///
+  /// In es, this message translates to:
+  /// **'Color de acento'**
+  String get settingsGeneralAccentColor;
+
+  /// Título del selector segmentado de estilo de icono en Ajustes → General.
+  ///
+  /// In es, this message translates to:
+  /// **'Iconos'**
+  String get settingsGeneralIcons;
+
+  /// Subtítulo del selector de estilo de icono en Ajustes → General.
+  ///
+  /// In es, this message translates to:
+  /// **'Duotono o plano (blanco)'**
+  String get settingsGeneralIconsSubtitle;
+
+  /// Opción del selector de estilo de icono: duotono.
+  ///
+  /// In es, this message translates to:
+  /// **'Duotono'**
+  String get settingsGeneralIconsDuotone;
+
+  /// Opción del selector de estilo de icono: plano (blanco).
+  ///
+  /// In es, this message translates to:
+  /// **'Plano'**
+  String get settingsGeneralIconsFlat;
+
+  /// Etiqueta del grupo de interacción (háptica) en Ajustes → General.
+  ///
+  /// In es, this message translates to:
+  /// **'Interacción'**
+  String get settingsGeneralGroupInteraction;
+
+  /// Título del interruptor de háptica en gestos, en Ajustes → General.
+  ///
+  /// In es, this message translates to:
+  /// **'Háptica en gestos'**
+  String get settingsGeneralHaptics;
+
+  /// Subtítulo del interruptor de háptica en gestos, en Ajustes → General.
+  ///
+  /// In es, this message translates to:
+  /// **'Vibración sutil al cruzar umbrales'**
+  String get settingsGeneralHapticsSubtitle;
+
+  /// Etiqueta de grupo «Biblioteca», compartida por Ajustes → General (carpetas ocultas) y Ajustes → Interfaz (columnas).
+  ///
+  /// In es, this message translates to:
+  /// **'Biblioteca'**
+  String get settingsGroupLibrary;
+
+  /// Título de la pantalla de carpetas ocultas, reutilizado como título de su fila en Ajustes → General.
+  ///
+  /// In es, this message translates to:
+  /// **'Carpetas ocultas'**
+  String get settingsHiddenFoldersTitle;
+
+  /// Subtítulo de la fila «Carpetas ocultas» en Ajustes → General.
+  ///
+  /// In es, this message translates to:
+  /// **'Carpetas que no aparecen en tu biblioteca'**
+  String get settingsHiddenFoldersNavSubtitle;
+
+  /// Estado vacío de la pantalla de carpetas ocultas.
+  ///
+  /// In es, this message translates to:
+  /// **'No has ocultado ninguna carpeta.\nMantén pulsada una carpeta en Videos para ocultarla.'**
+  String get settingsHiddenFoldersEmpty;
+
+  /// Botón que vuelve a mostrar una carpeta oculta, en su fila.
+  ///
+  /// In es, this message translates to:
+  /// **'Mostrar'**
+  String get settingsHiddenFoldersShowAction;
+
+  /// Título de la AppBar de la pantalla raíz de Ajustes.
+  ///
+  /// In es, this message translates to:
+  /// **'Ajustes'**
+  String get settingsRootTitle;
+
+  /// Título de la sección de reproducción y gestos, reutilizado como título de su fila en la pantalla raíz de Ajustes.
+  ///
+  /// In es, this message translates to:
+  /// **'Reproducción y gestos'**
+  String get settingsPlaybackGesturesTitle;
+
+  /// Subtítulo de la fila «Reproducción y gestos» en la pantalla raíz de Ajustes.
+  ///
+  /// In es, this message translates to:
+  /// **'Saltos, sensibilidades, velocidad'**
+  String get settingsPlaybackGesturesNavSubtitle;
+
+  /// Título de la sección de interfaz, reutilizado como título de su fila en la pantalla raíz de Ajustes.
+  ///
+  /// In es, this message translates to:
+  /// **'Interfaz'**
+  String get settingsInterfaceTitle;
+
+  /// Subtítulo de la fila «Interfaz» en la pantalla raíz de Ajustes.
+  ///
+  /// In es, this message translates to:
+  /// **'Controles, overlay, aspecto, columnas'**
+  String get settingsInterfaceNavSubtitle;
+
+  /// Título de la sección de reproducción avanzada, reutilizado como título de su fila en la pantalla raíz de Ajustes.
+  ///
+  /// In es, this message translates to:
+  /// **'Reproducción avanzada'**
+  String get settingsAdvancedPlaybackTitle;
+
+  /// Subtítulo de la fila «Reproducción avanzada» en la pantalla raíz de Ajustes.
+  ///
+  /// In es, this message translates to:
+  /// **'Continuar, autoplay, subtítulos, PiP'**
+  String get settingsAdvancedPlaybackNavSubtitle;
+
+  /// Título de la pantalla del ecualizador, reutilizado como título de su fila en Ajustes y como título de su interruptor.
+  ///
+  /// In es, this message translates to:
+  /// **'Ecualizador'**
+  String get settingsEqualizerTitle;
+
+  /// Subtítulo de la fila «Ecualizador» en la pantalla raíz de Ajustes.
+  ///
+  /// In es, this message translates to:
+  /// **'Graves, voz, agudos y preamplificación'**
+  String get settingsEqualizerNavSubtitle;
+
+  /// Título de la pantalla de copia de seguridad, reutilizado como título de su fila en Ajustes.
+  ///
+  /// In es, this message translates to:
+  /// **'Copia de seguridad'**
+  String get settingsBackupTitle;
+
+  /// Subtítulo de la fila «Copia de seguridad» en la pantalla raíz de Ajustes.
+  ///
+  /// In es, this message translates to:
+  /// **'Exporta o restaura tus listas, marcadores y ajustes'**
+  String get settingsBackupNavSubtitle;
+
+  /// Título de la pantalla «Acerca de», reutilizado como título de su fila en Ajustes.
+  ///
+  /// In es, this message translates to:
+  /// **'Acerca de'**
+  String get settingsAboutTitle;
+
+  /// Subtítulo de la fila «Acerca de» en la pantalla raíz de Ajustes.
+  ///
+  /// In es, this message translates to:
+  /// **'Versión y actualizaciones'**
+  String get settingsAboutNavSubtitle;
+
+  /// Subtítulo de la fila «Vault» en la pantalla raíz de Ajustes.
+  ///
+  /// In es, this message translates to:
+  /// **'Videos ocultos'**
+  String get settingsVaultNavSubtitle;
+
+  /// Botón corto de restablecer, reutilizado como confirmación del diálogo de restablecer todos los ajustes y como acción de restablecer la curva del ecualizador.
+  ///
+  /// In es, this message translates to:
+  /// **'Restablecer'**
+  String get settingsResetAction;
+
+  /// Título del diálogo de confirmación y texto del botón que restablece todos los ajustes a sus valores por defecto.
+  ///
+  /// In es, this message translates to:
+  /// **'Restablecer valores'**
+  String get settingsResetAllTitle;
+
+  /// Cuerpo del diálogo de confirmación de restablecer todos los ajustes.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Restablecer todos los ajustes a sus valores por defecto?'**
+  String get settingsResetAllBody;
+
+  /// Título de la fila mostrada mientras la actualización se descarga, en Ajustes → Acerca de.
+  ///
+  /// In es, this message translates to:
+  /// **'Descargando la actualización'**
+  String get settingsAboutDownloading;
+
+  /// Subtítulo de la fila de descarga en curso cuando se conoce la versión.
+  ///
+  /// In es, this message translates to:
+  /// **'Kivo {version} · toca para ver el progreso'**
+  String settingsAboutDownloadingSubtitleWithVersion(String version);
+
+  /// Subtítulo de la fila de descarga en curso cuando la versión no se conoce todavía.
+  ///
+  /// In es, this message translates to:
+  /// **'Toca para ver el progreso'**
+  String get settingsAboutDownloadingSubtitleNoVersion;
+
+  /// Título de la fila mostrada cuando la actualización terminó de descargarse, en Ajustes → Acerca de.
+  ///
+  /// In es, this message translates to:
+  /// **'Actualización lista para instalar'**
+  String get settingsAboutReady;
+
+  /// Subtítulo de la fila de actualización lista cuando se conoce la versión.
+  ///
+  /// In es, this message translates to:
+  /// **'Kivo {version} · toca para instalarla'**
+  String settingsAboutReadySubtitleWithVersion(String version);
+
+  /// Subtítulo de la fila de actualización lista cuando la versión no se conoce todavía.
+  ///
+  /// In es, this message translates to:
+  /// **'Toca para instalarla'**
+  String get settingsAboutReadySubtitleNoVersion;
+
+  /// Fila que dispara la comprobación manual de actualizaciones, en Ajustes → Acerca de.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar actualizaciones'**
+  String get settingsAboutCheckForUpdates;
+
+  /// Snackbar mostrado tras comprobar manualmente y no haber ninguna actualización.
+  ///
+  /// In es, this message translates to:
+  /// **'Estás al día ✓'**
+  String get settingsAboutUpToDateSnackbar;
+
+  /// Número de versión mostrado bajo el nombre de la app, en Ajustes → Acerca de.
+  ///
+  /// In es, this message translates to:
+  /// **'Versión {version}'**
+  String settingsAboutVersion(String version);
+
+  /// Descripción corta de la app, en Ajustes → Acerca de.
+  ///
+  /// In es, this message translates to:
+  /// **'Reproductor de video local'**
+  String get settingsAboutTagline;
+
+  /// Crédito de autoría, en Ajustes → Acerca de.
+  ///
+  /// In es, this message translates to:
+  /// **'Por Kevin Carrera'**
+  String get settingsAboutByAuthor;
+
+  /// Título de la pantalla de registro de errores, reutilizado como título de su fila en Ajustes → Acerca de.
+  ///
+  /// In es, this message translates to:
+  /// **'Registro de errores'**
+  String get settingsAboutErrorLogTitle;
+
+  /// Subtítulo de la fila «Registro de errores» en Ajustes → Acerca de.
+  ///
+  /// In es, this message translates to:
+  /// **'Los últimos fallos, con su detalle técnico'**
+  String get settingsAboutErrorLogSubtitle;
+
+  /// Título del interruptor de comprobación automática, en Ajustes → Acerca de.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar automáticamente'**
+  String get settingsAboutAutoCheck;
+
+  /// Subtítulo del interruptor de comprobación automática, en Ajustes → Acerca de.
+  ///
+  /// In es, this message translates to:
+  /// **'Comprueba al abrir, máximo una vez al día'**
+  String get settingsAboutAutoCheckSubtitle;
+
+  /// Opción «automático», reutilizada por el modo de reanudación y por los selectores de idioma de subtítulos/audio.
+  ///
+  /// In es, this message translates to:
+  /// **'Automático'**
+  String get settingsAdvancedAutomaticOption;
+
+  /// Opción de idioma ya elegida en los selectores de idioma de subtítulos/audio, nombrando el código elegido.
+  ///
+  /// In es, this message translates to:
+  /// **'{lang} (elegido)'**
+  String settingsAdvancedLangChosen(String lang);
+
+  /// Etiqueta del grupo de reanudación, en Ajustes → Reproducción avanzada.
+  ///
+  /// In es, this message translates to:
+  /// **'Continuar viendo'**
+  String get settingsAdvancedGroupContinueWatching;
+
+  /// Título del selector de comportamiento de reanudación, en Ajustes → Reproducción avanzada.
+  ///
+  /// In es, this message translates to:
+  /// **'Al reabrir un video'**
+  String get settingsAdvancedResumeBehavior;
+
+  /// Opción del selector de reanudación: preguntar siempre.
+  ///
+  /// In es, this message translates to:
+  /// **'Preguntar'**
+  String get settingsAdvancedResumeAsk;
+
+  /// Opción del selector de reanudación: desactivada.
+  ///
+  /// In es, this message translates to:
+  /// **'Desactivado'**
+  String get settingsAdvancedResumeOff;
+
+  /// Título del stepper de segundos mínimos para recordar la posición, en Ajustes → Reproducción avanzada.
+  ///
+  /// In es, this message translates to:
+  /// **'Mínimo para recordar posición'**
+  String get settingsAdvancedResumeMinSeconds;
+
+  /// Etiqueta del grupo de reproducción, en Ajustes → Reproducción avanzada.
+  ///
+  /// In es, this message translates to:
+  /// **'Reproducción'**
+  String get settingsAdvancedGroupPlayback;
+
+  /// Título del interruptor de autoplay, en Ajustes → Reproducción avanzada.
+  ///
+  /// In es, this message translates to:
+  /// **'Reproducir el siguiente automáticamente'**
+  String get settingsAdvancedAutoplayNext;
+
+  /// Título del interruptor de PiP automático al salir a la biblioteca, en Ajustes → Reproducción avanzada.
+  ///
+  /// In es, this message translates to:
+  /// **'Miniatura flotante (PiP) al salir al inicio'**
+  String get settingsAdvancedPipAutoOnHome;
+
+  /// Título del interruptor de seguir reproduciendo al minimizar, en Ajustes → Reproducción avanzada.
+  ///
+  /// In es, this message translates to:
+  /// **'Seguir reproduciendo al minimizar'**
+  String get settingsAdvancedMinimizeKeepsPlaying;
+
+  /// Subtítulo del interruptor de seguir reproduciendo al minimizar.
+  ///
+  /// In es, this message translates to:
+  /// **'El audio continúa en la barra inferior en vez de pausarse'**
+  String get settingsAdvancedMinimizeKeepsPlayingSubtitle;
+
+  /// Etiqueta del grupo de subtítulos y audio, en Ajustes → Reproducción avanzada.
+  ///
+  /// In es, this message translates to:
+  /// **'Subtítulos y audio'**
+  String get settingsAdvancedGroupSubtitlesAudio;
+
+  /// Título del interruptor de subtítulos activados por defecto, en Ajustes → Reproducción avanzada.
+  ///
+  /// In es, this message translates to:
+  /// **'Activar subtítulos por defecto'**
+  String get settingsAdvancedSubtitlesDefault;
+
+  /// Título del selector de idioma de subtítulos preferido, en Ajustes → Reproducción avanzada.
+  ///
+  /// In es, this message translates to:
+  /// **'Idioma de subtítulos preferido'**
+  String get settingsAdvancedPreferredSubtitleLang;
+
+  /// Subtítulo compartido por los selectores de idioma de subtítulos y de audio preferidos.
+  ///
+  /// In es, this message translates to:
+  /// **'Se fija al elegir una pista; aquí puedes volver a Automático'**
+  String get settingsAdvancedPreferredLangSubtitle;
+
+  /// Título del selector de idioma de audio preferido, en Ajustes → Reproducción avanzada.
+  ///
+  /// In es, this message translates to:
+  /// **'Idioma de audio preferido'**
+  String get settingsAdvancedPreferredAudioLang;
+
+  /// Etiqueta del grupo de almacenamiento, en Ajustes → Reproducción avanzada.
+  ///
+  /// In es, this message translates to:
+  /// **'Almacenamiento'**
+  String get settingsAdvancedGroupStorage;
+
+  /// Título de la fila de acceso a todos los archivos, en Ajustes → Reproducción avanzada.
+  ///
+  /// In es, this message translates to:
+  /// **'Acceso a todos los archivos'**
+  String get settingsAdvancedAllFilesAccess;
+
+  /// Subtítulo de la fila de acceso a todos los archivos cuando ya está concedido.
+  ///
+  /// In es, this message translates to:
+  /// **'Concedido'**
+  String get settingsAdvancedAllFilesAccessGranted;
+
+  /// Subtítulo de la fila de acceso a todos los archivos cuando todavía no está concedido.
+  ///
+  /// In es, this message translates to:
+  /// **'Toca para borrar y renombrar sin confirmación'**
+  String get settingsAdvancedAllFilesAccessPrompt;
+
+  /// Etiqueta del grupo de aprendizaje, en Ajustes → Reproducción y gestos.
+  ///
+  /// In es, this message translates to:
+  /// **'Aprender'**
+  String get settingsGesturesGroupLearn;
+
+  /// Fila que abre el tutorial de gestos, en Ajustes → Reproducción y gestos.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver el mapa de gestos'**
+  String get settingsGesturesViewMap;
+
+  /// Subtítulo de la fila «Ver el mapa de gestos».
+  ///
+  /// In es, this message translates to:
+  /// **'Toques, arrastres y botones del reproductor'**
+  String get settingsGesturesViewMapSubtitle;
+
+  /// Etiqueta del grupo de doble toque, en Ajustes → Reproducción y gestos.
+  ///
+  /// In es, this message translates to:
+  /// **'Doble toque'**
+  String get settingsGesturesGroupDoubleTap;
+
+  /// Título del stepper de salto atrás por doble toque.
+  ///
+  /// In es, this message translates to:
+  /// **'Saltar atrás'**
+  String get settingsGesturesSkipBack;
+
+  /// Título del stepper de salto adelante por doble toque.
+  ///
+  /// In es, this message translates to:
+  /// **'Saltar adelante'**
+  String get settingsGesturesSkipForward;
+
+  /// Título del interruptor de pausa por doble toque central.
+  ///
+  /// In es, this message translates to:
+  /// **'Pausar con doble toque al centro'**
+  String get settingsGesturesDoubleTapPause;
+
+  /// Etiqueta del grupo de salto y búsqueda, en Ajustes → Reproducción y gestos.
+  ///
+  /// In es, this message translates to:
+  /// **'Salto y seek'**
+  String get settingsGesturesGroupSeek;
+
+  /// Título del stepper de salto de los botones centrales ±.
+  ///
+  /// In es, this message translates to:
+  /// **'Salto de los botones ±'**
+  String get settingsGesturesCenterSkip;
+
+  /// Título del interruptor de búsqueda por arrastre horizontal.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar deslizando en horizontal'**
+  String get settingsGesturesHorizontalSeek;
+
+  /// Etiqueta del grupo de zoom, en Ajustes → Reproducción y gestos.
+  ///
+  /// In es, this message translates to:
+  /// **'Zoom'**
+  String get settingsGesturesGroupZoom;
+
+  /// Título del interruptor de zoom con pellizco.
+  ///
+  /// In es, this message translates to:
+  /// **'Zoom con pinch'**
+  String get settingsGesturesPinchZoom;
+
+  /// Subtítulo del interruptor de zoom con pellizco.
+  ///
+  /// In es, this message translates to:
+  /// **'Pellizca para ampliar y arrastra para encuadrar'**
+  String get settingsGesturesPinchZoomSubtitle;
+
+  /// Título del selector segmentado de zoom máximo.
+  ///
+  /// In es, this message translates to:
+  /// **'Zoom máximo'**
+  String get settingsGesturesZoomMax;
+
+  /// Título del selector segmentado de cuándo se reinicia el zoom.
+  ///
+  /// In es, this message translates to:
+  /// **'Reiniciar el zoom'**
+  String get settingsGesturesZoomReset;
+
+  /// Subtítulo del selector de reinicio de zoom.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuándo vuelve solo a 1×'**
+  String get settingsGesturesZoomResetSubtitle;
+
+  /// Opción del selector de reinicio de zoom: al salir del video.
+  ///
+  /// In es, this message translates to:
+  /// **'Al salir'**
+  String get settingsGesturesZoomResetExit;
+
+  /// Opción del selector de reinicio de zoom: en cada video nuevo.
+  ///
+  /// In es, this message translates to:
+  /// **'Cada video'**
+  String get settingsGesturesZoomResetVideo;
+
+  /// Opción del selector de reinicio de zoom: nunca automáticamente.
+  ///
+  /// In es, this message translates to:
+  /// **'Nunca'**
+  String get settingsGesturesZoomResetNever;
+
+  /// Etiqueta del grupo de sensibilidad, en Ajustes → Reproducción y gestos.
+  ///
+  /// In es, this message translates to:
+  /// **'Sensibilidad de gestos'**
+  String get settingsGesturesGroupSensitivity;
+
+  /// Título del slider de sensibilidad de brillo.
+  ///
+  /// In es, this message translates to:
+  /// **'Brillo'**
+  String get settingsGesturesBrightness;
+
+  /// Título del slider de sensibilidad de volumen.
+  ///
+  /// In es, this message translates to:
+  /// **'Volumen'**
+  String get settingsGesturesVolume;
+
+  /// Título del slider de sensibilidad de búsqueda.
+  ///
+  /// In es, this message translates to:
+  /// **'Seek'**
+  String get settingsGesturesSeek;
+
+  /// Título del stepper de boost máximo de volumen.
+  ///
+  /// In es, this message translates to:
+  /// **'Boost máximo de volumen'**
+  String get settingsGesturesVolumeBoostMax;
+
+  /// Etiqueta del grupo de velocidad, en Ajustes → Reproducción y gestos.
+  ///
+  /// In es, this message translates to:
+  /// **'Velocidad'**
+  String get settingsGesturesGroupSpeed;
+
+  /// Título del interruptor de recordar velocidad.
+  ///
+  /// In es, this message translates to:
+  /// **'Recordar velocidad entre videos'**
+  String get settingsGesturesRememberSpeed;
+
+  /// Título del slider de velocidad al mantener presionado a la izquierda.
+  ///
+  /// In es, this message translates to:
+  /// **'Velocidad al mantener (izquierda)'**
+  String get settingsGesturesHoldLeftSpeed;
+
+  /// Título del slider de velocidad máxima al mantener a la derecha.
+  ///
+  /// In es, this message translates to:
+  /// **'Velocidad máxima'**
+  String get settingsGesturesHoldRightMax;
+
+  /// Título del interruptor de volver a la velocidad anterior al soltar.
+  ///
+  /// In es, this message translates to:
+  /// **'Al soltar el acelerador, volver a la velocidad anterior'**
+  String get settingsGesturesHoldRightRelease;
+
+  /// Título del selector segmentado de paso fino de velocidad.
+  ///
+  /// In es, this message translates to:
+  /// **'Paso fino de velocidad'**
+  String get settingsGesturesSpeedFineStep;
+
+  /// Título de la lista editable de velocidades preseleccionadas.
+  ///
+  /// In es, this message translates to:
+  /// **'Velocidades preseleccionadas'**
+  String get settingsGesturesSpeedPresets;
+
+  /// Subtítulo de la lista de velocidades preseleccionadas.
+  ///
+  /// In es, this message translates to:
+  /// **'Las que aparecen en el panel de velocidad'**
+  String get settingsGesturesSpeedPresetsSubtitle;
+
+  /// Título de la lista editable de escalones del acelerador.
+  ///
+  /// In es, this message translates to:
+  /// **'Escalones del acelerador (hold derecho)'**
+  String get settingsGesturesHoldRightDetents;
+
+  /// Subtítulo de la lista de escalones del acelerador.
+  ///
+  /// In es, this message translates to:
+  /// **'La escalera de velocidades al mantener a la derecha'**
+  String get settingsGesturesHoldRightDetentsSubtitle;
+
+  /// Etiqueta del grupo de controles, en Ajustes → Interfaz.
+  ///
+  /// In es, this message translates to:
+  /// **'Controles'**
+  String get settingsInterfaceGroupControls;
+
+  /// Título del stepper de tiempo de auto-ocultado de controles.
+  ///
+  /// In es, this message translates to:
+  /// **'Auto-ocultar controles'**
+  String get settingsInterfaceAutoHide;
+
+  /// Título del interruptor de recordar el bloqueo de orientación.
+  ///
+  /// In es, this message translates to:
+  /// **'Recordar orientación entre videos'**
+  String get settingsInterfaceRememberOrientation;
+
+  /// Etiqueta del grupo de video, en Ajustes → Interfaz.
+  ///
+  /// In es, this message translates to:
+  /// **'Video'**
+  String get settingsInterfaceGroupVideo;
+
+  /// Título del selector segmentado de relación de aspecto por defecto.
+  ///
+  /// In es, this message translates to:
+  /// **'Aspecto por defecto'**
+  String get settingsInterfaceDefaultAspect;
+
+  /// Opción del selector de aspecto por defecto: ajustar al recuadro.
+  ///
+  /// In es, this message translates to:
+  /// **'Ajustar'**
+  String get settingsInterfaceAspectFit;
+
+  /// Opción del selector de aspecto por defecto: llenar la pantalla.
+  ///
+  /// In es, this message translates to:
+  /// **'Llenar'**
+  String get settingsInterfaceAspectFill;
+
+  /// Opción del selector de aspecto por defecto: estirar.
+  ///
+  /// In es, this message translates to:
+  /// **'Estirar'**
+  String get settingsInterfaceAspectStretch;
+
+  /// Etiqueta del grupo de overlay de información, en Ajustes → Interfaz.
+  ///
+  /// In es, this message translates to:
+  /// **'Overlay de información'**
+  String get settingsInterfaceGroupOverlay;
+
+  /// Título del interruptor de mostrar el overlay de información.
+  ///
+  /// In es, this message translates to:
+  /// **'Mostrar overlay de info'**
+  String get settingsInterfaceShowOverlay;
+
+  /// Título del selector de contenido del overlay de información.
+  ///
+  /// In es, this message translates to:
+  /// **'Contenido'**
+  String get settingsInterfaceOverlayContent;
+
+  /// Opción del selector de contenido del overlay: nombre y tiempo.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre y tiempo'**
+  String get settingsInterfaceOverlayContentNameTime;
+
+  /// Opción del selector de contenido del overlay: solo el nombre.
+  ///
+  /// In es, this message translates to:
+  /// **'Solo nombre'**
+  String get settingsInterfaceOverlayContentNameOnly;
+
+  /// Opción del selector de contenido del overlay: tiempo restante.
+  ///
+  /// In es, this message translates to:
+  /// **'Tiempo restante'**
+  String get settingsInterfaceOverlayContentRemaining;
+
+  /// Título del selector de esquina del overlay de información.
+  ///
+  /// In es, this message translates to:
+  /// **'Esquina'**
+  String get settingsInterfaceOverlayCorner;
+
+  /// Título del selector segmentado de columnas por defecto de la biblioteca.
+  ///
+  /// In es, this message translates to:
+  /// **'Columnas por defecto'**
+  String get settingsInterfaceColumns;
+
+  /// Subtítulo del interruptor de activar el ecualizador.
+  ///
+  /// In es, this message translates to:
+  /// **'Aplica la curva de graves, voz y agudos al audio'**
+  String get settingsEqSwitchSubtitle;
+
+  /// Etiqueta del grupo de preajustes, en Ajustes → Ecualizador.
+  ///
+  /// In es, this message translates to:
+  /// **'Preajustes'**
+  String get settingsEqGroupPresets;
+
+  /// Nombre del preajuste de ecualizador «Plano»: todas las bandas en 0 dB.
+  ///
+  /// In es, this message translates to:
+  /// **'Plano'**
+  String get settingsEqPresetFlat;
+
+  /// Nombre del preajuste de ecualizador «Graves»: realce de frecuencias bajas.
+  ///
+  /// In es, this message translates to:
+  /// **'Graves'**
+  String get settingsEqPresetBass;
+
+  /// Nombre del preajuste de ecualizador «Voz»: realce centrado en el diálogo.
+  ///
+  /// In es, this message translates to:
+  /// **'Voz'**
+  String get settingsEqPresetVoice;
+
+  /// Nombre del preajuste de ecualizador «Agudos»: realce de frecuencias altas.
+  ///
+  /// In es, this message translates to:
+  /// **'Agudos'**
+  String get settingsEqPresetTreble;
+
+  /// Nombre mostrado cuando la curva del ecualizador no coincide con ningún preajuste.
+  ///
+  /// In es, this message translates to:
+  /// **'Personalizado'**
+  String get settingsEqPresetCustom;
+
+  /// Etiqueta del grupo de bandas, en Ajustes → Ecualizador.
+  ///
+  /// In es, this message translates to:
+  /// **'Bandas'**
+  String get settingsEqGroupBands;
+
+  /// Etiqueta del grupo de preamplificación, en Ajustes → Ecualizador.
+  ///
+  /// In es, this message translates to:
+  /// **'Preamplificación'**
+  String get settingsEqGroupPreamp;
+
+  /// Título del slider de preamplificación general.
+  ///
+  /// In es, this message translates to:
+  /// **'Ganancia general'**
+  String get settingsEqPreampGain;
+
+  /// Título de la fila de exportar copia de seguridad.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar copia'**
+  String get settingsBackupExport;
+
+  /// Subtítulo de la fila de exportar copia de seguridad.
+  ///
+  /// In es, this message translates to:
+  /// **'Guarda tus listas, marcadores y ajustes en un archivo'**
+  String get settingsBackupExportSubtitle;
+
+  /// Título de la fila y del diálogo de restaurar una copia de seguridad.
+  ///
+  /// In es, this message translates to:
+  /// **'Restaurar copia'**
+  String get settingsBackupRestoreTitle;
+
+  /// Subtítulo de la fila de restaurar copia de seguridad.
+  ///
+  /// In es, this message translates to:
+  /// **'Añade lo que haya en un archivo de copia guardado antes'**
+  String get settingsBackupRestoreSubtitle;
+
+  /// Snackbar mostrado tras guardar la copia de seguridad exportada.
+  ///
+  /// In es, this message translates to:
+  /// **'Copia guardada'**
+  String get settingsBackupExportSavedSnackbar;
+
+  /// Snackbar mostrado cuando se cancela el diálogo de guardar la copia exportada.
+  ///
+  /// In es, this message translates to:
+  /// **'Cancelado'**
+  String get settingsBackupExportCancelledSnackbar;
+
+  /// Snackbar mostrado cuando el archivo elegido para restaurar no se puede leer.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo leer el archivo'**
+  String get settingsBackupReadFileFailedSnackbar;
+
+  /// Botón de confirmar del diálogo de restaurar copia de seguridad.
+  ///
+  /// In es, this message translates to:
+  /// **'Restaurar'**
+  String get settingsBackupRestoreConfirmAction;
+
+  /// Snackbar mostrado tras aplicar la restauración de la copia de seguridad.
+  ///
+  /// In es, this message translates to:
+  /// **'Copia restaurada'**
+  String get settingsBackupRestoredSnackbar;
+
+  /// Título del diálogo de error al no poder leer un archivo de copia de seguridad.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo leer la copia'**
+  String get settingsBackupReadFailedDialogTitle;
+
+  /// Cantidad de listas que se añadirían al restaurar, dentro de la frase del diálogo de confirmación.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 lista} other{{count} listas}}'**
+  String settingsBackupRestoreItemPlaylists(int count);
+
+  /// Cantidad de marcadores que se añadirían al restaurar, dentro de la frase del diálogo de confirmación.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 marcador} other{{count} marcadores}}'**
+  String settingsBackupRestoreItemBookmarks(int count);
+
+  /// Cantidad de posiciones de reanudación que se añadirían o actualizarían al restaurar.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 posición} other{{count} posiciones}}'**
+  String settingsBackupRestoreItemPositions(int count);
+
+  /// Cantidad de videos marcados como vistos que se añadirían al restaurar.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 video visto} other{{count} videos vistos}}'**
+  String settingsBackupRestoreItemWatchedVideos(int count);
+
+  /// Cantidad de videos del Vault que se añadirían al restaurar.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 video oculto} other{{count} videos ocultos}}'**
+  String settingsBackupRestoreItemHiddenVideos(int count);
+
+  /// Cantidad de ajustes de pista (sincronía, subtítulo elegido) que se añadirían o actualizarían al restaurar.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 ajuste de pista} other{{count} ajustes de pista}}'**
+  String settingsBackupRestoreItemTrackSettings(int count);
+
+  /// Palabra de unión antes del último elemento en la frase del diálogo de restaurar, p. ej. «3 listas y 2 marcadores».
+  ///
+  /// In es, this message translates to:
+  /// **'y'**
+  String get settingsBackupRestoreJoinWord;
+
+  /// Frase principal del diálogo de restaurar, con la lista de elementos ya unida.
+  ///
+  /// In es, this message translates to:
+  /// **'Se añadirán {items}.'**
+  String settingsBackupRestoreWillAdd(String items);
+
+  /// Frase del diálogo de restaurar cuando la copia no aportaría ningún cambio.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay nada nuevo que añadir.'**
+  String get settingsBackupRestoreNothingNew;
+
+  /// Frase añadida al diálogo de restaurar cuando la copia también trae ajustes.
+  ///
+  /// In es, this message translates to:
+  /// **'Los ajustes se reemplazarán.'**
+  String get settingsBackupRestoreSettingsReplace;
+
+  /// Tooltip del botón que copia todo el registro de errores al portapapeles.
+  ///
+  /// In es, this message translates to:
+  /// **'Copiar todo'**
+  String get settingsErrorLogCopyAllTooltip;
+
+  /// Tooltip del botón que borra el registro de errores.
+  ///
+  /// In es, this message translates to:
+  /// **'Borrar registro'**
+  String get settingsErrorLogClearTooltip;
+
+  /// Snackbar mostrado tras copiar el registro de errores al portapapeles.
+  ///
+  /// In es, this message translates to:
+  /// **'Registro copiado'**
+  String get settingsErrorLogCopiedSnackbar;
+
+  /// Estado vacío de la pantalla de registro de errores.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin errores registrados'**
+  String get settingsErrorLogEmpty;
+
+  /// Antigüedad de una entrada del registro de errores, menor a un minuto.
+  ///
+  /// In es, this message translates to:
+  /// **'ahora mismo'**
+  String get settingsErrorLogAgeJustNow;
+
+  /// Antigüedad de una entrada del registro de errores, en minutos.
+  ///
+  /// In es, this message translates to:
+  /// **'hace {count} min'**
+  String settingsErrorLogAgeMinutes(int count);
+
+  /// Antigüedad de una entrada del registro de errores, en horas.
+  ///
+  /// In es, this message translates to:
+  /// **'hace {count} h'**
+  String settingsErrorLogAgeHours(int count);
+
+  /// Antigüedad de una entrada del registro de errores, en días.
+  ///
+  /// In es, this message translates to:
+  /// **'hace {count} d'**
+  String settingsErrorLogAgeDays(int count);
+
+  /// Línea técnica «Kivo {version} · Android API {sdk}», reutilizada en el detalle expandido de una entrada del registro de errores y en el texto copiado al portapapeles.
+  ///
+  /// In es, this message translates to:
+  /// **'Kivo {version} · Android API {sdk}'**
+  String settingsErrorLogDetailLine(String version, int sdk);
+
+  /// Encabezado de la hoja de selección de color HSV personalizado.
+  ///
+  /// In es, this message translates to:
+  /// **'Personalizado'**
+  String get settingsColorPickerTitle;
+
+  /// Etiqueta del canal de matiz, en la hoja de color personalizado.
+  ///
+  /// In es, this message translates to:
+  /// **'Matiz'**
+  String get settingsColorPickerHue;
+
+  /// Etiqueta del canal de saturación, en la hoja de color personalizado.
+  ///
+  /// In es, this message translates to:
+  /// **'Saturación'**
+  String get settingsColorPickerSaturation;
+
+  /// Etiqueta del canal de brillo (valor HSV), en la hoja de color personalizado.
+  ///
+  /// In es, this message translates to:
+  /// **'Brillo'**
+  String get settingsColorPickerBrightness;
+
+  /// Botón que confirma el color elegido, en la hoja de color personalizado.
+  ///
+  /// In es, this message translates to:
+  /// **'Aplicar'**
+  String get settingsColorPickerApplyAction;
+
+  /// Encabezado de la hoja para añadir una velocidad nueva a una lista de velocidades.
+  ///
+  /// In es, this message translates to:
+  /// **'Añadir velocidad'**
+  String get settingsSpeedAddDialogTitle;
+
+  /// Botón que confirma la velocidad elegida, en la hoja de añadir velocidad.
+  ///
+  /// In es, this message translates to:
+  /// **'Añadir'**
+  String get settingsSpeedAddAction;
+
+  /// Botón genérico de cerrar en diálogos.
+  ///
+  /// In es, this message translates to:
+  /// **'Cerrar'**
+  String get commonClose;
+
+  /// Título del diálogo de actualización cuando todavía no se conoce la versión.
+  ///
+  /// In es, this message translates to:
+  /// **'Actualización'**
+  String get updateGenericTitle;
+
+  /// Título del diálogo de actualización, nombrando la versión disponible.
+  ///
+  /// In es, this message translates to:
+  /// **'Nueva versión {version}'**
+  String updateTitleWithVersion(String version);
+
+  /// Cuerpo del diálogo de actualización cuando se reabre sobre una descarga que ya no existe.
+  ///
+  /// In es, this message translates to:
+  /// **'Ya no hay ninguna descarga en curso.'**
+  String get updateNoActiveDownload;
+
+  /// Cuerpo del diálogo de actualización cuando las notas de la versión vienen vacías.
+  ///
+  /// In es, this message translates to:
+  /// **'Hay una versión más reciente disponible.'**
+  String get updateNoNotesAvailable;
+
+  /// Aclaración bajo la barra de progreso mientras la actualización se descarga.
+  ///
+  /// In es, this message translates to:
+  /// **'Puedes salir de Kivo: la descarga sigue.'**
+  String get updateCanLeaveHint;
+
+  /// Texto de estado del diálogo de actualización cuando la descarga terminó.
+  ///
+  /// In es, this message translates to:
+  /// **'Listo para instalar'**
+  String get updateReadyCaption;
+
+  /// Aclaración bajo el estado «Listo para instalar».
+  ///
+  /// In es, this message translates to:
+  /// **'Pulsa Instalar para continuar.'**
+  String get updateReadyHint;
+
+  /// Cuerpo del diálogo de actualización cuando la descarga o instalación falló; {message} y {code} vienen del catálogo de errores KV-nnn.
+  ///
+  /// In es, this message translates to:
+  /// **'{message} ({code}).\nPuedes reintentar o bajarla desde el navegador.'**
+  String updateFailedMessage(String message, String code);
+
+  /// Botón que omite la versión ofrecida, en el diálogo de actualización.
+  ///
+  /// In es, this message translates to:
+  /// **'Omitir esta versión'**
+  String get updateSkipVersionAction;
+
+  /// Botón que abre la página de la actualización en el navegador.
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir en navegador'**
+  String get updateOpenInBrowserAction;
+
+  /// Botón que empieza la descarga de la actualización.
+  ///
+  /// In es, this message translates to:
+  /// **'Descargar'**
+  String get updateDownloadAction;
+
+  /// Botón que cierra el diálogo sin cancelar la descarga en curso.
+  ///
+  /// In es, this message translates to:
+  /// **'Ocultar'**
+  String get updateHideAction;
+
+  /// Botón que instala la actualización ya descargada.
+  ///
+  /// In es, this message translates to:
+  /// **'Instalar'**
+  String get updateInstallAction;
+
+  /// Botón que descarta una actualización ya descargada y libera el cupo de descarga.
+  ///
+  /// In es, this message translates to:
+  /// **'Descartar'**
+  String get updateDiscardReadyAction;
+
+  /// Botón que reintenta una descarga o instalación fallida.
+  ///
+  /// In es, this message translates to:
+  /// **'Reintentar'**
+  String get updateRetryAction;
+
+  /// Snackbar mostrado cuando falta el permiso de instalar apps.
+  ///
+  /// In es, this message translates to:
+  /// **'Permite instalar apps para continuar, luego pulsa Instalar.'**
+  String get updateInstallNeedsPermissionSnackbar;
+
+  /// Texto de estado de la descarga mientras está en cola.
+  ///
+  /// In es, this message translates to:
+  /// **'En cola…'**
+  String get updateStatusQueued;
+
+  /// Texto de estado de la descarga en pausa por falta de red.
+  ///
+  /// In es, this message translates to:
+  /// **'En pausa · esperando conexión'**
+  String get updateStatusPausedNetwork;
+
+  /// Texto de estado de la descarga en pausa mientras reintenta.
+  ///
+  /// In es, this message translates to:
+  /// **'En pausa · reintentando'**
+  String get updateStatusPausedRetry;
+
+  /// Texto de estado de la descarga en curso: tamaño ya formateado y porcentaje.
+  ///
+  /// In es, this message translates to:
+  /// **'{size} · {percent} %'**
+  String updateStatusSizePercent(String size, int percent);
 }
 
 class _AppLocalizationsDelegate

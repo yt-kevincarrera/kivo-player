@@ -6,6 +6,9 @@ import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/platform/all_files_access_provider.dart';
 import 'package:kivo_player/ui/settings/sections/advanced_playback_section.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 void main() {
   testWidgets('all-files-access row shows granted state', (tester) async {
@@ -16,20 +19,17 @@ void main() {
     ]);
     addTearDown(c.dispose);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: const MaterialApp(home: AdvancedPlaybackSection()),
-    ));
+    await pumpLocalized(tester, const AdvancedPlaybackSection(), container: c);
     await tester.pumpAndSettle();
 
     // The row is the last section — scroll it into view (ListView is lazy).
     await tester.scrollUntilVisible(
-        find.text('Acceso a todos los archivos'), 200,
+        find.text(_l10n.settingsAdvancedAllFilesAccess), 200,
         scrollable: find.byType(Scrollable).first);
     await tester.pumpAndSettle();
 
-    expect(find.text('Acceso a todos los archivos'), findsOneWidget);
-    expect(find.text('Concedido'), findsOneWidget);
+    expect(find.text(_l10n.settingsAdvancedAllFilesAccess), findsOneWidget);
+    expect(find.text(_l10n.settingsAdvancedAllFilesAccessGranted), findsOneWidget);
   });
 
   testWidgets('tapping the row requests access when not granted', (tester) async {
@@ -41,18 +41,15 @@ void main() {
     ]);
     addTearDown(c.dispose);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: const MaterialApp(home: AdvancedPlaybackSection()),
-    ));
+    await pumpLocalized(tester, const AdvancedPlaybackSection(), container: c);
     await tester.pumpAndSettle();
 
     await tester.scrollUntilVisible(
-        find.text('Acceso a todos los archivos'), 200,
+        find.text(_l10n.settingsAdvancedAllFilesAccess), 200,
         scrollable: find.byType(Scrollable).first);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Acceso a todos los archivos'));
+    await tester.tap(find.text(_l10n.settingsAdvancedAllFilesAccess));
     await tester.pumpAndSettle();
     expect(fake.requestCount, 1);
   });

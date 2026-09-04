@@ -3,9 +3,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
+import '../../../l10n/l10n.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../player/audio/equalizer.dart';
 import '../../../player/audio/equalizer_controller.dart';
 import '../widgets/setting_tiles.dart';
+
+/// Maps [preset] to its localized display name. Kept outside the widget so
+/// [more_menu.dart]'s Ecualizador subtitle can reuse the same mapping.
+String eqPresetLabel(AppLocalizations l10n, EqPreset preset) => switch (preset) {
+      EqPreset.flat => l10n.settingsEqPresetFlat,
+      EqPreset.bass => l10n.settingsEqPresetBass,
+      EqPreset.voice => l10n.settingsEqPresetVoice,
+      EqPreset.treble => l10n.settingsEqPresetTreble,
+      EqPreset.custom => l10n.settingsEqPresetCustom,
+    };
 
 /// The equalizer screen: an enable switch, four presets, ten band sliders and
 /// a preamp slider. Reachable from Ajustes (its own row), and from
@@ -35,41 +47,42 @@ class _EqualizerSectionState extends ConsumerState<EqualizerSection> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final accent = Color(ref.watch(settingsProvider).accentColor);
     final eq = ref.watch(equalizerProvider);
     final notifier = ref.read(equalizerProvider.notifier);
-    final preset = presetNameFor(eq);
+    final preset = presetFor(eq);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Ecualizador')),
+      appBar: AppBar(title: Text(l10n.settingsEqualizerTitle)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 28),
         children: [
           SettingsCard(children: [
             SettingSwitch(
-              title: 'Ecualizador',
-              subtitle: 'Aplica la curva de graves, voz y agudos al audio',
+              title: l10n.settingsEqualizerTitle,
+              subtitle: l10n.settingsEqSwitchSubtitle,
               value: eq.enabled,
               onChanged: notifier.setEnabled,
             ),
           ]),
           const SizedBox(height: 16),
-          _label(context, 'Preajustes'),
+          _label(context, l10n.settingsEqGroupPresets),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
-              for (final name in equalizerPresetNames)
+              for (final p in EqPreset.values.where((p) => p != EqPreset.custom))
                 _PresetChip(
-                  label: name,
-                  selected: preset == name,
+                  label: eqPresetLabel(l10n, p),
+                  selected: preset == p,
                   accent: accent,
-                  onTap: () => notifier.applyPreset(name),
+                  onTap: () => notifier.applyPreset(p.name),
                 ),
             ],
           ),
           const SizedBox(height: 16),
-          _label(context, 'Bandas'),
+          _label(context, l10n.settingsEqGroupBands),
           SettingsCard(children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 16, 4, 6),
@@ -90,10 +103,10 @@ class _EqualizerSectionState extends ConsumerState<EqualizerSection> {
             ),
           ]),
           const SizedBox(height: 16),
-          _label(context, 'Preamplificación'),
+          _label(context, l10n.settingsEqGroupPreamp),
           SettingsCard(children: [
             SettingSlider(
-              title: 'Ganancia general',
+              title: l10n.settingsEqPreampGain,
               value: eq.preampDb,
               min: equalizerMinDb,
               max: equalizerMaxDb,
@@ -240,7 +253,7 @@ class _ResetTile extends StatelessWidget {
           color: cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(13),
         ),
-        child: Text('Restablecer',
+        child: Text(context.l10n.settingsResetAction,
             style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: cs.secondary)),
       ),
     );

@@ -8,6 +8,9 @@ import 'package:kivo_player/player/audio/equalizer_controller.dart';
 import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/ui/settings/sections/equalizer_section.dart';
 import '../../fakes/fakes.dart';
+import '../../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 Future<ProviderContainer> _pump(WidgetTester t) async {
   final s = await SettingsService.load(InMemorySettingsStore());
@@ -16,10 +19,7 @@ Future<ProviderContainer> _pump(WidgetTester t) async {
     playbackEngineProvider.overrideWithValue(FakePlaybackEngine()),
   ]);
   addTearDown(c.dispose);
-  await t.pumpWidget(UncontrolledProviderScope(
-    container: c,
-    child: MaterialApp(theme: KivoTheme.dark(), home: const EqualizerSection()),
-  ));
+  await pumpLocalized(t, const EqualizerSection(), container: c, theme: KivoTheme.dark());
   await t.pump();
   return c;
 }
@@ -48,11 +48,11 @@ void main() {
     await _pump(t);
 
     expect(t.takeException(), isNull);
-    expect(find.text('Ecualizador'), findsWidgets);
-    expect(find.text('Plano'), findsOneWidget);
-    expect(find.text('Graves'), findsOneWidget);
-    expect(find.text('Voz'), findsOneWidget);
-    expect(find.text('Agudos'), findsOneWidget);
+    expect(find.text(_l10n.settingsEqualizerTitle), findsWidgets);
+    expect(find.text(_l10n.settingsEqPresetFlat), findsOneWidget);
+    expect(find.text(_l10n.settingsEqPresetBass), findsOneWidget);
+    expect(find.text(_l10n.settingsEqPresetVoice), findsOneWidget);
+    expect(find.text(_l10n.settingsEqPresetTreble), findsOneWidget);
     // Ten band frequency labels.
     for (final label in ['31', '62', '125', '250', '500', '1K', '2K', '4K', '8K', '16K']) {
       expect(find.text(label), findsOneWidget);
@@ -64,7 +64,7 @@ void main() {
     await t.drag(find.byType(Scrollable).first, const Offset(0, -600));
     await t.pump();
     expect(t.takeException(), isNull);
-    expect(find.text('Restablecer'), findsOneWidget);
+    expect(find.text(_l10n.settingsResetAction), findsOneWidget);
 
     await _settle(t);
   });
@@ -82,7 +82,7 @@ void main() {
 
   testWidgets('tapping a preset chip applies its curve', (t) async {
     final c = await _pump(t);
-    await t.tap(find.text('Graves'));
+    await t.tap(find.text(_l10n.settingsEqPresetBass));
     await t.pump();
     expect(c.read(equalizerProvider).gainsDb[0], 6.0);
     await _settle(t);
@@ -90,13 +90,13 @@ void main() {
 
   testWidgets('Restablecer returns the curve to flat', (t) async {
     final c = await _pump(t);
-    await t.tap(find.text('Graves'));
+    await t.tap(find.text(_l10n.settingsEqPresetBass));
     await t.pump();
     expect(c.read(equalizerProvider).gainsDb[0], 6.0);
 
     await t.drag(find.byType(Scrollable).first, const Offset(0, -600));
     await t.pump();
-    await t.tap(find.text('Restablecer'));
+    await t.tap(find.text(_l10n.settingsResetAction));
     await t.pump();
     expect(c.read(equalizerProvider).gainsDb, List.filled(10, 0.0));
     await _settle(t);

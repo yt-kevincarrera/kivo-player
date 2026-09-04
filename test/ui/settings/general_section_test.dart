@@ -10,6 +10,8 @@ import 'package:kivo_player/ui/settings/widgets/setting_tiles.dart';
 import '../../fakes/fakes.dart';
 import '../../helpers/pump_app.dart';
 
+final _l10n = l10nFor(const Locale('es'));
+
 Future<ProviderContainer> _pump(WidgetTester t, {Locale locale = const Locale('es')}) async {
   final s = await SettingsService.load(InMemorySettingsStore());
   final c = ProviderContainer(overrides: [settingsServiceProvider.overrideWithValue(s)]);
@@ -27,7 +29,7 @@ Future<ProviderContainer> _pump(WidgetTester t, {Locale locale = const Locale('e
 void main() {
   testWidgets('changing the theme segment persists themeMode', (t) async {
     final c = await _pump(t);
-    await t.tap(find.text('Claro'));
+    await t.tap(find.text(_l10n.settingsGeneralThemeLight));
     await t.pump();
     expect(c.read(settingsProvider).themeMode, 'light');
   });

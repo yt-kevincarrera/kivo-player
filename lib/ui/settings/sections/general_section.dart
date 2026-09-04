@@ -14,28 +14,35 @@ class GeneralSettingsSection extends ConsumerWidget {
     final n = ref.read(settingsProvider.notifier);
     final l10n = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: const Text('General')),
+      appBar: AppBar(title: Text(l10n.settingsGeneralTitle)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 28),
         children: [
-          _label(context, 'Apariencia'),
+          _label(context, l10n.settingsGeneralGroupAppearance),
           SettingsCard(children: [
             SettingSegmented<String>(
-              title: 'Tema',
-              subtitle: 'Claro, oscuro o según el sistema',
-              options: const [('auto', 'Auto'), ('dark', 'Oscuro'), ('light', 'Claro')],
+              title: l10n.settingsGeneralTheme,
+              subtitle: l10n.settingsGeneralThemeSubtitle,
+              options: [
+                ('auto', l10n.settingsGeneralThemeAuto),
+                ('dark', l10n.settingsGeneralThemeDark),
+                ('light', l10n.settingsGeneralThemeLight),
+              ],
               value: s.themeMode,
               onChanged: (v) => n.set(s.copyWith(themeMode: v)),
             ),
             SettingColor(
-              title: 'Color de acento',
+              title: l10n.settingsGeneralAccentColor,
               value: s.accentColor,
               onChanged: (v) => n.set(s.copyWith(accentColor: v)),
             ),
             SettingSegmented<String>(
-              title: 'Iconos',
-              subtitle: 'Duotono o plano (blanco)',
-              options: const [('duotone', 'Duotono'), ('flat', 'Plano')],
+              title: l10n.settingsGeneralIcons,
+              subtitle: l10n.settingsGeneralIconsSubtitle,
+              options: [
+                ('duotone', l10n.settingsGeneralIconsDuotone),
+                ('flat', l10n.settingsGeneralIconsFlat),
+              ],
               value: s.iconStyle,
               onChanged: (v) => n.set(s.copyWith(iconStyle: v)),
             ),
@@ -51,22 +58,22 @@ class GeneralSettingsSection extends ConsumerWidget {
             ),
           ]),
           const SizedBox(height: 16),
-          _label(context, 'Interacción'),
+          _label(context, l10n.settingsGeneralGroupInteraction),
           SettingsCard(children: [
             SettingSwitch(
-              title: 'Háptica en gestos',
-              subtitle: 'Vibración sutil al cruzar umbrales',
+              title: l10n.settingsGeneralHaptics,
+              subtitle: l10n.settingsGeneralHapticsSubtitle,
               value: s.hapticsOnGestures,
               onChanged: (v) => n.set(s.copyWith(hapticsOnGestures: v)),
             ),
           ]),
           const SizedBox(height: 16),
-          _label(context, 'Biblioteca'),
+          _label(context, l10n.settingsGroupLibrary),
           SettingsCard(children: [
             SettingNavRow(
               icon: Icons.folder_off_outlined,
-              title: 'Carpetas ocultas',
-              subtitle: 'Carpetas que no aparecen en tu biblioteca',
+              title: l10n.settingsHiddenFoldersTitle,
+              subtitle: l10n.settingsHiddenFoldersNavSubtitle,
               onTap: () => Navigator.of(context).push(MaterialPageRoute(
                   builder: (_) => const HiddenFoldersSection())),
             ),

@@ -5,14 +5,19 @@ import 'package:kivo_player/core/errors/error_log.dart';
 import 'package:kivo_player/core/errors/error_log_provider.dart';
 import 'package:kivo_player/core/errors/kivo_failure.dart';
 import 'package:kivo_player/ui/settings/sections/error_log_section.dart';
+import '../helpers/pump_app.dart';
+
+final _l10n = l10nFor(const Locale('es'));
 
 ErrorLog _emptyLog() =>
     ErrorLog(InMemoryErrorLogStore(), appVersion: '1.1.0', androidSdk: 28);
 
-Widget _host(ErrorLog log) => ProviderScope(
-      overrides: [errorLogProvider.overrideWithValue(log)],
-      child: const MaterialApp(home: ErrorLogSection()),
-    );
+Future<void> _pump(WidgetTester tester, ErrorLog log) {
+  final container =
+      ProviderContainer(overrides: [errorLogProvider.overrideWithValue(log)]);
+  addTearDown(container.dispose);
+  return pumpLocalized(tester, const ErrorLogSection(), container: container);
+}
 
 void main() {
   testWidgets('lists recorded failures newest first', (tester) async {
@@ -20,23 +25,23 @@ void main() {
     log.record(const KivoFailure(KivoOp.libraryScan, 'sqlite says no'));
     log.record(const KivoFailure(KivoOp.delete, 'permission denied'));
 
-    await tester.pumpWidget(_host(log));
+    await _pump(tester, log);
 
     expect(find.text('KV-301'), findsOneWidget);
     expect(find.text('KV-201'), findsOneWidget);
   });
 
   testWidgets('shows an empty state when nothing has failed', (tester) async {
-    await tester.pumpWidget(_host(_emptyLog()));
+    await _pump(tester, _emptyLog());
 
-    expect(find.text('Sin errores registrados'), findsOneWidget);
+    expect(find.text(_l10n.settingsErrorLogEmpty), findsOneWidget);
   });
 
   testWidgets('expanding an entry reveals its technical detail', (tester) async {
     final log = _emptyLog();
     log.record(const KivoFailure(KivoOp.libraryScan, 'sqlite says no'));
 
-    await tester.pumpWidget(_host(log));
+    await _pump(tester, log);
     expect(find.textContaining('sqlite says no'), findsNothing);
 
     await tester.tap(find.text('KV-201'));
@@ -49,10 +54,10 @@ void main() {
     final log = _emptyLog();
     log.record(const KivoFailure(KivoOp.libraryScan, 'sqlite says no'));
 
-    await tester.pumpWidget(_host(log));
+    await _pump(tester, log);
     await tester.tap(find.byIcon(Icons.delete_outline));
     await tester.pumpAndSettle();
 
-    expect(find.text('Sin errores registrados'), findsOneWidget);
+    expect(find.text(_l10n.settingsErrorLogEmpty), findsOneWidget);
   });
 }

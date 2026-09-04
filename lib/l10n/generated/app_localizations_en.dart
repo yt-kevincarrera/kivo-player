@@ -949,4 +949,682 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playerTutorialBottomBarSection => 'Bottom bar';
+
+  @override
+  String get settingsGeneralTitle => 'General';
+
+  @override
+  String get settingsGeneralNavSubtitle => 'Theme, accent color, haptics';
+
+  @override
+  String get settingsGeneralGroupAppearance => 'Appearance';
+
+  @override
+  String get settingsGeneralTheme => 'Theme';
+
+  @override
+  String get settingsGeneralThemeSubtitle => 'Light, dark, or match the system';
+
+  @override
+  String get settingsGeneralThemeAuto => 'Auto';
+
+  @override
+  String get settingsGeneralThemeDark => 'Dark';
+
+  @override
+  String get settingsGeneralThemeLight => 'Light';
+
+  @override
+  String get settingsGeneralAccentColor => 'Accent color';
+
+  @override
+  String get settingsGeneralIcons => 'Icons';
+
+  @override
+  String get settingsGeneralIconsSubtitle => 'Duotone or flat (white)';
+
+  @override
+  String get settingsGeneralIconsDuotone => 'Duotone';
+
+  @override
+  String get settingsGeneralIconsFlat => 'Flat';
+
+  @override
+  String get settingsGeneralGroupInteraction => 'Interaction';
+
+  @override
+  String get settingsGeneralHaptics => 'Haptics on gestures';
+
+  @override
+  String get settingsGeneralHapticsSubtitle =>
+      'Subtle vibration when crossing thresholds';
+
+  @override
+  String get settingsGroupLibrary => 'Library';
+
+  @override
+  String get settingsHiddenFoldersTitle => 'Hidden folders';
+
+  @override
+  String get settingsHiddenFoldersNavSubtitle =>
+      'Folders that don\'t appear in your library';
+
+  @override
+  String get settingsHiddenFoldersEmpty =>
+      'You haven\'t hidden any folder.\nPress and hold a folder in Videos to hide it.';
+
+  @override
+  String get settingsHiddenFoldersShowAction => 'Show';
+
+  @override
+  String get settingsRootTitle => 'Settings';
+
+  @override
+  String get settingsPlaybackGesturesTitle => 'Playback and gestures';
+
+  @override
+  String get settingsPlaybackGesturesNavSubtitle =>
+      'Skips, sensitivities, speed';
+
+  @override
+  String get settingsInterfaceTitle => 'Interface';
+
+  @override
+  String get settingsInterfaceNavSubtitle =>
+      'Controls, overlay, aspect, columns';
+
+  @override
+  String get settingsAdvancedPlaybackTitle => 'Advanced playback';
+
+  @override
+  String get settingsAdvancedPlaybackNavSubtitle =>
+      'Resume, autoplay, subtitles, PiP';
+
+  @override
+  String get settingsEqualizerTitle => 'Equalizer';
+
+  @override
+  String get settingsEqualizerNavSubtitle => 'Bass, voice, treble and preamp';
+
+  @override
+  String get settingsBackupTitle => 'Backup';
+
+  @override
+  String get settingsBackupNavSubtitle =>
+      'Export or restore your playlists, bookmarks and settings';
+
+  @override
+  String get settingsAboutTitle => 'About';
+
+  @override
+  String get settingsAboutNavSubtitle => 'Version and updates';
+
+  @override
+  String get settingsVaultNavSubtitle => 'Hidden videos';
+
+  @override
+  String get settingsResetAction => 'Reset';
+
+  @override
+  String get settingsResetAllTitle => 'Reset values';
+
+  @override
+  String get settingsResetAllBody =>
+      'Reset every setting to its default value?';
+
+  @override
+  String get settingsAboutDownloading => 'Downloading the update';
+
+  @override
+  String settingsAboutDownloadingSubtitleWithVersion(String version) {
+    return 'Kivo $version · tap to see the progress';
+  }
+
+  @override
+  String get settingsAboutDownloadingSubtitleNoVersion =>
+      'Tap to see the progress';
+
+  @override
+  String get settingsAboutReady => 'Update ready to install';
+
+  @override
+  String settingsAboutReadySubtitleWithVersion(String version) {
+    return 'Kivo $version · tap to install it';
+  }
+
+  @override
+  String get settingsAboutReadySubtitleNoVersion => 'Tap to install it';
+
+  @override
+  String get settingsAboutCheckForUpdates => 'Check for updates';
+
+  @override
+  String get settingsAboutUpToDateSnackbar => 'You\'re up to date ✓';
+
+  @override
+  String settingsAboutVersion(String version) {
+    return 'Version $version';
+  }
+
+  @override
+  String get settingsAboutTagline => 'Local video player';
+
+  @override
+  String get settingsAboutByAuthor => 'By Kevin Carrera';
+
+  @override
+  String get settingsAboutErrorLogTitle => 'Error log';
+
+  @override
+  String get settingsAboutErrorLogSubtitle =>
+      'The latest failures, with their technical detail';
+
+  @override
+  String get settingsAboutAutoCheck => 'Check automatically';
+
+  @override
+  String get settingsAboutAutoCheckSubtitle =>
+      'Checks on open, at most once a day';
+
+  @override
+  String get settingsAdvancedAutomaticOption => 'Automatic';
+
+  @override
+  String settingsAdvancedLangChosen(String lang) {
+    return '$lang (chosen)';
+  }
+
+  @override
+  String get settingsAdvancedGroupContinueWatching => 'Continue watching';
+
+  @override
+  String get settingsAdvancedResumeBehavior => 'When reopening a video';
+
+  @override
+  String get settingsAdvancedResumeAsk => 'Ask';
+
+  @override
+  String get settingsAdvancedResumeOff => 'Off';
+
+  @override
+  String get settingsAdvancedResumeMinSeconds => 'Minimum to remember position';
+
+  @override
+  String get settingsAdvancedGroupPlayback => 'Playback';
+
+  @override
+  String get settingsAdvancedAutoplayNext => 'Play the next one automatically';
+
+  @override
+  String get settingsAdvancedPipAutoOnHome =>
+      'Floating thumbnail (PiP) when leaving to home';
+
+  @override
+  String get settingsAdvancedMinimizeKeepsPlaying =>
+      'Keep playing when minimized';
+
+  @override
+  String get settingsAdvancedMinimizeKeepsPlayingSubtitle =>
+      'Audio keeps going in the bottom bar instead of pausing';
+
+  @override
+  String get settingsAdvancedGroupSubtitlesAudio => 'Subtitles and audio';
+
+  @override
+  String get settingsAdvancedSubtitlesDefault => 'Enable subtitles by default';
+
+  @override
+  String get settingsAdvancedPreferredSubtitleLang =>
+      'Preferred subtitle language';
+
+  @override
+  String get settingsAdvancedPreferredLangSubtitle =>
+      'Set when you choose a track; here you can go back to Automatic';
+
+  @override
+  String get settingsAdvancedPreferredAudioLang => 'Preferred audio language';
+
+  @override
+  String get settingsAdvancedGroupStorage => 'Storage';
+
+  @override
+  String get settingsAdvancedAllFilesAccess => 'Access to all files';
+
+  @override
+  String get settingsAdvancedAllFilesAccessGranted => 'Granted';
+
+  @override
+  String get settingsAdvancedAllFilesAccessPrompt =>
+      'Tap to delete and rename without confirmation';
+
+  @override
+  String get settingsGesturesGroupLearn => 'Learn';
+
+  @override
+  String get settingsGesturesViewMap => 'View the gesture map';
+
+  @override
+  String get settingsGesturesViewMapSubtitle =>
+      'Taps, drags and the player\'s buttons';
+
+  @override
+  String get settingsGesturesGroupDoubleTap => 'Double tap';
+
+  @override
+  String get settingsGesturesSkipBack => 'Skip back';
+
+  @override
+  String get settingsGesturesSkipForward => 'Skip forward';
+
+  @override
+  String get settingsGesturesDoubleTapPause =>
+      'Pause with a double tap in the center';
+
+  @override
+  String get settingsGesturesGroupSeek => 'Skip and seek';
+
+  @override
+  String get settingsGesturesCenterSkip => 'Skip of the ± buttons';
+
+  @override
+  String get settingsGesturesHorizontalSeek => 'Seek by dragging horizontally';
+
+  @override
+  String get settingsGesturesGroupZoom => 'Zoom';
+
+  @override
+  String get settingsGesturesPinchZoom => 'Pinch to zoom';
+
+  @override
+  String get settingsGesturesPinchZoomSubtitle =>
+      'Pinch to zoom in and drag to pan';
+
+  @override
+  String get settingsGesturesZoomMax => 'Maximum zoom';
+
+  @override
+  String get settingsGesturesZoomReset => 'Reset zoom';
+
+  @override
+  String get settingsGesturesZoomResetSubtitle =>
+      'When it goes back to 1× on its own';
+
+  @override
+  String get settingsGesturesZoomResetExit => 'On exit';
+
+  @override
+  String get settingsGesturesZoomResetVideo => 'Every video';
+
+  @override
+  String get settingsGesturesZoomResetNever => 'Never';
+
+  @override
+  String get settingsGesturesGroupSensitivity => 'Gesture sensitivity';
+
+  @override
+  String get settingsGesturesBrightness => 'Brightness';
+
+  @override
+  String get settingsGesturesVolume => 'Volume';
+
+  @override
+  String get settingsGesturesSeek => 'Seek';
+
+  @override
+  String get settingsGesturesVolumeBoostMax => 'Maximum volume boost';
+
+  @override
+  String get settingsGesturesGroupSpeed => 'Speed';
+
+  @override
+  String get settingsGesturesRememberSpeed => 'Remember speed between videos';
+
+  @override
+  String get settingsGesturesHoldLeftSpeed => 'Speed when holding (left)';
+
+  @override
+  String get settingsGesturesHoldRightMax => 'Maximum speed';
+
+  @override
+  String get settingsGesturesHoldRightRelease =>
+      'When releasing the accelerator, go back to the previous speed';
+
+  @override
+  String get settingsGesturesSpeedFineStep => 'Fine speed step';
+
+  @override
+  String get settingsGesturesSpeedPresets => 'Preset speeds';
+
+  @override
+  String get settingsGesturesSpeedPresetsSubtitle =>
+      'The ones shown in the speed panel';
+
+  @override
+  String get settingsGesturesHoldRightDetents =>
+      'Accelerator steps (right hold)';
+
+  @override
+  String get settingsGesturesHoldRightDetentsSubtitle =>
+      'The speed ladder when holding on the right';
+
+  @override
+  String get settingsInterfaceGroupControls => 'Controls';
+
+  @override
+  String get settingsInterfaceAutoHide => 'Auto-hide controls';
+
+  @override
+  String get settingsInterfaceRememberOrientation =>
+      'Remember orientation between videos';
+
+  @override
+  String get settingsInterfaceGroupVideo => 'Video';
+
+  @override
+  String get settingsInterfaceDefaultAspect => 'Default aspect';
+
+  @override
+  String get settingsInterfaceAspectFit => 'Fit';
+
+  @override
+  String get settingsInterfaceAspectFill => 'Fill';
+
+  @override
+  String get settingsInterfaceAspectStretch => 'Stretch';
+
+  @override
+  String get settingsInterfaceGroupOverlay => 'Info overlay';
+
+  @override
+  String get settingsInterfaceShowOverlay => 'Show info overlay';
+
+  @override
+  String get settingsInterfaceOverlayContent => 'Content';
+
+  @override
+  String get settingsInterfaceOverlayContentNameTime => 'Name and time';
+
+  @override
+  String get settingsInterfaceOverlayContentNameOnly => 'Name only';
+
+  @override
+  String get settingsInterfaceOverlayContentRemaining => 'Remaining time';
+
+  @override
+  String get settingsInterfaceOverlayCorner => 'Corner';
+
+  @override
+  String get settingsInterfaceColumns => 'Default columns';
+
+  @override
+  String get settingsEqSwitchSubtitle =>
+      'Applies the bass, voice and treble curve to the audio';
+
+  @override
+  String get settingsEqGroupPresets => 'Presets';
+
+  @override
+  String get settingsEqPresetFlat => 'Flat';
+
+  @override
+  String get settingsEqPresetBass => 'Bass';
+
+  @override
+  String get settingsEqPresetVoice => 'Voice';
+
+  @override
+  String get settingsEqPresetTreble => 'Treble';
+
+  @override
+  String get settingsEqPresetCustom => 'Custom';
+
+  @override
+  String get settingsEqGroupBands => 'Bands';
+
+  @override
+  String get settingsEqGroupPreamp => 'Preamp';
+
+  @override
+  String get settingsEqPreampGain => 'Overall gain';
+
+  @override
+  String get settingsBackupExport => 'Export backup';
+
+  @override
+  String get settingsBackupExportSubtitle =>
+      'Saves your playlists, bookmarks and settings to a file';
+
+  @override
+  String get settingsBackupRestoreTitle => 'Restore backup';
+
+  @override
+  String get settingsBackupRestoreSubtitle =>
+      'Adds whatever is in a backup file saved before';
+
+  @override
+  String get settingsBackupExportSavedSnackbar => 'Backup saved';
+
+  @override
+  String get settingsBackupExportCancelledSnackbar => 'Cancelled';
+
+  @override
+  String get settingsBackupReadFileFailedSnackbar => 'Couldn\'t read the file';
+
+  @override
+  String get settingsBackupRestoreConfirmAction => 'Restore';
+
+  @override
+  String get settingsBackupRestoredSnackbar => 'Backup restored';
+
+  @override
+  String get settingsBackupReadFailedDialogTitle => 'Couldn\'t read the backup';
+
+  @override
+  String settingsBackupRestoreItemPlaylists(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count playlists',
+      one: '1 playlist',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settingsBackupRestoreItemBookmarks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bookmarks',
+      one: '1 bookmark',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settingsBackupRestoreItemPositions(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count positions',
+      one: '1 position',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settingsBackupRestoreItemWatchedVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count watched videos',
+      one: '1 watched video',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settingsBackupRestoreItemHiddenVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hidden videos',
+      one: '1 hidden video',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settingsBackupRestoreItemTrackSettings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count track settings',
+      one: '1 track setting',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsBackupRestoreJoinWord => 'and';
+
+  @override
+  String settingsBackupRestoreWillAdd(String items) {
+    return '$items will be added.';
+  }
+
+  @override
+  String get settingsBackupRestoreNothingNew => 'There\'s nothing new to add.';
+
+  @override
+  String get settingsBackupRestoreSettingsReplace =>
+      'Settings will be replaced.';
+
+  @override
+  String get settingsErrorLogCopyAllTooltip => 'Copy all';
+
+  @override
+  String get settingsErrorLogClearTooltip => 'Clear log';
+
+  @override
+  String get settingsErrorLogCopiedSnackbar => 'Log copied';
+
+  @override
+  String get settingsErrorLogEmpty => 'No errors logged';
+
+  @override
+  String get settingsErrorLogAgeJustNow => 'just now';
+
+  @override
+  String settingsErrorLogAgeMinutes(int count) {
+    return '$count min ago';
+  }
+
+  @override
+  String settingsErrorLogAgeHours(int count) {
+    return '$count h ago';
+  }
+
+  @override
+  String settingsErrorLogAgeDays(int count) {
+    return '$count d ago';
+  }
+
+  @override
+  String settingsErrorLogDetailLine(String version, int sdk) {
+    return 'Kivo $version · Android API $sdk';
+  }
+
+  @override
+  String get settingsColorPickerTitle => 'Custom';
+
+  @override
+  String get settingsColorPickerHue => 'Hue';
+
+  @override
+  String get settingsColorPickerSaturation => 'Saturation';
+
+  @override
+  String get settingsColorPickerBrightness => 'Brightness';
+
+  @override
+  String get settingsColorPickerApplyAction => 'Apply';
+
+  @override
+  String get settingsSpeedAddDialogTitle => 'Add speed';
+
+  @override
+  String get settingsSpeedAddAction => 'Add';
+
+  @override
+  String get commonClose => 'Close';
+
+  @override
+  String get updateGenericTitle => 'Update';
+
+  @override
+  String updateTitleWithVersion(String version) {
+    return 'New version $version';
+  }
+
+  @override
+  String get updateNoActiveDownload =>
+      'There\'s no download in progress anymore.';
+
+  @override
+  String get updateNoNotesAvailable => 'A newer version is available.';
+
+  @override
+  String get updateCanLeaveHint =>
+      'You can leave Kivo: the download keeps going.';
+
+  @override
+  String get updateReadyCaption => 'Ready to install';
+
+  @override
+  String get updateReadyHint => 'Tap Install to continue.';
+
+  @override
+  String updateFailedMessage(String message, String code) {
+    return '$message ($code).\nYou can retry or download it from the browser.';
+  }
+
+  @override
+  String get updateSkipVersionAction => 'Skip this version';
+
+  @override
+  String get updateOpenInBrowserAction => 'Open in browser';
+
+  @override
+  String get updateDownloadAction => 'Download';
+
+  @override
+  String get updateHideAction => 'Hide';
+
+  @override
+  String get updateInstallAction => 'Install';
+
+  @override
+  String get updateDiscardReadyAction => 'Dismiss';
+
+  @override
+  String get updateRetryAction => 'Retry';
+
+  @override
+  String get updateInstallNeedsPermissionSnackbar =>
+      'Allow installing apps to continue, then tap Install.';
+
+  @override
+  String get updateStatusQueued => 'Queued…';
+
+  @override
+  String get updateStatusPausedNetwork => 'Paused · waiting for connection';
+
+  @override
+  String get updateStatusPausedRetry => 'Paused · retrying';
+
+  @override
+  String updateStatusSizePercent(String size, int percent) {
+    return '$size · $percent%';
+  }
 }

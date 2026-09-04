@@ -23,18 +23,9 @@ const Map<String, int> _baseline = {
   // Wave 2 (2026-09-04) localized every lib/ui/player/** file; their entries
   // are gone (0 is the default via `_baseline[rel] ?? 0`). Do not re-add one
   // to make room for new hardcoded copy there.
-  'lib/ui/settings/sections/about_section.dart': 16,
-  'lib/ui/settings/sections/advanced_playback_section.dart': 23,
-  'lib/ui/settings/sections/backup_section.dart': 14,
-  'lib/ui/settings/sections/error_log_section.dart': 7,
-  'lib/ui/settings/sections/general_section.dart': 18,
-  'lib/ui/settings/sections/hidden_folders_section.dart': 4,
-  'lib/ui/settings/sections/interface_section.dart': 18,
-  'lib/ui/settings/sections/playback_gestures_section.dart': 35,
-  'lib/ui/settings/settings_screen.dart': 21,
-  'lib/ui/settings/widgets/color_picker_sheet.dart': 6,
-  'lib/ui/settings/widgets/setting_speed_list.dart': 3,
-  'lib/ui/update/update_dialog.dart': 24,
+  //
+  // Wave 3 (2026-09-04) localized every lib/ui/settings/** and
+  // lib/ui/update/** file in scope; their entries are gone too.
   'lib/ui/vault/vault_gate.dart': 7,
   'lib/ui/vault/vault_screen.dart': 5,
   'lib/ui/vault/widgets/vault_bottom_bar.dart': 8,
@@ -48,8 +39,11 @@ final _stringLiteral = RegExp(r"'((?:[^'\\]|\\.)*)'");
 // track-sync-target chip labels (track_sync_hud.dart) are short technical
 // track-kind labels, not sentences — same call as leaving 'Sub' unlocalized
 // (it's under the length-4 floor below so it never needed whitelisting).
+// 'API' joins it for the same reason: "Kivo {version} · Android API {sdk}"
+// in error_log_section.dart's technical detail dump is proper nouns, a
+// version number and an SDK level, not a sentence to translate.
 const _properNouns = {
-  'Kivo', 'Vault', 'Android', 'Hive', 'GitHub', 'MediaStore', 'Audio',
+  'Kivo', 'Vault', 'Android', 'Hive', 'GitHub', 'MediaStore', 'Audio', 'API',
 };
 final _kvCode = RegExp(r'KV-\d+');
 final _wordSplit = RegExp(r'[^A-Za-zÁÉÍÓÚÑÜáéíóúñü]+');

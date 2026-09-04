@@ -27,7 +27,7 @@ void main() {
       ),
     ));
 
-    await tester.tap(find.text('Ver el mapa de gestos'));
+    await tester.tap(find.text(_l10n.settingsGesturesViewMap));
     await tester.pumpAndSettle();
     expect(find.text(_l10n.playerTutorialPageTaps.toUpperCase()), findsOneWidget);
   });

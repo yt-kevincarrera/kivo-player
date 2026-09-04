@@ -237,6 +237,55 @@ RestorePlan buildRestorePlan({
   );
 }
 
+/// Structured counterpart to [describeRestorePlan]: the same six per-section
+/// counts plus [settingsWillReplace], with no sentence or language baked in.
+/// A UI builds the confirmation sentence from these via ICU plurals
+/// (`settingsBackupRestoreItem*` in the ARB) — one plural placeholder per
+/// section, joined in Dart with the locale's own join word
+/// (`settingsBackupRestoreJoinWord`) — which is the shape (rather than one
+/// giant multi-plural message) because the number of sections that actually
+/// changed varies per restore, so the sentence's structure varies too; a
+/// single ICU message can't conditionally omit clauses the way a small loop
+/// over non-zero counts can.
+class RestoreSummary {
+  final int playlistsAdded;
+  final int bookmarksAdded;
+
+  /// Resume positions added or updated — [RestorePlan.resumeCounts] doesn't
+  /// distinguish the two in the sentence (both read as "positions changed").
+  final int positionsChanged;
+  final int watchedVideosAdded;
+  final int hiddenVideosAdded;
+
+  /// Track prefs (sync offsets, chosen subtitle) added or updated.
+  final int trackSettingsChanged;
+  final bool settingsWillReplace;
+
+  const RestoreSummary({
+    this.playlistsAdded = 0,
+    this.bookmarksAdded = 0,
+    this.positionsChanged = 0,
+    this.watchedVideosAdded = 0,
+    this.hiddenVideosAdded = 0,
+    this.trackSettingsChanged = 0,
+    this.settingsWillReplace = false,
+  });
+}
+
+/// Builds a [RestoreSummary] from [plan] — the counts [describeRestorePlan]
+/// turns into its hardcoded Spanish sentence, exposed instead as plain data
+/// for a localized UI to phrase itself.
+RestoreSummary summarizeRestorePlan(RestorePlan plan) => RestoreSummary(
+      playlistsAdded: plan.playlistsCounts.added,
+      bookmarksAdded: plan.bookmarksCounts.added,
+      positionsChanged: plan.resumeCounts.added + plan.resumeCounts.updated,
+      watchedVideosAdded: plan.playedCounts.added,
+      hiddenVideosAdded: plan.vaultCounts.added,
+      trackSettingsChanged:
+          plan.trackPrefsCounts.added + plan.trackPrefsCounts.updated,
+      settingsWillReplace: plan.settingsWillReplace,
+    );
+
 String _pluralize(int n, String singular, String plural) =>
     n == 1 ? singular : plural;
 
@@ -250,6 +299,9 @@ String _joinSpanish(List<String> parts) {
 /// «Se añadirán 3 listas, 40 marcadores, 12 posiciones. Los ajustes se
 /// reemplazarán.» — or «No hay nada nuevo que añadir.» when [plan] would
 /// change nothing (restoring the same backup twice).
+///
+/// Kept for any caller still on the hardcoded-Spanish API; [summarizeRestorePlan]
+/// is the localized-UI replacement.
 String describeRestorePlan(RestorePlan plan) {
   final parts = <String>[];
   if (plan.playlistsCounts.added > 0) {

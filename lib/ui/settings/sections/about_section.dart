@@ -4,6 +4,7 @@ import '../../../core/errors/kivo_failure.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../core/update/update_download_controller.dart';
 import '../../../core/update/update_providers.dart';
+import '../../../l10n/l10n.dart';
 import '../../../platform/app_installer_provider.dart';
 import '../../update/update_dialog.dart';
 import '../../widgets/failure_snack_bar.dart';
@@ -49,12 +50,13 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
           .check(manual: true);
       if (!mounted) return;
       final messenger = ScaffoldMessenger.of(context);
+      final l10n = context.l10n;
       switch (result.status) {
         case UpdateStatus.available:
           showUpdateDialog(context, result.info!);
         case UpdateStatus.upToDate:
           messenger.showSnackBar(
-            const SnackBar(content: Text('Estás al día ✓')),
+            SnackBar(content: Text(l10n.settingsAboutUpToDateSnackbar)),
           );
         case UpdateStatus.error:
           showFailureSnackBar(context, KivoOp.updateCheck);
@@ -72,7 +74,8 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
   /// stuck download locked the user out of ever finding a newer release — and
   /// that is exactly how a bug in the updater made itself unfixable from
   /// inside the app.
-  List<Widget> _updateTiles(ColorScheme cs) {
+  List<Widget> _updateTiles(BuildContext context, ColorScheme cs) {
+    final l10n = context.l10n;
     final pending = ref.watch(updateDownloadProvider);
     // The version is missing only if settings were cleared under a live
     // download, so it belongs in the subtitle rather than the title.
@@ -81,31 +84,31 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
       switch (pending.phase) {
         DownloadPhase.downloading => ListTile(
           leading: Icon(Icons.downloading_outlined, color: cs.onSurfaceVariant),
-          title: const Text('Descargando la actualización'),
+          title: Text(l10n.settingsAboutDownloading),
           subtitle: Text(
             v == null
-                ? 'Toca para ver el progreso'
-                : 'Kivo $v · toca para ver el progreso',
+                ? l10n.settingsAboutDownloadingSubtitleNoVersion
+                : l10n.settingsAboutDownloadingSubtitleWithVersion(v),
           ),
           onTap: () => showPendingUpdateDialog(context),
         ),
         DownloadPhase.ready => ListTile(
           leading: Icon(Icons.download_done_outlined, color: cs.secondary),
-          title: const Text('Actualización lista para instalar'),
+          title: Text(l10n.settingsAboutReady),
           subtitle: Text(
             v == null
-                ? 'Toca para instalarla'
-                : 'Kivo $v · toca para instalarla',
+                ? l10n.settingsAboutReadySubtitleNoVersion
+                : l10n.settingsAboutReadySubtitleWithVersion(v),
           ),
           onTap: () => showPendingUpdateDialog(context),
         ),
         DownloadPhase.idle || DownloadPhase.failed => const SizedBox.shrink(),
       },
-      _checkTile(cs),
+      _checkTile(context, cs),
     ];
   }
 
-  Widget _checkTile(ColorScheme cs) {
+  Widget _checkTile(BuildContext context, ColorScheme cs) {
     return ListTile(
       leading: _checking
           ? SizedBox(
@@ -117,7 +120,7 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
               ),
             )
           : Icon(Icons.system_update_outlined, color: cs.onSurfaceVariant),
-      title: const Text('Buscar actualizaciones'),
+      title: Text(context.l10n.settingsAboutCheckForUpdates),
       onTap: _checking ? null : _check,
     );
   }
@@ -125,9 +128,10 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
     final auto = ref.watch(settingsProvider.select((s) => s.autoCheckUpdates));
     return Scaffold(
-      appBar: AppBar(title: const Text('Acerca de')),
+      appBar: AppBar(title: Text(l10n.settingsAboutTitle)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(14, 20, 14, 28),
         children: [
@@ -146,18 +150,18 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
                 FutureBuilder<String>(
                   future: _versionFuture,
                   builder: (_, snap) => Text(
-                    'Versión ${snap.data ?? '…'}',
+                    l10n.settingsAboutVersion(snap.data ?? '…'),
                     style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Reproductor de video local',
+                  l10n.settingsAboutTagline,
                   style: TextStyle(fontSize: 12.5, color: cs.onSurfaceVariant),
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Por Kevin Carrera',
+                  l10n.settingsAboutByAuthor,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -173,10 +177,10 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
             ),
           ),
           const SizedBox(height: 28),
-          ..._updateTiles(cs),
+          ..._updateTiles(context, cs),
           SettingSwitch(
-            title: 'Buscar automáticamente',
-            subtitle: 'Comprueba al abrir, máximo una vez al día',
+            title: l10n.settingsAboutAutoCheck,
+            subtitle: l10n.settingsAboutAutoCheckSubtitle,
             value: auto,
             onChanged: (v) => ref
                 .read(settingsProvider.notifier)
@@ -187,8 +191,8 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
             children: [
               SettingNavRow(
                 icon: Icons.bug_report_outlined,
-                title: 'Registro de errores',
-                subtitle: 'Los últimos fallos, con su detalle técnico',
+                title: l10n.settingsAboutErrorLogTitle,
+                subtitle: l10n.settingsAboutErrorLogSubtitle,
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const ErrorLogSection()),
                 ),
