@@ -9,6 +9,11 @@ const double kTapCenterEnd = 0.67;
 /// Width fraction of the center band that owns swipe-to-rotate.
 const double kCenterRotateFraction = 0.30;
 
+/// Height fraction (from the top) of the center band that owns swipe-to-rotate.
+/// The lower half is inert: that is where the system home gesture lives, and a
+/// swipe up to leave the app must never move the player.
+const double kCenterRotateHeightFraction = 0.50;
+
 /// Lateral strip (logical px) that owns swipe-to-minimize.
 const double kLateralEdgeMargin = 38.0;
 
@@ -126,6 +131,16 @@ bool inCenterRotateZone(double localX, double width,
   return localX >= width * (0.5 - half) && localX <= width * (0.5 + half);
 }
 
+/// True when a touch starts high enough in the center band to rotate: the top
+/// [fraction] of the height, boundary included. Below it the band is inert —
+/// the bottom center is where the system home gesture starts, and a swipe up to
+/// leave the app used to land on rotate.
+bool inCenterRotateHeight(double localY, double height,
+    [double fraction = kCenterRotateHeightFraction]) {
+  if (height <= 0) return false;
+  return localY <= height * fraction;
+}
+
 ({double system01, double playerPercent}) volumeMapping(double percent, double boostMax) {
   final p = percent.clamp(0.0, boostMax);
   final system = (p < 100 ? p : 100) / 100;
@@ -198,7 +213,13 @@ DragIntent? dragIntentFor({
   }
   if (delta.distance < slop) return null;
   if (delta.dy.abs() > delta.dx.abs()) {
-    if (!controlsVisible && inCenterRotateZone(start.dx, viewport.width)) return DragIntent.rotate;
+    if (inCenterRotateZone(start.dx, viewport.width)) {
+      // Only the top half of the band rotates; the rest of it is inert so the
+      // system home gesture can never move the player. Brightness and volume do
+      // NOT reclaim that lower half — "no gesture here" is the whole point.
+      if (!inCenterRotateHeight(start.dy, viewport.height)) return DragIntent.none;
+      if (!controlsVisible) return DragIntent.rotate;
+    }
     return start.dx < viewport.width / 2 ? DragIntent.brightness : DragIntent.volume;
   }
   return DragIntent.seek;

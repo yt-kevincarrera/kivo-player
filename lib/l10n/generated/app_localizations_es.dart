@@ -898,7 +898,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get playerTutorialDragCenterRotate =>
-      'Arrastra en el centro · Girar (con los controles ocultos)';
+      'Arrastra en el centro, mitad superior · Girar (con los controles ocultos)';
 
   @override
   String playerTutorialPinchZoom(String zoom) {

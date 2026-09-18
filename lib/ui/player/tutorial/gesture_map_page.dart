@@ -248,8 +248,10 @@ class _ZonesPage extends StatelessWidget {
           Positioned(
             left: w * (0.5 - kCenterRotateFraction / 2),
             width: w * kCenterRotateFraction,
-            top: h * 0.40,
-            height: h * 0.24,
+            // Ends on the half-height line the router uses: the band drawn here
+            // is exactly the area that rotates.
+            top: h * 0.18,
+            height: h * (kCenterRotateHeightFraction - 0.18),
             child: _ZoneBox(hint: hint, accent: accent, dense: true),
           ),
         ];
