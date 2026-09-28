@@ -111,11 +111,14 @@ void main() {
     return c;
   }
 
+  /// A point in the upper half of the center band, where swipe-to-rotate lives.
+  Offset upperCenter(Rect box) => Offset(box.center.dx, box.top + box.height * 0.25);
+
   testWidgets('center swipe UP rotates portrait→landscape', (tester) async {
     final c = await pumpGestures(tester);
     expect(c.read(orientationProvider), DeviceOrientationLock.portrait);
     final box = tester.getRect(find.byType(PlayerGestures));
-    await tester.dragFrom(box.center, const Offset(0, -140));
+    await tester.dragFrom(upperCenter(box), const Offset(0, -140));
     await tester.pump(const Duration(milliseconds: 400)); // drain the double-tap countdown
     expect(c.read(orientationProvider), DeviceOrientationLock.landscape);
   });
@@ -124,7 +127,7 @@ void main() {
     final c = await pumpGestures(tester);
     c.read(orientationProvider.notifier).rotateTo(DeviceOrientationLock.landscape);
     final box = tester.getRect(find.byType(PlayerGestures));
-    await tester.dragFrom(box.center, const Offset(0, 140));
+    await tester.dragFrom(upperCenter(box), const Offset(0, 140));
     await tester.pump(const Duration(milliseconds: 400));
     expect(c.read(orientationProvider), DeviceOrientationLock.portrait);
   });
@@ -133,8 +136,18 @@ void main() {
     final c = await pumpGestures(tester);
     final box = tester.getRect(find.byType(PlayerGestures));
     // Already portrait: a downward center swipe has nothing to open into.
-    await tester.dragFrom(box.center, const Offset(0, 140));
+    await tester.dragFrom(upperCenter(box), const Offset(0, 140));
     await tester.pump(const Duration(milliseconds: 400));
+    expect(c.read(orientationProvider), DeviceOrientationLock.portrait);
+  });
+
+  testWidgets('a swipe UP from the bottom center does NOT rotate (system home gesture)',
+      (tester) async {
+    final c = await pumpGestures(tester);
+    final box = tester.getRect(find.byType(PlayerGestures));
+    // The reported accident: reaching for the system home gesture used to rotate.
+    await tester.dragFrom(Offset(box.center.dx, box.bottom - 60), const Offset(0, -140));
+    await tester.pump(const Duration(seconds: 4)); // drain any HUD/controls timers
     expect(c.read(orientationProvider), DeviceOrientationLock.portrait);
   });
 
