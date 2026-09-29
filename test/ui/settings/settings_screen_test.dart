@@ -59,6 +59,43 @@ void main() {
     expect(c.read(settingsProvider).accentColor, KivoSettings.defaults().accentColor);
   });
 
+  // Regression: in the app Settings lives inside HomeShell's nested tab
+  // Navigator while showDialog pushes on the root one. Popping with the
+  // tile's context popped the Settings page instead of the dialog — the
+  // dialog stayed up over a black screen.
+  testWidgets('cancelling the reset dialog inside a nested Navigator closes only the dialog',
+      (t) async {
+    final s = await SettingsService.load(InMemorySettingsStore());
+    final c = ProviderContainer(overrides: [
+      settingsServiceProvider.overrideWithValue(s),
+      appInstallerProvider.overrideWithValue(FakeAppInstaller(version: '1.0.0')),
+    ]);
+    addTearDown(c.dispose);
+    await pumpLocalized(
+      t,
+      Navigator(
+        onGenerateInitialRoutes: (_, _) => [
+          MaterialPageRoute(builder: (_) => const Scaffold(body: Text('tab-root'))),
+          MaterialPageRoute(builder: (_) => const SettingsScreen()),
+        ],
+      ),
+      container: c,
+      theme: KivoTheme.dark(),
+    );
+    await t.pumpAndSettle();
+    await t.drag(find.byType(Scrollable).first, const Offset(0, -300));
+    await t.pump();
+    await t.tap(find.text(_l10n.settingsResetAllTitle));
+    await t.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+
+    await t.tap(find.text(_l10n.commonCancel));
+    await t.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.byType(SettingsScreen), findsOneWidget);
+  });
+
   testWidgets('root lists Reproducción y gestos and navigates', (t) async {
     await _pump(t); // existing helper in that file
     expect(find.text(_l10n.settingsPlaybackGesturesTitle), findsOneWidget);
