@@ -15,13 +15,16 @@ import '../../../player/engine/playback_provider.dart';
 import '../../../player/engine/playback_engine.dart';
 import '../../../player/open/video_source.dart';
 import '../../../player/tracks/manual_subtitle_controller.dart';
+import '../../../player/subtitles/secondary_subtitle.dart';
 import '../../../player/tracks/subtitle_encodings.dart';
 import '../../../player/tracks/subtitle_loader.dart';
 import '../../../player/tracks/track_selection.dart';
 import '../../widgets/failure_snack_bar.dart';
+import '../subtitles/subtitle_text.dart';
 import 'track_sync_hud.dart';
 
 part 'subtitle_encoding_sheet.dart';
+part 'subtitle_style_controls.dart';
 
 Future<void> showSubtitlePicker(BuildContext context, WidgetRef ref) {
   return showModalBottomSheet(
@@ -455,6 +458,11 @@ class _TracksSection extends ConsumerWidget {
         isSubtitles ? ref.watch(activeExternalSubtitleProvider) : null;
     final audioSource =
         isSubtitles ? null : ref.watch(currentAudioSourceProvider);
+    if (isSubtitles) ref.watch(secondarySubtitleRevisionProvider);
+    final secondaryId = isSubtitles ? engine.secondarySubtitleTrackId : null;
+    final secondaryChoices = isSubtitles
+        ? secondaryCandidates(tracks, current)
+        : const <MediaTrack>[];
 
     return FutureBuilder<List<ExternalSubtitle>>(
       future: (isSubtitles && session?.folder != null)
@@ -595,6 +603,28 @@ class _TracksSection extends ConsumerWidget {
                 accent: accent,
                 onTap: () => showSubtitleEncodingSheet(context),
               ),
+            // Only alongside a primary: a lone line at the top with nothing at
+            // the bottom is not a "second" subtitle.
+            if (isSubtitles && current != null && secondaryChoices.isNotEmpty) ...[
+              _SectionEyebrow(label: l10n.playerTracksSectionSecondary),
+              _TrackCard(
+                icon: Icons.subtitles_off_outlined,
+                label: l10n.playerTracksSecondaryOff,
+                sublabel: l10n.playerTracksSecondaryOffHint,
+                active: secondaryId == null,
+                accent: accent,
+                onTap: () => pickSecondarySubtitle(ref, null),
+              ),
+              for (final t in secondaryChoices)
+                _TrackCard(
+                  icon: Icons.vertical_align_top_rounded,
+                  label: t.title ?? t.language ?? t.id,
+                  sublabel: l10n.playerTracksSecondaryHint,
+                  active: secondaryId == t.id,
+                  accent: accent,
+                  onTap: () => pickSecondarySubtitle(ref, t),
+                ),
+            ],
             if (isSubtitles && external.isNotEmpty) ...[
               _SectionEyebrow(label: l10n.playerTracksSectionInFolder),
               for (final e in external)
@@ -784,14 +814,19 @@ class _StyleSection extends ConsumerWidget {
 
   void _reset(WidgetRef ref) {
     final d = KivoSettings.defaults();
-    _apply(
-      ref,
-      KivoSettingsPatch(
-        fontSize: d.subtitleFontSize,
-        textColor: d.subtitleTextColor,
-        backgroundColor: d.subtitleBackgroundColor,
-      ),
-    );
+    ref.read(settingsProvider.notifier).set(ref.read(settingsProvider).copyWith(
+          subtitleFontSize: d.subtitleFontSize,
+          subtitleTextColor: d.subtitleTextColor,
+          subtitleBackgroundColor: d.subtitleBackgroundColor,
+          subtitleOutlineWidth: d.subtitleOutlineWidth,
+          subtitleOutlineColor: d.subtitleOutlineColor,
+          subtitleShadow: d.subtitleShadow,
+          subtitleBold: d.subtitleBold,
+          subtitleFontFamily: d.subtitleFontFamily,
+          subtitleBottomMargin: d.subtitleBottomMargin,
+          secondarySubtitleTopMargin: d.secondarySubtitleTopMargin,
+          subtitleRespectAss: d.subtitleRespectAss,
+        ));
   }
 
   @override
@@ -804,8 +839,7 @@ class _StyleSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Live preview — same size/color/background PlaybackEngine.setSubtitleStyle
-        // applies to the real video, so changes below are WYSIWYG.
+        // Live preview (WYSIWYG: see SubtitleText below).
         Container(
           height: 110,
           margin: const EdgeInsets.only(top: 4, bottom: 4),
@@ -821,24 +855,12 @@ class _StyleSection extends ConsumerWidget {
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: Color(s.subtitleBackgroundColor),
-                borderRadius: BorderRadius.circular(5),
-              ),
-              child: Text(
-                l10n.playerTracksStylePreviewSample,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Color(s.subtitleTextColor),
-                  fontSize:
-                      fontSize.toDouble() *
-                      0.62, // scaled to fit the preview box
-                  fontWeight: FontWeight.w600,
-                  height: 1.25,
-                ),
-              ),
+            // The overlay's own widget, at the preview's scale: what shows
+            // here is what shows over the video.
+            child: SubtitleText(
+              text: l10n.playerTracksStylePreviewSample,
+              settings: s,
+              scale: 0.62,
             ),
           ),
         ),
@@ -934,6 +956,7 @@ class _StyleSection extends ConsumerWidget {
               ),
           ],
         ),
+        const _StyleExtras(),
         const SizedBox(height: 18),
         Center(
           child: TextButton.icon(

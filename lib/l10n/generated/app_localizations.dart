@@ -3439,6 +3439,126 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Leyendo la pista…'**
   String get playerTracksReadingTrack;
+
+  /// Eyebrow del grosor del contorno de los subtítulos, en la pestaña Estilo.
+  ///
+  /// In es, this message translates to:
+  /// **'Contorno'**
+  String get playerTracksOutlineLabel;
+
+  /// Eyebrow del color del contorno, en la pestaña Estilo.
+  ///
+  /// In es, this message translates to:
+  /// **'Color del contorno'**
+  String get playerTracksOutlineColorLabel;
+
+  /// Valor mostrado cuando el grosor del contorno es 0.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin contorno'**
+  String get playerTracksOutlineNone;
+
+  /// Eyebrow de la familia tipográfica de los subtítulos.
+  ///
+  /// In es, this message translates to:
+  /// **'Fuente'**
+  String get playerTracksFontLabel;
+
+  /// Fuente de subtítulos: la del sistema.
+  ///
+  /// In es, this message translates to:
+  /// **'Normal'**
+  String get playerTracksFontDefault;
+
+  /// Fuente de subtítulos con remates (serif) del sistema.
+  ///
+  /// In es, this message translates to:
+  /// **'Serif'**
+  String get playerTracksFontSerif;
+
+  /// Fuente de subtítulos monoespaciada del sistema (nombre corto para una fila de chips).
+  ///
+  /// In es, this message translates to:
+  /// **'Mono'**
+  String get playerTracksFontMono;
+
+  /// Fuente de subtítulos condensada del sistema (nombre corto para una fila de chips).
+  ///
+  /// In es, this message translates to:
+  /// **'Estrecha'**
+  String get playerTracksFontCondensed;
+
+  /// Interruptor de la sombra de los subtítulos.
+  ///
+  /// In es, this message translates to:
+  /// **'Sombra'**
+  String get playerTracksShadowLabel;
+
+  /// Interruptor de negrita de los subtítulos.
+  ///
+  /// In es, this message translates to:
+  /// **'Negrita'**
+  String get playerTracksBoldLabel;
+
+  /// Eyebrow de la distancia de los subtítulos al borde inferior.
+  ///
+  /// In es, this message translates to:
+  /// **'Posición'**
+  String get playerTracksPositionLabel;
+
+  /// Eyebrow de la distancia del segundo subtítulo al borde superior.
+  ///
+  /// In es, this message translates to:
+  /// **'Posición del segundo subtítulo'**
+  String get playerTracksSecondaryPositionLabel;
+
+  /// Valor de un deslizador de posición, en porcentaje de la altura.
+  ///
+  /// In es, this message translates to:
+  /// **'{percent} %'**
+  String playerTracksPositionValue(int percent);
+
+  /// Interruptor: los subtítulos ASS/SSA se muestran con el estilo del propio archivo.
+  ///
+  /// In es, this message translates to:
+  /// **'Respetar el estilo de los .ass'**
+  String get playerTracksRespectAss;
+
+  /// Subtítulo del interruptor «Respetar el estilo de los .ass».
+  ///
+  /// In es, this message translates to:
+  /// **'Carteles, karaoke y colores tal como vienen. Apágalo para usar tu estilo.'**
+  String get playerTracksRespectAssHint;
+
+  /// Nota al pie de la pestaña Estilo.
+  ///
+  /// In es, this message translates to:
+  /// **'Los subtítulos de imagen (PGS, DVD) se muestran tal como vienen: este estilo no les afecta.'**
+  String get playerTracksPictureSubsNote;
+
+  /// Eyebrow de la sección para mostrar un segundo subtítulo a la vez, arriba.
+  ///
+  /// In es, this message translates to:
+  /// **'Segundo subtítulo'**
+  String get playerTracksSectionSecondary;
+
+  /// Opción sin segundo subtítulo.
+  ///
+  /// In es, this message translates to:
+  /// **'Ninguno'**
+  String get playerTracksSecondaryOff;
+
+  /// Texto bajo «Ninguno» en la sección Segundo subtítulo.
+  ///
+  /// In es, this message translates to:
+  /// **'Puedes mostrar otro idioma arriba de la pantalla'**
+  String get playerTracksSecondaryOffHint;
+
+  /// Texto bajo una pista elegible como segundo subtítulo.
+  ///
+  /// In es, this message translates to:
+  /// **'Arriba de la pantalla'**
+  String get playerTracksSecondaryHint;
 }
 
 class _AppLocalizationsDelegate

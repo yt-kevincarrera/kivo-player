@@ -60,8 +60,9 @@ class SubtitleText extends StatelessWidget {
             children: [
               // The stroke is centred on the glyph edge, so twice the width
               // shows [outline] outside it; the fill drawn on top hides the
-              // inner half.
-              Text(
+              // inner half. Excluded from semantics: a screen reader must read
+              // each line once, not once per layer.
+              ExcludeSemantics(child: Text(
                 text,
                 textAlign: TextAlign.center,
                 style: base.copyWith(
@@ -73,7 +74,7 @@ class SubtitleText extends StatelessWidget {
                     ..strokeJoin = StrokeJoin.round
                     ..color = Color(s.subtitleOutlineColor),
                 ),
-              ),
+              )),
               Text(text,
                   textAlign: TextAlign.center,
                   style: base.copyWith(shadows: null)),

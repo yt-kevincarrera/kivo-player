@@ -192,6 +192,10 @@ abstract class PlaybackEngine {
   /// open.
   Future<void> setSecondarySubtitleTrack(String? id);
 
+  /// The last id [setSecondarySubtitleTrack] wrote (null = off). Kivo is the
+  /// only writer of `secondary-sid`, so this is what mpv holds.
+  String? get secondarySubtitleTrackId;
+
   /// Releases mpv's video output ([enabled] = false → `vid=no`) or reattaches it
   /// (true → `vid=auto`). Used around the background round-trip so a live video
   /// output is never left holding a surface Android is about to destroy.

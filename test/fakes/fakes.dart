@@ -332,8 +332,13 @@ class FakePlaybackEngine implements PlaybackEngine {
   final List<String?> secondarySubtitleWrites = [];
 
   @override
-  Future<void> setSecondarySubtitleTrack(String? id) async =>
-      secondarySubtitleWrites.add(id);
+  String? secondarySubtitleTrackId;
+
+  @override
+  Future<void> setSecondarySubtitleTrack(String? id) async {
+    secondarySubtitleWrites.add(id);
+    secondarySubtitleTrackId = id;
+  }
 
   bool videoTrackEnabled = true;
 

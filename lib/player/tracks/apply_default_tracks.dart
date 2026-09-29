@@ -56,6 +56,22 @@ void applyDefaultTracks({
       }
     }
 
+    // Written on every open, even when there is none to pick: secondary-sid
+    // is a global mpv option, and the previous video's secondary track id
+    // would otherwise be tried on this one. Off with subtitles off — a lone
+    // top line with no bottom one is not what "subtitles off" means.
+    try {
+      final secondary = settings.subtitlesEnabledByDefault
+          ? selectSecondarySubtitleTrack(
+              tracks: subtitleTracks,
+              language: settings.secondarySubtitleLanguage,
+              primaryId: subtitlePick?.id)
+          : null;
+      await engine.setSecondarySubtitleTrack(secondary?.id);
+    } catch (_) {
+      // Best-effort, like everything here.
+    }
+
     // What this video remembers wins over the language defaults above: the
     // user picked it for this file specifically. The file is loaded before the
     // offset so the delay lands on the track it was measured against.

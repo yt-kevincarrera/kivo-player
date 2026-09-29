@@ -3139,5 +3139,110 @@
   "playerTracksReadingTrack": "Reading the track…",
   "@playerTracksReadingTrack": {
     "description": "Subtitle of the «Night mode» card, briefly disabled, while it is not known yet whether the playing track is Dolby."
+  },
+
+  "playerTracksOutlineLabel": "Outline",
+  "@playerTracksOutlineLabel": {
+    "description": "Eyebrow for the subtitle outline width, in the Style tab."
+  },
+
+  "playerTracksOutlineColorLabel": "Outline color",
+  "@playerTracksOutlineColorLabel": {
+    "description": "Eyebrow for the outline color, in the Style tab."
+  },
+
+  "playerTracksOutlineNone": "No outline",
+  "@playerTracksOutlineNone": {
+    "description": "Value shown when the outline width is 0."
+  },
+
+  "playerTracksFontLabel": "Font",
+  "@playerTracksFontLabel": {
+    "description": "Eyebrow for the subtitle font family."
+  },
+
+  "playerTracksFontDefault": "Default",
+  "@playerTracksFontDefault": {
+    "description": "Subtitle font: the system one."
+  },
+
+  "playerTracksFontSerif": "Serif",
+  "@playerTracksFontSerif": {
+    "description": "Subtitle font: the system serif."
+  },
+
+  "playerTracksFontMono": "Mono",
+  "@playerTracksFontMono": {
+    "description": "Subtitle font: the system monospace (short name for a chip row)."
+  },
+
+  "playerTracksFontCondensed": "Narrow",
+  "@playerTracksFontCondensed": {
+    "description": "Subtitle font: the system condensed one (short name for a chip row)."
+  },
+
+  "playerTracksShadowLabel": "Shadow",
+  "@playerTracksShadowLabel": {
+    "description": "Switch for the subtitle drop shadow."
+  },
+
+  "playerTracksBoldLabel": "Bold",
+  "@playerTracksBoldLabel": {
+    "description": "Switch for bold subtitles."
+  },
+
+  "playerTracksPositionLabel": "Position",
+  "@playerTracksPositionLabel": {
+    "description": "Eyebrow for the subtitles' distance from the bottom edge."
+  },
+
+  "playerTracksSecondaryPositionLabel": "Second subtitle position",
+  "@playerTracksSecondaryPositionLabel": {
+    "description": "Eyebrow for the second subtitle's distance from the top edge."
+  },
+
+  "playerTracksPositionValue": "{percent}%",
+  "@playerTracksPositionValue": {
+    "description": "Value of a position slider, as a percentage of the height.",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerTracksRespectAss": "Keep the style of .ass files",
+  "@playerTracksRespectAss": {
+    "description": "Switch: ASS/SSA subtitles are shown in the file's own style."
+  },
+
+  "playerTracksRespectAssHint": "Signs, karaoke and colors as they come. Turn it off to use your style.",
+  "@playerTracksRespectAssHint": {
+    "description": "Subtitle of the «Keep the style of .ass files» switch."
+  },
+
+  "playerTracksPictureSubsNote": "Picture subtitles (PGS, DVD) show exactly as they come: this style doesn't apply to them.",
+  "@playerTracksPictureSubsNote": {
+    "description": "Footnote of the Style tab."
+  },
+
+  "playerTracksSectionSecondary": "Second subtitle",
+  "@playerTracksSectionSecondary": {
+    "description": "Eyebrow of the section to show a second subtitle at once, at the top."
+  },
+
+  "playerTracksSecondaryOff": "None",
+  "@playerTracksSecondaryOff": {
+    "description": "Option with no second subtitle."
+  },
+
+  "playerTracksSecondaryOffHint": "You can show another language at the top of the screen",
+  "@playerTracksSecondaryOffHint": {
+    "description": "Text under «None» in the Second subtitle section."
+  },
+
+  "playerTracksSecondaryHint": "At the top of the screen",
+  "@playerTracksSecondaryHint": {
+    "description": "Text under a track that can be the second subtitle."
   }
 }

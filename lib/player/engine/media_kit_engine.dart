@@ -252,11 +252,17 @@ class MediaKitEngine implements PlaybackEngine {
     await native.setProperty('sub-ass-override', 'no');
   }
 
+  String? _secondarySubtitleId;
+
+  @override
+  String? get secondarySubtitleTrackId => _secondarySubtitleId;
+
   @override
   Future<void> setSecondarySubtitleTrack(String? id) async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;
     await native.setProperty('secondary-sid', id ?? 'no');
+    _secondarySubtitleId = id;
   }
 
   @override

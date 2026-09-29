@@ -3138,5 +3138,110 @@
   "playerTracksReadingTrack": "Leyendo la pista…",
   "@playerTracksReadingTrack": {
     "description": "Subtítulo de la tarjeta «Modo noche», desactivada un instante, mientras aún no se sabe si la pista que suena es Dolby."
+  },
+
+  "playerTracksOutlineLabel": "Contorno",
+  "@playerTracksOutlineLabel": {
+    "description": "Eyebrow del grosor del contorno de los subtítulos, en la pestaña Estilo."
+  },
+
+  "playerTracksOutlineColorLabel": "Color del contorno",
+  "@playerTracksOutlineColorLabel": {
+    "description": "Eyebrow del color del contorno, en la pestaña Estilo."
+  },
+
+  "playerTracksOutlineNone": "Sin contorno",
+  "@playerTracksOutlineNone": {
+    "description": "Valor mostrado cuando el grosor del contorno es 0."
+  },
+
+  "playerTracksFontLabel": "Fuente",
+  "@playerTracksFontLabel": {
+    "description": "Eyebrow de la familia tipográfica de los subtítulos."
+  },
+
+  "playerTracksFontDefault": "Normal",
+  "@playerTracksFontDefault": {
+    "description": "Fuente de subtítulos: la del sistema."
+  },
+
+  "playerTracksFontSerif": "Serif",
+  "@playerTracksFontSerif": {
+    "description": "Fuente de subtítulos con remates (serif) del sistema."
+  },
+
+  "playerTracksFontMono": "Mono",
+  "@playerTracksFontMono": {
+    "description": "Fuente de subtítulos monoespaciada del sistema (nombre corto para una fila de chips)."
+  },
+
+  "playerTracksFontCondensed": "Estrecha",
+  "@playerTracksFontCondensed": {
+    "description": "Fuente de subtítulos condensada del sistema (nombre corto para una fila de chips)."
+  },
+
+  "playerTracksShadowLabel": "Sombra",
+  "@playerTracksShadowLabel": {
+    "description": "Interruptor de la sombra de los subtítulos."
+  },
+
+  "playerTracksBoldLabel": "Negrita",
+  "@playerTracksBoldLabel": {
+    "description": "Interruptor de negrita de los subtítulos."
+  },
+
+  "playerTracksPositionLabel": "Posición",
+  "@playerTracksPositionLabel": {
+    "description": "Eyebrow de la distancia de los subtítulos al borde inferior."
+  },
+
+  "playerTracksSecondaryPositionLabel": "Posición del segundo subtítulo",
+  "@playerTracksSecondaryPositionLabel": {
+    "description": "Eyebrow de la distancia del segundo subtítulo al borde superior."
+  },
+
+  "playerTracksPositionValue": "{percent} %",
+  "@playerTracksPositionValue": {
+    "description": "Valor de un deslizador de posición, en porcentaje de la altura.",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerTracksRespectAss": "Respetar el estilo de los .ass",
+  "@playerTracksRespectAss": {
+    "description": "Interruptor: los subtítulos ASS/SSA se muestran con el estilo del propio archivo."
+  },
+
+  "playerTracksRespectAssHint": "Carteles, karaoke y colores tal como vienen. Apágalo para usar tu estilo.",
+  "@playerTracksRespectAssHint": {
+    "description": "Subtítulo del interruptor «Respetar el estilo de los .ass»."
+  },
+
+  "playerTracksPictureSubsNote": "Los subtítulos de imagen (PGS, DVD) se muestran tal como vienen: este estilo no les afecta.",
+  "@playerTracksPictureSubsNote": {
+    "description": "Nota al pie de la pestaña Estilo."
+  },
+
+  "playerTracksSectionSecondary": "Segundo subtítulo",
+  "@playerTracksSectionSecondary": {
+    "description": "Eyebrow de la sección para mostrar un segundo subtítulo a la vez, arriba."
+  },
+
+  "playerTracksSecondaryOff": "Ninguno",
+  "@playerTracksSecondaryOff": {
+    "description": "Opción sin segundo subtítulo."
+  },
+
+  "playerTracksSecondaryOffHint": "Puedes mostrar otro idioma arriba de la pantalla",
+  "@playerTracksSecondaryOffHint": {
+    "description": "Texto bajo «Ninguno» en la sección Segundo subtítulo."
+  },
+
+  "playerTracksSecondaryHint": "Arriba de la pantalla",
+  "@playerTracksSecondaryHint": {
+    "description": "Texto bajo una pista elegible como segundo subtítulo."
   }
 }

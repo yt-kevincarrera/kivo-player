@@ -2025,4 +2025,70 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get playerTracksReadingTrack => 'Leyendo la pista…';
+
+  @override
+  String get playerTracksOutlineLabel => 'Contorno';
+
+  @override
+  String get playerTracksOutlineColorLabel => 'Color del contorno';
+
+  @override
+  String get playerTracksOutlineNone => 'Sin contorno';
+
+  @override
+  String get playerTracksFontLabel => 'Fuente';
+
+  @override
+  String get playerTracksFontDefault => 'Normal';
+
+  @override
+  String get playerTracksFontSerif => 'Serif';
+
+  @override
+  String get playerTracksFontMono => 'Mono';
+
+  @override
+  String get playerTracksFontCondensed => 'Estrecha';
+
+  @override
+  String get playerTracksShadowLabel => 'Sombra';
+
+  @override
+  String get playerTracksBoldLabel => 'Negrita';
+
+  @override
+  String get playerTracksPositionLabel => 'Posición';
+
+  @override
+  String get playerTracksSecondaryPositionLabel =>
+      'Posición del segundo subtítulo';
+
+  @override
+  String playerTracksPositionValue(int percent) {
+    return '$percent %';
+  }
+
+  @override
+  String get playerTracksRespectAss => 'Respetar el estilo de los .ass';
+
+  @override
+  String get playerTracksRespectAssHint =>
+      'Carteles, karaoke y colores tal como vienen. Apágalo para usar tu estilo.';
+
+  @override
+  String get playerTracksPictureSubsNote =>
+      'Los subtítulos de imagen (PGS, DVD) se muestran tal como vienen: este estilo no les afecta.';
+
+  @override
+  String get playerTracksSectionSecondary => 'Segundo subtítulo';
+
+  @override
+  String get playerTracksSecondaryOff => 'Ninguno';
+
+  @override
+  String get playerTracksSecondaryOffHint =>
+      'Puedes mostrar otro idioma arriba de la pantalla';
+
+  @override
+  String get playerTracksSecondaryHint => 'Arriba de la pantalla';
 }

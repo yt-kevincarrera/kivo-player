@@ -61,6 +61,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Español'), findsOneWidget);
-    expect(find.text('English'), findsOneWidget);
+    // Listed twice now: as a track, and as a candidate "Segundo subtítulo".
+    expect(find.text('English'), findsNWidgets(2));
   });
 }

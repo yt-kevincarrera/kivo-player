@@ -1,3 +1,4 @@
+import '../subtitles/subtitle_render.dart';
 import '../engine/playback_engine.dart';
 
 /// Heuristic: media_kit doesn't expose mpv's `forced` flag, so treat a track as
@@ -24,6 +25,26 @@ MediaTrack? selectSubtitleTrack({
     if (byLang.isNotEmpty) return _preferNonForced(byLang);
   }
   return _preferNonForced(tracks);
+}
+
+/// The secondary subtitle for a freshly opened video: a track in [language]
+/// (the one the user last picked as secondary) that is not the primary and not
+/// a picture subtitle — mpv can only show text as the secondary, and would
+/// draw a picture one over the primary. Null when there is none, or when the
+/// user has no secondary language.
+MediaTrack? selectSecondarySubtitleTrack({
+  required List<MediaTrack> tracks,
+  required String? language,
+  required String? primaryId,
+}) {
+  if (language == null) return null;
+  final pool = tracks
+      .where((t) =>
+          t.language == language &&
+          t.id != primaryId &&
+          !isBitmapSubtitle(t.codec))
+      .toList();
+  return pool.isEmpty ? null : _preferNonForced(pool);
 }
 
 /// Prefer non-forced tracks; within the chosen pool, a `default`-flagged track,
