@@ -1946,4 +1946,68 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get encodingKorean => 'Korean';
+
+  @override
+  String get playerTracksNightMode => 'Night mode';
+
+  @override
+  String get playerTracksNightModeOffHint => 'Tames the peaks of Dolby tracks';
+
+  @override
+  String get playerTracksNightModeDolby => 'Compressing the Dolby track';
+
+  @override
+  String get playerTracksNightModeNoEffect =>
+      'No effect: this track isn\'t Dolby';
+
+  @override
+  String get playerTracksVoiceBoost => 'Boost voices';
+
+  @override
+  String get playerTracksVoiceBoostOffHint => 'Clearer dialogue';
+
+  @override
+  String get playerTracksVoiceBoostSurround =>
+      'Stereo mix with the dialogue channel raised';
+
+  @override
+  String get playerTracksVoiceBoostStereo => 'Equalized for voice';
+
+  @override
+  String get settingsAdvancedGroupAudio => 'Audio';
+
+  @override
+  String get settingsNightMode => 'Night mode';
+
+  @override
+  String get settingsNightModeSubtitle =>
+      'Compresses Dolby tracks (AC-3 and E-AC-3) so explosions don\'t get as loud. It has no effect on other tracks.';
+
+  @override
+  String get settingsNightModeLevel => 'Night mode strength';
+
+  @override
+  String get settingsVoiceBoost => 'Boost voices';
+
+  @override
+  String get settingsVoiceBoostSubtitle =>
+      'On 5.1 tracks it raises the dialogue channel when mixing to stereo; on stereo, it equalizes for voice.';
+
+  @override
+  String get settingsVoiceBoostLevel => 'Boost strength';
+
+  @override
+  String get settingsLevelSoft => 'Soft';
+
+  @override
+  String get settingsLevelMedium => 'Medium';
+
+  @override
+  String get settingsLevelStrong => 'Strong';
+
+  @override
+  String get playerTracksSectionEnhance => 'Enhance the sound';
+
+  @override
+  String get playerTracksEnhancePending => 'On · reading the track';
 }

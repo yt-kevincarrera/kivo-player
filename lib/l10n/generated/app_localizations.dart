@@ -3313,6 +3313,126 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Coreano'**
   String get encodingKorean;
+
+  /// Tarjeta de la hoja de Audio (botón de auriculares): compresión Dolby para que las explosiones no suban tanto.
+  ///
+  /// In es, this message translates to:
+  /// **'Modo noche'**
+  String get playerTracksNightMode;
+
+  /// Subtítulo de «Modo noche» con el modo apagado.
+  ///
+  /// In es, this message translates to:
+  /// **'Baja los picos de las pistas Dolby'**
+  String get playerTracksNightModeOffHint;
+
+  /// Subtítulo de «Modo noche» encendido con una pista AC-3/E-AC-3: está actuando.
+  ///
+  /// In es, this message translates to:
+  /// **'Comprimiendo la pista Dolby'**
+  String get playerTracksNightModeDolby;
+
+  /// Subtítulo de «Modo noche» encendido con una pista que no es AC-3/E-AC-3: no puede actuar.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin efecto: esta pista no es Dolby'**
+  String get playerTracksNightModeNoEffect;
+
+  /// Tarjeta de la hoja de Audio (botón de auriculares): diálogos más claros.
+  ///
+  /// In es, this message translates to:
+  /// **'Realzar voces'**
+  String get playerTracksVoiceBoost;
+
+  /// Subtítulo de «Realzar voces» con la función apagada.
+  ///
+  /// In es, this message translates to:
+  /// **'Diálogos más claros'**
+  String get playerTracksVoiceBoostOffHint;
+
+  /// Subtítulo de «Realzar voces» encendido con una pista de más de dos canales (5.1…).
+  ///
+  /// In es, this message translates to:
+  /// **'Mezcla a estéreo con el canal de voces realzado'**
+  String get playerTracksVoiceBoostSurround;
+
+  /// Subtítulo de «Realzar voces» encendido con una pista estéreo: se aplica una curva de ecualización.
+  ///
+  /// In es, this message translates to:
+  /// **'Ecualización para la voz'**
+  String get playerTracksVoiceBoostStereo;
+
+  /// Encabezado del grupo de audio en Ajustes › Reproducción avanzada.
+  ///
+  /// In es, this message translates to:
+  /// **'Audio'**
+  String get settingsAdvancedGroupAudio;
+
+  /// Interruptor del modo noche en Ajustes.
+  ///
+  /// In es, this message translates to:
+  /// **'Modo noche'**
+  String get settingsNightMode;
+
+  /// Subtítulo del modo noche en Ajustes: qué hace y dónde no actúa.
+  ///
+  /// In es, this message translates to:
+  /// **'Comprime las pistas Dolby (AC-3 y E-AC-3) para que las explosiones no suban tanto. En otras pistas no tiene efecto.'**
+  String get settingsNightModeSubtitle;
+
+  /// Elección Suave/Media/Fuerte del modo noche.
+  ///
+  /// In es, this message translates to:
+  /// **'Intensidad del modo noche'**
+  String get settingsNightModeLevel;
+
+  /// Interruptor del realce de voces en Ajustes.
+  ///
+  /// In es, this message translates to:
+  /// **'Realzar voces'**
+  String get settingsVoiceBoost;
+
+  /// Subtítulo del realce de voces en Ajustes.
+  ///
+  /// In es, this message translates to:
+  /// **'En pistas 5.1 sube el canal de los diálogos al mezclar a estéreo; en estéreo, ecualiza para la voz.'**
+  String get settingsVoiceBoostSubtitle;
+
+  /// Elección Suave/Media/Fuerte del realce de voces.
+  ///
+  /// In es, this message translates to:
+  /// **'Intensidad del realce'**
+  String get settingsVoiceBoostLevel;
+
+  /// Intensidad baja (modo noche / realce de voces).
+  ///
+  /// In es, this message translates to:
+  /// **'Suave'**
+  String get settingsLevelSoft;
+
+  /// Intensidad media (modo noche / realce de voces).
+  ///
+  /// In es, this message translates to:
+  /// **'Media'**
+  String get settingsLevelMedium;
+
+  /// Intensidad alta (modo noche / realce de voces).
+  ///
+  /// In es, this message translates to:
+  /// **'Fuerte'**
+  String get settingsLevelStrong;
+
+  /// Eyebrow de la sección con Modo noche y Realzar voces, en la hoja de Audio.
+  ///
+  /// In es, this message translates to:
+  /// **'Mejorar el sonido'**
+  String get playerTracksSectionEnhance;
+
+  /// Subtítulo de «Modo noche» o «Realzar voces» encendidos mientras aún no se sabe qué pista de audio suena (justo al abrir).
+  ///
+  /// In es, this message translates to:
+  /// **'Activado · leyendo la pista'**
+  String get playerTracksEnhancePending;
 }
 
 class _AppLocalizationsDelegate

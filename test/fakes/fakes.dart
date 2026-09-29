@@ -195,6 +195,34 @@ class FakePlaybackEngine implements PlaybackEngine {
     externalSubtitles.add((uri, title));
   }
 
+  /// Every audio-pipeline write, in order, as 'name=value' — which writes
+  /// happen (and which do not) is the behaviour under test.
+  final List<String> audioWrites = [];
+  int audioDecoderReloads = 0;
+
+  /// What [currentAudioSource] reports.
+  ({String? codec, int? channels})? audioSourceValue;
+
+  @override
+  Future<void> setAudioGain(double db) async => audioWrites.add('gain=$db');
+
+  @override
+  Future<void> setAudioDownmix(
+      {required bool forceStereo, required String swresample}) async {
+    audioWrites.add('downmix=$forceStereo|$swresample');
+  }
+
+  @override
+  Future<void> setDolbyDrc(double scale, {bool heavyCompression = false}) async =>
+      audioWrites.add(heavyCompression ? 'drc=$scale+heavy' : 'drc=$scale');
+
+  @override
+  Future<void> reloadAudioDecoder() async => audioDecoderReloads++;
+
+  @override
+  Future<({String? codec, int? channels})?> currentAudioSource() async =>
+      audioSourceValue;
+
   /// Every setHwdec call, in order — the per-open write is the behaviour.
   final List<String> hwdecWrites = [];
 
@@ -252,11 +280,15 @@ class FakePlaybackEngine implements PlaybackEngine {
   /// observe (or act during) the in-flight window before resolving it with
   /// `audioFilterGate.complete()`. Defaults to null, preserving the
   /// immediate-return behavior for existing callers.
+  /// Makes [setAudioFilter] throw, like a rejected mpv write.
+  Object? audioFilterError;
+
   Completer<void>? audioFilterGate;
 
   @override
   Future<void> setAudioFilter(String af) async {
     if (audioFilterGate != null) await audioFilterGate!.future;
+    if (audioFilterError != null) throw audioFilterError!;
     lastAudioFilter = af;
     audioFilters.add(af);
   }

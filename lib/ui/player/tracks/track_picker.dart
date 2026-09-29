@@ -10,6 +10,7 @@ import '../../../l10n/l10n.dart';
 import '../../../platform/interfaces/subtitle_finder.dart';
 import '../../../platform/subtitle_finder_provider.dart';
 import '../../../platform/subtitle_transcoder_provider.dart';
+import '../../../player/audio/audio_pipeline_controller.dart';
 import '../../../player/engine/playback_provider.dart';
 import '../../../player/engine/playback_engine.dart';
 import '../../../player/open/video_source.dart';
@@ -138,10 +139,18 @@ class _TrackPickerSheetState extends ConsumerState<_TrackPickerSheet> {
                   ],
                 ),
               )
-            : Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [header, body],
+            // Wraps its content, but capped and scrollable: with the "Mejorar el
+            // sonido" cards it no longer fits a landscape phone's height.
+            : ConstrainedBox(
+                constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.85),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [header, body],
+                  ),
+                ),
               ),
       ),
     );
@@ -444,6 +453,8 @@ class _TracksSection extends ConsumerWidget {
     final l10n = context.l10n;
     final activeExternal =
         isSubtitles ? ref.watch(activeExternalSubtitleProvider) : null;
+    final audioSource =
+        isSubtitles ? null : ref.watch(currentAudioSourceProvider);
 
     return FutureBuilder<List<ExternalSubtitle>>(
       future: (isSubtitles && session?.folder != null)
@@ -524,6 +535,45 @@ class _TracksSection extends ConsumerWidget {
                     isSubtitles ? SyncTarget.subtitles : SyncTarget.audio);
               },
             ),
+            if (!isSubtitles) ...[
+              _SectionEyebrow(label: l10n.playerTracksSectionEnhance),
+              // Toggles in place (the sheet stays open) and says, for the track
+              // playing right now, whether and how it acts — Modo noche can
+              // only work on Dolby, and "on" must never look like it works
+              // when it can't.
+              _TrackCard(
+                icon: Icons.nightlight_round,
+                label: l10n.playerTracksNightMode,
+                sublabel: !s.nightMode
+                    ? l10n.playerTracksNightModeOffHint
+                    : audioSource == null
+                        ? l10n.playerTracksEnhancePending
+                        : audioSource.isDolby
+                        ? l10n.playerTracksNightModeDolby
+                        : l10n.playerTracksNightModeNoEffect,
+                active: s.nightMode,
+                accent: accent,
+                onTap: () => ref
+                    .read(settingsProvider.notifier)
+                    .set(s.copyWith(nightMode: !s.nightMode)),
+              ),
+              _TrackCard(
+                icon: Icons.record_voice_over_outlined,
+                label: l10n.playerTracksVoiceBoost,
+                sublabel: !s.voiceBoost
+                    ? l10n.playerTracksVoiceBoostOffHint
+                    : audioSource == null
+                        ? l10n.playerTracksEnhancePending
+                        : audioSource.isMultichannel
+                        ? l10n.playerTracksVoiceBoostSurround
+                        : l10n.playerTracksVoiceBoostStereo,
+                active: s.voiceBoost,
+                accent: accent,
+                onTap: () => ref
+                    .read(settingsProvider.notifier)
+                    .set(s.copyWith(voiceBoost: !s.voiceBoost)),
+              ),
+            ],
             // Only for a text file Kivo loaded itself: embedded tracks are
             // UTF-8 by spec, and a binary VobSub has no encoding at all.
             if (activeExternal != null &&

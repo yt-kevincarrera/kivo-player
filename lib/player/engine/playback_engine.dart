@@ -122,6 +122,39 @@ abstract class PlaybackEngine {
   /// never one per tick.
   Future<void> setAudioFilter(String af);
 
+  /// A plain software gain in dB (mpv `replaygain-fallback`, which applies
+  /// whenever ReplayGain mode is off — always, in Kivo). The equalizer preamp
+  /// lives here because the bundled FFmpeg has no `volume` filter.
+  ///
+  /// Written only by `AudioPipelineController`; same UI-thread budget as
+  /// [setAudioFilter].
+  Future<void> setAudioGain(double db);
+
+  /// Downmix control: [forceStereo] sets `audio-channels` to `stereo`
+  /// (otherwise mpv's `auto-safe`), [swresample] is the
+  /// `audio-swresample-o` list ('' = swresample defaults). Both reload mpv's
+  /// audio chain, so only `AudioPipelineController` writes them, and only
+  /// when they change.
+  Future<void> setAudioDownmix({required bool forceStereo, required String swresample});
+
+  /// Dolby dynamic range compression scale for AC-3/E-AC-3 (mpv
+  /// `ad-lavc-ac3drc`, 0 = off). Read by the decoder at init only — see
+  /// [reloadAudioDecoder].
+  ///
+  /// [heavyCompression] also asks for the stream's "heavy" compression words
+  /// (FFmpeg `heavy_compr`, via mpv `ad-lavc-o`), same init-only rule.
+  Future<void> setDolbyDrc(double scale, {bool heavyCompression = false});
+
+  /// Re-creates the current audio track's decoder (deselect and reselect it),
+  /// so a decoder-init option like [setDolbyDrc] takes effect mid-playback.
+  /// A sub-second audio gap.
+  Future<void> reloadAudioDecoder();
+
+  /// Codec and channel count of the audio track actually playing (mpv
+  /// `current-tracks/audio/*`), or null when there is none or it cannot be
+  /// read yet.
+  Future<({String? codec, int? channels})?> currentAudioSource();
+
   /// The video's own chapter marks, or empty when it has none.
   ///
   /// Read on demand rather than kept live: media_kit does not surface

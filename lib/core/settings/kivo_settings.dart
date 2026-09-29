@@ -75,6 +75,13 @@ class KivoSettings {
   final bool decoderAutoFallback;
   /// How long playback may run with no frame before that switch (1–10 s).
   final int decoderStallSeconds;
+  /// Modo noche: Dolby DRC on AC-3/E-AC-3 tracks. Level: 'soft'|'medium'|
+  /// 'strong' (see `EnhancementLevel` in lib/player/audio/audio_pipeline.dart).
+  final bool nightMode;
+  final String nightModeLevel;
+  /// Realzar voces: centre-raised downmix (5.1) or a voice EQ curve (stereo).
+  final bool voiceBoost;
+  final String voiceBoostLevel;
 
   const KivoSettings({
     required this.doubleTapSkipLeft,
@@ -141,6 +148,10 @@ class KivoSettings {
     required this.decoderMode,
     required this.decoderAutoFallback,
     required this.decoderStallSeconds,
+    required this.nightMode,
+    required this.nightModeLevel,
+    required this.voiceBoost,
+    required this.voiceBoostLevel,
   });
 
   factory KivoSettings.defaults() => const KivoSettings(
@@ -212,6 +223,10 @@ class KivoSettings {
         decoderMode: 'auto',
         decoderAutoFallback: true,
         decoderStallSeconds: 3,
+        nightMode: false,
+        nightModeLevel: 'medium',
+        voiceBoost: false,
+        voiceBoostLevel: 'medium',
       );
 
   static const Object _unset = Object();
@@ -281,6 +296,10 @@ class KivoSettings {
     String? decoderMode,
     bool? decoderAutoFallback,
     int? decoderStallSeconds,
+    bool? nightMode,
+    String? nightModeLevel,
+    bool? voiceBoost,
+    String? voiceBoostLevel,
   }) {
     return KivoSettings(
       doubleTapSkipLeft: doubleTapSkipLeft ?? this.doubleTapSkipLeft,
@@ -356,6 +375,10 @@ class KivoSettings {
       decoderMode: decoderMode ?? this.decoderMode,
       decoderAutoFallback: decoderAutoFallback ?? this.decoderAutoFallback,
       decoderStallSeconds: decoderStallSeconds ?? this.decoderStallSeconds,
+      nightMode: nightMode ?? this.nightMode,
+      nightModeLevel: nightModeLevel ?? this.nightModeLevel,
+      voiceBoost: voiceBoost ?? this.voiceBoost,
+      voiceBoostLevel: voiceBoostLevel ?? this.voiceBoostLevel,
     );
   }
 
@@ -424,6 +447,10 @@ class KivoSettings {
         'decoderMode': decoderMode,
         'decoderAutoFallback': decoderAutoFallback,
         'decoderStallSeconds': decoderStallSeconds,
+        'nightMode': nightMode,
+        'nightModeLevel': nightModeLevel,
+        'voiceBoost': voiceBoost,
+        'voiceBoostLevel': voiceBoostLevel,
       };
 
   factory KivoSettings.fromMap(Map<String, dynamic> m) {
@@ -499,6 +526,10 @@ class KivoSettings {
       decoderAutoFallback: m['decoderAutoFallback'] ?? d.decoderAutoFallback,
       decoderStallSeconds: (m['decoderStallSeconds'] as num?)?.toInt() ??
           d.decoderStallSeconds,
+      nightMode: m['nightMode'] ?? d.nightMode,
+      nightModeLevel: m['nightModeLevel'] ?? d.nightModeLevel,
+      voiceBoost: m['voiceBoost'] ?? d.voiceBoost,
+      voiceBoostLevel: m['voiceBoostLevel'] ?? d.voiceBoostLevel,
     );
   }
 }

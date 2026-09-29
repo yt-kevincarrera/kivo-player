@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/settings/settings_provider.dart';
-import '../engine/playback_provider.dart';
+import 'audio_pipeline_controller.dart';
 import '../tracks/track_delay_controller.dart' show trackDelayDebounce;
 import 'equalizer.dart';
 
@@ -101,7 +101,9 @@ class EqualizerNotifier extends Notifier<EqualizerSettings> {
   Future<void> _apply() async {
     final settings = state;
     try {
-      await ref.read(playbackEngineProvider).setAudioFilter(mpvAudioFilter(settings));
+      // Through the pipeline, not straight to mpv: the equalizer shares `af`
+      // with Realzar voces, and its preamp is a gain, not a filter.
+      await ref.read(audioPipelineProvider).apply(equalizer: settings);
       final current = ref.read(settingsProvider);
       await ref.read(settingsProvider.notifier).set(current.copyWith(equalizer: settings));
       // Only clear dirty if nothing newer landed while the two awaits above

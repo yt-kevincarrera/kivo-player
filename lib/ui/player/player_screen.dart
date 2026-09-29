@@ -27,6 +27,7 @@ import '../../player/resume/resume_service.dart';
 import '../../player/sleep/sleep_timer.dart';
 import '../../player/tracks/apply_default_tracks.dart';
 import '../../player/tracks/subtitle_loader.dart';
+import '../../player/audio/audio_pipeline_controller.dart';
 import '../../player/tracks/track_prefs_store.dart';
 import 'autoplay/autoplay_overlay.dart';
 import 'controls/controls_overlay.dart';
@@ -285,7 +286,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
           engine: engine, settings: settings, session: session,
           subtitleFinder: ref.read(subtitleFinderProvider),
           subtitlePrefs: ref.read(trackPrefsStoreProvider),
-          subtitleLoader: ref.read(subtitleLoaderProvider));
+          subtitleLoader: ref.read(subtitleLoaderProvider),
+          applyAudio: ref.read(audioPipelineProvider).onOpen);
     }
     _frames.prepare(session.playbackPath);
     _armPip();

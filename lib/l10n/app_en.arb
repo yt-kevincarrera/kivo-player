@@ -3034,5 +3034,105 @@
   "encodingKorean": "Korean",
   "@encodingKorean": {
     "description": "Readable name of EUC-KR."
+  },
+
+  "playerTracksNightMode": "Night mode",
+  "@playerTracksNightMode": {
+    "description": "Card in the Audio sheet (headphones button): Dolby compression so explosions don't get as loud."
+  },
+
+  "playerTracksNightModeOffHint": "Tames the peaks of Dolby tracks",
+  "@playerTracksNightModeOffHint": {
+    "description": "«Night mode» subtitle while it is off."
+  },
+
+  "playerTracksNightModeDolby": "Compressing the Dolby track",
+  "@playerTracksNightModeDolby": {
+    "description": "«Night mode» subtitle when on with an AC-3/E-AC-3 track: it is working."
+  },
+
+  "playerTracksNightModeNoEffect": "No effect: this track isn't Dolby",
+  "@playerTracksNightModeNoEffect": {
+    "description": "«Night mode» subtitle when on with a non-AC-3/E-AC-3 track: it cannot act."
+  },
+
+  "playerTracksVoiceBoost": "Boost voices",
+  "@playerTracksVoiceBoost": {
+    "description": "Card in the Audio sheet (headphones button): clearer dialogue."
+  },
+
+  "playerTracksVoiceBoostOffHint": "Clearer dialogue",
+  "@playerTracksVoiceBoostOffHint": {
+    "description": "«Boost voices» subtitle while it is off."
+  },
+
+  "playerTracksVoiceBoostSurround": "Stereo mix with the dialogue channel raised",
+  "@playerTracksVoiceBoostSurround": {
+    "description": "«Boost voices» subtitle when on with a track of more than two channels (5.1…)."
+  },
+
+  "playerTracksVoiceBoostStereo": "Equalized for voice",
+  "@playerTracksVoiceBoostStereo": {
+    "description": "«Boost voices» subtitle when on with a stereo track: an equalization curve is applied."
+  },
+
+  "settingsAdvancedGroupAudio": "Audio",
+  "@settingsAdvancedGroupAudio": {
+    "description": "Header of the audio group in Settings › Advanced playback."
+  },
+
+  "settingsNightMode": "Night mode",
+  "@settingsNightMode": {
+    "description": "Night mode switch in Settings."
+  },
+
+  "settingsNightModeSubtitle": "Compresses Dolby tracks (AC-3 and E-AC-3) so explosions don't get as loud. It has no effect on other tracks.",
+  "@settingsNightModeSubtitle": {
+    "description": "Night mode subtitle in Settings: what it does and where it doesn't act."
+  },
+
+  "settingsNightModeLevel": "Night mode strength",
+  "@settingsNightModeLevel": {
+    "description": "Soft/Medium/Strong choice for night mode."
+  },
+
+  "settingsVoiceBoost": "Boost voices",
+  "@settingsVoiceBoost": {
+    "description": "Voice boost switch in Settings."
+  },
+
+  "settingsVoiceBoostSubtitle": "On 5.1 tracks it raises the dialogue channel when mixing to stereo; on stereo, it equalizes for voice.",
+  "@settingsVoiceBoostSubtitle": {
+    "description": "Voice boost subtitle in Settings."
+  },
+
+  "settingsVoiceBoostLevel": "Boost strength",
+  "@settingsVoiceBoostLevel": {
+    "description": "Soft/Medium/Strong choice for the voice boost."
+  },
+
+  "settingsLevelSoft": "Soft",
+  "@settingsLevelSoft": {
+    "description": "Low strength (night mode / voice boost)."
+  },
+
+  "settingsLevelMedium": "Medium",
+  "@settingsLevelMedium": {
+    "description": "Medium strength (night mode / voice boost)."
+  },
+
+  "settingsLevelStrong": "Strong",
+  "@settingsLevelStrong": {
+    "description": "High strength (night mode / voice boost)."
+  },
+
+  "playerTracksSectionEnhance": "Enhance the sound",
+  "@playerTracksSectionEnhance": {
+    "description": "Eyebrow of the section with Night mode and Boost voices, in the Audio sheet."
+  },
+
+  "playerTracksEnhancePending": "On · reading the track",
+  "@playerTracksEnhancePending": {
+    "description": "«Night mode» or «Boost voices» subtitle when on while the playing audio track is not known yet (right after opening)."
   }
 }

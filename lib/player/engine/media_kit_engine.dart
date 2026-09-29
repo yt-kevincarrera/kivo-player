@@ -289,6 +289,61 @@ class MediaKitEngine implements PlaybackEngine {
   }
 
   @override
+  Future<void> setAudioGain(double db) async {
+    final native = _player.platform as NativePlayer?;
+    if (native == null) return;
+    await native.setProperty('replaygain-fallback', db.toStringAsFixed(2));
+  }
+
+  @override
+  Future<void> setAudioDownmix(
+      {required bool forceStereo, required String swresample}) async {
+    final native = _player.platform as NativePlayer?;
+    if (native == null) return;
+    await native.setProperty('audio-swresample-o', swresample);
+    await native.setProperty(
+        'audio-channels', forceStereo ? 'stereo' : 'auto-safe');
+  }
+
+  @override
+  Future<void> setDolbyDrc(double scale, {bool heavyCompression = false}) async {
+    final native = _player.platform as NativePlayer?;
+    if (native == null) return;
+    await native.setProperty('ad-lavc-ac3drc', scale.toStringAsFixed(2));
+    // Every decoder gets ad-lavc-o; one without heavy_compr just logs that it
+    // could not set it.
+    await native.setProperty(
+        'ad-lavc-o', heavyCompression ? 'heavy_compr=1' : '');
+  }
+
+  @override
+  Future<void> reloadAudioDecoder() async {
+    final native = _player.platform as NativePlayer?;
+    if (native == null) return;
+    final aid = (await native.getProperty('aid')).trim();
+    if (aid.isEmpty || aid == 'no') return;
+    await native.setProperty('aid', 'no');
+    await native.setProperty('aid', aid);
+  }
+
+  @override
+  Future<({String? codec, int? channels})?> currentAudioSource() async {
+    final native = _player.platform as NativePlayer?;
+    if (native == null) return null;
+    try {
+      final codec = (await native.getProperty('current-tracks/audio/codec')).trim();
+      final channels = int.tryParse(
+          (await native.getProperty('current-tracks/audio/demux-channel-count'))
+              .trim());
+      if (codec.isEmpty && channels == null) return null;
+      return (codec: codec.isEmpty ? null : codec, channels: channels);
+    } catch (e) {
+      // No audio track selected (yet).
+      return null;
+    }
+  }
+
+  @override
   Future<void> setVideoTrackEnabled(bool enabled) async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;

@@ -12,6 +12,7 @@ import '../resume/resume_plan.dart';
 import '../sleep/sleep_timer.dart';
 import '../tracks/apply_default_tracks.dart';
 import '../tracks/subtitle_loader.dart';
+import '../audio/audio_pipeline_controller.dart';
 import '../tracks/track_prefs_store.dart';
 import 'autoplay_logic.dart';
 
@@ -80,7 +81,8 @@ class AutoplayCoordinator {
         engine: engine, settings: settings, session: next,
         subtitleFinder: _ref.read(subtitleFinderProvider),
         subtitlePrefs: _ref.read(trackPrefsStoreProvider),
-        subtitleLoader: _ref.read(subtitleLoaderProvider));
+        subtitleLoader: _ref.read(subtitleLoaderProvider),
+        applyAudio: _ref.read(audioPipelineProvider).onOpen);
       _refreshMiniThumb(next.playbackPath);
     } finally {
       _advancing = false;

@@ -21,6 +21,7 @@ void main() {
     applyDefaultTracks(
         engine: e,
         subtitleLoader: rawSubtitleLoader(e),
+        applyAudio: () async {},
         settings: KivoSettings.defaults().copyWith(preferredAudioLanguage: 'es'),
         session: session,
         subtitleFinder: _NoSubs(),

@@ -1,6 +1,5 @@
 import '../../core/settings/kivo_settings.dart';
 import '../../platform/interfaces/subtitle_finder.dart';
-import '../audio/equalizer.dart';
 import '../engine/playback_engine.dart';
 import '../open/video_source.dart';
 import 'subtitle_loader.dart';
@@ -21,6 +20,7 @@ void applyDefaultTracks({
   required SubtitleFinder subtitleFinder,
   required TrackPrefsStore subtitlePrefs,
   required SubtitleLoader subtitleLoader,
+  required Future<void> Function() applyAudio,
 }) {
   // A new video: whatever external subtitle the last one had is gone.
   subtitleLoader.clear();
@@ -94,20 +94,15 @@ void applyDefaultTracks({
       // Separate try: a failure applying one offset must not skip the other.
     }
 
-    // Same trap, same fix, third time: `af` is a global mpv option on the
-    // same process-lifetime Player, so it survives loadfile exactly like
-    // sub-delay/audio-delay do. This call is UNCONDITIONAL even when the
-    // equalizer is off or perfectly flat — mpvAudioFilter returns '' for
-    // that case, and sending '' is what actually clears whatever graph the
-    // previous video's (possibly enabled) equalizer left running. Skipping
-    // this call when "there's nothing to apply" is exactly the bug that bit
-    // sub-delay/audio-delay before: the previous video's filter would keep
-    // coloring a video whose own equalizer setting is off.
+    // The audio chain (equalizer, gain, Modo noche, Realzar voces) belongs to
+    // AudioPipelineController, which tracks what mpv holds — these are global
+    // options that survive loadfile — and re-derives it for this video's
+    // track once that is known.
     try {
-      await engine.setAudioFilter(mpvAudioFilter(settings.equalizer));
+      await applyAudio();
     } catch (_) {
-      // Separate try: a failure applying the filter must not skip playback
-      // start, and must not be masked by (or mask) the two offsets above.
+      // Separate try: a failure here must not skip playback start, and must
+      // not be masked by (or mask) the two offsets above.
     }
   }();
 }
