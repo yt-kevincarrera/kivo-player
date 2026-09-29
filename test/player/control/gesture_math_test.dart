@@ -157,10 +157,10 @@ void main() {
     // Rotate band: inside at the center, outside just past half the fraction.
     expect(inCenterRotateZone(50, 100), true);
     expect(inCenterRotateZone(50 + 100 * kCenterRotateFraction / 2 + 1, 100), false);
-    // Rotate band height: the upper half owns the gesture, boundary included.
+    // Rotate band height: everything but the bottom strip, boundary included.
     expect(inCenterRotateHeight(0, 800), true);
-    expect(inCenterRotateHeight(800 * kCenterRotateHeightFraction, 800), true);
-    expect(inCenterRotateHeight(800 * kCenterRotateHeightFraction + 1, 800), false);
+    expect(inCenterRotateHeight(800 - kCenterRotateBottomMargin, 800), true);
+    expect(inCenterRotateHeight(800 - kCenterRotateBottomMargin + 1, 800), false);
     expect(inCenterRotateHeight(799, 800), false);
     // Lateral edges and vertical dead zone.
     expect(inLateralDeadZone(kLateralEdgeMargin - 1, 400, kLateralEdgeMargin), true);
@@ -234,8 +234,15 @@ void main() {
       expect(route(start: const Offset(200, 200), delta: const Offset(0, -60)), DragIntent.rotate);
     });
 
-    test('the centre band rotates right up to the half-height boundary', () {
+    test('the centre band rotates below the middle too, right up to the dead strip', () {
+      // Only the bottom strip is off limits: everything above it still rotates.
       expect(route(start: const Offset(200, 400), delta: const Offset(0, -60)), DragIntent.rotate);
+      expect(route(start: const Offset(200, 600), delta: const Offset(0, -60)), DragIntent.rotate);
+      expect(
+          route(
+              start: const Offset(200, 800 - kCenterRotateBottomMargin),
+              delta: const Offset(0, -60)),
+          DragIntent.rotate);
     });
 
     test('the centre band does NOT rotate while the controls are up', () {
@@ -244,20 +251,24 @@ void main() {
           DragIntent.volume);
     });
 
-    test('the lower half of the centre band is inert, so swiping home does nothing', () {
+    test('the bottom strip of the centre band is inert, so swiping home does nothing', () {
       // The reported accident: a swipe UP from the bottom centre (the system
       // home gesture) used to rotate the video.
-      expect(route(start: const Offset(200, 700), delta: const Offset(0, -60)), DragIntent.none);
-      expect(route(start: const Offset(200, 401), delta: const Offset(0, -60)), DragIntent.none);
+      expect(route(start: const Offset(200, 799), delta: const Offset(0, -60)), DragIntent.none);
+      expect(
+          route(
+              start: const Offset(200, 800 - kCenterRotateBottomMargin + 1),
+              delta: const Offset(0, -60)),
+          DragIntent.none);
     });
 
-    test('the lower half of the centre band stays inert with the controls up', () {
+    test('the bottom strip of the centre band stays inert with the controls up', () {
       expect(
           route(start: const Offset(200, 700), delta: const Offset(0, -60), controlsVisible: true),
           DragIntent.none);
     });
 
-    test('outside the centre band the bottom half still sets brightness and volume', () {
+    test('outside the centre band the bottom strip still sets brightness and volume', () {
       expect(route(start: const Offset(80, 700), delta: const Offset(0, -60)),
           DragIntent.brightness);
       expect(route(start: const Offset(320, 700), delta: const Offset(0, -60)), DragIntent.volume);

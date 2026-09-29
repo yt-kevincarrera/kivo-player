@@ -1377,7 +1377,7 @@
     "description": "Gesture tutorial label for the lateral-edge drag that minimizes."
   },
 
-  "playerTutorialDragCenterRotate": "Drag in the center, upper half · Rotate (with the controls hidden)",
+  "playerTutorialDragCenterRotate": "Drag in the center, away from the bottom strip · Rotate (with the controls hidden)",
   "@playerTutorialDragCenterRotate": {
     "description": "Gesture tutorial label for the center drag that rotates the screen."
   },

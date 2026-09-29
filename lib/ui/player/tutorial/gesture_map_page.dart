@@ -248,10 +248,11 @@ class _ZonesPage extends StatelessWidget {
           Positioned(
             left: w * (0.5 - kCenterRotateFraction / 2),
             width: w * kCenterRotateFraction,
-            // Ends on the half-height line the router uses: the band drawn here
-            // is exactly the area that rotates.
+            // Stops short of the bottom, where the router keeps an inert strip
+            // clear of the system home gesture. The map is a miniature, so the
+            // strip is sketched in proportion, not in the router's logical px.
             top: h * 0.18,
-            height: h * (kCenterRotateHeightFraction - 0.18),
+            height: h * 0.64,
             child: _ZoneBox(hint: hint, accent: accent, dense: true),
           ),
         ];
