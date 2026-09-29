@@ -61,8 +61,13 @@ for this video" meaning exactly "differs from your default".
 ### Watchdog (auto mode, hardware actually active)
 
 Armed per open. A wall-clock timer of `decoderStallSeconds` (default 3,
-1–10) runs only while **all** hold: playing, not buffering, video output
-enabled (not audio-only/background `vid=no`), no first frame yet. Any
+1–10) runs only while **all** hold: playing, video output enabled (not
+audio-only/background `vid=no`, fed by its own engine stream), no first frame
+yet. **Not** gated on the engine's `buffering`: media_kit derives it from mpv's
+`core-idle`, which stays true until the first frame — gating on it would mean
+never firing in exactly the failing case (caught in the branch review). If the
+output is off when the timer runs out, the watchdog re-arms instead of giving
+up. Any
 condition breaking cancels the timer; the first frame disarms the watchdog for
 the rest of that session. On fire, it re-checks: the file has a real video
 track, and `hwdec-current` is a hardware decoder (not `no`/empty). Wall clock,
@@ -80,7 +85,10 @@ not media time, because a stalled video decoder can also stall mpv's clock.
   fallback event. The player screen (when visible) shows
   *"Cambiado a decodificación por software"* with **Deshacer**.
 - **Deshacer** stores the explicit `hw` override (not auto → no loop) and
-  applies it live.
+  applies it live — only if the video that fell back is still the one open.
+- A stall switch seeks back to the open's start position until a real
+  position arrives (a dead decoder may never report one). A failing hardware
+  open superseded by a newer open does not retry.
 
 ### Live switch
 

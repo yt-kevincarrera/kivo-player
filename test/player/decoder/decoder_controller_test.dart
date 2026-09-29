@@ -293,7 +293,7 @@ void main() {
       await h.ctl.open(_s('a.mkv'));
       expect(h.store.forKey('a.mkv')!.decoder, 'sw');
 
-      await h.ctl.undoFallback();
+      await h.ctl.undoFallback('a.mkv');
       expect(h.store.forKey('a.mkv')!.decoder, 'hw');
       expect(h.engine.hwdecWrites.last, 'auto-safe');
     });

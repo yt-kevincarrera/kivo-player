@@ -217,6 +217,10 @@ class FakePlaybackEngine implements PlaybackEngine {
   @override
   bool videoOutputEnabled = true;
 
+  final _videoOutput = StreamController<bool>.broadcast();
+  @override
+  Stream<bool> get videoOutputEnabledStream => _videoOutput.stream;
+
   void emitBuffering(bool v) => _buffering.add(v);
 
   final List<double> subtitleDelays = [];
@@ -278,6 +282,7 @@ class FakePlaybackEngine implements PlaybackEngine {
   Future<void> setVideoTrackEnabled(bool enabled) async {
     videoTrackEnabled = enabled;
     videoOutputEnabled = enabled;
+    _videoOutput.add(enabled);
   }
 
   int ensureAttachCalls = 0;

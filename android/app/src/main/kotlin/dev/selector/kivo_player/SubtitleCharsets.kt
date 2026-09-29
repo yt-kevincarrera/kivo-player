@@ -73,14 +73,14 @@ object SubtitleCharsets {
             charsetName = manual
             detected = false
         } else {
-            val bom = bomCharset(bytes)
-            if (bom == null && isValidUtf8(bytes)) {
+            // UTF-16 first, BOM or not: mostly-ASCII UTF-16 is also "valid
+            // UTF-8" (NUL is a legal byte), so the UTF-8 check alone would pass
+            // it through untouched.
+            val marked = bomCharset(bytes) ?: unmarkedUtf16(bytes)
+            if (marked == "UTF-8" || (marked == null && isValidUtf8(bytes))) {
                 return mapOf("path" to uri, "encoding" to "UTF-8", "detected" to true)
             }
-            if (bom == "UTF-8") {
-                return mapOf("path" to uri, "encoding" to "UTF-8", "detected" to true)
-            }
-            charsetName = bom ?: detect(bytes)
+            charsetName = marked ?: detect(bytes)
             detected = true
         }
         if (charsetName.equals("UTF-8", ignoreCase = true) && isValidUtf8(bytes)) {
@@ -88,7 +88,14 @@ object SubtitleCharsets {
         }
         val text = String(bytes, Charset.forName(charsetName)).removePrefix("﻿")
         val file = cacheFile(context, uri, charsetName, name)
-        file.writeText(text, Charsets.UTF_8)
+        // Write-then-rename: the same uri+charset maps to the same file, and
+        // mpv may still be reading the previous copy of it.
+        val tmp = File(file.path + ".tmp")
+        tmp.writeText(text, Charsets.UTF_8)
+        if (!tmp.renameTo(file)) {
+            tmp.delete()
+            throw IllegalStateException("could not write $file")
+        }
         prune(file.parentFile)
         return mapOf("path" to file.absolutePath, "encoding" to charsetName, "detected" to detected)
     }
@@ -115,13 +122,35 @@ object SubtitleCharsets {
         }
     }
 
-    /** A NUL in the first 4 KB of a file with no UTF-16 BOM: not text (VobSub .sub). */
+    /** A NUL in the first 4 KB of a file that is not UTF-16: not text (VobSub .sub). */
     private fun isBinary(bytes: ByteArray): Boolean {
         val bom = bomCharset(bytes)
         if (bom != null && bom.startsWith("UTF-16")) return false
+        if (unmarkedUtf16(bytes) != null) return false
         val n = minOf(bytes.size, 4096)
         for (i in 0 until n) if (bytes[i] == 0.toByte()) return true
         return false
+    }
+
+    /**
+     * UTF-16 saved without a BOM (some Windows tools do): mostly-ASCII text puts
+     * a NUL in every other byte — the high byte, odd positions for LE and even
+     * ones for BE. A binary format has NULs, but not in that regular pattern.
+     */
+    private fun unmarkedUtf16(b: ByteArray): String? {
+        val pairs = minOf(b.size, 4096) / 2
+        if (pairs < 8) return null
+        var evenZeros = 0
+        var oddZeros = 0
+        for (i in 0 until pairs) {
+            if (b[2 * i] == 0.toByte()) evenZeros++
+            if (b[2 * i + 1] == 0.toByte()) oddZeros++
+        }
+        return when {
+            oddZeros * 10 >= pairs * 3 && evenZeros * 20 <= pairs -> "UTF-16LE"
+            evenZeros * 10 >= pairs * 3 && oddZeros * 20 <= pairs -> "UTF-16BE"
+            else -> null
+        }
     }
 
     private fun bomCharset(b: ByteArray): String? = when {
@@ -156,7 +185,10 @@ object SubtitleCharsets {
             val detector = UniversalDetector()
             detector.handleData(bytes, 0, bytes.size)
             detector.dataEnd()
-            val n = detector.detectedCharset
+            val raw = detector.detectedCharset
+            // juniversalchardet's own spelling for the one it names differently
+            // from Java; anything else Java cannot decode falls through below.
+            val n = if (raw.equals("MACCYRILLIC", ignoreCase = true)) "x-MacCyrillic" else raw
             if (n != null) {
                 if (n.equals("ISO-8859-1", ignoreCase = true)) return "windows-1252"
                 if (Charset.isSupported(n)) return Charset.forName(n).name()

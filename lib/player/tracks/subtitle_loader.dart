@@ -67,6 +67,12 @@ class SubtitleLoader {
   final ActiveExternalSubtitle? Function() _readActive;
   final void Function(ActiveExternalSubtitle?) _writeActive;
 
+  /// Bumped by [clear]. A load that started before the bump belongs to a
+  /// video (or a choice) that is gone, and must not land on what replaced it:
+  /// applyDefaultTracks' loads are fire-and-forget and now wait on a native
+  /// round trip, so a slow one for video A can finish after B has opened.
+  int _generation = 0;
+
   /// Loads [uri] for the video [resumeKey], in that video's chosen encoding
   /// (or detected). [replaceCurrent] swaps out the currently selected track
   /// instead of adding another one.
@@ -76,20 +82,34 @@ class SubtitleLoader {
     required String resumeKey,
     bool replaceCurrent = false,
   }) async {
+    final generation = _generation;
     String? chosen;
     try {
       chosen = _prefs.forKey(resumeKey)?.subtitleEncoding;
     } catch (_) {
       chosen = null; // a corrupt record means "automatic", not "no subtitle"
     }
+    final name = title ?? basenameOf(uri);
     PreparedSubtitle? prepared;
     try {
-      prepared = await _transcoder()
-          .prepare(uri, name: title ?? basenameOf(uri), encoding: chosen);
+      prepared = await _transcoder().prepare(uri, name: name, encoding: chosen);
     } catch (e) {
-      // The adapter already logged it (KV-502). mpv gets the raw file.
-      debugPrint('SubtitleLoader.prepare failed, loading as-is: $e');
+      // The adapter already logged it (KV-502).
+      debugPrint('SubtitleLoader.prepare failed: $e');
+      if (chosen != null) {
+        // A chosen charset this device cannot decode would fail on every
+        // open for good. Forget it and let detection have a go instead.
+        await _forgetEncoding(resumeKey);
+        chosen = null;
+        try {
+          prepared = await _transcoder().prepare(uri, name: name);
+        } catch (e) {
+          debugPrint('SubtitleLoader.prepare (automatic) failed: $e');
+        }
+      }
+      // Still nothing: mpv gets the raw file, as it did before any of this.
     }
+    if (generation != _generation) return;
     await _engine.setExternalSubtitle(prepared?.uri ?? uri,
         title: title, replaceCurrent: replaceCurrent);
     _writeActive(ActiveExternalSubtitle(
@@ -97,7 +117,7 @@ class SubtitleLoader {
       sourceUri: uri,
       title: title,
       encoding: prepared?.encoding,
-      detected: prepared?.detected ?? true,
+      detected: prepared?.detected ?? chosen == null,
       binary: prepared != null && prepared.encoding == null,
     ));
   }
@@ -116,7 +136,20 @@ class SubtitleLoader {
 
   /// No external subtitle showing any more (another video opened, an embedded
   /// track was picked, or subtitles were turned off).
-  void clear() => _writeActive(null);
+  void clear() {
+    _generation++;
+    _writeActive(null);
+  }
+
+  Future<void> _forgetEncoding(String resumeKey) async {
+    try {
+      final existing = _prefs.forKey(resumeKey);
+      if (existing == null) return;
+      await _prefs.put(resumeKey, existing.copyWith(subtitleEncoding: null));
+    } catch (_) {
+      // Best-effort: the load goes ahead either way.
+    }
+  }
 }
 
 final subtitleLoaderProvider = Provider<SubtitleLoader>((ref) => SubtitleLoader(

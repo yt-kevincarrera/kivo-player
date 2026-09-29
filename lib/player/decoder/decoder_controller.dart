@@ -98,12 +98,14 @@ class DecoderController {
     _listening = true;
     final e = _engine;
     _subs.add(e.positionStream.listen((p) => _lastPosition = p));
-    _subs.add(e.playingStream.listen((v) =>
-        _watchdog.update(playing: v, outputEnabled: e.videoOutputEnabled)));
-    _subs.add(e.bufferingStream.listen((v) =>
-        _watchdog.update(buffering: v, outputEnabled: e.videoOutputEnabled)));
-    _subs.add(e.hasVideoFrameStream.listen((v) =>
-        _watchdog.update(frame: v, outputEnabled: e.videoOutputEnabled)));
+    _subs.add(e.playingStream.listen((v) => _watchdog.update(playing: v)));
+    _subs.add(e.hasVideoFrameStream.listen((v) => _watchdog.update(frame: v)));
+    // Its own stream, not a read piggybacking on other events: the output
+    // goes off (Home, audio-only) and back on without any playing/frame event
+    // to carry the change.
+    _subs.add(e.videoOutputEnabledStream
+        .listen((v) => _watchdog.update(outputEnabled: v)));
+    // No buffering subscription on purpose — see DecoderStallWatchdog.
   }
 
   DecoderMode _modeFor(String resumeKey) => resolveDecoderMode(
@@ -117,6 +119,10 @@ class DecoderController {
     _ensureListening();
     _watchdog.disarm();
     _session = session;
+    // Where a switch should seek back to until the first position event: a
+    // stalled decoder may never produce one, and seeking to the previous
+    // video's last position (or 0) would throw away the resume point.
+    _lastPosition = startAt;
     final seq = ++_openSeq;
     final settings = _ref.read(settingsProvider);
     final mode = _modeFor(session.resumeKey);
@@ -134,6 +140,9 @@ class DecoderController {
       try {
         await engine.open(session.playbackPath, startAt: startAt);
       } catch (e) {
+        // Superseded while failing: another video owns hwdec and the screen
+        // now. Retrying would overwrite its decoder and replace it on screen.
+        if (seq != _openSeq) return;
         // Hardware could not even open it. One retry in software before this
         // becomes a KV-501; the retry is the one that gets logged if it fails.
         await _setHwdec(DecoderMode.software.mpvHwdec);
@@ -143,12 +152,7 @@ class DecoderController {
         return;
       }
       if (seq != _openSeq) return;
-      _watchdog.arm(
-        Duration(seconds: settings.decoderStallSeconds.clamp(1, 10)),
-        frameAlreadyShown: engine.videoSize != null,
-      );
-      // The watchdog only hears about changes; seed what is already true.
-      _watchdog.update(outputEnabled: engine.videoOutputEnabled);
+      _rearm();
     } else {
       await guardedOpen(engine, session.playbackPath, log, startAt: startAt);
     }
@@ -163,7 +167,12 @@ class DecoderController {
     // Re-check at fire time: anything that makes "no frame" expected means
     // this is not the decoder's fault.
     if (!engine.hasVideoTrack) return;
-    if (!engine.videoOutputEnabled) return;
+    if (!engine.videoOutputEnabled) {
+      // Went to the background just as the clock ran out: not a verdict on
+      // the decoder. Keep watching; the output coming back restarts the clock.
+      _rearm();
+      return;
+    }
     if (engine.videoSize != null) return;
     final active = await engine.activeHwdec();
     if (!isHardwareActive(active)) return;
@@ -175,9 +184,26 @@ class DecoderController {
         '(hwdec-current=$active)');
   }
 
+  /// Arms for the current video. Seeds the output state, since the watchdog
+  /// only hears about changes.
+  void _rearm() {
+    final engine = _engine;
+    _watchdog.arm(
+      Duration(
+          seconds: _ref.read(settingsProvider).decoderStallSeconds.clamp(1, 10)),
+      frameAlreadyShown: engine.videoSize != null,
+    );
+    _watchdog.update(outputEnabled: engine.videoOutputEnabled);
+  }
+
   /// Remembers software for [session], logs KV-504 and tells the screen.
   Future<void> _fallBack(VideoSession session, String reason) async {
-    await _storeOverride(session.resumeKey, DecoderMode.software.id);
+    // overrideFor, not a bare 'sw': with a software default the video simply
+    // goes back to following it, instead of gaining a redundant override.
+    await _storeOverride(
+        session.resumeKey,
+        overrideFor(DecoderMode.software,
+            global: _ref.read(settingsProvider).decoderMode));
     _ref.read(errorLogProvider).record(KivoFailure(KivoOp.decoderFallback, reason));
     _ref.read(decoderFallbackEventProvider.notifier).state =
         DecoderFallbackEvent(session.resumeKey, ++_fallbackSeq);
@@ -198,9 +224,12 @@ class DecoderController {
   /// "Deshacer" on the fallback toast: back to hardware, stored as an explicit
   /// hardware choice — not automatic, or the watchdog would fire again on the
   /// next open and the toast would come back forever.
-  Future<void> undoFallback() async {
+  ///
+  /// Only for the video that fell back ([resumeKey]): the toast outlives a
+  /// skip to the next video, and undoing there would change the wrong one.
+  Future<void> undoFallback(String resumeKey) async {
     final session = _session;
-    if (session == null) return;
+    if (session == null || session.resumeKey != resumeKey) return;
     final global = _ref.read(settingsProvider).decoderMode;
     _watchdog.disarm();
     await _storeOverride(

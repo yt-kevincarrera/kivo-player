@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../chapters/chapter.dart';
 import 'package:media_kit/media_kit.dart';
@@ -43,6 +44,7 @@ class MediaKitEngine implements PlaybackEngine {
   /// Mirrors our own `vid` intent so [hasVideoFrameStream] can ignore the width
   /// events that `vid=no` produces (see [frameReadyStream]).
   bool _videoOutputEnabled = true;
+  final _videoOutputController = StreamController<bool>.broadcast();
 
   @override
   Stream<bool> get hasVideoFrameStream =>
@@ -172,6 +174,18 @@ class MediaKitEngine implements PlaybackEngine {
   Future<void> setHwdec(String value) async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;
+    // media_kit writes its own hwdec (auto-safe) when the VideoController's
+    // platform half finishes creating — asynchronously, on the first open of
+    // the process. Written before that, ours would be silently overwritten
+    // and a video saved as "software" would open in hardware once per launch.
+    final vc = _videoController;
+    if (vc != null) {
+      try {
+        await vc.platform.future;
+      } catch (_) {
+        // No video controller on this platform: nothing will overwrite us.
+      }
+    }
     await native.setProperty('hwdec', value);
   }
 
@@ -194,6 +208,9 @@ class MediaKitEngine implements PlaybackEngine {
 
   @override
   bool get videoOutputEnabled => _videoOutputEnabled;
+
+  @override
+  Stream<bool> get videoOutputEnabledStream => _videoOutputController.stream;
 
   @override
   Future<void> setSubtitleStyle({
@@ -278,6 +295,7 @@ class MediaKitEngine implements PlaybackEngine {
     // Flip the gate BEFORE the property write, so no width event can slip
     // through with the flag in the wrong state.
     _videoOutputEnabled = enabled;
+    _videoOutputController.add(enabled);
     await native.setProperty('vid', enabled ? 'auto' : 'no');
   }
 

@@ -510,7 +510,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
           content: Text(l10n.playerDecoderFallbackSnack),
           action: SnackBarAction(
             label: l10n.commonUndo,
-            onPressed: () => ref.read(decoderControllerProvider).undoFallback(),
+            onPressed: () => ref
+                .read(decoderControllerProvider)
+                .undoFallback(next.resumeKey),
           ),
         ));
     });

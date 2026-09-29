@@ -93,6 +93,18 @@ void main() {
     expect(find.text(_l10n.playerTracksEncodingLabel), findsNothing);
   });
 
+  testWidgets("another video's late subtitle gets no card here", (tester) async {
+    await _open(tester,
+        active: const ActiveExternalSubtitle(
+            resumeKey: 'previous.mkv',
+            sourceUri: '/s/previous.srt',
+            title: null,
+            encoding: 'UTF-8',
+            detected: true,
+            binary: false));
+    expect(find.text(_l10n.playerTracksEncodingLabel), findsNothing);
+  });
+
   testWidgets('a binary subtitle gets no encoding card', (tester) async {
     await _open(tester,
         active: const ActiveExternalSubtitle(

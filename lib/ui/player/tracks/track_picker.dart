@@ -526,7 +526,12 @@ class _TracksSection extends ConsumerWidget {
             ),
             // Only for a text file Kivo loaded itself: embedded tracks are
             // UTF-8 by spec, and a binary VobSub has no encoding at all.
-            if (activeExternal != null && !activeExternal.binary && current != null)
+            if (activeExternal != null &&
+                !activeExternal.binary &&
+                current != null &&
+                // A late load for the previous video must not put its card
+                // (and its reload) on this one.
+                activeExternal.resumeKey == session?.resumeKey)
               _TrackCard(
                 icon: Icons.translate_rounded,
                 label: l10n.playerTracksEncodingLabel,

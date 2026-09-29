@@ -63,13 +63,24 @@ void main() {
     });
   });
 
-  test('buffering is not a stall', () {
+  // media_kit's `buffering` is mpv's core-idle, true until the first frame:
+  // the watchdog has no buffering input at all, so it cannot be silenced by it.
+  test('the clock runs from play with nothing but play and output on', () {
     fakeAsync((t) {
       w.arm(const Duration(seconds: 3));
-      w.update(playing: true, buffering: true);
+      w.update(playing: true, outputEnabled: true);
+      t.elapse(const Duration(seconds: 3));
+      expect(stalls, 1);
+    });
+  });
+
+  test('turning the video output back on starts the clock', () {
+    fakeAsync((t) {
+      w.arm(const Duration(seconds: 3));
+      w.update(playing: true, outputEnabled: false);
       t.elapse(const Duration(seconds: 10));
       expect(stalls, 0);
-      w.update(buffering: false);
+      w.update(outputEnabled: true);
       t.elapse(const Duration(seconds: 3));
       expect(stalls, 1);
     });

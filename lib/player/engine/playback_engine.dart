@@ -95,6 +95,9 @@ abstract class PlaybackEngine {
   /// (background / audio-only mode).
   bool get videoOutputEnabled;
 
+  /// Emits [videoOutputEnabled] each time [setVideoTrackEnabled] changes it.
+  Stream<bool> get videoOutputEnabledStream;
+
   /// Shifts subtitle timing. Positive = subtitles appear later, matching
   /// mpv's own `sub-delay` sign.
   ///
