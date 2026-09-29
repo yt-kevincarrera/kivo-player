@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit_video/media_kit_video.dart';
-import '../../core/errors/error_log_provider.dart';
 import '../../core/errors/kivo_failure.dart';
 import '../../core/settings/settings_provider.dart';
 import '../../platform/device_controls_provider.dart';
@@ -21,7 +20,7 @@ import '../../player/engine/playback_engine.dart';
 import '../../player/engine/playback_provider.dart';
 import '../../player/library/played.dart';
 import '../../player/loop/ab_loop.dart';
-import '../../player/open/guarded_open.dart';
+import '../../player/decoder/decoder_controller.dart';
 import '../../player/open/video_source.dart';
 import '../../player/resume/resume_plan.dart';
 import '../../player/resume/resume_service.dart';
@@ -54,6 +53,7 @@ import 'state/zoom_state.dart';
 import 'tutorial/gesture_map_route.dart';
 import 'zoom/zoom_chip.dart';
 import '../widgets/failure_snack_bar.dart';
+import '../../l10n/l10n.dart';
 
 class PlayerScreen extends ConsumerStatefulWidget {
   const PlayerScreen({super.key});
@@ -258,8 +258,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       final plan = planResume(
           _resume.positionFor(_resumeKey!), ref.read(settingsProvider).resumeBehavior);
       try {
-        await guardedOpen(engine, session.playbackPath,
-            ref.read(errorLogProvider), startAt: plan.startAt);
+        await ref
+            .read(decoderControllerProvider)
+            .open(session, startAt: plan.startAt);
       } on KivoFailure catch (f) {
         // Report and stop setting this session up. A failed open must not
         // replace the whole player with an error screen — the previous video
@@ -493,6 +494,23 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     ref.listen(autoplayConfirmProvider, (_, next) {
       final pending = ref.read(autoplayPendingProvider);
       if (next && pending != null) _advance(pending);
+    });
+    // The switch already happened and is remembered; this only says so, with
+    // a way back. A fallback for a video that is no longer on screen (the
+    // minimized autoplay path) stays silent — the log still has it.
+    ref.listen<DecoderFallbackEvent?>(decoderFallbackEventProvider, (_, next) {
+      if (next == null || !mounted) return;
+      if (next.resumeKey != ref.read(currentVideoProvider)?.resumeKey) return;
+      final l10n = context.l10n;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(
+          content: Text(l10n.playerDecoderFallbackSnack),
+          action: SnackBarAction(
+            label: l10n.commonUndo,
+            onPressed: () => ref.read(decoderControllerProvider).undoFallback(),
+          ),
+        ));
     });
 
     return PopScope(

@@ -25,6 +25,11 @@ Future<(ProviderContainer, FakePlaybackEngine)> _setup(WidgetTester t,
   await s.update(s.current.copyWith(
     autoplayNext: autoplay,
     repeatMode: repeatMode,
+    // The fake engine never decodes a frame, so after an advance plays the
+    // next video the decoder watchdog would sit on a pending 3 s timer. These
+    // tests are about the queue, not decoding (decoder_controller_test owns
+    // that), so the watchdog stays out of them.
+    decoderAutoFallback: false,
   ));
   final c = ProviderContainer(overrides: [
     settingsServiceProvider.overrideWithValue(s),
