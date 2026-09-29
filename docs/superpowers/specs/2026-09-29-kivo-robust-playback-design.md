@@ -116,10 +116,16 @@ for the choice.
 2. Binary (NUL byte in the first 4 KB with no UTF-16 BOM — VobSub `.sub`) →
    pass through untouched, `encoding=null`.
 3. No manual encoding: UTF-8 BOM or strictly valid UTF-8 → pass through,
-   `UTF-8`. UTF-16 BOM → convert. Otherwise detect with
-   `android.icu.text.CharsetDetector` (API 24+), taking the first match Java
-   can decode; `ISO-8859-1` is promoted to `windows-1252` (superset, what
-   browsers do). Below API 24 or no match → `windows-1252`. `detected=true`.
+   `UTF-8`. UTF-16 BOM → convert. Otherwise detect with **juniversalchardet**
+   2.5.0 (Mozilla's detector in plain Java, MPL 1.1, ~200 KB) — *not* ICU:
+   `android.icu.text.CharsetDetector` is not in Android's public API (the
+   first build failed on it). Its answer is used only if Java can decode it;
+   `ISO-8859-1` is promoted to `windows-1252` (superset, what browsers do). No
+   answer → `windows-1252`. `detected=true`.
+   Probed on short samples: windows-1252 Spanish, UTF-8, windows-1251 and
+   KOI8-R Russian, Greek (→ ISO-8859-7), GBK (→ GB18030) and Shift_JIS come
+   back right; windows-1250 Polish and windows-1254 Turkish come back as
+   windows-1252 (no model for them) — that is what the manual picker is for.
 4. Manual encoding: decode with it (errors replaced), `detected=false`.
 5. Write UTF-8 (no BOM) to `cacheDir/subtitles-utf8/<sha1(uri|enc)>.<ext>`
    (ext from `name`, else the uri, else `srt`); keep the newest 40 files.
