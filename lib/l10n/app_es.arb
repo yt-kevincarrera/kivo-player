@@ -3033,5 +3033,100 @@
   "encodingKorean": "Coreano",
   "@encodingKorean": {
     "description": "Nombre legible de EUC-KR."
+  },
+
+  "playerTracksNightMode": "Modo noche",
+  "@playerTracksNightMode": {
+    "description": "Tarjeta de la hoja de Audio (botón de auriculares): compresión Dolby para que las explosiones no suban tanto."
+  },
+
+  "playerTracksNightModeOffHint": "Baja los picos de las pistas Dolby",
+  "@playerTracksNightModeOffHint": {
+    "description": "Subtítulo de «Modo noche» con el modo apagado."
+  },
+
+  "playerTracksNightModeDolby": "Comprimiendo la pista Dolby",
+  "@playerTracksNightModeDolby": {
+    "description": "Subtítulo de «Modo noche» encendido con una pista AC-3/E-AC-3: está actuando."
+  },
+
+  "playerTracksNightModeNoEffect": "Sin efecto: esta pista no es Dolby",
+  "@playerTracksNightModeNoEffect": {
+    "description": "Subtítulo de «Modo noche» encendido con una pista que no es AC-3/E-AC-3: no puede actuar."
+  },
+
+  "playerTracksVoiceBoost": "Realzar voces",
+  "@playerTracksVoiceBoost": {
+    "description": "Tarjeta de la hoja de Audio (botón de auriculares): diálogos más claros."
+  },
+
+  "playerTracksVoiceBoostOffHint": "Diálogos más claros",
+  "@playerTracksVoiceBoostOffHint": {
+    "description": "Subtítulo de «Realzar voces» con la función apagada."
+  },
+
+  "playerTracksVoiceBoostSurround": "Mezcla a estéreo con el canal de voces realzado",
+  "@playerTracksVoiceBoostSurround": {
+    "description": "Subtítulo de «Realzar voces» encendido con una pista de más de dos canales (5.1…)."
+  },
+
+  "playerTracksVoiceBoostStereo": "Ecualización para la voz",
+  "@playerTracksVoiceBoostStereo": {
+    "description": "Subtítulo de «Realzar voces» encendido con una pista estéreo: se aplica una curva de ecualización."
+  },
+
+  "settingsAdvancedGroupAudio": "Audio",
+  "@settingsAdvancedGroupAudio": {
+    "description": "Encabezado del grupo de audio en Ajustes › Reproducción avanzada."
+  },
+
+  "settingsNightMode": "Modo noche",
+  "@settingsNightMode": {
+    "description": "Interruptor del modo noche en Ajustes."
+  },
+
+  "settingsNightModeSubtitle": "Comprime las pistas Dolby (AC-3 y E-AC-3) para que las explosiones no suban tanto. En otras pistas no tiene efecto.",
+  "@settingsNightModeSubtitle": {
+    "description": "Subtítulo del modo noche en Ajustes: qué hace y dónde no actúa."
+  },
+
+  "settingsNightModeLevel": "Intensidad del modo noche",
+  "@settingsNightModeLevel": {
+    "description": "Elección Suave/Media/Fuerte del modo noche."
+  },
+
+  "settingsVoiceBoost": "Realzar voces",
+  "@settingsVoiceBoost": {
+    "description": "Interruptor del realce de voces en Ajustes."
+  },
+
+  "settingsVoiceBoostSubtitle": "En pistas 5.1 sube el canal de los diálogos al mezclar a estéreo; en estéreo, ecualiza para la voz.",
+  "@settingsVoiceBoostSubtitle": {
+    "description": "Subtítulo del realce de voces en Ajustes."
+  },
+
+  "settingsVoiceBoostLevel": "Intensidad del realce",
+  "@settingsVoiceBoostLevel": {
+    "description": "Elección Suave/Media/Fuerte del realce de voces."
+  },
+
+  "settingsLevelSoft": "Suave",
+  "@settingsLevelSoft": {
+    "description": "Intensidad baja (modo noche / realce de voces)."
+  },
+
+  "settingsLevelMedium": "Media",
+  "@settingsLevelMedium": {
+    "description": "Intensidad media (modo noche / realce de voces)."
+  },
+
+  "settingsLevelStrong": "Fuerte",
+  "@settingsLevelStrong": {
+    "description": "Intensidad alta (modo noche / realce de voces)."
+  },
+
+  "playerTracksSectionEnhance": "Mejorar el sonido",
+  "@playerTracksSectionEnhance": {
+    "description": "Eyebrow de la sección con Modo noche y Realzar voces, en la hoja de Audio."
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../l10n/l10n.dart';
 import '../../../platform/all_files_access_provider.dart';
+import '../../../player/audio/audio_pipeline.dart';
 import '../../../player/decoder/decoder_controller.dart';
 import '../../../player/decoder/decoder_mode.dart';
 import '../widgets/setting_tiles.dart';
@@ -21,6 +22,12 @@ class AdvancedPlaybackSection extends ConsumerWidget {
           (null, l10n.settingsAdvancedAutomaticOption),
           if (current != null) (current, l10n.settingsAdvancedLangChosen(current)),
         ];
+
+    final levelOptions = [
+      (EnhancementLevel.soft.id, l10n.settingsLevelSoft),
+      (EnhancementLevel.medium.id, l10n.settingsLevelMedium),
+      (EnhancementLevel.strong.id, l10n.settingsLevelStrong),
+    ];
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsAdvancedPlaybackTitle)),
@@ -99,6 +106,32 @@ class AdvancedPlaybackSection extends ConsumerWidget {
                       content: Text(l10n.settingsDecoderForgotSnackbar(count))));
               },
             ),
+          ]),
+          const SizedBox(height: 16),
+          _label(context, l10n.settingsAdvancedGroupAudio),
+          SettingsCard(children: [
+            SettingSwitch(
+              title: l10n.settingsNightMode,
+              subtitle: l10n.settingsNightModeSubtitle,
+              value: s.nightMode,
+              onChanged: (v) => n.set(s.copyWith(nightMode: v))),
+            if (s.nightMode)
+              SettingChoice<String>(
+                title: l10n.settingsNightModeLevel,
+                value: s.nightModeLevel,
+                options: levelOptions,
+                onChanged: (v) => n.set(s.copyWith(nightModeLevel: v))),
+            SettingSwitch(
+              title: l10n.settingsVoiceBoost,
+              subtitle: l10n.settingsVoiceBoostSubtitle,
+              value: s.voiceBoost,
+              onChanged: (v) => n.set(s.copyWith(voiceBoost: v))),
+            if (s.voiceBoost)
+              SettingChoice<String>(
+                title: l10n.settingsVoiceBoostLevel,
+                value: s.voiceBoostLevel,
+                options: levelOptions,
+                onChanged: (v) => n.set(s.copyWith(voiceBoostLevel: v))),
           ]),
           const SizedBox(height: 16),
           _label(context, l10n.settingsAdvancedGroupSubtitlesAudio),

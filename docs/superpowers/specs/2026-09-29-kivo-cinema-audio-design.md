@@ -80,10 +80,15 @@ The EQ preamp moves out of the lavfi graph into `replaygain-fallback`.
 
 ## UI
 
-- Player ⋮ → Audio group, under Ecualizador: **Modo noche** and **Realzar
-  voces**, each an Off/On pill with a per-track status line ("Comprimiendo la
-  pista Dolby" / "Sin efecto: esta pista no es Dolby"; "Mezcla 5.1 con el
-  centro realzado" / "Ecualización de voz").
+- Player **Audio sheet** (the headphones button: audio tracks + sync), new
+  section "Mejorar el sonido": **Modo noche** and **Realzar voces** as toggle
+  cards with a per-track status line ("Comprimiendo la pista Dolby" / "Sin
+  efecto: esta pista no es Dolby"; "Mezcla a estéreo con el canal de voces
+  realzado" / "Ecualización para la voz"). First placed in the ⋮ menu's
+  Audio group, moved here: the menu's landscape two-column layout has a
+  no-scroll height budget (enforced by more_menu_regroup_test) that two more
+  rows broke, and next to the audio tracks is where "this track is not
+  Dolby" makes sense anyway. The sheet is now capped and scrollable.
 - Ajustes → Reproducción avanzada → **Audio**: both switches plus an
   Intensidad choice (Suave · Media · Fuerte) for each.
 - Global settings (not per video): night is a time of day, not a file.

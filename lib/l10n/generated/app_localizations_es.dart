@@ -1957,4 +1957,66 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get encodingKorean => 'Coreano';
+
+  @override
+  String get playerTracksNightMode => 'Modo noche';
+
+  @override
+  String get playerTracksNightModeOffHint =>
+      'Baja los picos de las pistas Dolby';
+
+  @override
+  String get playerTracksNightModeDolby => 'Comprimiendo la pista Dolby';
+
+  @override
+  String get playerTracksNightModeNoEffect =>
+      'Sin efecto: esta pista no es Dolby';
+
+  @override
+  String get playerTracksVoiceBoost => 'Realzar voces';
+
+  @override
+  String get playerTracksVoiceBoostOffHint => 'Diálogos más claros';
+
+  @override
+  String get playerTracksVoiceBoostSurround =>
+      'Mezcla a estéreo con el canal de voces realzado';
+
+  @override
+  String get playerTracksVoiceBoostStereo => 'Ecualización para la voz';
+
+  @override
+  String get settingsAdvancedGroupAudio => 'Audio';
+
+  @override
+  String get settingsNightMode => 'Modo noche';
+
+  @override
+  String get settingsNightModeSubtitle =>
+      'Comprime las pistas Dolby (AC-3 y E-AC-3) para que las explosiones no suban tanto. En otras pistas no tiene efecto.';
+
+  @override
+  String get settingsNightModeLevel => 'Intensidad del modo noche';
+
+  @override
+  String get settingsVoiceBoost => 'Realzar voces';
+
+  @override
+  String get settingsVoiceBoostSubtitle =>
+      'En pistas 5.1 sube el canal de los diálogos al mezclar a estéreo; en estéreo, ecualiza para la voz.';
+
+  @override
+  String get settingsVoiceBoostLevel => 'Intensidad del realce';
+
+  @override
+  String get settingsLevelSoft => 'Suave';
+
+  @override
+  String get settingsLevelMedium => 'Media';
+
+  @override
+  String get settingsLevelStrong => 'Fuerte';
+
+  @override
+  String get playerTracksSectionEnhance => 'Mejorar el sonido';
 }
