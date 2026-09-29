@@ -262,7 +262,26 @@ class MediaKitEngine implements PlaybackEngine {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;
     await native.setProperty('secondary-sid', id ?? 'no');
-    _secondarySubtitleId = id;
+    // Believe mpv, not the request: it refuses the primary's own track.
+    try {
+      final actual = (await native.getProperty('secondary-sid')).trim();
+      _secondarySubtitleId =
+          (actual.isEmpty || actual == 'no' || actual == 'auto') ? null : actual;
+    } catch (_) {
+      _secondarySubtitleId = id;
+    }
+  }
+
+  @override
+  Future<String?> currentSubtitleId() async {
+    final native = _player.platform as NativePlayer?;
+    if (native == null) return null;
+    try {
+      final id = (await native.getProperty('current-tracks/sub/id')).trim();
+      return id.isEmpty ? null : id;
+    } catch (_) {
+      return null;
+    }
   }
 
   @override

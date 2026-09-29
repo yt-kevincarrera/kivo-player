@@ -108,6 +108,28 @@ void main() {
     });
   });
 
+  group('Segundo subtítulo, with the primary', () {
+    testWidgets('turning subtitles off takes the secondary with them',
+        (tester) async {
+      final h = await _open(tester);
+      h.engine.secondarySubtitleTrackId = '2';
+      await tester.tap(find.byType(Switch).first);
+      await tester.pumpAndSettle();
+      expect(h.engine.secondarySubtitleWrites.last, isNull);
+    });
+
+    // mpv refuses a track already held as the secondary.
+    testWidgets('picking the secondary track as primary frees it first',
+        (tester) async {
+      final h = await _open(tester);
+      h.engine.secondarySubtitleTrackId = '2';
+      await tester.tap(find.text('English').first);
+      await tester.pumpAndSettle();
+      expect(h.engine.secondarySubtitleWrites.last, isNull);
+      expect(h.engine.currentSubtitleTrackId, '2');
+    });
+  });
+
   group('Estilo', () {
     testWidgets('the preview is the overlay\'s own widget', (tester) async {
       await _open(tester, style: true);

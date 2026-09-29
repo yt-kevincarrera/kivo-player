@@ -1,3 +1,4 @@
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,33 +8,37 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 final controlsTopInsetProvider = StateProvider<double>((ref) => 0);
 final controlsBottomInsetProvider = StateProvider<double>((ref) => 0);
 
-/// Reports its child's height after each layout, only when it changed.
-class MeasureHeight extends StatefulWidget {
-  const MeasureHeight({super.key, required this.onHeight, required this.child});
+/// Reports its child's height whenever layout changes it — from the render
+/// object itself, so a rotation or a bar growing while shown is caught even
+/// when nothing rebuilds this widget (ControlsOverlay is const).
+class MeasureHeight extends SingleChildRenderObjectWidget {
+  const MeasureHeight({super.key, required this.onHeight, required super.child});
 
   final ValueChanged<double> onHeight;
-  final Widget child;
 
   @override
-  State<MeasureHeight> createState() => _MeasureHeightState();
+  RenderObject createRenderObject(BuildContext context) =>
+      RenderMeasureHeight(onHeight);
+
+  @override
+  void updateRenderObject(
+          BuildContext context, RenderMeasureHeight renderObject) =>
+      renderObject.onHeight = onHeight;
 }
 
-class _MeasureHeightState extends State<MeasureHeight> {
+class RenderMeasureHeight extends RenderProxyBox {
+  RenderMeasureHeight(this.onHeight);
+
+  ValueChanged<double> onHeight;
   double? _last;
 
-  void _report() {
-    if (!mounted) return;
-    final box = context.findRenderObject();
-    if (box is! RenderBox || !box.hasSize) return;
-    final h = box.size.height;
+  @override
+  void performLayout() {
+    super.performLayout();
+    final h = size.height;
     if (h == _last) return;
     _last = h;
-    widget.onHeight(h);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) => _report());
-    return widget.child;
+    // Never mutate providers during layout: report after the frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) => onHeight(h));
   }
 }

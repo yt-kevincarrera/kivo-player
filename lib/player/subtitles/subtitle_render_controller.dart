@@ -12,6 +12,11 @@ import 'subtitle_render.dart';
 final subtitleDrawerProvider =
     StateProvider<SubtitleDrawer>((ref) => SubtitleDrawer.none);
 
+/// The primary subtitle's id as mpv numbers it (see
+/// PlaybackEngine.currentSubtitleId), for excluding it from the secondary
+/// candidates even when it is an external file.
+final currentSubtitleMpvIdProvider = StateProvider<String?>((ref) => null);
+
 /// Keeps mpv's `sub-visibility` in line with [drawerFor]: on only while mpv
 /// is the one drawing (pictures, and ASS in its own style), off whenever
 /// Kivo's overlay draws the text — otherwise both would, one on top of the
@@ -71,13 +76,16 @@ class SubtitleRenderController {
     final engine = _ref.read(playbackEngineProvider);
     final hasTrack = engine.currentSubtitleTrack != null;
     String? codec;
+    String? mpvId;
     if (hasTrack) {
       try {
         codec = await engine.currentSubtitleCodec();
+        mpvId = await engine.currentSubtitleId();
       } catch (_) {
         codec = null;
       }
     }
+    _ref.read(currentSubtitleMpvIdProvider.notifier).state = mpvId;
     final drawer = drawerFor(
       hasTrack: hasTrack,
       codec: codec,

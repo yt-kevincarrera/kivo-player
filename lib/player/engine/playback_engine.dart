@@ -192,9 +192,15 @@ abstract class PlaybackEngine {
   /// open.
   Future<void> setSecondarySubtitleTrack(String? id);
 
-  /// The last id [setSecondarySubtitleTrack] wrote (null = off). Kivo is the
-  /// only writer of `secondary-sid`, so this is what mpv holds.
+  /// The secondary track mpv actually holds after the last
+  /// [setSecondarySubtitleTrack] (read back: mpv refuses a track the primary
+  /// already has, and media_kit hides that refusal). Null = off.
   String? get secondarySubtitleTrackId;
+
+  /// The id of the primary subtitle track as mpv numbers it
+  /// (`current-tracks/sub/id`) — for an external file that is not the uri
+  /// [currentSubtitleTrack] reports.
+  Future<String?> currentSubtitleId();
 
   /// Releases mpv's video output ([enabled] = false → `vid=no`) or reattaches it
   /// (true → `vid=auto`). Used around the background round-trip so a live video

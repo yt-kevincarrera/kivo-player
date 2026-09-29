@@ -16,6 +16,7 @@ import '../../../player/engine/playback_engine.dart';
 import '../../../player/open/video_source.dart';
 import '../../../player/tracks/manual_subtitle_controller.dart';
 import '../../../player/subtitles/secondary_subtitle.dart';
+import '../../../player/subtitles/subtitle_render_controller.dart';
 import '../../../player/tracks/subtitle_encodings.dart';
 import '../../../player/tracks/subtitle_loader.dart';
 import '../../../player/tracks/track_selection.dart';
@@ -340,6 +341,8 @@ class _TracksSection extends ConsumerWidget {
 
   void _turnOff(WidgetRef ref) {
     engine.setSubtitleTrack(null);
+    // No lone top line once the subtitles are off.
+    clearSecondarySubtitle(ref);
     ref.read(subtitleLoaderProvider).clear();
     final s = ref.read(settingsProvider);
     ref
@@ -362,6 +365,8 @@ class _TracksSection extends ConsumerWidget {
 
   void _pickTrack(BuildContext context, WidgetRef ref, MediaTrack t) {
     if (isSubtitles) {
+      // mpv refuses a track already held as the secondary: free it first.
+      if (t.id == engine.secondarySubtitleTrackId) clearSecondarySubtitle(ref);
       engine.setSubtitleTrack(t.id);
       // An embedded track now: the encoding card no longer applies.
       ref.read(subtitleLoaderProvider).clear();
@@ -461,7 +466,8 @@ class _TracksSection extends ConsumerWidget {
     if (isSubtitles) ref.watch(secondarySubtitleRevisionProvider);
     final secondaryId = isSubtitles ? engine.secondarySubtitleTrackId : null;
     final secondaryChoices = isSubtitles
-        ? secondaryCandidates(tracks, current)
+        ? secondaryCandidates(tracks, current,
+            primaryMpvId: ref.watch(currentSubtitleMpvIdProvider))
         : const <MediaTrack>[];
 
     return FutureBuilder<List<ExternalSubtitle>>(

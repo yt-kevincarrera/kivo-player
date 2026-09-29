@@ -16,6 +16,8 @@ const bitmapSubtitleCodecs = {
   'dvd_subtitle',
   'dvb_subtitle',
   'xsub',
+  // mpv 0.36 renders teletext as pictures (sd_lavc.c).
+  'dvb_teletext',
 };
 
 /// Styled subtitles whose look is part of the file.

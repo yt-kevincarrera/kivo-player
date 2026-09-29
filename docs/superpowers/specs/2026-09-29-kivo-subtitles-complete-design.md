@@ -103,3 +103,21 @@ Pure drawer table; controller (writes on change only, fonts-missing fallback,
 setting change); overlay widget (style → TextStyle/outline/shadow/position,
 hidden when mpv draws, secondary at top, lifts with controls); settings
 round-trips; secondary pick + per-open reset regression; Estilo tab controls.
+
+## Branch review (applied)
+
+- `secondary-sub-text` goes unavailable (not empty) when the secondary is
+  switched off and media_kit keeps the last cue: the overlay draws the
+  secondary only while `secondarySubtitleTrackId` is set, read per text event.
+  Turning subtitles off also clears the secondary.
+- mpv refuses a track held by the other slot (`sid`/`secondary-sid`, both
+  global): each open writes `secondary-sid=no` before picking the primary;
+  picking the secondary's track as primary frees it first; the engine reads
+  `secondary-sid` back instead of trusting its own write; candidates exclude
+  the primary by mpv's number (`current-tracks/sub/id`), not only by the uri
+  media_kit reports for an external primary.
+- The lift above the controls follows what is actually drawn (not locked, no
+  sync panel, not PiP); bar heights are reported from layout itself.
+- `dvb_teletext` counts as a picture subtitle.
+- Accepted: switching the primary blanks the current secondary cue until its
+  next one (media_kit resets both lines on a track change).

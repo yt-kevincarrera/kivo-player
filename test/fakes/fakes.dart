@@ -334,11 +334,21 @@ class FakePlaybackEngine implements PlaybackEngine {
   @override
   String? secondarySubtitleTrackId;
 
+  /// Ids mpv would refuse as the secondary (e.g. the primary's own).
+  Set<String> refusedSecondaryIds = {};
+
   @override
   Future<void> setSecondarySubtitleTrack(String? id) async {
     secondarySubtitleWrites.add(id);
-    secondarySubtitleTrackId = id;
+    secondarySubtitleTrackId =
+        (id != null && refusedSecondaryIds.contains(id)) ? secondarySubtitleTrackId : id;
   }
+
+  /// What [currentSubtitleId] reports.
+  String? subtitleIdValue;
+
+  @override
+  Future<String?> currentSubtitleId() async => subtitleIdValue;
 
   bool videoTrackEnabled = true;
 

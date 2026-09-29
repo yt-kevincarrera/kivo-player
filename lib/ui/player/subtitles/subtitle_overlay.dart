@@ -6,7 +6,11 @@ import '../../../player/engine/playback_provider.dart';
 import '../../../player/subtitles/subtitle_render.dart';
 import '../../../player/subtitles/subtitle_render_controller.dart';
 import '../state/controls_insets.dart';
+import '../../../player/subtitles/secondary_subtitle.dart';
 import '../state/controls_visibility.dart';
+import '../state/lock_state.dart';
+import '../state/pip_state.dart';
+import '../tracks/track_sync_hud.dart';
 import 'subtitle_text.dart';
 
 /// Kivo's own subtitle layer, over the video and outside the zoom transform
@@ -26,7 +30,19 @@ class SubtitleOverlay extends ConsumerWidget {
     final engine = ref.read(playbackEngineProvider);
     final settings = ref.watch(settingsProvider);
     final drawer = ref.watch(subtitleDrawerProvider);
-    final controls = ref.watch(controlsVisibleProvider);
+    // Lift only for bars that are actually drawn: not while locked (only the
+    // unlock ring shows), not under the sync panel, not in PiP. Lifting for
+    // invisible bars moved the text exactly while it was being synced.
+    final controls = controlsShouldRender(
+          visible: ref.watch(controlsVisibleProvider),
+          syncPanelOpen: ref.watch(syncHudProvider) != null,
+        ) &&
+        !ref.watch(lockProvider) &&
+        !ref.watch(pipModeProvider);
+    // mpv reports the secondary text as unavailable once it is switched off,
+    // and media_kit then keeps the last cue: only draw it while a secondary
+    // track is really selected.
+    ref.watch(secondarySubtitleRevisionProvider);
     final topInset = controls ? ref.watch(controlsTopInsetProvider) : 0.0;
     final bottomInset = controls ? ref.watch(controlsBottomInsetProvider) : 0.0;
 
@@ -42,7 +58,11 @@ class SubtitleOverlay extends ConsumerWidget {
             final primary = drawer == SubtitleDrawer.kivo && lines.isNotEmpty
                 ? lines[0].trim()
                 : '';
-            final secondary = lines.length > 1 ? lines[1].trim() : '';
+            // Read per text event, not once per build: the per-open pick sets
+            // it without any provider changing.
+            final secondaryOn = engine.secondarySubtitleTrackId != null;
+            final secondary =
+                secondaryOn && lines.length > 1 ? lines[1].trim() : '';
             final side = EdgeInsets.symmetric(horizontal: 16 * scale);
             return Stack(
               children: [

@@ -65,7 +65,20 @@ void main() {
           KivoSettings.defaults().copyWith(
               preferredSubtitleLanguage: 'es', secondarySubtitleLanguage: 'en'),
           [_es, _en]);
-      expect(engine.secondarySubtitleWrites, ['2']);
+      expect(engine.secondarySubtitleWrites, [null, '2'],
+          reason: 'cleared before the primary is picked, then set');
+    });
+
+    // sid and secondary-sid survive loadfile and mpv refuses a track held by
+    // the other slot: the previous video's secondary id must be gone before
+    // this video's primary is chosen.
+    test('the secondary is cleared before the primary is picked', () async {
+      final engine = FakePlaybackEngine()..secondarySubtitleTrackId = '1';
+      await _open(engine,
+          KivoSettings.defaults().copyWith(preferredSubtitleLanguage: 'es'),
+          [_es, _en]);
+      expect(engine.secondarySubtitleWrites.first, isNull);
+      expect(engine.currentSubtitleTrackId, '1');
     });
 
     // secondary-sid survives loadfile: a video with nothing to pick must turn
