@@ -20,6 +20,7 @@ void main() {
         playbackPath: '/v/a.mkv', displayName: 'a.mkv', queue: ['/v/a.mkv'], index: 0);
     applyDefaultTracks(
         engine: e,
+        subtitleLoader: rawSubtitleLoader(e),
         settings: KivoSettings.defaults().copyWith(preferredAudioLanguage: 'es'),
         session: session,
         subtitleFinder: _NoSubs(),

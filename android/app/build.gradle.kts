@@ -73,4 +73,8 @@ dependencies {
     // androidx.biometric's BiometricPrompt (used by local_auth) demands at
     // runtime — otherwise biometric unlock throws and silently falls back.
     implementation("androidx.appcompat:appcompat:1.7.0")
+    // Subtitle charset detection (kivo/subtitles). Android's public ICU does
+    // not expose CharsetDetector and the bundled libmpv has no uchardet, so
+    // this is Mozilla's detector in plain Java (MPL 1.1, ~200 KB).
+    implementation("com.github.albfernandez:juniversalchardet:2.5.0")
 }

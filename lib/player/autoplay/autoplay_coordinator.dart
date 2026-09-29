@@ -11,6 +11,7 @@ import '../open/video_source.dart';
 import '../resume/resume_plan.dart';
 import '../sleep/sleep_timer.dart';
 import '../tracks/apply_default_tracks.dart';
+import '../tracks/subtitle_loader.dart';
 import '../tracks/track_prefs_store.dart';
 import 'autoplay_logic.dart';
 
@@ -78,7 +79,8 @@ class AutoplayCoordinator {
       applyDefaultTracks(
         engine: engine, settings: settings, session: next,
         subtitleFinder: _ref.read(subtitleFinderProvider),
-        subtitlePrefs: _ref.read(trackPrefsStoreProvider));
+        subtitlePrefs: _ref.read(trackPrefsStoreProvider),
+        subtitleLoader: _ref.read(subtitleLoaderProvider));
       _refreshMiniThumb(next.playbackPath);
     } finally {
       _advancing = false;

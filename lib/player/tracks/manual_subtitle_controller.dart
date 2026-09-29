@@ -2,9 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/format.dart';
 import '../../core/settings/settings_provider.dart';
-import '../engine/playback_provider.dart';
 import '../open/video_source.dart';
 import 'subtitle_importer.dart';
+import 'subtitle_loader.dart';
 import 'track_prefs_store.dart';
 
 /// Loads a subtitle the user picked by hand: copy it somewhere durable, hand
@@ -26,9 +26,8 @@ class ManualSubtitleController {
     // A meaningful title, not the app-owned path's videoKey-based name — the
     // track picker would otherwise list the hand-loaded subtitle with no
     // name (a previous review flagged the title-less call as a real gap).
-    await _ref
-        .read(playbackEngineProvider)
-        .setExternalSubtitle(stored, title: basenameOf(pickedPath));
+    await _ref.read(subtitleLoaderProvider).load(stored,
+        title: basenameOf(pickedPath), resumeKey: session.resumeKey);
 
     // Same flag the picker's folder-subtitle path sets. Without it the file
     // plays while "Mostrar subtítulos" reads off, and on the next open

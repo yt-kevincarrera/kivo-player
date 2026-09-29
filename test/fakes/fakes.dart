@@ -20,6 +20,9 @@ import 'package:kivo_player/player/queue/file_system_lister.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/player/resume/resume_store.dart';
 import 'package:kivo_player/player/tracks/subtitle_importer.dart';
+import 'package:kivo_player/player/tracks/subtitle_loader.dart';
+import 'package:kivo_player/player/tracks/track_prefs_store.dart';
+import 'package:kivo_player/platform/interfaces/subtitle_transcoder.dart';
 
 class InMemorySettingsStore implements SettingsStore {
   Map<String, dynamic>? _data;
@@ -739,4 +742,45 @@ class FakeAppInstaller implements AppInstaller {
 
   @override
   Future<void> openUrl(String url) async => openedUrls.add(url);
+}
+
+/// Passes every file through as UTF-8 unless told otherwise — what the real
+/// transcoder does for the common case.
+class FakeSubtitleTranscoder implements SubtitleTranscoder {
+  /// Every prepare call as (uri, name, encoding).
+  final List<(String, String?, String?)> calls = [];
+
+  /// Replaces the default passthrough answer.
+  PreparedSubtitle Function(String uri, String? encoding)? answer;
+
+  /// Makes prepare throw, like the adapter does after logging KV-502.
+  Object? error;
+
+  List<String> encodings = const ['UTF-8', 'windows-1251', 'KOI8-R', 'IBM437'];
+
+  @override
+  Future<PreparedSubtitle> prepare(String uri,
+      {String? name, String? encoding}) async {
+    calls.add((uri, name, encoding));
+    if (error != null) throw error!;
+    return answer?.call(uri, encoding) ??
+        PreparedSubtitle(
+            uri: uri, encoding: encoding ?? 'UTF-8', detected: encoding == null);
+  }
+
+  @override
+  Future<List<String>> availableEncodings() async => encodings;
+}
+
+/// A loader that hands files to [engine] untouched, for tests about which
+/// subtitle gets loaded rather than how it is decoded.
+SubtitleLoader rawSubtitleLoader(PlaybackEngine engine) {
+  ActiveExternalSubtitle? active;
+  return SubtitleLoader(
+    engine: engine,
+    transcoder: FakeSubtitleTranscoder.new,
+    prefs: InMemoryTrackPrefsStore(),
+    readActive: () => active,
+    writeActive: (v) => active = v,
+  );
 }

@@ -206,6 +206,9 @@ class MainActivity : FlutterFragmentActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
+        // ── kivo/subtitles ── (its own file: this one is big enough already)
+        SubtitleCharsets.attach(flutterEngine.dartExecutor.binaryMessenger, applicationContext, ioExecutor)
+
         // ── kivo/orientation ──────────────────────────────────────────────────
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "kivo/orientation")
             .setMethodCallHandler { call, result ->

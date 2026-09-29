@@ -9,13 +9,18 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../../l10n/l10n.dart';
 import '../../../platform/interfaces/subtitle_finder.dart';
 import '../../../platform/subtitle_finder_provider.dart';
+import '../../../platform/subtitle_transcoder_provider.dart';
 import '../../../player/engine/playback_provider.dart';
 import '../../../player/engine/playback_engine.dart';
 import '../../../player/open/video_source.dart';
 import '../../../player/tracks/manual_subtitle_controller.dart';
+import '../../../player/tracks/subtitle_encodings.dart';
+import '../../../player/tracks/subtitle_loader.dart';
 import '../../../player/tracks/track_selection.dart';
 import '../../widgets/failure_snack_bar.dart';
 import 'track_sync_hud.dart';
+
+part 'subtitle_encoding_sheet.dart';
 
 Future<void> showSubtitlePicker(BuildContext context, WidgetRef ref) {
   return showModalBottomSheet(
@@ -166,16 +171,21 @@ class _SheetHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text(
-          title,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 15,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.1,
+        // Expanded + ellipsis: a long title (or a long translation of one)
+        // must shorten, never push the close button off the sheet.
+        Expanded(
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.1,
+            ),
           ),
         ),
-        const Spacer(),
         InkWell(
           borderRadius: BorderRadius.circular(8),
           onTap: () => Navigator.of(context).pop(),
@@ -318,6 +328,7 @@ class _TracksSection extends ConsumerWidget {
 
   void _turnOff(WidgetRef ref) {
     engine.setSubtitleTrack(null);
+    ref.read(subtitleLoaderProvider).clear();
     final s = ref.read(settingsProvider);
     ref
         .read(settingsProvider.notifier)
@@ -340,6 +351,8 @@ class _TracksSection extends ConsumerWidget {
   void _pickTrack(BuildContext context, WidgetRef ref, MediaTrack t) {
     if (isSubtitles) {
       engine.setSubtitleTrack(t.id);
+      // An embedded track now: the encoding card no longer applies.
+      ref.read(subtitleLoaderProvider).clear();
       final s = ref.read(settingsProvider);
       ref
           .read(settingsProvider.notifier)
@@ -402,7 +415,14 @@ class _TracksSection extends ConsumerWidget {
   }
 
   void _pickExternal(BuildContext context, WidgetRef ref, ExternalSubtitle e) {
-    engine.setExternalSubtitle(e.uri, title: e.displayName);
+    final key = session?.resumeKey;
+    if (key != null) {
+      ref
+          .read(subtitleLoaderProvider)
+          .load(e.uri, title: e.displayName, resumeKey: key);
+    } else {
+      engine.setExternalSubtitle(e.uri, title: e.displayName);
+    }
     final lang = languageFromFilename(e.displayName);
     final s = ref.read(settingsProvider);
     ref
@@ -422,6 +442,8 @@ class _TracksSection extends ConsumerWidget {
     final subsOn = s.subtitlesEnabledByDefault;
     final accent = Color(s.accentColor);
     final l10n = context.l10n;
+    final activeExternal =
+        isSubtitles ? ref.watch(activeExternalSubtitleProvider) : null;
 
     return FutureBuilder<List<ExternalSubtitle>>(
       future: (isSubtitles && session?.folder != null)
@@ -502,6 +524,17 @@ class _TracksSection extends ConsumerWidget {
                     isSubtitles ? SyncTarget.subtitles : SyncTarget.audio);
               },
             ),
+            // Only for a text file Kivo loaded itself: embedded tracks are
+            // UTF-8 by spec, and a binary VobSub has no encoding at all.
+            if (activeExternal != null && !activeExternal.binary && current != null)
+              _TrackCard(
+                icon: Icons.translate_rounded,
+                label: l10n.playerTracksEncodingLabel,
+                sublabel: encodingSummary(l10n, activeExternal),
+                active: false,
+                accent: accent,
+                onTap: () => showSubtitleEncodingSheet(context),
+              ),
             if (isSubtitles && external.isNotEmpty) ...[
               _SectionEyebrow(label: l10n.playerTracksSectionInFolder),
               for (final e in external)
@@ -509,7 +542,10 @@ class _TracksSection extends ConsumerWidget {
                   icon: Icons.folder_outlined,
                   label: e.displayName,
                   sublabel: l10n.playerTracksLocalFile,
-                  active: current?.id == e.uri,
+                  // mpv lists an added file under its own numeric track id,
+                  // never the uri, so the loader is what knows which one is on.
+                  active: current != null &&
+                      activeExternal?.sourceUri == e.uri,
                   accent: accent,
                   onTap: () => _pickExternal(context, ref, e),
                 ),

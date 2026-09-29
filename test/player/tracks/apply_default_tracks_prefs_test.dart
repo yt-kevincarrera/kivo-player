@@ -30,6 +30,7 @@ void main() {
 
     applyDefaultTracks(
       engine: engine,
+      subtitleLoader: rawSubtitleLoader(engine),
       settings: KivoSettings.defaults(),
       session: _session(),
       subtitleFinder: FakeSubtitleFinder(),
@@ -49,6 +50,7 @@ void main() {
 
     applyDefaultTracks(
       engine: engine,
+      subtitleLoader: rawSubtitleLoader(engine),
       settings: KivoSettings.defaults(),
       session: _session(),
       subtitleFinder: FakeSubtitleFinder(),
@@ -66,6 +68,7 @@ void main() {
     final engine = FakePlaybackEngine();
     applyDefaultTracks(
       engine: engine,
+      subtitleLoader: rawSubtitleLoader(engine),
       settings: KivoSettings.defaults(),
       session: _session(),
       subtitleFinder: FakeSubtitleFinder(),
@@ -90,6 +93,7 @@ void main() {
 
     applyDefaultTracks(
       engine: engine,
+      subtitleLoader: rawSubtitleLoader(engine),
       settings: KivoSettings.defaults(),
       session: _session(),
       subtitleFinder: FakeSubtitleFinder(),
@@ -100,6 +104,7 @@ void main() {
 
     applyDefaultTracks(
       engine: engine,
+      subtitleLoader: rawSubtitleLoader(engine),
       settings: KivoSettings.defaults(),
       session: const VideoSession(
           playbackPath: '/v/ep2.mkv',
@@ -119,6 +124,7 @@ void main() {
     final engine = FakePlaybackEngine();
     applyDefaultTracks(
       engine: engine,
+      subtitleLoader: rawSubtitleLoader(engine),
       settings: KivoSettings.defaults(),
       session: _session(),
       subtitleFinder: FakeSubtitleFinder(),
@@ -140,6 +146,7 @@ void main() {
 
     applyDefaultTracks(
       engine: engine,
+      subtitleLoader: rawSubtitleLoader(engine),
       settings: KivoSettings.defaults(),
       session: _session(),
       subtitleFinder: FakeSubtitleFinder(),
@@ -150,6 +157,7 @@ void main() {
 
     applyDefaultTracks(
       engine: engine,
+      subtitleLoader: rawSubtitleLoader(engine),
       settings: KivoSettings.defaults(),
       session: const VideoSession(
           playbackPath: '/v/ep2.mkv',
@@ -169,6 +177,7 @@ void main() {
     final engine = FakePlaybackEngine();
     applyDefaultTracks(
       engine: engine,
+      subtitleLoader: rawSubtitleLoader(engine),
       settings: KivoSettings.defaults(),
       session: _session(),
       subtitleFinder: FakeSubtitleFinder(),
@@ -189,6 +198,7 @@ void main() {
     final engine = FakePlaybackEngine();
     applyDefaultTracks(
       engine: engine,
+      subtitleLoader: rawSubtitleLoader(engine),
       settings: KivoSettings.defaults(),
       session: _session(),
       subtitleFinder: FakeSubtitleFinder(),
@@ -211,6 +221,7 @@ void main() {
     );
     applyDefaultTracks(
       engine: engine,
+      subtitleLoader: rawSubtitleLoader(engine),
       settings: settings,
       session: _session(),
       subtitleFinder: FakeSubtitleFinder(),
@@ -235,6 +246,7 @@ void main() {
     );
     applyDefaultTracks(
       engine: engine,
+      subtitleLoader: rawSubtitleLoader(engine),
       settings: onSettings,
       session: _session(),
       subtitleFinder: FakeSubtitleFinder(),
@@ -245,6 +257,7 @@ void main() {
 
     applyDefaultTracks(
       engine: engine,
+      subtitleLoader: rawSubtitleLoader(engine),
       settings: KivoSettings.defaults(), // equalizer off
       session: const VideoSession(
           playbackPath: '/v/ep2.mkv',
