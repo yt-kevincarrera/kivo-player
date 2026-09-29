@@ -109,11 +109,11 @@ class BackupSection extends ConsumerWidget {
         content: Text(_describeRestore(dialogContext, summarizeRestorePlan(plan))),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
             child: Text(l10n.commonCancel),
           ),
           TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
             child: Text(l10n.settingsBackupRestoreConfirmAction),
           ),
         ],
@@ -130,12 +130,12 @@ class BackupSection extends ConsumerWidget {
     final l10n = context.l10n;
     await showDialog<void>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text(l10n.settingsBackupReadFailedDialogTitle),
         content: Text(message),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: Text(l10n.commonClose),
           ),
         ],

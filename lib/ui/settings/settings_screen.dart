@@ -92,12 +92,14 @@ class _ResetTile extends StatelessWidget {
       onTap: () async {
         final ok = await showDialog<bool>(
           context: context,
-          builder: (_) => AlertDialog(
+          // Pop with the dialog's own context: showDialog pushes on the root
+          // Navigator, but this tile sits in HomeShell's nested tab one.
+          builder: (dialogContext) => AlertDialog(
             title: Text(l10n.settingsResetAllTitle),
             content: Text(l10n.settingsResetAllBody),
             actions: [
-              TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.commonCancel)),
-              TextButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.settingsResetAction)),
+              TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(l10n.commonCancel)),
+              TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(l10n.settingsResetAction)),
             ],
           ),
         );

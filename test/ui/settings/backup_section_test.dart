@@ -78,7 +78,9 @@ class _Env {
   const _Env(this.container, this.playlists);
 }
 
-Future<_Env> _pump(WidgetTester t, {required String backupJson}) async {
+/// [nested] mounts the section the way the app does: pushed on HomeShell's
+/// nested tab Navigator, while dialogs go on the root one.
+Future<_Env> _pump(WidgetTester t, {required String backupJson, bool nested = false}) async {
   FilePicker.platform = _FakeFilePicker()..nextPickedJson = backupJson;
 
   final settingsService = await SettingsService.load(InMemorySettingsStore());
@@ -94,8 +96,20 @@ Future<_Env> _pump(WidgetTester t, {required String backupJson}) async {
     appInstallerProvider.overrideWithValue(FakeAppInstaller(version: '1.14.2')),
   ]);
   addTearDown(container.dispose);
-  await pumpLocalized(t, const BackupSection(), container: container, theme: KivoTheme.dark());
-  await t.pump();
+  await pumpLocalized(
+    t,
+    nested
+        ? Navigator(
+            onGenerateInitialRoutes: (_, _) => [
+              MaterialPageRoute(builder: (_) => const Scaffold(body: Text('tab-root'))),
+              MaterialPageRoute(builder: (_) => const BackupSection()),
+            ],
+          )
+        : const BackupSection(),
+    container: container,
+    theme: KivoTheme.dark(),
+  );
+  await t.pumpAndSettle();
   return _Env(container, playlists);
 }
 
@@ -164,5 +178,31 @@ void main() {
     // own hardcoded-Spanish toString() (that stays as the raw/log text —
     // see lib/ui/settings/sections/backup_section.dart's catch clause).
     expect(find.text(_l10n.settingsBackupTooNewMessage), findsOneWidget);
+  });
+
+  // Regression: popping with the section's context popped the section off
+  // the nested tab Navigator and left the root-level dialog on a black screen.
+  testWidgets('inside a nested Navigator, Cancelar closes only the confirm dialog', (t) async {
+    await _pump(t, backupJson: _twoNewPlaylistsBackup(), nested: true);
+
+    await t.tap(find.text(_l10n.settingsBackupRestoreTitle));
+    await t.pumpAndSettle();
+    await t.tap(find.text(_l10n.commonCancel));
+    await t.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.byType(BackupSection), findsOneWidget);
+  });
+
+  testWidgets('inside a nested Navigator, Cerrar closes only the error dialog', (t) async {
+    await _pump(t, backupJson: jsonEncode({'kivo': kBackupFormatVersion + 1}), nested: true);
+
+    await t.tap(find.text(_l10n.settingsBackupRestoreTitle));
+    await t.pumpAndSettle();
+    await t.tap(find.text(_l10n.commonClose));
+    await t.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.byType(BackupSection), findsOneWidget);
   });
 }
