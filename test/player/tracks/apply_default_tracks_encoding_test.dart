@@ -44,6 +44,7 @@ void main() {
     applyDefaultTracks(
       engine: engine,
       subtitleLoader: loader,
+      applyAudio: () async {},
       settings: KivoSettings.defaults(),
       session: _session(),
       subtitleFinder: FakeSubtitleFinder(),
@@ -75,6 +76,7 @@ void main() {
     applyDefaultTracks(
       engine: engine,
       subtitleLoader: loader,
+      applyAudio: () async {},
       settings: KivoSettings.defaults(),
       session: _session(),
       subtitleFinder: FakeSubtitleFinder(),

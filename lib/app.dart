@@ -5,6 +5,7 @@ import 'core/settings/settings_provider.dart';
 import 'core/theme/kivo_theme.dart';
 import 'core/update/update_providers.dart';
 import 'l10n/generated/app_localizations.dart';
+import 'player/audio/audio_pipeline_controller.dart';
 import 'player/autoplay/autoplay_coordinator.dart';
 import 'player/background/background_playback.dart';
 import 'ui/home/home_shell.dart';
@@ -20,7 +21,13 @@ class _KivoAppState extends ConsumerState<KivoApp> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeAutoCheck());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Before any video opens: Modo noche's Dolby compression is read by the
+      // audio decoder at init only, so it has to be in mpv already when the
+      // first file's decoder starts.
+      ref.read(audioPipelineProvider).apply();
+      _maybeAutoCheck();
+    });
   }
 
   Future<void> _maybeAutoCheck() async {

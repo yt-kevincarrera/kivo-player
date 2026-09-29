@@ -111,22 +111,13 @@ void main() {
       );
     });
 
-    test('preamp-only (flat gains, nonzero preamp) appends a volume stage', () {
+    // The bundled FFmpeg has no `volume` filter: a volume stage made mpv
+    // reject the whole graph. The preamp is a gain applied elsewhere now.
+    test('the preamp never puts anything in the filter graph', () {
       final s = EqualizerSettings.flat(enabled: true).copyWith(preampDb: 2.5);
-      expect(
-        mpvAudioFilter(s),
-        'lavfi=[equalizer=f=31:t=q:w=1:g=0.0,'
-        'equalizer=f=62:t=q:w=1:g=0.0,'
-        'equalizer=f=125:t=q:w=1:g=0.0,'
-        'equalizer=f=250:t=q:w=1:g=0.0,'
-        'equalizer=f=500:t=q:w=1:g=0.0,'
-        'equalizer=f=1000:t=q:w=1:g=0.0,'
-        'equalizer=f=2000:t=q:w=1:g=0.0,'
-        'equalizer=f=4000:t=q:w=1:g=0.0,'
-        'equalizer=f=8000:t=q:w=1:g=0.0,'
-        'equalizer=f=16000:t=q:w=1:g=0.0,'
-        'volume=2.5dB]',
-      );
+      expect(mpvAudioFilter(s), '');
+      final shaped = s.withBand(0, 3.0);
+      expect(mpvAudioFilter(shaped), isNot(contains('volume')));
     });
 
     test('a negative gain formats with its sign', () {

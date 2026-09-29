@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kivo_player/core/settings/kivo_settings.dart';
-import 'package:kivo_player/player/audio/equalizer.dart';
 import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/tracks/apply_default_tracks.dart';
 import 'package:kivo_player/player/tracks/track_prefs_store.dart';
@@ -31,6 +30,7 @@ void main() {
     applyDefaultTracks(
       engine: engine,
       subtitleLoader: rawSubtitleLoader(engine),
+      applyAudio: () async {},
       settings: KivoSettings.defaults(),
       session: _session(),
       subtitleFinder: FakeSubtitleFinder(),
@@ -51,6 +51,7 @@ void main() {
     applyDefaultTracks(
       engine: engine,
       subtitleLoader: rawSubtitleLoader(engine),
+      applyAudio: () async {},
       settings: KivoSettings.defaults(),
       session: _session(),
       subtitleFinder: FakeSubtitleFinder(),
@@ -69,6 +70,7 @@ void main() {
     applyDefaultTracks(
       engine: engine,
       subtitleLoader: rawSubtitleLoader(engine),
+      applyAudio: () async {},
       settings: KivoSettings.defaults(),
       session: _session(),
       subtitleFinder: FakeSubtitleFinder(),
@@ -94,6 +96,7 @@ void main() {
     applyDefaultTracks(
       engine: engine,
       subtitleLoader: rawSubtitleLoader(engine),
+      applyAudio: () async {},
       settings: KivoSettings.defaults(),
       session: _session(),
       subtitleFinder: FakeSubtitleFinder(),
@@ -105,6 +108,7 @@ void main() {
     applyDefaultTracks(
       engine: engine,
       subtitleLoader: rawSubtitleLoader(engine),
+      applyAudio: () async {},
       settings: KivoSettings.defaults(),
       session: const VideoSession(
           playbackPath: '/v/ep2.mkv',
@@ -125,6 +129,7 @@ void main() {
     applyDefaultTracks(
       engine: engine,
       subtitleLoader: rawSubtitleLoader(engine),
+      applyAudio: () async {},
       settings: KivoSettings.defaults(),
       session: _session(),
       subtitleFinder: FakeSubtitleFinder(),
@@ -147,6 +152,7 @@ void main() {
     applyDefaultTracks(
       engine: engine,
       subtitleLoader: rawSubtitleLoader(engine),
+      applyAudio: () async {},
       settings: KivoSettings.defaults(),
       session: _session(),
       subtitleFinder: FakeSubtitleFinder(),
@@ -158,6 +164,7 @@ void main() {
     applyDefaultTracks(
       engine: engine,
       subtitleLoader: rawSubtitleLoader(engine),
+      applyAudio: () async {},
       settings: KivoSettings.defaults(),
       session: const VideoSession(
           playbackPath: '/v/ep2.mkv',
@@ -178,6 +185,7 @@ void main() {
     applyDefaultTracks(
       engine: engine,
       subtitleLoader: rawSubtitleLoader(engine),
+      applyAudio: () async {},
       settings: KivoSettings.defaults(),
       session: _session(),
       subtitleFinder: FakeSubtitleFinder(),
@@ -190,15 +198,16 @@ void main() {
     expect(engine.audioDelays, [0.0]);
   });
 
-  // `af` is the same kind of global mpv option as sub-delay/audio-delay on
-  // the process-lifetime Player: this call has to be unconditional, or a
-  // video whose own equalizer is off keeps playing through the previous
-  // video's (possibly enabled) filter graph.
-  test('a disabled/flat equalizer still sends the empty filter on open', () async {
+  // The audio chain is AudioPipelineController's (it knows what mpv holds);
+  // every open must still hand it over, or a new video's track would keep
+  // the previous video's downmix/equalizer decisions.
+  test('every open hands the audio chain to the pipeline', () async {
     final engine = FakePlaybackEngine();
+    var calls = 0;
     applyDefaultTracks(
       engine: engine,
       subtitleLoader: rawSubtitleLoader(engine),
+      applyAudio: () async => calls++,
       settings: KivoSettings.defaults(),
       session: _session(),
       subtitleFinder: FakeSubtitleFinder(),
@@ -207,70 +216,9 @@ void main() {
     await _drainTrackStreams(engine);
     await Future<void>.delayed(const Duration(milliseconds: 50));
 
-    expect(engine.audioFilters, ['']);
-  });
-
-  test('an enabled equalizer sends its filter graph on open', () async {
-    final engine = FakePlaybackEngine();
-    final settings = KivoSettings.defaults().copyWith(
-      equalizer: EqualizerSettings(
-        enabled: true,
-        preampDb: 0,
-        gainsDb: equalizerPresetCurves['Graves']!,
-      ),
-    );
-    applyDefaultTracks(
-      engine: engine,
-      subtitleLoader: rawSubtitleLoader(engine),
-      settings: settings,
-      session: _session(),
-      subtitleFinder: FakeSubtitleFinder(),
-      subtitlePrefs: InMemoryTrackPrefsStore(),
-    );
-    await _drainTrackStreams(engine);
-    await Future<void>.delayed(const Duration(milliseconds: 50));
-
-    expect(engine.audioFilters, [mpvAudioFilter(settings.equalizer)]);
-    expect(engine.audioFilters.single, isNot(''));
-  });
-
-  test('the previous video\'s equalizer filter does not leak onto a video with none',
-      () async {
-    final engine = FakePlaybackEngine();
-    final onSettings = KivoSettings.defaults().copyWith(
-      equalizer: EqualizerSettings(
-        enabled: true,
-        preampDb: 0,
-        gainsDb: equalizerPresetCurves['Agudos']!,
-      ),
-    );
-    applyDefaultTracks(
-      engine: engine,
-      subtitleLoader: rawSubtitleLoader(engine),
-      settings: onSettings,
-      session: _session(),
-      subtitleFinder: FakeSubtitleFinder(),
-      subtitlePrefs: InMemoryTrackPrefsStore(),
-    );
-    await _drainTrackStreams(engine);
-    await Future<void>.delayed(const Duration(milliseconds: 50));
-
-    applyDefaultTracks(
-      engine: engine,
-      subtitleLoader: rawSubtitleLoader(engine),
-      settings: KivoSettings.defaults(), // equalizer off
-      session: const VideoSession(
-          playbackPath: '/v/ep2.mkv',
-          displayName: 'ep2.mkv',
-          queue: ['/v/ep2.mkv'],
-          index: 0),
-      subtitleFinder: FakeSubtitleFinder(),
-      subtitlePrefs: InMemoryTrackPrefsStore(),
-    );
-    await _drainTrackStreams(engine);
-    await Future<void>.delayed(const Duration(milliseconds: 50));
-
-    expect(engine.audioFilters, [mpvAudioFilter(onSettings.equalizer), '']);
+    expect(calls, 1);
+    expect(engine.audioFilters, isEmpty,
+        reason: 'applyDefaultTracks no longer writes af itself');
   });
 }
 

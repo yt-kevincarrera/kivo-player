@@ -159,27 +159,31 @@ EqPreset presetFor(EqualizerSettings settings) {
   return EqPreset.custom;
 }
 
-/// Builds the exact `af` mpv property value for [settings].
+/// The lavfi `equalizer` chain for ten band gains, or '' when every band is
+/// 0 dB — mpv then drops the audio filter graph entirely rather than running
+/// ten no-op filters on every frame. The graph shape is constant (all ten
+/// bands, even the ones at 0 dB) so nothing special-cases which are "on".
 ///
-/// Empty when disabled, or when enabled but perfectly flat with no preamp —
-/// mpv drops the audio filter graph entirely rather than running a set of
-/// no-op band filters on every frame. Otherwise a `lavfi` graph chaining all
-/// ten bands (even the ones left at 0 dB — the graph shape stays constant so
-/// nothing has to special-case which bands are "on") plus an extra `volume`
-/// stage when preamp is non-zero.
+/// `equalizer` is the ONLY audio filter the bundled FFmpeg has (it is built
+/// with --disable-filters + overlay/equalizer), so nothing else may ever go
+/// in here: the `volume` stage the preamp used to add made mpv reject the
+/// whole graph, silently switching the equalizer off. Gain now goes through
+/// `replaygain-fallback` — see `audio_pipeline.dart`.
 ///
 /// Fixed-point (`toStringAsFixed(1)`) formatting keeps the string stable
-/// across calls for the same settings, matching [EqualizerSettings]' own
-/// 0.5 dB step.
-String mpvAudioFilter(EqualizerSettings settings) {
-  final isFlat = settings.gainsDb.every((g) => g == 0.0);
-  if (!settings.enabled || (isFlat && settings.preampDb == 0.0)) return '';
-
+/// across calls for the same gains.
+String mpvEqualizerFilter(List<double> gainsDb) {
+  if (gainsDb.every((g) => g == 0.0)) return '';
   final stages = <String>[
     for (var i = 0; i < equalizerBandsHz.length; i++)
-      'equalizer=f=${equalizerBandsHz[i]}:t=q:w=1:g=${settings.gainsDb[i].toStringAsFixed(1)}',
-    if (settings.preampDb != 0.0)
-      'volume=${settings.preampDb.toStringAsFixed(1)}dB',
+      'equalizer=f=${equalizerBandsHz[i]}:t=q:w=1:g=${gainsDb[i].toStringAsFixed(1)}',
   ];
   return 'lavfi=[${stages.join(',')}]';
 }
+
+/// The equalizer's own bands as an `af` value: its gains when enabled,
+/// nothing when disabled. Never the preamp — that is a gain, not a filter.
+String mpvAudioFilter(EqualizerSettings settings) => mpvEqualizerFilter(
+    settings.enabled
+        ? settings.gainsDb
+        : List<double>.filled(equalizerBandsHz.length, 0.0));
