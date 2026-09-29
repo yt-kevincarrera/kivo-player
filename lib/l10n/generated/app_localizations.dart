@@ -3055,6 +3055,264 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Capítulo {n}'**
   String chapterFallback(int n);
+
+  /// Mensaje amigable del registro KV-504 (KivoOp.decoderFallback): Kivo pasó un video a decodificación por software porque con hardware no llegaba ningún fotograma o no abría.
+  ///
+  /// In es, this message translates to:
+  /// **'El video no se mostraba con el decodificador por hardware'**
+  String get errorDecoderFallback;
+
+  /// Título de la fila del decodificador en el menú ⋮ del reproductor (grupo Reproducción).
+  ///
+  /// In es, this message translates to:
+  /// **'Decodificador'**
+  String get playerMenuDecoder;
+
+  /// Opción corta del selector de decodificador del menú ⋮: automático (hardware con cambio automático a software).
+  ///
+  /// In es, this message translates to:
+  /// **'Auto'**
+  String get playerMenuDecoderAuto;
+
+  /// Opción corta del selector de decodificador del menú ⋮: hardware.
+  ///
+  /// In es, this message translates to:
+  /// **'HW'**
+  String get playerMenuDecoderHw;
+
+  /// Opción corta del selector de decodificador del menú ⋮: software.
+  ///
+  /// In es, this message translates to:
+  /// **'SW'**
+  String get playerMenuDecoderSw;
+
+  /// Subtítulo de la fila del decodificador: lo que mpv está usando de verdad ahora mismo es hardware.
+  ///
+  /// In es, this message translates to:
+  /// **'Activo: hardware'**
+  String get playerMenuDecoderActiveHardware;
+
+  /// Subtítulo de la fila del decodificador: lo que mpv está usando de verdad ahora mismo es software.
+  ///
+  /// In es, this message translates to:
+  /// **'Activo: software'**
+  String get playerMenuDecoderActiveSoftware;
+
+  /// Subtítulo de la fila del decodificador mientras mpv todavía no ha elegido decodificador (video cargando).
+  ///
+  /// In es, this message translates to:
+  /// **'Activo: —'**
+  String get playerMenuDecoderActivePending;
+
+  /// Subtítulo de la fila del decodificador cuando este video tiene su propio decodificador guardado; {status} es el texto «Activo: …».
+  ///
+  /// In es, this message translates to:
+  /// **'{status} · solo este video'**
+  String playerMenuDecoderThisVideoOnly(String status);
+
+  /// Aviso breve cuando Kivo pasa un video a software porque con hardware no se mostraba. Lleva la acción Deshacer.
+  ///
+  /// In es, this message translates to:
+  /// **'Cambiado a decodificación por software'**
+  String get playerDecoderFallbackSnack;
+
+  /// Encabezado del grupo de decodificador en Ajustes › Reproducción avanzada.
+  ///
+  /// In es, this message translates to:
+  /// **'Decodificación'**
+  String get settingsAdvancedGroupDecoder;
+
+  /// Fila para elegir el decodificador que usan los videos sin uno propio.
+  ///
+  /// In es, this message translates to:
+  /// **'Decodificador por defecto'**
+  String get settingsDecoderMode;
+
+  /// Subtítulo de «Decodificador por defecto».
+  ///
+  /// In es, this message translates to:
+  /// **'Cada video puede tener el suyo desde el menú ⋮ del reproductor'**
+  String get settingsDecoderModeSubtitle;
+
+  /// Opción del decodificador por defecto: hardware, pasando a software si el video no se muestra.
+  ///
+  /// In es, this message translates to:
+  /// **'Automático'**
+  String get settingsDecoderAuto;
+
+  /// Opción del decodificador por defecto: siempre hardware, sin cambio automático.
+  ///
+  /// In es, this message translates to:
+  /// **'Hardware'**
+  String get settingsDecoderHardware;
+
+  /// Opción del decodificador por defecto: siempre software (más compatible, gasta más batería).
+  ///
+  /// In es, this message translates to:
+  /// **'Software'**
+  String get settingsDecoderSoftware;
+
+  /// Interruptor: en modo Automático, pasar un video a software si con hardware no aparece la imagen.
+  ///
+  /// In es, this message translates to:
+  /// **'Cambio automático a software'**
+  String get settingsDecoderAutoFallback;
+
+  /// Subtítulo del interruptor de cambio automático.
+  ///
+  /// In es, this message translates to:
+  /// **'Si con hardware el video no se muestra o no abre'**
+  String get settingsDecoderAutoFallbackSubtitle;
+
+  /// Paso a paso: segundos reproduciendo sin imagen antes de pasar a software.
+  ///
+  /// In es, this message translates to:
+  /// **'Espera antes de cambiar'**
+  String get settingsDecoderStallSeconds;
+
+  /// Acción que borra el decodificador propio de todos los videos.
+  ///
+  /// In es, this message translates to:
+  /// **'Olvidar decodificadores guardados'**
+  String get settingsDecoderForget;
+
+  /// Subtítulo de «Olvidar decodificadores guardados».
+  ///
+  /// In es, this message translates to:
+  /// **'Todos los videos vuelven al decodificador por defecto'**
+  String get settingsDecoderForgetSubtitle;
+
+  /// Confirmación tras «Olvidar decodificadores guardados».
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =0{No había ninguno guardado} =1{Se olvidó el decodificador de 1 video} other{Se olvidó el decodificador de {count} videos}}'**
+  String settingsDecoderForgotSnackbar(int count);
+
+  /// Tarjeta de la pestaña Pistas, visible con un subtítulo externo activo: abre el selector de codificación.
+  ///
+  /// In es, this message translates to:
+  /// **'Codificación'**
+  String get playerTracksEncodingLabel;
+
+  /// Codificación automática del subtítulo (detectada al cargarlo).
+  ///
+  /// In es, this message translates to:
+  /// **'Automático'**
+  String get playerTracksEncodingAuto;
+
+  /// Codificación automática con lo que se detectó; {name} es el nombre legible (p. ej. «Cirílico»).
+  ///
+  /// In es, this message translates to:
+  /// **'Automático (detectado: {name})'**
+  String playerTracksEncodingAutoDetected(String name);
+
+  /// Texto pequeño bajo «Automático» en el selector de codificación.
+  ///
+  /// In es, this message translates to:
+  /// **'Detecta la codificación del archivo'**
+  String get playerTracksEncodingAutoHint;
+
+  /// Título de la hoja para elegir la codificación del subtítulo externo.
+  ///
+  /// In es, this message translates to:
+  /// **'Codificación del subtítulo'**
+  String get playerTracksEncodingSheetTitle;
+
+  /// Despliega todas las codificaciones que soporta el sistema, además de la lista corta.
+  ///
+  /// In es, this message translates to:
+  /// **'Más…'**
+  String get playerTracksEncodingMore;
+
+  /// Nombre legible de la codificación UTF-8.
+  ///
+  /// In es, this message translates to:
+  /// **'Unicode'**
+  String get encodingUnicode;
+
+  /// Nombre legible de windows-1252 / ISO-8859-1.
+  ///
+  /// In es, this message translates to:
+  /// **'Europa occidental'**
+  String get encodingWestern;
+
+  /// Nombre legible de windows-1250 / ISO-8859-2.
+  ///
+  /// In es, this message translates to:
+  /// **'Europa central'**
+  String get encodingCentral;
+
+  /// Nombre legible de windows-1251 / ISO-8859-5 / KOI8-R.
+  ///
+  /// In es, this message translates to:
+  /// **'Cirílico'**
+  String get encodingCyrillic;
+
+  /// Nombre legible de windows-1253 / ISO-8859-7.
+  ///
+  /// In es, this message translates to:
+  /// **'Griego'**
+  String get encodingGreek;
+
+  /// Nombre legible de windows-1254 / ISO-8859-9.
+  ///
+  /// In es, this message translates to:
+  /// **'Turco'**
+  String get encodingTurkish;
+
+  /// Nombre legible de windows-1255 / ISO-8859-8.
+  ///
+  /// In es, this message translates to:
+  /// **'Hebreo'**
+  String get encodingHebrew;
+
+  /// Nombre legible de windows-1256 / ISO-8859-6.
+  ///
+  /// In es, this message translates to:
+  /// **'Árabe'**
+  String get encodingArabic;
+
+  /// Nombre legible de windows-1257.
+  ///
+  /// In es, this message translates to:
+  /// **'Báltico'**
+  String get encodingBaltic;
+
+  /// Nombre legible de windows-1258.
+  ///
+  /// In es, this message translates to:
+  /// **'Vietnamita'**
+  String get encodingVietnamese;
+
+  /// Nombre legible de TIS-620.
+  ///
+  /// In es, this message translates to:
+  /// **'Tailandés'**
+  String get encodingThai;
+
+  /// Nombre legible de GBK / GB18030 / GB2312.
+  ///
+  /// In es, this message translates to:
+  /// **'Chino simplificado'**
+  String get encodingChineseSimplified;
+
+  /// Nombre legible de Big5.
+  ///
+  /// In es, this message translates to:
+  /// **'Chino tradicional'**
+  String get encodingChineseTraditional;
+
+  /// Nombre legible de Shift_JIS / EUC-JP.
+  ///
+  /// In es, this message translates to:
+  /// **'Japonés'**
+  String get encodingJapanese;
+
+  /// Nombre legible de EUC-KR.
+  ///
+  /// In es, this message translates to:
+  /// **'Coreano'**
+  String get encodingKorean;
 }
 
 class _AppLocalizationsDelegate

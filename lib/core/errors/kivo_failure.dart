@@ -15,6 +15,10 @@ enum KivoOp {
   openVideo,
   frameCapture,
   subtitleLoad,
+
+  /// Not a failure the user has to act on: Kivo recovered by switching a
+  /// video to software decoding. Logged so a bug report shows it happened.
+  decoderFallback,
   updateCheck,
   updateInstall,
 
@@ -48,6 +52,10 @@ const kivoErrorCatalog = <KivoOp, ({String code, String message})>{
       (code: 'KV-502', message: 'No pudimos cargar el subtítulo'),
   KivoOp.frameCapture:
       (code: 'KV-503', message: 'No pudimos guardar la captura'),
+  KivoOp.decoderFallback: (
+    code: 'KV-504',
+    message: 'El video no se mostraba con el decodificador por hardware',
+  ),
   KivoOp.updateCheck:
       (code: 'KV-601', message: 'No pudimos comprobar si hay actualizaciones'),
   KivoOp.updateInstall:

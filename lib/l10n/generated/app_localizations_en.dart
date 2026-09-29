@@ -1800,4 +1800,150 @@ class AppLocalizationsEn extends AppLocalizations {
   String chapterFallback(int n) {
     return 'Chapter $n';
   }
+
+  @override
+  String get errorDecoderFallback =>
+      'The video wasn\'t showing with the hardware decoder';
+
+  @override
+  String get playerMenuDecoder => 'Decoder';
+
+  @override
+  String get playerMenuDecoderAuto => 'Auto';
+
+  @override
+  String get playerMenuDecoderHw => 'HW';
+
+  @override
+  String get playerMenuDecoderSw => 'SW';
+
+  @override
+  String get playerMenuDecoderActiveHardware => 'Active: hardware';
+
+  @override
+  String get playerMenuDecoderActiveSoftware => 'Active: software';
+
+  @override
+  String get playerMenuDecoderActivePending => 'Active: —';
+
+  @override
+  String playerMenuDecoderThisVideoOnly(String status) {
+    return '$status · this video only';
+  }
+
+  @override
+  String get playerDecoderFallbackSnack => 'Switched to software decoding';
+
+  @override
+  String get settingsAdvancedGroupDecoder => 'Decoding';
+
+  @override
+  String get settingsDecoderMode => 'Default decoder';
+
+  @override
+  String get settingsDecoderModeSubtitle =>
+      'Each video can have its own from the player\'s ⋮ menu';
+
+  @override
+  String get settingsDecoderAuto => 'Automatic';
+
+  @override
+  String get settingsDecoderHardware => 'Hardware';
+
+  @override
+  String get settingsDecoderSoftware => 'Software';
+
+  @override
+  String get settingsDecoderAutoFallback => 'Automatic switch to software';
+
+  @override
+  String get settingsDecoderAutoFallbackSubtitle =>
+      'When the video doesn\'t show or open with hardware';
+
+  @override
+  String get settingsDecoderStallSeconds => 'Wait before switching';
+
+  @override
+  String get settingsDecoderForget => 'Forget saved decoders';
+
+  @override
+  String get settingsDecoderForgetSubtitle =>
+      'Every video goes back to the default decoder';
+
+  @override
+  String settingsDecoderForgotSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Forgot the decoder of $count videos',
+      one: 'Forgot the decoder of 1 video',
+      zero: 'There were none saved',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get playerTracksEncodingLabel => 'Encoding';
+
+  @override
+  String get playerTracksEncodingAuto => 'Automatic';
+
+  @override
+  String playerTracksEncodingAutoDetected(String name) {
+    return 'Automatic (detected: $name)';
+  }
+
+  @override
+  String get playerTracksEncodingAutoHint => 'Detects the file\'s encoding';
+
+  @override
+  String get playerTracksEncodingSheetTitle => 'Subtitle encoding';
+
+  @override
+  String get playerTracksEncodingMore => 'More…';
+
+  @override
+  String get encodingUnicode => 'Unicode';
+
+  @override
+  String get encodingWestern => 'Western European';
+
+  @override
+  String get encodingCentral => 'Central European';
+
+  @override
+  String get encodingCyrillic => 'Cyrillic';
+
+  @override
+  String get encodingGreek => 'Greek';
+
+  @override
+  String get encodingTurkish => 'Turkish';
+
+  @override
+  String get encodingHebrew => 'Hebrew';
+
+  @override
+  String get encodingArabic => 'Arabic';
+
+  @override
+  String get encodingBaltic => 'Baltic';
+
+  @override
+  String get encodingVietnamese => 'Vietnamese';
+
+  @override
+  String get encodingThai => 'Thai';
+
+  @override
+  String get encodingChineseSimplified => 'Simplified Chinese';
+
+  @override
+  String get encodingChineseTraditional => 'Traditional Chinese';
+
+  @override
+  String get encodingJapanese => 'Japanese';
+
+  @override
+  String get encodingKorean => 'Korean';
 }

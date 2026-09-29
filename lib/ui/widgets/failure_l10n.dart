@@ -20,6 +20,7 @@ String failureMessage(AppLocalizations l10n, KivoOp op) => switch (op) {
       KivoOp.vaultPurge => l10n.errorVaultPurge,
       KivoOp.openVideo => l10n.errorOpenVideo,
       KivoOp.subtitleLoad => l10n.errorSubtitleLoad,
+      KivoOp.decoderFallback => l10n.errorDecoderFallback,
       KivoOp.frameCapture => l10n.errorFrameCapture,
       KivoOp.updateCheck => l10n.errorUpdateCheck,
       KivoOp.updateInstall => l10n.errorUpdateInstall,

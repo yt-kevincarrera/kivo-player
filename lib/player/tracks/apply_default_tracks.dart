@@ -3,6 +3,7 @@ import '../../platform/interfaces/subtitle_finder.dart';
 import '../audio/equalizer.dart';
 import '../engine/playback_engine.dart';
 import '../open/video_source.dart';
+import 'subtitle_loader.dart';
 import 'track_prefs_store.dart';
 import 'track_selection.dart';
 
@@ -19,7 +20,10 @@ void applyDefaultTracks({
   required VideoSession session,
   required SubtitleFinder subtitleFinder,
   required TrackPrefsStore subtitlePrefs,
+  required SubtitleLoader subtitleLoader,
 }) {
+  // A new video: whatever external subtitle the last one had is gone.
+  subtitleLoader.clear();
   () async {
     final audioTracks = await engine.audioTracksStream.first.timeout(
       const Duration(seconds: 2), onTimeout: () => const <MediaTrack>[]);
@@ -42,7 +46,8 @@ void applyDefaultTracks({
         final externals = await subtitleFinder.findNear(session.folder!);
         for (final ext in externals) {
           if (languageFromFilename(ext.displayName) == settings.preferredSubtitleLanguage) {
-            await engine.setExternalSubtitle(ext.uri, title: ext.displayName);
+            await subtitleLoader.load(ext.uri,
+                title: ext.displayName, resumeKey: session.resumeKey);
             break;
           }
         }
@@ -61,7 +66,9 @@ void applyDefaultTracks({
       subtitleDelayMs = prefs?.subtitleDelayMs ?? 0;
       audioDelayMs = prefs?.audioDelayMs ?? 0;
       final path = prefs?.subtitlePath;
-      if (path != null) await engine.setExternalSubtitle(path);
+      if (path != null) {
+        await subtitleLoader.load(path, resumeKey: session.resumeKey);
+      }
     } catch (_) {
       // A corrupted record, or a copy that is gone (storage cleared). Degrade
       // to the embedded tracks already applied rather than failing the open —

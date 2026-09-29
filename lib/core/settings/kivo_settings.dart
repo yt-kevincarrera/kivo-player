@@ -68,6 +68,13 @@ class KivoSettings {
   /// files are never touched, unlike the vault.
   final List<String> excludedFolders;
   final EqualizerSettings equalizer;
+  /// Default decoder for every video without its own override:
+  /// 'auto' | 'hw' | 'sw'. See `lib/player/decoder/decoder_mode.dart`.
+  final String decoderMode;
+  /// In 'auto', switch a video to software when hardware shows no frame.
+  final bool decoderAutoFallback;
+  /// How long playback may run with no frame before that switch (1–10 s).
+  final int decoderStallSeconds;
 
   const KivoSettings({
     required this.doubleTapSkipLeft,
@@ -131,6 +138,9 @@ class KivoSettings {
     required this.pendingUpdateVersion,
     required this.excludedFolders,
     required this.equalizer,
+    required this.decoderMode,
+    required this.decoderAutoFallback,
+    required this.decoderStallSeconds,
   });
 
   factory KivoSettings.defaults() => const KivoSettings(
@@ -199,6 +209,9 @@ class KivoSettings {
           preampDb: 0,
           gainsDb: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         ),
+        decoderMode: 'auto',
+        decoderAutoFallback: true,
+        decoderStallSeconds: 3,
       );
 
   static const Object _unset = Object();
@@ -265,6 +278,9 @@ class KivoSettings {
     Object? pendingUpdateVersion = _unset,
     List<String>? excludedFolders,
     EqualizerSettings? equalizer,
+    String? decoderMode,
+    bool? decoderAutoFallback,
+    int? decoderStallSeconds,
   }) {
     return KivoSettings(
       doubleTapSkipLeft: doubleTapSkipLeft ?? this.doubleTapSkipLeft,
@@ -337,6 +353,9 @@ class KivoSettings {
           : pendingUpdateVersion as String?,
       excludedFolders: excludedFolders ?? this.excludedFolders,
       equalizer: equalizer ?? this.equalizer,
+      decoderMode: decoderMode ?? this.decoderMode,
+      decoderAutoFallback: decoderAutoFallback ?? this.decoderAutoFallback,
+      decoderStallSeconds: decoderStallSeconds ?? this.decoderStallSeconds,
     );
   }
 
@@ -402,6 +421,9 @@ class KivoSettings {
         'pendingUpdateVersion': pendingUpdateVersion,
         'excludedFolders': excludedFolders,
         'equalizer': equalizer.toMap(),
+        'decoderMode': decoderMode,
+        'decoderAutoFallback': decoderAutoFallback,
+        'decoderStallSeconds': decoderStallSeconds,
       };
 
   factory KivoSettings.fromMap(Map<String, dynamic> m) {
@@ -473,6 +495,10 @@ class KivoSettings {
       excludedFolders: (m['excludedFolders'] as List?)?.cast<String>() ??
           d.excludedFolders,
       equalizer: EqualizerSettings.fromMap(m['equalizer']),
+      decoderMode: m['decoderMode'] ?? d.decoderMode,
+      decoderAutoFallback: m['decoderAutoFallback'] ?? d.decoderAutoFallback,
+      decoderStallSeconds: (m['decoderStallSeconds'] as num?)?.toInt() ??
+          d.decoderStallSeconds,
     );
   }
 }

@@ -15,6 +15,9 @@ import '../../../player/bookmarks/bookmark.dart';
 import '../../../player/bookmarks/bookmarks_provider.dart';
 import '../../../player/capture/frame_capture_controller.dart';
 import '../../../player/chapters/chapters_provider.dart';
+import '../../../player/decoder/decoder_controller.dart';
+import '../../../player/decoder/decoder_mode.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../player/loop/ab_loop.dart';
 import '../../../player/open/video_source.dart';
 import '../../../player/queue/queue_order.dart';
@@ -44,7 +47,20 @@ import '../tracks/track_sync_hud.dart';
 /// the right, 12 px apart. Same widgets either way, just placed differently
 /// (see `tilesRow`/`reproduccionGroup`/`iraGroup`/`audioGroup` below), so
 /// there is exactly one place that builds each group's content.
+/// "Activo: …" from what mpv reports, never from what was asked for — the two
+/// differ exactly when mpv fell back on its own, which is when it matters.
+String _decoderSubtitle(AppLocalizations l10n, DecoderStatus s) {
+  final status = s.active == null
+      ? l10n.playerMenuDecoderActivePending
+      : isHardwareActive(s.active)
+          ? l10n.playerMenuDecoderActiveHardware
+          : l10n.playerMenuDecoderActiveSoftware;
+  return s.overridden ? l10n.playerMenuDecoderThisVideoOnly(status) : status;
+}
+
 Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
+  // Re-read what mpv is decoding with now; the row fills in when it lands.
+  ref.read(decoderControllerProvider).refreshStatus();
   return showModalBottomSheet(
     context: context,
     backgroundColor: KivoColors.panel,
@@ -87,6 +103,7 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                   };
                   final settings = sheetRef.watch(settingsProvider);
                   final accent = Color(settings.accentColor);
+                  final decoder = sheetRef.watch(decoderStatusProvider);
                   final eq = sheetRef.watch(equalizerProvider);
                   final repeatMode = repeatModeFor(settings.repeatMode);
                   final repeatIcon = repeatMode == RepeatMode.video
@@ -257,6 +274,29 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                               }
                             },
                           ),
+                          if (decoder != null)
+                            _MenuRow(
+                              icon: Icons.memory_rounded,
+                              // Lit only when this video has its own decoder:
+                              // "differs from your default" is the thing
+                              // worth noticing at a glance.
+                              iconColor:
+                                  decoder.overridden ? accent : Colors.white70,
+                              title: l10n.playerMenuDecoder,
+                              subtitle: _decoderSubtitle(l10n, decoder),
+                              trailing: _SegmentedPill<DecoderMode>(
+                                options: [
+                                  (DecoderMode.auto, l10n.playerMenuDecoderAuto),
+                                  (DecoderMode.hardware, l10n.playerMenuDecoderHw),
+                                  (DecoderMode.software, l10n.playerMenuDecoderSw),
+                                ],
+                                selected: decoder.mode,
+                                accent: accent,
+                                onChanged: (next) => ref
+                                    .read(decoderControllerProvider)
+                                    .choose(next),
+                              ),
+                            ),
                         ],
                       ),
                     ],
