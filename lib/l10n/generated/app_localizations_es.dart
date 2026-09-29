@@ -2019,4 +2019,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get playerTracksSectionEnhance => 'Mejorar el sonido';
+
+  @override
+  String get playerTracksEnhancePending => 'Activado · leyendo la pista';
 }

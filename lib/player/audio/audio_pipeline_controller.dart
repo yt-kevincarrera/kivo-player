@@ -78,6 +78,11 @@ class AudioPipelineController {
     }
     final source =
         raw == null ? null : AudioSource(codec: raw.codec, channels: raw.channels);
+    // An event with no track is the gap between two videos (the list empties
+    // on unload), not a new track: acting on it would flip to the stereo
+    // assumption and back, rebuilding the filter graph twice at every start.
+    // Only an open resets the source.
+    if (source == null && !always) return;
     if (source == _source && !always) return;
     _source = source;
     _ref.read(currentAudioSourceProvider.notifier).state = source;
@@ -98,8 +103,10 @@ class AudioPipelineController {
     if (prev == next) return;
     final engine = _ref.read(playbackEngineProvider);
 
-    // Each field is committed to the cache only once mpv took it, so a
-    // failed write is retried on the next apply instead of being believed.
+    // Each field is committed to the cache only once the engine call
+    // returned, so a call that throws is retried on the next apply. (mpv's own
+    // rejections do not surface: media_kit ignores setProperty's return code,
+    // which is why only values known to be valid for this build are sent.)
     var done = prev ??
         const AudioPipeline(
             // Impossible values: the first apply writes every field.
@@ -125,12 +132,18 @@ class AudioPipelineController {
         done = _with(done,
             forceStereo: next.forceStereo, swresample: next.swresample);
       }
-      if (done.drc != next.drc) {
-        await engine.setDolbyDrc(next.drc);
-        done = _with(done, drc: next.drc);
-        // The decoder reads this at init only. A Dolby track already playing
-        // must be re-created to hear the change; anything else is unaffected.
-        if (prev != null && (_source?.isDolby ?? false)) {
+      if (done.drc != next.drc ||
+          done.heavyCompression != next.heavyCompression) {
+        await engine.setDolbyDrc(next.drc,
+            heavyCompression: next.heavyCompression);
+        done = _with(done,
+            drc: next.drc, heavyCompression: next.heavyCompression);
+        // The decoder reads these at init only. A Dolby track already playing
+        // must be re-created to hear the change. An unknown track is reloaded
+        // too: it may well be Dolby, and the sheet would otherwise claim
+        // compression the running decoder does not have. (Reloading a non-
+        // Dolby track is a harmless sub-second gap.)
+        if (prev != null && (_source?.isDolby ?? true)) {
           await engine.reloadAudioDecoder();
         }
       }
@@ -146,13 +159,15 @@ class AudioPipelineController {
           double? gainDb,
           bool? forceStereo,
           String? swresample,
-          double? drc}) =>
+          double? drc,
+          bool? heavyCompression}) =>
       AudioPipeline(
         af: af ?? p.af,
         gainDb: gainDb ?? p.gainDb,
         forceStereo: forceStereo ?? p.forceStereo,
         swresample: swresample ?? p.swresample,
         drc: drc ?? p.drc,
+        heavyCompression: heavyCompression ?? p.heavyCompression,
       );
 
   void dispose() {

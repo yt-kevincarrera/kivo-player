@@ -108,6 +108,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(c.read(settingsProvider).nightMode, isTrue);
     expect(c.read(settingsProvider).voiceBoost, isTrue);
+    expect(find.text(_l10n.playerTracksEnhancePending), findsNWidgets(2),
+        reason: 'no track known yet: neither card guesses');
+  });
+
+  testWidgets('a stereo track gets the voice-EQ line', (tester) async {
+    await _open(tester,
+        tweak: (s) => s.copyWith(voiceBoost: true),
+        source: const AudioSource(codec: 'aac', channels: 2));
     expect(find.text(_l10n.playerTracksVoiceBoostStereo), findsOneWidget);
   });
 

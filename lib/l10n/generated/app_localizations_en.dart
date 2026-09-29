@@ -2007,4 +2007,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playerTracksSectionEnhance => 'Enhance the sound';
+
+  @override
+  String get playerTracksEnhancePending => 'On · reading the track';
 }

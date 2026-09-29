@@ -140,7 +140,10 @@ abstract class PlaybackEngine {
   /// Dolby dynamic range compression scale for AC-3/E-AC-3 (mpv
   /// `ad-lavc-ac3drc`, 0 = off). Read by the decoder at init only — see
   /// [reloadAudioDecoder].
-  Future<void> setDolbyDrc(double scale);
+  ///
+  /// [heavyCompression] also asks for the stream's "heavy" compression words
+  /// (FFmpeg `heavy_compr`, via mpv `ad-lavc-o`), same init-only rule.
+  Future<void> setDolbyDrc(double scale, {bool heavyCompression = false});
 
   /// Re-creates the current audio track's decoder (deselect and reselect it),
   /// so a decoder-init option like [setDolbyDrc] takes effect mid-playback.

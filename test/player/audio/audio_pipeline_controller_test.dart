@@ -107,7 +107,7 @@ void main() {
       final h = await _harness();
       await h.playTrack('ac3', 6);
       await h.set((s) => s.copyWith(nightMode: true));
-      expect(h.engine.audioWrites.last, 'drc=2.0');
+      expect(h.engine.audioWrites.last, 'drc=1.0');
       expect(h.engine.audioDecoderReloads, 1);
     });
 
@@ -116,7 +116,7 @@ void main() {
       final h = await _harness();
       await h.playTrack('aac', 2);
       await h.set((s) => s.copyWith(nightMode: true));
-      expect(h.engine.audioWrites.last, 'drc=2.0');
+      expect(h.engine.audioWrites.last, 'drc=1.0');
       expect(h.engine.audioDecoderReloads, 0);
     });
 
@@ -124,7 +124,8 @@ void main() {
       final h = await _harness(tweak: (s) => s.copyWith(nightMode: true));
       await h.playTrack('eac3', 6);
       await h.set((s) => s.copyWith(nightModeLevel: 'strong'));
-      expect(h.engine.audioWrites.last, 'drc=4.0');
+      expect(h.engine.audioWrites.last, 'drc=1.0+heavy');
+      expect(h.engine.audioDecoderReloads, 1);
     });
 
     test('the first write ever never reloads (no decoder saw the old value)',
@@ -146,6 +147,29 @@ void main() {
     await h.ctl.onOpen(); // no track event: the list arrived before the open
     expect(h.c.read(currentAudioSourceProvider)?.codec, 'aac');
     expect(h.engine.audioFilters.last, isNot(''));
+  });
+
+  test('while the track is unknown, a DRC change reloads to be safe', () async {
+    final h = await _harness();
+    await h.ctl.apply(); // first write done, no track known
+    await h.set((s) => s.copyWith(nightMode: true));
+    expect(h.engine.audioDecoderReloads, 1,
+        reason: 'it may be Dolby; the sheet must not claim what is not so');
+  });
+
+  test('the empty track list between two videos is not a new track', () async {
+    final h = await _harness(tweak: (s) => s.copyWith(voiceBoost: true));
+    await h.playTrack('eac3', 6);
+    final filters = h.engine.audioFilters.length;
+    // Unload: the list empties, nothing is playing for a moment.
+    h.engine.audioSourceValue = null;
+    h.engine.emitCurrentAudio(null);
+    for (var i = 0; i < 4; i++) {
+      await Future<void>.delayed(Duration.zero);
+    }
+    expect(h.engine.audioFilters.length, filters,
+        reason: 'no flip to the stereo voice curve and back');
+    expect(h.c.read(currentAudioSourceProvider)?.codec, 'eac3');
   });
 
   test('a write that failed is retried on the next apply', () async {

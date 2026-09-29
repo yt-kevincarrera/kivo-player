@@ -213,7 +213,8 @@ class FakePlaybackEngine implements PlaybackEngine {
   }
 
   @override
-  Future<void> setDolbyDrc(double scale) async => audioWrites.add('drc=$scale');
+  Future<void> setDolbyDrc(double scale, {bool heavyCompression = false}) async =>
+      audioWrites.add(heavyCompression ? 'drc=$scale+heavy' : 'drc=$scale');
 
   @override
   Future<void> reloadAudioDecoder() async => audioDecoderReloads++;

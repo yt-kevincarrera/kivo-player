@@ -34,8 +34,13 @@ recompilar libmpv.
 ## Features
 
 ### Modo noche
-Dolby DRC on AC-3/E-AC-3 tracks: `ad-lavc-ac3drc` = Suave 1.0 (as authored),
-Media 2.0, Fuerte 4.0. Other codecs: no effect — and the UI says so, per track.
+Dolby DRC on AC-3/E-AC-3 tracks: Suave `ad-lavc-ac3drc=0.5`, Media 1.0 (as
+authored), Fuerte 1.0 + `ad-lavc-o=heavy_compr=1` (the stream's own "heavy"
+words; streams without them fall back to the normal DRC data). **Never above
+1.0** — first drafted as 1/2/4, the branch review caught (and FFmpeg 6.0
+`ac3dec.c` confirms) that with `drc_scale > 1` only the *boost* words grow:
+the peaks stay where 1.0 puts them and the quiet parts get louder, the
+opposite of "night". Other codecs: no effect — and the UI says so, per track.
 Toggling while an AC-3/E-AC-3 track plays reinitialises its decoder
 (`aid=no` → `aid=<id>`), a sub-second audio gap.
 
@@ -44,7 +49,10 @@ Toggling while an AC-3/E-AC-3 track plays reinitialises its decoder
   raised and the surrounds lowered: `audio-channels=stereo` +
   `audio-swresample-o=center_mix_level=C,surround_mix_level=0.5`, C = Suave
   1.0, Media 1.41, Fuerte 2.0 (swresample's default is 0.707). LFE stays at
-  swresample's default (dropped), which also tames explosions.
+  swresample's default (dropped), which also tames explosions. mpv does not
+  normalise the matrix (`rematrix_maxval=1000`), so a gain of
+  `-20·log10((1+C+0.5)/(1+0.707+0.707))` dB (−0.3 / −1.6 / −3.2) keeps the
+  worst-case peak where mpv's default downmix already has it.
 - Stereo/mono source: a voice-clarity curve added to the equalizer bands
   (bass/rumble down, 1–4 kHz up), scaled by the level, with a small negative
   gain to keep the boost from clipping. Summed onto the user's own EQ, clamped
@@ -56,6 +64,12 @@ Toggling while an AC-3/E-AC-3 track plays reinitialises its decoder
 ### Preamp fix
 The EQ preamp moves out of the lavfi graph into `replaygain-fallback`.
 `mpvAudioFilter` never emits `volume=` again.
+
+Branch-review finding rejected: "a level change of `audio-swresample-o` is
+never heard until the next open". The option itself has no flag, but its
+group (`resample_conf`) has `.change_flags = UPDATE_AUDIO`, and
+`m_config_core.c` ORs group change flags into every option's change mask —
+so the write does reload the audio chain (and rebuild the resampler).
 
 ## Architecture
 

@@ -3128,5 +3128,10 @@
   "playerTracksSectionEnhance": "Mejorar el sonido",
   "@playerTracksSectionEnhance": {
     "description": "Eyebrow de la sección con Modo noche y Realzar voces, en la hoja de Audio."
+  },
+
+  "playerTracksEnhancePending": "Activado · leyendo la pista",
+  "@playerTracksEnhancePending": {
+    "description": "Subtítulo de «Modo noche» o «Realzar voces» encendidos mientras aún no se sabe qué pista de audio suena (justo al abrir)."
   }
 }

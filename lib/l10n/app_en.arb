@@ -3129,5 +3129,10 @@
   "playerTracksSectionEnhance": "Enhance the sound",
   "@playerTracksSectionEnhance": {
     "description": "Eyebrow of the section with Night mode and Boost voices, in the Audio sheet."
+  },
+
+  "playerTracksEnhancePending": "On · reading the track",
+  "@playerTracksEnhancePending": {
+    "description": "«Night mode» or «Boost voices» subtitle when on while the playing audio track is not known yet (right after opening)."
   }
 }

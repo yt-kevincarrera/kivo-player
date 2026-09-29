@@ -3427,6 +3427,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Mejorar el sonido'**
   String get playerTracksSectionEnhance;
+
+  /// Subtítulo de «Modo noche» o «Realzar voces» encendidos mientras aún no se sabe qué pista de audio suena (justo al abrir).
+  ///
+  /// In es, this message translates to:
+  /// **'Activado · leyendo la pista'**
+  String get playerTracksEnhancePending;
 }
 
 class _AppLocalizationsDelegate

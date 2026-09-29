@@ -546,7 +546,9 @@ class _TracksSection extends ConsumerWidget {
                 label: l10n.playerTracksNightMode,
                 sublabel: !s.nightMode
                     ? l10n.playerTracksNightModeOffHint
-                    : (audioSource?.isDolby ?? false)
+                    : audioSource == null
+                        ? l10n.playerTracksEnhancePending
+                        : audioSource.isDolby
                         ? l10n.playerTracksNightModeDolby
                         : l10n.playerTracksNightModeNoEffect,
                 active: s.nightMode,
@@ -560,7 +562,9 @@ class _TracksSection extends ConsumerWidget {
                 label: l10n.playerTracksVoiceBoost,
                 sublabel: !s.voiceBoost
                     ? l10n.playerTracksVoiceBoostOffHint
-                    : (audioSource?.isMultichannel ?? false)
+                    : audioSource == null
+                        ? l10n.playerTracksEnhancePending
+                        : audioSource.isMultichannel
                         ? l10n.playerTracksVoiceBoostSurround
                         : l10n.playerTracksVoiceBoostStereo,
                 active: s.voiceBoost,

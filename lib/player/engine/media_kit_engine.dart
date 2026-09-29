@@ -306,10 +306,14 @@ class MediaKitEngine implements PlaybackEngine {
   }
 
   @override
-  Future<void> setDolbyDrc(double scale) async {
+  Future<void> setDolbyDrc(double scale, {bool heavyCompression = false}) async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;
     await native.setProperty('ad-lavc-ac3drc', scale.toStringAsFixed(2));
+    // Every decoder gets ad-lavc-o; one without heavy_compr just logs that it
+    // could not set it.
+    await native.setProperty(
+        'ad-lavc-o', heavyCompression ? 'heavy_compr=1' : '');
   }
 
   @override

@@ -47,10 +47,22 @@ void main() {
   });
 
   group('Modo noche', () {
-    test('maps each level to the Dolby DRC scale', () {
-      expect(_p(night: true, nightLevel: EnhancementLevel.soft).drc, 1.0);
-      expect(_p(night: true, nightLevel: EnhancementLevel.medium).drc, 2.0);
-      expect(_p(night: true, nightLevel: EnhancementLevel.strong).drc, 4.0);
+    // drc_scale above 1 only amplifies FFmpeg's boost words — the peaks stay
+    // put and the quiet parts get louder — so no level may go past 1.0.
+    test('maps each level to a DRC scale of at most 1, heavy for Fuerte', () {
+      final soft = _p(night: true, nightLevel: EnhancementLevel.soft);
+      final medium = _p(night: true, nightLevel: EnhancementLevel.medium);
+      final strong = _p(night: true, nightLevel: EnhancementLevel.strong);
+      expect([soft.drc, medium.drc, strong.drc], [0.5, 1.0, 1.0]);
+      expect([soft.heavyCompression, medium.heavyCompression,
+          strong.heavyCompression], [false, false, true]);
+      for (final l in EnhancementLevel.values) {
+        expect(l.drcScale, lessThanOrEqualTo(1.0), reason: l.id);
+      }
+    });
+
+    test('off means no heavy compression either', () {
+      expect(_p(nightLevel: EnhancementLevel.strong).heavyCompression, isFalse);
     });
 
     test('touches nothing else', () {
@@ -67,7 +79,16 @@ void main() {
       expect(p.forceStereo, isTrue);
       expect(p.swresample, 'center_mix_level=1.41,surround_mix_level=0.5');
       expect(p.af, '');
-      expect(p.gainDb, 0);
+      expect(p.gainDb, downmixHeadroomDb(1.41));
+    });
+
+    // mpv does not normalise the downmix matrix: raising the centre raises
+    // the worst-case peak, and only the gain can take that back.
+    test('the downmix headroom keeps the peak at the default mix level', () {
+      expect(downmixHeadroomDb(1.0), closeTo(-0.30, 0.01));
+      expect(downmixHeadroomDb(1.41), closeTo(-1.62, 0.01));
+      expect(downmixHeadroomDb(2.0), closeTo(-3.22, 0.01));
+      expect(downmixHeadroomDb(0.5), 0, reason: 'never a boost');
     });
 
     test('the level picks the centre mix', () {
