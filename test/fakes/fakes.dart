@@ -293,20 +293,62 @@ class FakePlaybackEngine implements PlaybackEngine {
     audioFilters.add(af);
   }
 
-  double? lastSubtitleFontSize;
-  int? lastSubtitleTextColorArgb;
-  int? lastSubtitleBackgroundColorArgb;
+
+  final _subtitleText = StreamController<List<String>>.broadcast();
+  List<String> subtitleTextValue = const ['', ''];
 
   @override
-  Future<void> setSubtitleStyle({
-    required double fontSize,
-    required int textColorArgb,
-    required int backgroundColorArgb,
-  }) async {
-    lastSubtitleFontSize = fontSize;
-    lastSubtitleTextColorArgb = textColorArgb;
-    lastSubtitleBackgroundColorArgb = backgroundColorArgb;
+  Stream<List<String>> get subtitleTextStream => _subtitleText.stream;
+
+  @override
+  List<String> get currentSubtitleText => subtitleTextValue;
+
+  void emitSubtitleText(String primary, [String secondary = '']) {
+    subtitleTextValue = [primary, secondary];
+    _subtitleText.add(subtitleTextValue);
   }
+
+  /// What [currentSubtitleCodec] reports.
+  String? subtitleCodecValue;
+
+  @override
+  Future<String?> currentSubtitleCodec() async => subtitleCodecValue;
+
+  /// Every setSubtitleRendering call (true = mpv draws), in order.
+  final List<bool> subtitleRenderingWrites = [];
+
+  @override
+  Future<void> setSubtitleRendering({required bool mpvDraws}) async =>
+      subtitleRenderingWrites.add(mpvDraws);
+
+  ({String dir, String family})? subtitleFonts;
+
+  @override
+  Future<void> configureSubtitleFonts(
+          {required String dir, required String family}) async =>
+      subtitleFonts = (dir: dir, family: family);
+
+  /// Every setSecondarySubtitleTrack call, in order (null = off).
+  final List<String?> secondarySubtitleWrites = [];
+
+  @override
+  String? secondarySubtitleTrackId;
+
+  /// Ids mpv would refuse as the secondary (e.g. the primary's own).
+  Set<String> refusedSecondaryIds = {};
+
+  @override
+  Future<void> setSecondarySubtitleTrack(String? id) async {
+    secondarySubtitleWrites.add(id);
+    secondarySubtitleTrackId =
+        (id != null && refusedSecondaryIds.contains(id)) ? secondarySubtitleTrackId : id;
+  }
+
+  /// What [currentSubtitleId] reports.
+  String? subtitleIdValue;
+
+  @override
+  Future<String?> currentSubtitleId() async => subtitleIdValue;
 
   bool videoTrackEnabled = true;
 
@@ -807,6 +849,12 @@ class FakeSubtitleTranscoder implements SubtitleTranscoder {
 
   @override
   Future<List<String>> availableEncodings() async => encodings;
+
+  /// What [systemSubtitleFont] reports; null = no font could be prepared.
+  ({String dir, String family})? font = (dir: '/app/subtitle-fonts', family: 'Roboto');
+
+  @override
+  Future<({String dir, String family})?> systemSubtitleFont() async => font;
 }
 
 /// A loader that hands files to [engine] untouched, for tests about which

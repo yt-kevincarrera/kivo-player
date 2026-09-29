@@ -7,11 +7,16 @@ class MediaTrack {
   final String? title;
   final String? language;
   final bool isDefault;
+
+  /// mpv's codec name (`subrip`, `ass`, `hdmv_pgs_subtitle`, `eac3`, …),
+  /// or null when the container did not say.
+  final String? codec;
   const MediaTrack({
     required this.id,
     this.title,
     this.language,
     this.isDefault = false,
+    this.codec,
   });
 
   @override
@@ -163,11 +168,39 @@ abstract class PlaybackEngine {
   /// calls on the UI thread at the busiest moment there is.
   Future<List<MediaChapter>> chapters();
 
-  Future<void> setSubtitleStyle({
-    required double fontSize,
-    required int textColorArgb,
-    required int backgroundColorArgb,
-  });
+  /// mpv's current plain subtitle text: [primary, secondary] (`sub-text`,
+  /// `secondary-sub-text`), '' when nothing is showing. What Kivo's own
+  /// subtitle overlay draws.
+  Stream<List<String>> get subtitleTextStream;
+  List<String> get currentSubtitleText;
+
+  /// Codec of the subtitle track actually selected (`current-tracks/sub/codec`),
+  /// or null when none is or it cannot be read yet.
+  Future<String?> currentSubtitleCodec();
+
+  /// Whether mpv draws the current subtitle into the video (`sub-visibility`).
+  /// Off whenever Kivo's overlay draws it instead — see `drawerFor`.
+  Future<void> setSubtitleRendering({required bool mpvDraws});
+
+  /// Gives libass the one font it can use on Android (no font provider in this
+  /// build): `sub-fonts-dir` + `sub-font`, and turns ASS styling on
+  /// (`sub-ass=yes`, `sub-ass-override=no`, i.e. the file's own style).
+  Future<void> configureSubtitleFonts({required String dir, required String family});
+
+  /// Selects the secondary subtitle track (`secondary-sid`), or turns it off
+  /// with null. A global mpv option that survives loadfile: write it on every
+  /// open.
+  Future<void> setSecondarySubtitleTrack(String? id);
+
+  /// The secondary track mpv actually holds after the last
+  /// [setSecondarySubtitleTrack] (read back: mpv refuses a track the primary
+  /// already has, and media_kit hides that refusal). Null = off.
+  String? get secondarySubtitleTrackId;
+
+  /// The id of the primary subtitle track as mpv numbers it
+  /// (`current-tracks/sub/id`) — for an external file that is not the uri
+  /// [currentSubtitleTrack] reports.
+  Future<String?> currentSubtitleId();
 
   /// Releases mpv's video output ([enabled] = false → `vid=no`) or reattaches it
   /// (true → `vid=auto`). Used around the background round-trip so a live video

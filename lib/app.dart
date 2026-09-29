@@ -7,6 +7,7 @@ import 'core/update/update_providers.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'player/audio/audio_pipeline_controller.dart';
 import 'player/autoplay/autoplay_coordinator.dart';
+import 'player/subtitles/subtitle_render_controller.dart';
 import 'player/background/background_playback.dart';
 import 'ui/home/home_shell.dart';
 import 'ui/update/update_dialog.dart';
@@ -26,6 +27,8 @@ class _KivoAppState extends ConsumerState<KivoApp> {
       // audio decoder at init only, so it has to be in mpv already when the
       // first file's decoder starts.
       ref.read(audioPipelineProvider).apply();
+      // Same reason: libass must have its font before the first ASS track.
+      ref.read(subtitleRenderProvider).start();
       _maybeAutoCheck();
     });
   }

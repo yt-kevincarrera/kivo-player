@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../loop/ab_loop_chip.dart';
 import '../state/controls_visibility.dart';
+import '../state/controls_insets.dart';
 import '../state/lock_state.dart';
 import 'bottom_bar.dart';
 import 'center_controls.dart';
@@ -61,18 +62,25 @@ class ControlsOverlay extends ConsumerWidget {
                           top: 0,
                           left: 0,
                           right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.fromLTRB(8, 8, 8, 24),
-                            decoration: const BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [Colors.black54, Colors.transparent],
+                          child: MeasureHeight(
+                            onHeight: (h) =>
+                                ref
+                                        .read(controlsTopInsetProvider.notifier)
+                                        .state =
+                                    h,
+                            child: Container(
+                              padding: const EdgeInsets.fromLTRB(8, 8, 8, 24),
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [Colors.black54, Colors.transparent],
+                                ),
                               ),
-                            ),
-                            child: const SafeArea(
-                              bottom: false,
-                              child: TopBar(),
+                              child: const SafeArea(
+                                bottom: false,
+                                child: TopBar(),
+                              ),
                             ),
                           ),
                         ),
@@ -81,18 +89,27 @@ class ControlsOverlay extends ConsumerWidget {
                           bottom: 0,
                           left: 0,
                           right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.fromLTRB(12, 24, 12, 8),
-                            decoration: const BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.bottomCenter,
-                                end: Alignment.topCenter,
-                                colors: [Colors.black87, Colors.transparent],
+                          child: MeasureHeight(
+                            onHeight: (h) =>
+                                ref
+                                        .read(
+                                          controlsBottomInsetProvider.notifier,
+                                        )
+                                        .state =
+                                    h,
+                            child: Container(
+                              padding: const EdgeInsets.fromLTRB(12, 24, 12, 8),
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.bottomCenter,
+                                  end: Alignment.topCenter,
+                                  colors: [Colors.black87, Colors.transparent],
+                                ),
                               ),
-                            ),
-                            child: const SafeArea(
-                              top: false,
-                              child: BottomBar(),
+                              child: const SafeArea(
+                                top: false,
+                                child: BottomBar(),
+                              ),
                             ),
                           ),
                         ),

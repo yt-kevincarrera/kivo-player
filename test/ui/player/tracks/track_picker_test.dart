@@ -9,6 +9,7 @@ import 'package:kivo_player/platform/subtitle_finder_provider.dart';
 import 'package:kivo_player/player/engine/playback_engine.dart';
 import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/player/open/video_source.dart';
+import 'package:kivo_player/ui/player/subtitles/subtitle_text.dart';
 import 'package:kivo_player/ui/player/tracks/track_picker.dart';
 import '../../../fakes/fakes.dart';
 import '../../../helpers/pump_app.dart';
@@ -99,7 +100,10 @@ void main() {
     await tester.tap(find.text(_l10n.playerTracksStyleTabLabel));
     await tester.pumpAndSettle();
     expect(find.text('English'), findsNothing);
-    expect(find.text(_l10n.playerTracksStylePreviewSample), findsOneWidget);
+    // One preview: the overlay's own widget (whose outline draws the text in
+    // two layers, hence not a single Text).
+    expect(find.byType(SubtitleText), findsOneWidget);
+    expect(find.text(_l10n.playerTracksStylePreviewSample), findsWidgets);
   });
 
   testWidgets('Restablecer estilo resets font size and colors to defaults', (tester) async {

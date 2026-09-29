@@ -73,6 +73,7 @@ class MediaKitEngine implements PlaybackEngine {
     title: t.title,
     language: t.language,
     isDefault: t.isDefault ?? false,
+    codec: t.codec,
   );
 
   MediaTrack? _subtitleToMedia(SubtitleTrack t) {
@@ -85,6 +86,7 @@ class MediaKitEngine implements PlaybackEngine {
       title: t.title,
       language: t.language,
       isDefault: t.isDefault ?? false,
+      codec: t.codec,
     );
   }
 
@@ -213,20 +215,73 @@ class MediaKitEngine implements PlaybackEngine {
   Stream<bool> get videoOutputEnabledStream => _videoOutputController.stream;
 
   @override
-  Future<void> setSubtitleStyle({
-    required double fontSize,
-    required int textColorArgb,
-    required int backgroundColorArgb,
-  }) async {
+  Stream<List<String>> get subtitleTextStream => _player.stream.subtitle;
+
+  @override
+  List<String> get currentSubtitleText => _player.state.subtitle;
+
+  @override
+  Future<String?> currentSubtitleCodec() async {
+    final native = _player.platform as NativePlayer?;
+    if (native == null) return null;
+    try {
+      final codec = (await native.getProperty('current-tracks/sub/codec')).trim();
+      return codec.isEmpty ? null : codec;
+    } catch (_) {
+      return null; // no subtitle track selected
+    }
+  }
+
+  @override
+  Future<void> setSubtitleRendering({required bool mpvDraws}) async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;
-    await native.setProperty('sub-ass-override', 'force');
-    await native.setProperty('sub-font-size', fontSize.toStringAsFixed(0));
-    await native.setProperty('sub-color', _toMpvColor(textColorArgb));
-    await native.setProperty(
-      'sub-back-color',
-      _toMpvColor(backgroundColorArgb),
-    );
+    await native.setProperty('sub-visibility', mpvDraws ? 'yes' : 'no');
+  }
+
+  @override
+  Future<void> configureSubtitleFonts(
+      {required String dir, required String family}) async {
+    final native = _player.platform as NativePlayer?;
+    if (native == null) return;
+    await native.setProperty('sub-fonts-dir', dir);
+    await native.setProperty('sub-font', family);
+    // media_kit's Flutter-rendering mode set sub-ass=no; ASS only keeps its
+    // look with it on, and only in the file's own style with override=no.
+    await native.setProperty('sub-ass', 'yes');
+    await native.setProperty('sub-ass-override', 'no');
+  }
+
+  String? _secondarySubtitleId;
+
+  @override
+  String? get secondarySubtitleTrackId => _secondarySubtitleId;
+
+  @override
+  Future<void> setSecondarySubtitleTrack(String? id) async {
+    final native = _player.platform as NativePlayer?;
+    if (native == null) return;
+    await native.setProperty('secondary-sid', id ?? 'no');
+    // Believe mpv, not the request: it refuses the primary's own track.
+    try {
+      final actual = (await native.getProperty('secondary-sid')).trim();
+      _secondarySubtitleId =
+          (actual.isEmpty || actual == 'no' || actual == 'auto') ? null : actual;
+    } catch (_) {
+      _secondarySubtitleId = id;
+    }
+  }
+
+  @override
+  Future<String?> currentSubtitleId() async {
+    final native = _player.platform as NativePlayer?;
+    if (native == null) return null;
+    try {
+      final id = (await native.getProperty('current-tracks/sub/id')).trim();
+      return id.isEmpty ? null : id;
+    } catch (_) {
+      return null;
+    }
   }
 
   @override
@@ -377,14 +432,5 @@ class MediaKitEngine implements PlaybackEngine {
     final h = _player.state.height;
     if (w == null || h == null || w <= 0 || h <= 0) return null;
     return (width: w, height: h);
-  }
-
-  String _toMpvColor(int argb) {
-    final a = (argb >> 24) & 0xFF;
-    final r = (argb >> 16) & 0xFF;
-    final g = (argb >> 8) & 0xFF;
-    final b = argb & 0xFF;
-    String hex(int v) => v.toRadixString(16).padLeft(2, '0');
-    return '#${hex(a)}${hex(r)}${hex(g)}${hex(b)}';
   }
 }

@@ -37,6 +37,16 @@ void applyDefaultTracks({
       tracks: subtitleTracks,
       enabledByDefault: settings.subtitlesEnabledByDefault,
       preferredLanguage: settings.preferredSubtitleLanguage);
+    // Secondary off FIRST, unconditionally: sid and secondary-sid are global
+    // mpv options that survive loadfile, and mpv refuses a track already held
+    // by the other slot. With the previous video's secondary id still set,
+    // picking that id as this video's primary would silently fail (and the
+    // secondary pick below would then fail the other way round).
+    try {
+      await engine.setSecondarySubtitleTrack(null);
+    } catch (_) {
+      // Best-effort.
+    }
     if (subtitlePick != null) {
       await engine.setSubtitleTrack(subtitlePick.id);
     } else if (settings.subtitlesEnabledByDefault &&
@@ -54,6 +64,21 @@ void applyDefaultTracks({
       } catch (_) {
         // Best-effort — native channel errors / empty folder never break start.
       }
+    }
+
+    // Already written off above; set only when there is one to show. Off with
+    // subtitles off — a lone top line with no bottom one is not what
+    // "subtitles off" means.
+    try {
+      final secondary = settings.subtitlesEnabledByDefault
+          ? selectSecondarySubtitleTrack(
+              tracks: subtitleTracks,
+              language: settings.secondarySubtitleLanguage,
+              primaryId: subtitlePick?.id)
+          : null;
+      if (secondary != null) await engine.setSecondarySubtitleTrack(secondary.id);
+    } catch (_) {
+      // Best-effort, like everything here.
     }
 
     // What this video remembers wins over the language defaults above: the
