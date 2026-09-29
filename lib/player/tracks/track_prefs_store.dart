@@ -12,6 +12,8 @@ class VideoTrackPrefs {
     this.subtitleDelayMs = 0,
     this.audioDelayMs = 0,
     this.subtitlePath,
+    this.decoder,
+    this.subtitleEncoding,
   });
 
   final int subtitleDelayMs;
@@ -23,8 +25,21 @@ class VideoTrackPrefs {
   /// An app-owned copy, never the raw file-picker path — those go stale.
   final String? subtitlePath;
 
+  /// This video's decoder when it differs from the global default:
+  /// 'hw' | 'sw', or null to follow the default. Set by hand from the player
+  /// or by the automatic software fallback.
+  final String? decoder;
+
+  /// The charset the user picked for this video's external subtitles, or null
+  /// for automatic detection.
+  final String? subtitleEncoding;
+
   bool get isEmpty =>
-      subtitleDelayMs == 0 && audioDelayMs == 0 && subtitlePath == null;
+      subtitleDelayMs == 0 &&
+      audioDelayMs == 0 &&
+      subtitlePath == null &&
+      decoder == null &&
+      subtitleEncoding == null;
 
   static const _unset = Object();
 
@@ -32,6 +47,8 @@ class VideoTrackPrefs {
     int? subtitleDelayMs,
     int? audioDelayMs,
     Object? subtitlePath = _unset,
+    Object? decoder = _unset,
+    Object? subtitleEncoding = _unset,
   }) =>
       VideoTrackPrefs(
         subtitleDelayMs: subtitleDelayMs ?? this.subtitleDelayMs,
@@ -39,17 +56,29 @@ class VideoTrackPrefs {
         subtitlePath: identical(subtitlePath, _unset)
             ? this.subtitlePath
             : subtitlePath as String?,
+        decoder: identical(decoder, _unset) ? this.decoder : decoder as String?,
+        subtitleEncoding: identical(subtitleEncoding, _unset)
+            ? this.subtitleEncoding
+            : subtitleEncoding as String?,
       );
 
   // 'd' is the subtitle offset's original key, kept so records written before
-  // audio delay existed still load. 'a' is the newcomer.
-  Map<String, dynamic> toMap() =>
-      {'d': subtitleDelayMs, 'a': audioDelayMs, 'p': subtitlePath};
+  // audio delay existed still load. 'a', 'dec' and 'enc' came later; a record
+  // without them reads as "follow the defaults".
+  Map<String, dynamic> toMap() => {
+        'd': subtitleDelayMs,
+        'a': audioDelayMs,
+        'p': subtitlePath,
+        if (decoder != null) 'dec': decoder,
+        if (subtitleEncoding != null) 'enc': subtitleEncoding,
+      };
 
   factory VideoTrackPrefs.fromMap(Map m) => VideoTrackPrefs(
         subtitleDelayMs: (m['d'] as num?)?.toInt() ?? 0,
         audioDelayMs: (m['a'] as num?)?.toInt() ?? 0,
         subtitlePath: m['p'] as String?,
+        decoder: m['dec'] as String?,
+        subtitleEncoding: m['enc'] as String?,
       );
 }
 

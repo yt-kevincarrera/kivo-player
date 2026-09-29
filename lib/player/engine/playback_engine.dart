@@ -66,7 +66,34 @@ abstract class PlaybackEngine {
 
   Future<void> setAudioTrack(String id);
   Future<void> setSubtitleTrack(String? id); // null = turn off
-  Future<void> setExternalSubtitle(String uri, {String? title});
+  /// Adds [uri] as a subtitle track and selects it. With [replaceCurrent] the
+  /// currently selected subtitle track is removed first — for re-loading the
+  /// same external file (e.g. in another encoding) without the track list
+  /// growing one duplicate per attempt. Only pass it when the current track is
+  /// an external one: mpv removes whatever is selected.
+  Future<void> setExternalSubtitle(String uri,
+      {String? title, bool replaceCurrent = false});
+
+  /// Sets mpv's `hwdec` (e.g. `auto-safe`, `no`). A global option on the
+  /// process-lifetime player that survives `loadfile`, so the caller writes it
+  /// on EVERY open, never only when it changes. Can be changed mid-playback:
+  /// mpv reinitialises the decoder and keeps position and tracks.
+  ///
+  /// Same UI-thread hazard as [setSubtitleDelay]: once per open or per user
+  /// switch, never in a loop.
+  Future<void> setHwdec(String value);
+
+  /// What mpv is actually decoding with right now (`hwdec-current`):
+  /// e.g. `mediacodec-copy`, `no` for software, or null when nothing is loaded
+  /// or the property cannot be read.
+  Future<String?> activeHwdec();
+
+  /// Whether the open media has a real video track (not audio-only).
+  bool get hasVideoTrack;
+
+  /// False while [setVideoTrackEnabled] has turned the video output off
+  /// (background / audio-only mode).
+  bool get videoOutputEnabled;
 
   /// Shifts subtitle timing. Positive = subtitles appear later, matching
   /// mpv's own `sub-delay` sign.

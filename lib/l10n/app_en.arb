@@ -2804,5 +2804,235 @@
         "type": "int"
       }
     }
+  },
+
+  "errorDecoderFallback": "The video wasn't showing with the hardware decoder",
+  "@errorDecoderFallback": {
+    "description": "Friendly message for log entry KV-504 (KivoOp.decoderFallback): Kivo switched a video to software decoding because hardware showed no frame or failed to open it."
+  },
+
+  "playerMenuDecoder": "Decoder",
+  "@playerMenuDecoder": {
+    "description": "Title of the decoder row in the player's ⋮ menu (Playback group)."
+  },
+
+  "playerMenuDecoderAuto": "Auto",
+  "@playerMenuDecoderAuto": {
+    "description": "Short option in the ⋮ menu's decoder pill: automatic (hardware with automatic software fallback)."
+  },
+
+  "playerMenuDecoderHw": "HW",
+  "@playerMenuDecoderHw": {
+    "description": "Short option in the ⋮ menu's decoder pill: hardware."
+  },
+
+  "playerMenuDecoderSw": "SW",
+  "@playerMenuDecoderSw": {
+    "description": "Short option in the ⋮ menu's decoder pill: software."
+  },
+
+  "playerMenuDecoderActiveHardware": "Active: hardware",
+  "@playerMenuDecoderActiveHardware": {
+    "description": "Decoder row subtitle: what mpv is really using right now is hardware."
+  },
+
+  "playerMenuDecoderActiveSoftware": "Active: software",
+  "@playerMenuDecoderActiveSoftware": {
+    "description": "Decoder row subtitle: what mpv is really using right now is software."
+  },
+
+  "playerMenuDecoderActivePending": "Active: —",
+  "@playerMenuDecoderActivePending": {
+    "description": "Decoder row subtitle while mpv has not picked a decoder yet (video still loading)."
+  },
+
+  "playerMenuDecoderThisVideoOnly": "{status} · this video only",
+  "@playerMenuDecoderThisVideoOnly": {
+    "description": "Decoder row subtitle when this video has its own saved decoder; {status} is the «Active: …» text.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerDecoderFallbackSnack": "Switched to software decoding",
+  "@playerDecoderFallbackSnack": {
+    "description": "Brief notice when Kivo switches a video to software because it wasn't showing with hardware. Carries an Undo action."
+  },
+
+  "settingsAdvancedGroupDecoder": "Decoding",
+  "@settingsAdvancedGroupDecoder": {
+    "description": "Header of the decoder group in Settings › Advanced playback."
+  },
+
+  "settingsDecoderMode": "Default decoder",
+  "@settingsDecoderMode": {
+    "description": "Row to choose the decoder used by videos without their own."
+  },
+
+  "settingsDecoderModeSubtitle": "Each video can have its own from the player's ⋮ menu",
+  "@settingsDecoderModeSubtitle": {
+    "description": "Subtitle of «Default decoder»."
+  },
+
+  "settingsDecoderAuto": "Automatic",
+  "@settingsDecoderAuto": {
+    "description": "Default decoder option: hardware, switching to software when the video doesn't show."
+  },
+
+  "settingsDecoderHardware": "Hardware",
+  "@settingsDecoderHardware": {
+    "description": "Default decoder option: always hardware, no automatic switch."
+  },
+
+  "settingsDecoderSoftware": "Software",
+  "@settingsDecoderSoftware": {
+    "description": "Default decoder option: always software (more compatible, uses more battery)."
+  },
+
+  "settingsDecoderAutoFallback": "Automatic switch to software",
+  "@settingsDecoderAutoFallback": {
+    "description": "Switch: in Automatic mode, move a video to software when hardware shows no picture."
+  },
+
+  "settingsDecoderAutoFallbackSubtitle": "When the video doesn't show or open with hardware",
+  "@settingsDecoderAutoFallbackSubtitle": {
+    "description": "Subtitle of the automatic switch."
+  },
+
+  "settingsDecoderStallSeconds": "Wait before switching",
+  "@settingsDecoderStallSeconds": {
+    "description": "Stepper: seconds of playback with no picture before switching to software."
+  },
+
+  "settingsDecoderForget": "Forget saved decoders",
+  "@settingsDecoderForget": {
+    "description": "Action that clears every video's own decoder."
+  },
+
+  "settingsDecoderForgetSubtitle": "Every video goes back to the default decoder",
+  "@settingsDecoderForgetSubtitle": {
+    "description": "Subtitle of «Forget saved decoders»."
+  },
+
+  "settingsDecoderForgotSnackbar": "{count, plural, =0{There were none saved} =1{Forgot the decoder of 1 video} other{Forgot the decoder of {count} videos}}",
+  "@settingsDecoderForgotSnackbar": {
+    "description": "Confirmation after «Forget saved decoders».",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerTracksEncodingLabel": "Encoding",
+  "@playerTracksEncodingLabel": {
+    "description": "Tracks tab card, shown while an external subtitle is active: opens the encoding picker."
+  },
+
+  "playerTracksEncodingAuto": "Automatic",
+  "@playerTracksEncodingAuto": {
+    "description": "Automatic subtitle encoding (detected when loading it)."
+  },
+
+  "playerTracksEncodingAutoDetected": "Automatic (detected: {name})",
+  "@playerTracksEncodingAutoDetected": {
+    "description": "Automatic encoding with what was detected; {name} is the readable name (e.g. «Cyrillic»).",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerTracksEncodingAutoHint": "Detects the file's encoding",
+  "@playerTracksEncodingAutoHint": {
+    "description": "Small text under «Automatic» in the encoding picker."
+  },
+
+  "playerTracksEncodingSheetTitle": "Subtitle encoding",
+  "@playerTracksEncodingSheetTitle": {
+    "description": "Title of the sheet to choose the external subtitle's encoding."
+  },
+
+  "playerTracksEncodingMore": "More…",
+  "@playerTracksEncodingMore": {
+    "description": "Expands every encoding the system supports, beyond the short list."
+  },
+
+  "encodingUnicode": "Unicode",
+  "@encodingUnicode": {
+    "description": "Readable name of the UTF-8 encoding."
+  },
+
+  "encodingWestern": "Western European",
+  "@encodingWestern": {
+    "description": "Readable name of windows-1252 / ISO-8859-1."
+  },
+
+  "encodingCentral": "Central European",
+  "@encodingCentral": {
+    "description": "Readable name of windows-1250 / ISO-8859-2."
+  },
+
+  "encodingCyrillic": "Cyrillic",
+  "@encodingCyrillic": {
+    "description": "Readable name of windows-1251 / ISO-8859-5 / KOI8-R."
+  },
+
+  "encodingGreek": "Greek",
+  "@encodingGreek": {
+    "description": "Readable name of windows-1253 / ISO-8859-7."
+  },
+
+  "encodingTurkish": "Turkish",
+  "@encodingTurkish": {
+    "description": "Readable name of windows-1254 / ISO-8859-9."
+  },
+
+  "encodingHebrew": "Hebrew",
+  "@encodingHebrew": {
+    "description": "Readable name of windows-1255 / ISO-8859-8."
+  },
+
+  "encodingArabic": "Arabic",
+  "@encodingArabic": {
+    "description": "Readable name of windows-1256 / ISO-8859-6."
+  },
+
+  "encodingBaltic": "Baltic",
+  "@encodingBaltic": {
+    "description": "Readable name of windows-1257."
+  },
+
+  "encodingVietnamese": "Vietnamese",
+  "@encodingVietnamese": {
+    "description": "Readable name of windows-1258."
+  },
+
+  "encodingThai": "Thai",
+  "@encodingThai": {
+    "description": "Readable name of TIS-620."
+  },
+
+  "encodingChineseSimplified": "Simplified Chinese",
+  "@encodingChineseSimplified": {
+    "description": "Readable name of GBK / GB18030 / GB2312."
+  },
+
+  "encodingChineseTraditional": "Traditional Chinese",
+  "@encodingChineseTraditional": {
+    "description": "Readable name of Big5."
+  },
+
+  "encodingJapanese": "Japanese",
+  "@encodingJapanese": {
+    "description": "Readable name of Shift_JIS / EUC-JP."
+  },
+
+  "encodingKorean": "Korean",
+  "@encodingKorean": {
+    "description": "Readable name of EUC-KR."
   }
 }

@@ -58,6 +58,10 @@ class FakePlaybackEngine implements PlaybackEngine {
 
   /// Set to make [open] throw — for the KV-501 path.
   Object? openError;
+
+  /// Runs at the start of every [open]; throw from it to fail one attempt
+  /// (e.g. only the first) where [openError] would fail them all.
+  void Function(String path)? openHook;
   Duration? lastSeek;
   bool? lastPlayingCommand;
   double rate = 1.0;
@@ -88,6 +92,7 @@ class FakePlaybackEngine implements PlaybackEngine {
 
   @override
   Future<void> open(String path, {Duration startAt = Duration.zero}) async {
+    openHook?.call(path);
     if (openError != null) throw openError!;
     openedPath = path;
     openedAt = startAt;
@@ -175,12 +180,41 @@ class FakePlaybackEngine implements PlaybackEngine {
   /// behaviour (it is what the track picker lists), so it has to be visible.
   final List<(String, String?)> externalSubtitles = [];
 
+  /// How many setExternalSubtitle calls asked to replace the current track.
+  int subtitleReplaceCount = 0;
+
   @override
-  Future<void> setExternalSubtitle(String uri, {String? title}) async {
+  Future<void> setExternalSubtitle(String uri,
+      {String? title, bool replaceCurrent = false}) async {
+    if (replaceCurrent) subtitleReplaceCount++;
     externalSubtitleUri = uri;
     currentSubtitleTrackId = uri;
     externalSubtitles.add((uri, title));
   }
+
+  /// Every setHwdec call, in order — the per-open write is the behaviour.
+  final List<String> hwdecWrites = [];
+
+  /// What [activeHwdec] reports; defaults to following the last write the way
+  /// mpv on a device with working MediaCodec would.
+  String? activeHwdecValue;
+
+  @override
+  Future<void> setHwdec(String value) async {
+    hwdecWrites.add(value);
+    activeHwdecValue = value == 'no' ? 'no' : 'mediacodec-copy';
+  }
+
+  @override
+  Future<String?> activeHwdec() async => activeHwdecValue;
+
+  @override
+  bool hasVideoTrack = true;
+
+  @override
+  bool videoOutputEnabled = true;
+
+  void emitBuffering(bool v) => _buffering.add(v);
 
   final List<double> subtitleDelays = [];
 
@@ -240,6 +274,7 @@ class FakePlaybackEngine implements PlaybackEngine {
   @override
   Future<void> setVideoTrackEnabled(bool enabled) async {
     videoTrackEnabled = enabled;
+    videoOutputEnabled = enabled;
   }
 
   int ensureAttachCalls = 0;

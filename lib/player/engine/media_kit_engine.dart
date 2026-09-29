@@ -153,9 +153,47 @@ class MediaKitEngine implements PlaybackEngine {
   }
 
   @override
-  Future<void> setExternalSubtitle(String uri, {String? title}) async {
+  Future<void> setExternalSubtitle(String uri,
+      {String? title, bool replaceCurrent = false}) async {
+    if (replaceCurrent) {
+      final native = _player.platform as NativePlayer?;
+      try {
+        // No id: mpv removes the currently selected subtitle track.
+        await native?.command(['sub-remove']);
+      } catch (e) {
+        // Nothing to remove is fine — the add below still happens.
+        debugPrint('MediaKitEngine.sub-remove failed: $e');
+      }
+    }
     await _player.setSubtitleTrack(SubtitleTrack.uri(uri, title: title));
   }
+
+  @override
+  Future<void> setHwdec(String value) async {
+    final native = _player.platform as NativePlayer?;
+    if (native == null) return;
+    await native.setProperty('hwdec', value);
+  }
+
+  @override
+  Future<String?> activeHwdec() async {
+    final native = _player.platform as NativePlayer?;
+    if (native == null) return null;
+    try {
+      final v = (await native.getProperty('hwdec-current')).trim();
+      return v.isEmpty ? null : v;
+    } catch (e) {
+      // Unavailable while nothing is loaded.
+      return null;
+    }
+  }
+
+  @override
+  bool get hasVideoTrack => _player.state.tracks.video
+      .any((v) => v.id != 'auto' && v.id != 'no');
+
+  @override
+  bool get videoOutputEnabled => _videoOutputEnabled;
 
   @override
   Future<void> setSubtitleStyle({

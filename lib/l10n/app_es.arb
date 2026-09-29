@@ -2803,5 +2803,235 @@
         "type": "int"
       }
     }
+  },
+
+  "errorDecoderFallback": "El video no se mostraba con el decodificador por hardware",
+  "@errorDecoderFallback": {
+    "description": "Mensaje amigable del registro KV-504 (KivoOp.decoderFallback): Kivo pasó un video a decodificación por software porque con hardware no llegaba ningún fotograma o no abría."
+  },
+
+  "playerMenuDecoder": "Decodificador",
+  "@playerMenuDecoder": {
+    "description": "Título de la fila del decodificador en el menú ⋮ del reproductor (grupo Reproducción)."
+  },
+
+  "playerMenuDecoderAuto": "Auto",
+  "@playerMenuDecoderAuto": {
+    "description": "Opción corta del selector de decodificador del menú ⋮: automático (hardware con cambio automático a software)."
+  },
+
+  "playerMenuDecoderHw": "HW",
+  "@playerMenuDecoderHw": {
+    "description": "Opción corta del selector de decodificador del menú ⋮: hardware."
+  },
+
+  "playerMenuDecoderSw": "SW",
+  "@playerMenuDecoderSw": {
+    "description": "Opción corta del selector de decodificador del menú ⋮: software."
+  },
+
+  "playerMenuDecoderActiveHardware": "Activo: hardware",
+  "@playerMenuDecoderActiveHardware": {
+    "description": "Subtítulo de la fila del decodificador: lo que mpv está usando de verdad ahora mismo es hardware."
+  },
+
+  "playerMenuDecoderActiveSoftware": "Activo: software",
+  "@playerMenuDecoderActiveSoftware": {
+    "description": "Subtítulo de la fila del decodificador: lo que mpv está usando de verdad ahora mismo es software."
+  },
+
+  "playerMenuDecoderActivePending": "Activo: —",
+  "@playerMenuDecoderActivePending": {
+    "description": "Subtítulo de la fila del decodificador mientras mpv todavía no ha elegido decodificador (video cargando)."
+  },
+
+  "playerMenuDecoderThisVideoOnly": "{status} · solo este video",
+  "@playerMenuDecoderThisVideoOnly": {
+    "description": "Subtítulo de la fila del decodificador cuando este video tiene su propio decodificador guardado; {status} es el texto «Activo: …».",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerDecoderFallbackSnack": "Cambiado a decodificación por software",
+  "@playerDecoderFallbackSnack": {
+    "description": "Aviso breve cuando Kivo pasa un video a software porque con hardware no se mostraba. Lleva la acción Deshacer."
+  },
+
+  "settingsAdvancedGroupDecoder": "Decodificación",
+  "@settingsAdvancedGroupDecoder": {
+    "description": "Encabezado del grupo de decodificador en Ajustes › Reproducción avanzada."
+  },
+
+  "settingsDecoderMode": "Decodificador por defecto",
+  "@settingsDecoderMode": {
+    "description": "Fila para elegir el decodificador que usan los videos sin uno propio."
+  },
+
+  "settingsDecoderModeSubtitle": "Cada video puede tener el suyo desde el menú ⋮ del reproductor",
+  "@settingsDecoderModeSubtitle": {
+    "description": "Subtítulo de «Decodificador por defecto»."
+  },
+
+  "settingsDecoderAuto": "Automático",
+  "@settingsDecoderAuto": {
+    "description": "Opción del decodificador por defecto: hardware, pasando a software si el video no se muestra."
+  },
+
+  "settingsDecoderHardware": "Hardware",
+  "@settingsDecoderHardware": {
+    "description": "Opción del decodificador por defecto: siempre hardware, sin cambio automático."
+  },
+
+  "settingsDecoderSoftware": "Software",
+  "@settingsDecoderSoftware": {
+    "description": "Opción del decodificador por defecto: siempre software (más compatible, gasta más batería)."
+  },
+
+  "settingsDecoderAutoFallback": "Cambio automático a software",
+  "@settingsDecoderAutoFallback": {
+    "description": "Interruptor: en modo Automático, pasar un video a software si con hardware no aparece la imagen."
+  },
+
+  "settingsDecoderAutoFallbackSubtitle": "Si con hardware el video no se muestra o no abre",
+  "@settingsDecoderAutoFallbackSubtitle": {
+    "description": "Subtítulo del interruptor de cambio automático."
+  },
+
+  "settingsDecoderStallSeconds": "Espera antes de cambiar",
+  "@settingsDecoderStallSeconds": {
+    "description": "Paso a paso: segundos reproduciendo sin imagen antes de pasar a software."
+  },
+
+  "settingsDecoderForget": "Olvidar decodificadores guardados",
+  "@settingsDecoderForget": {
+    "description": "Acción que borra el decodificador propio de todos los videos."
+  },
+
+  "settingsDecoderForgetSubtitle": "Todos los videos vuelven al decodificador por defecto",
+  "@settingsDecoderForgetSubtitle": {
+    "description": "Subtítulo de «Olvidar decodificadores guardados»."
+  },
+
+  "settingsDecoderForgotSnackbar": "{count, plural, =0{No había ninguno guardado} =1{Se olvidó el decodificador de 1 video} other{Se olvidó el decodificador de {count} videos}}",
+  "@settingsDecoderForgotSnackbar": {
+    "description": "Confirmación tras «Olvidar decodificadores guardados».",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "playerTracksEncodingLabel": "Codificación",
+  "@playerTracksEncodingLabel": {
+    "description": "Tarjeta de la pestaña Pistas, visible con un subtítulo externo activo: abre el selector de codificación."
+  },
+
+  "playerTracksEncodingAuto": "Automático",
+  "@playerTracksEncodingAuto": {
+    "description": "Codificación automática del subtítulo (detectada al cargarlo)."
+  },
+
+  "playerTracksEncodingAutoDetected": "Automático (detectado: {name})",
+  "@playerTracksEncodingAutoDetected": {
+    "description": "Codificación automática con lo que se detectó; {name} es el nombre legible (p. ej. «Cirílico»).",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerTracksEncodingAutoHint": "Detecta la codificación del archivo",
+  "@playerTracksEncodingAutoHint": {
+    "description": "Texto pequeño bajo «Automático» en el selector de codificación."
+  },
+
+  "playerTracksEncodingSheetTitle": "Codificación del subtítulo",
+  "@playerTracksEncodingSheetTitle": {
+    "description": "Título de la hoja para elegir la codificación del subtítulo externo."
+  },
+
+  "playerTracksEncodingMore": "Más…",
+  "@playerTracksEncodingMore": {
+    "description": "Despliega todas las codificaciones que soporta el sistema, además de la lista corta."
+  },
+
+  "encodingUnicode": "Unicode",
+  "@encodingUnicode": {
+    "description": "Nombre legible de la codificación UTF-8."
+  },
+
+  "encodingWestern": "Europa occidental",
+  "@encodingWestern": {
+    "description": "Nombre legible de windows-1252 / ISO-8859-1."
+  },
+
+  "encodingCentral": "Europa central",
+  "@encodingCentral": {
+    "description": "Nombre legible de windows-1250 / ISO-8859-2."
+  },
+
+  "encodingCyrillic": "Cirílico",
+  "@encodingCyrillic": {
+    "description": "Nombre legible de windows-1251 / ISO-8859-5 / KOI8-R."
+  },
+
+  "encodingGreek": "Griego",
+  "@encodingGreek": {
+    "description": "Nombre legible de windows-1253 / ISO-8859-7."
+  },
+
+  "encodingTurkish": "Turco",
+  "@encodingTurkish": {
+    "description": "Nombre legible de windows-1254 / ISO-8859-9."
+  },
+
+  "encodingHebrew": "Hebreo",
+  "@encodingHebrew": {
+    "description": "Nombre legible de windows-1255 / ISO-8859-8."
+  },
+
+  "encodingArabic": "Árabe",
+  "@encodingArabic": {
+    "description": "Nombre legible de windows-1256 / ISO-8859-6."
+  },
+
+  "encodingBaltic": "Báltico",
+  "@encodingBaltic": {
+    "description": "Nombre legible de windows-1257."
+  },
+
+  "encodingVietnamese": "Vietnamita",
+  "@encodingVietnamese": {
+    "description": "Nombre legible de windows-1258."
+  },
+
+  "encodingThai": "Tailandés",
+  "@encodingThai": {
+    "description": "Nombre legible de TIS-620."
+  },
+
+  "encodingChineseSimplified": "Chino simplificado",
+  "@encodingChineseSimplified": {
+    "description": "Nombre legible de GBK / GB18030 / GB2312."
+  },
+
+  "encodingChineseTraditional": "Chino tradicional",
+  "@encodingChineseTraditional": {
+    "description": "Nombre legible de Big5."
+  },
+
+  "encodingJapanese": "Japonés",
+  "@encodingJapanese": {
+    "description": "Nombre legible de Shift_JIS / EUC-JP."
+  },
+
+  "encodingKorean": "Coreano",
+  "@encodingKorean": {
+    "description": "Nombre legible de EUC-KR."
   }
 }
