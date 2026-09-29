@@ -3332,10 +3332,10 @@ abstract class AppLocalizations {
   /// **'Comprimiendo la pista Dolby'**
   String get playerTracksNightModeDolby;
 
-  /// Subtítulo de «Modo noche» encendido con una pista que no es AC-3/E-AC-3: no puede actuar.
+  /// Subtítulo de la tarjeta «Modo noche», desactivada, cuando la pista que suena no es AC-3/E-AC-3: el modo noche no puede actuar sobre ella.
   ///
   /// In es, this message translates to:
-  /// **'Sin efecto: esta pista no es Dolby'**
+  /// **'No disponible: esta pista no es Dolby'**
   String get playerTracksNightModeNoEffect;
 
   /// Tarjeta de la hoja de Audio (botón de auriculares): diálogos más claros.
@@ -3433,6 +3433,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Activado · leyendo la pista'**
   String get playerTracksEnhancePending;
+
+  /// Subtítulo de la tarjeta «Modo noche», desactivada un instante, mientras aún no se sabe si la pista que suena es Dolby.
+  ///
+  /// In es, this message translates to:
+  /// **'Leyendo la pista…'**
+  String get playerTracksReadingTrack;
 }
 
 class _AppLocalizationsDelegate

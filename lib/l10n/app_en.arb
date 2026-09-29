@@ -3051,9 +3051,9 @@
     "description": "«Night mode» subtitle when on with an AC-3/E-AC-3 track: it is working."
   },
 
-  "playerTracksNightModeNoEffect": "No effect: this track isn't Dolby",
+  "playerTracksNightModeNoEffect": "Unavailable: this track isn't Dolby",
   "@playerTracksNightModeNoEffect": {
-    "description": "«Night mode» subtitle when on with a non-AC-3/E-AC-3 track: it cannot act."
+    "description": "Subtitle of the disabled «Night mode» card when the playing track is not AC-3/E-AC-3: night mode cannot act on it."
   },
 
   "playerTracksVoiceBoost": "Boost voices",
@@ -3134,5 +3134,10 @@
   "playerTracksEnhancePending": "On · reading the track",
   "@playerTracksEnhancePending": {
     "description": "«Night mode» or «Boost voices» subtitle when on while the playing audio track is not known yet (right after opening)."
+  },
+
+  "playerTracksReadingTrack": "Reading the track…",
+  "@playerTracksReadingTrack": {
+    "description": "Subtitle of the «Night mode» card, briefly disabled, while it is not known yet whether the playing track is Dolby."
   }
 }

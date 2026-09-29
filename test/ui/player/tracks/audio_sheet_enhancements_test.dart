@@ -66,7 +66,7 @@ Future<ProviderContainer> _open(WidgetTester tester,
 void main() {
   testWidgets('both enhancements are offered, off, with what they would do',
       (tester) async {
-    await _open(tester);
+    await _open(tester, source: const AudioSource(codec: 'ac3', channels: 6));
     // The eyebrow style upper-cases its label, like the sheet's others.
     expect(find.text(_l10n.playerTracksSectionEnhance.toUpperCase()),
         findsOneWidget);
@@ -83,12 +83,36 @@ void main() {
     expect(find.text(_l10n.playerTracksNightModeDolby), findsOneWidget);
   });
 
-  testWidgets('Modo noche on a non-Dolby track admits it does nothing',
+  // Asked for by the user: disabled and saying why beats letting it be
+  // switched on to do nothing.
+  testWidgets('Modo noche is disabled on a non-Dolby track and says why',
+      (tester) async {
+    final c = await _open(tester,
+        source: const AudioSource(codec: 'aac', channels: 2));
+    expect(find.text(_l10n.playerTracksNightModeNoEffect), findsOneWidget);
+    await tester.tap(find.text(_l10n.playerTracksNightMode));
+    await tester.pumpAndSettle();
+    expect(c.read(settingsProvider).nightMode, isFalse,
+        reason: 'a disabled card cannot be switched on');
+  });
+
+  testWidgets('a night mode already on is not lit on a non-Dolby track',
       (tester) async {
     await _open(tester,
         tweak: (s) => s.copyWith(nightMode: true),
         source: const AudioSource(codec: 'aac', channels: 2));
     expect(find.text(_l10n.playerTracksNightModeNoEffect), findsOneWidget);
+    expect(find.byIcon(Icons.check_rounded), findsNothing,
+        reason: 'the setting is kept for the next Dolby track, but not shown on');
+  });
+
+  testWidgets('while the track is unknown Modo noche waits, disabled',
+      (tester) async {
+    final c = await _open(tester);
+    expect(find.text(_l10n.playerTracksReadingTrack), findsOneWidget);
+    await tester.tap(find.text(_l10n.playerTracksNightMode));
+    await tester.pumpAndSettle();
+    expect(c.read(settingsProvider).nightMode, isFalse);
   });
 
   testWidgets('Realzar voces says which of its two methods applies',
@@ -101,15 +125,21 @@ void main() {
 
   testWidgets('tapping toggles in place and the sheet stays open',
       (tester) async {
-    final c = await _open(tester);
+    final c = await _open(tester,
+        source: const AudioSource(codec: 'eac3', channels: 6));
     await tester.tap(find.text(_l10n.playerTracksNightMode));
     await tester.pumpAndSettle();
     await tester.tap(find.text(_l10n.playerTracksVoiceBoost));
     await tester.pumpAndSettle();
     expect(c.read(settingsProvider).nightMode, isTrue);
     expect(c.read(settingsProvider).voiceBoost, isTrue);
-    expect(find.text(_l10n.playerTracksEnhancePending), findsNWidgets(2),
-        reason: 'no track known yet: neither card guesses');
+    expect(find.text(_l10n.playerTracksNightModeDolby), findsOneWidget);
+  });
+
+  testWidgets('Realzar voces does not guess while the track is unknown',
+      (tester) async {
+    await _open(tester, tweak: (s) => s.copyWith(voiceBoost: true));
+    expect(find.text(_l10n.playerTracksEnhancePending), findsOneWidget);
   });
 
   testWidgets('a stereo track gets the voice-EQ line', (tester) async {

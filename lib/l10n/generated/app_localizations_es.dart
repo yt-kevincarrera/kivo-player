@@ -1970,7 +1970,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get playerTracksNightModeNoEffect =>
-      'Sin efecto: esta pista no es Dolby';
+      'No disponible: esta pista no es Dolby';
 
   @override
   String get playerTracksVoiceBoost => 'Realzar voces';
@@ -2022,4 +2022,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get playerTracksEnhancePending => 'Activado · leyendo la pista';
+
+  @override
+  String get playerTracksReadingTrack => 'Leyendo la pista…';
 }

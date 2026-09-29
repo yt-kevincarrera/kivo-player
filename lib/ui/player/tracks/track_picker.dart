@@ -544,14 +544,19 @@ class _TracksSection extends ConsumerWidget {
               _TrackCard(
                 icon: Icons.nightlight_round,
                 label: l10n.playerTracksNightMode,
-                sublabel: !s.nightMode
-                    ? l10n.playerTracksNightModeOffHint
-                    : audioSource == null
-                        ? l10n.playerTracksEnhancePending
-                        : audioSource.isDolby
-                        ? l10n.playerTracksNightModeDolby
-                        : l10n.playerTracksNightModeNoEffect,
-                active: s.nightMode,
+                // Only Dolby tracks can be compressed, so on anything else the
+                // card is disabled and says why, instead of letting the user
+                // switch on something that cannot act. The setting itself is
+                // untouched: it applies again as soon as a Dolby track plays.
+                sublabel: audioSource == null
+                    ? l10n.playerTracksReadingTrack
+                    : !audioSource.isDolby
+                        ? l10n.playerTracksNightModeNoEffect
+                        : s.nightMode
+                            ? l10n.playerTracksNightModeDolby
+                            : l10n.playerTracksNightModeOffHint,
+                active: s.nightMode && (audioSource?.isDolby ?? false),
+                enabled: audioSource?.isDolby ?? false,
                 accent: accent,
                 onTap: () => ref
                     .read(settingsProvider.notifier)

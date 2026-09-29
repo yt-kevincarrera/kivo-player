@@ -3050,9 +3050,9 @@
     "description": "Subtítulo de «Modo noche» encendido con una pista AC-3/E-AC-3: está actuando."
   },
 
-  "playerTracksNightModeNoEffect": "Sin efecto: esta pista no es Dolby",
+  "playerTracksNightModeNoEffect": "No disponible: esta pista no es Dolby",
   "@playerTracksNightModeNoEffect": {
-    "description": "Subtítulo de «Modo noche» encendido con una pista que no es AC-3/E-AC-3: no puede actuar."
+    "description": "Subtítulo de la tarjeta «Modo noche», desactivada, cuando la pista que suena no es AC-3/E-AC-3: el modo noche no puede actuar sobre ella."
   },
 
   "playerTracksVoiceBoost": "Realzar voces",
@@ -3133,5 +3133,10 @@
   "playerTracksEnhancePending": "Activado · leyendo la pista",
   "@playerTracksEnhancePending": {
     "description": "Subtítulo de «Modo noche» o «Realzar voces» encendidos mientras aún no se sabe qué pista de audio suena (justo al abrir)."
+  },
+
+  "playerTracksReadingTrack": "Leyendo la pista…",
+  "@playerTracksReadingTrack": {
+    "description": "Subtítulo de la tarjeta «Modo noche», desactivada un instante, mientras aún no se sabe si la pista que suena es Dolby."
   }
 }
