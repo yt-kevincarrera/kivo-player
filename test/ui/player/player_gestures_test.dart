@@ -111,7 +111,7 @@ void main() {
     return c;
   }
 
-  /// A point in the upper half of the center band, where swipe-to-rotate lives.
+  /// A point in the center band, clear of the inert strip at the bottom.
   Offset upperCenter(Rect box) => Offset(box.center.dx, box.top + box.height * 0.25);
 
   testWidgets('center swipe UP rotates portrait→landscape', (tester) async {
@@ -139,6 +139,17 @@ void main() {
     await tester.dragFrom(upperCenter(box), const Offset(0, 140));
     await tester.pump(const Duration(milliseconds: 400));
     expect(c.read(orientationProvider), DeviceOrientationLock.portrait);
+  });
+
+  testWidgets('a swipe UP from below the middle still rotates', (tester) async {
+    final c = await pumpGestures(tester);
+    final box = tester.getRect(find.byType(PlayerGestures));
+    // Only the strip at the very bottom is off limits — rotating must not
+    // require reaching for the top half of the screen.
+    await tester.dragFrom(
+        Offset(box.center.dx, box.top + box.height * 0.70), const Offset(0, -140));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(c.read(orientationProvider), DeviceOrientationLock.landscape);
   });
 
   testWidgets('a swipe UP from the bottom center does NOT rotate (system home gesture)',

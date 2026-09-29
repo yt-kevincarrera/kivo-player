@@ -9,10 +9,12 @@ const double kTapCenterEnd = 0.67;
 /// Width fraction of the center band that owns swipe-to-rotate.
 const double kCenterRotateFraction = 0.30;
 
-/// Height fraction (from the top) of the center band that owns swipe-to-rotate.
-/// The lower half is inert: that is where the system home gesture lives, and a
-/// swipe up to leave the app must never move the player.
-const double kCenterRotateHeightFraction = 0.50;
+/// Strip (logical px) at the BOTTOM of the center band where swipe-to-rotate is
+/// off: that is where the system home gesture starts, and a swipe up to leave
+/// the app must never move the player. Fixed rather than a fraction of the
+/// height because the home gesture area is physical — it does not grow with the
+/// screen, and in landscape a fraction would shrink it away.
+const double kCenterRotateBottomMargin = 120.0;
 
 /// Lateral strip (logical px) that owns swipe-to-minimize.
 const double kLateralEdgeMargin = 38.0;
@@ -131,14 +133,14 @@ bool inCenterRotateZone(double localX, double width,
   return localX >= width * (0.5 - half) && localX <= width * (0.5 + half);
 }
 
-/// True when a touch starts high enough in the center band to rotate: the top
-/// [fraction] of the height, boundary included. Below it the band is inert —
-/// the bottom center is where the system home gesture starts, and a swipe up to
-/// leave the app used to land on rotate.
+/// True when a touch starts clear of the inert strip at the bottom of the center
+/// band, i.e. anywhere above `height - [bottomMargin]` (boundary included).
+/// Rotation stays available over almost the whole band — only the strip that
+/// collides with the system home gesture is given up.
 bool inCenterRotateHeight(double localY, double height,
-    [double fraction = kCenterRotateHeightFraction]) {
+    [double bottomMargin = kCenterRotateBottomMargin]) {
   if (height <= 0) return false;
-  return localY <= height * fraction;
+  return localY <= height - bottomMargin;
 }
 
 ({double system01, double playerPercent}) volumeMapping(double percent, double boostMax) {

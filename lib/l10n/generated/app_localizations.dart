@@ -1499,7 +1499,7 @@ abstract class AppLocalizations {
   /// Rótulo del tutorial de gestos para el arrastre central que gira la pantalla.
   ///
   /// In es, this message translates to:
-  /// **'Arrastra en el centro, mitad superior · Girar (con los controles ocultos)'**
+  /// **'Arrastra en el centro, salvo la franja de abajo · Girar (con los controles ocultos)'**
   String get playerTutorialDragCenterRotate;
 
   /// Rótulo del tutorial de gestos para el pellizco de zoom, con el máximo configurado ya formateado (p. ej. «8×»).
