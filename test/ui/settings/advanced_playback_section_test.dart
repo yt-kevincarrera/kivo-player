@@ -43,8 +43,12 @@ void main() {
   testWidgets('resetting subtitle language to Automático clears it', (t) async {
     final c = await _pump(t, subLang: 'en');
     expect(c.read(settingsProvider).preferredSubtitleLanguage, 'en');
-    await t.drag(find.byType(Scrollable).first, const Offset(0, -400));
-    await t.pump();
+    // Scrolled into view rather than by a fixed offset: rows above it (the
+    // Decodificación group) move it down whenever a group is added.
+    await t.scrollUntilVisible(
+        find.text(_l10n.settingsAdvancedPreferredSubtitleLang), 200,
+        scrollable: find.byType(Scrollable).first);
+    await t.pumpAndSettle();
     final subtitleRow = find.ancestor(
         of: find.text(_l10n.settingsAdvancedPreferredSubtitleLang),
         matching: find.byType(SettingChoice<String?>));

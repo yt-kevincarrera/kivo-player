@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../l10n/l10n.dart';
 import '../../../platform/all_files_access_provider.dart';
+import '../../../player/decoder/decoder_controller.dart';
+import '../../../player/decoder/decoder_mode.dart';
 import '../widgets/setting_tiles.dart';
 import '../widgets/setting_choice.dart';
 
@@ -54,6 +56,49 @@ class AdvancedPlaybackSection extends ConsumerWidget {
               subtitle: l10n.settingsAdvancedMinimizeKeepsPlayingSubtitle,
               value: s.minimizeKeepsPlaying,
               onChanged: (v) => n.set(s.copyWith(minimizeKeepsPlaying: v))),
+          ]),
+          const SizedBox(height: 16),
+          _label(context, l10n.settingsAdvancedGroupDecoder),
+          SettingsCard(children: [
+            SettingChoice<String>(
+              title: l10n.settingsDecoderMode,
+              subtitle: l10n.settingsDecoderModeSubtitle,
+              value: s.decoderMode,
+              options: [
+                (DecoderMode.auto.id, l10n.settingsDecoderAuto),
+                (DecoderMode.hardware.id, l10n.settingsDecoderHardware),
+                (DecoderMode.software.id, l10n.settingsDecoderSoftware),
+              ],
+              onChanged: (v) => n.set(s.copyWith(decoderMode: v))),
+            // Both only mean something in Automático: Hardware and Software
+            // never switch on their own.
+            if (s.decoderMode == DecoderMode.auto.id) ...[
+              SettingSwitch(
+                title: l10n.settingsDecoderAutoFallback,
+                subtitle: l10n.settingsDecoderAutoFallbackSubtitle,
+                value: s.decoderAutoFallback,
+                onChanged: (v) => n.set(s.copyWith(decoderAutoFallback: v))),
+              if (s.decoderAutoFallback)
+                SettingStepper(
+                  title: l10n.settingsDecoderStallSeconds,
+                  value: s.decoderStallSeconds,
+                  min: 1, max: 10, step: 1, label: (v) => '$v s',
+                  onChanged: (v) => n.set(s.copyWith(decoderStallSeconds: v))),
+            ],
+            SettingNavRow(
+              icon: Icons.restart_alt_rounded,
+              title: l10n.settingsDecoderForget,
+              subtitle: l10n.settingsDecoderForgetSubtitle,
+              onTap: () async {
+                final messenger = ScaffoldMessenger.of(context);
+                final count =
+                    await ref.read(decoderControllerProvider).forgetAll();
+                messenger
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(SnackBar(
+                      content: Text(l10n.settingsDecoderForgotSnackbar(count))));
+              },
+            ),
           ]),
           const SizedBox(height: 16),
           _label(context, l10n.settingsAdvancedGroupSubtitlesAudio),
