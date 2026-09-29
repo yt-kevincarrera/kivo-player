@@ -52,6 +52,10 @@ object SubtitleCharsets {
                     }
                 }
                 "encodings" -> result.success(Charset.availableCharsets().keys.toList())
+                "systemFont" -> executor.execute {
+                    val out = try { systemFont(context) } catch (e: Exception) { null }
+                    main.post { result.success(out) }
+                }
                 else -> result.notImplemented()
             }
         }
@@ -98,6 +102,36 @@ object SubtitleCharsets {
         }
         prune(file.parentFile)
         return mapOf("path" to file.absolutePath, "encoding" to charsetName, "detected" to detected)
+    }
+
+    /**
+     * A font libass can use: this build has no font provider (no fontconfig),
+     * so it sees only the files in `sub-fonts-dir`. The system's own Roboto is
+     * copied once into the app's files dir — not linked into from /system/fonts
+     * wholesale, because libass reads every file of that dir into memory.
+     * Returns `{dir, family}`, or null when no candidate exists.
+     */
+    private fun systemFont(context: Context): Map<String, String>? {
+        val candidates = listOf(
+            "Roboto-Regular.ttf" to "Roboto",
+            "RobotoStatic-Regular.ttf" to "Roboto",
+            "DroidSans.ttf" to "Droid Sans",
+        )
+        val dir = File(context.filesDir, "subtitle-fonts").apply { mkdirs() }
+        for ((name, family) in candidates) {
+            val src = File("/system/fonts", name)
+            if (!src.canRead()) continue
+            val dst = File(dir, name)
+            if (!dst.exists() || dst.length() != src.length()) {
+                val tmp = File(dir, "$name.tmp")
+                src.copyTo(tmp, overwrite = true)
+                if (!tmp.renameTo(dst)) { tmp.delete(); continue }
+            }
+            // Only the chosen font in the dir: libass loads all of it.
+            dir.listFiles()?.filter { it.name != name }?.forEach { it.delete() }
+            return mapOf("dir" to dir.absolutePath, "family" to family)
+        }
+        return null
     }
 
     private fun read(context: Context, uri: String): ByteArray {

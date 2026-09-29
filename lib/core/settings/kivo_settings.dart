@@ -82,6 +82,20 @@ class KivoSettings {
   /// Realzar voces: centre-raised downmix (5.1) or a voice EQ curve (stereo).
   final bool voiceBoost;
   final String voiceBoostLevel;
+  /// Kivo-drawn subtitle style (see lib/ui/player/subtitles/subtitle_text.dart).
+  final double subtitleOutlineWidth; // 0–5
+  final int subtitleOutlineColor; // ARGB
+  final bool subtitleShadow;
+  final bool subtitleBold;
+  final String subtitleFontFamily; // 'default' | 'serif' | 'mono' | 'condensed'
+  /// Distance from the bottom edge, % of the player's height (0–40).
+  final double subtitleBottomMargin;
+  /// The secondary subtitle's distance from the top edge, % (0–40).
+  final double secondarySubtitleTopMargin;
+  /// ASS/SSA drawn by libass in the file's own style (vs Kivo's style).
+  final bool subtitleRespectAss;
+  /// Language of the secondary subtitle to pick on every open; null = off.
+  final String? secondarySubtitleLanguage;
 
   const KivoSettings({
     required this.doubleTapSkipLeft,
@@ -152,6 +166,15 @@ class KivoSettings {
     required this.nightModeLevel,
     required this.voiceBoost,
     required this.voiceBoostLevel,
+    required this.subtitleOutlineWidth,
+    required this.subtitleOutlineColor,
+    required this.subtitleShadow,
+    required this.subtitleBold,
+    required this.subtitleFontFamily,
+    required this.subtitleBottomMargin,
+    required this.secondarySubtitleTopMargin,
+    required this.subtitleRespectAss,
+    required this.secondarySubtitleLanguage,
   });
 
   factory KivoSettings.defaults() => const KivoSettings(
@@ -227,6 +250,15 @@ class KivoSettings {
         nightModeLevel: 'medium',
         voiceBoost: false,
         voiceBoostLevel: 'medium',
+        subtitleOutlineWidth: 2.0,
+        subtitleOutlineColor: 0xFF000000,
+        subtitleShadow: true,
+        subtitleBold: false,
+        subtitleFontFamily: 'default',
+        subtitleBottomMargin: 6.0,
+        secondarySubtitleTopMargin: 6.0,
+        subtitleRespectAss: true,
+        secondarySubtitleLanguage: null,
       );
 
   static const Object _unset = Object();
@@ -300,6 +332,15 @@ class KivoSettings {
     String? nightModeLevel,
     bool? voiceBoost,
     String? voiceBoostLevel,
+    double? subtitleOutlineWidth,
+    int? subtitleOutlineColor,
+    bool? subtitleShadow,
+    bool? subtitleBold,
+    String? subtitleFontFamily,
+    double? subtitleBottomMargin,
+    double? secondarySubtitleTopMargin,
+    bool? subtitleRespectAss,
+    Object? secondarySubtitleLanguage = _unset,
   }) {
     return KivoSettings(
       doubleTapSkipLeft: doubleTapSkipLeft ?? this.doubleTapSkipLeft,
@@ -379,6 +420,18 @@ class KivoSettings {
       nightModeLevel: nightModeLevel ?? this.nightModeLevel,
       voiceBoost: voiceBoost ?? this.voiceBoost,
       voiceBoostLevel: voiceBoostLevel ?? this.voiceBoostLevel,
+      subtitleOutlineWidth: subtitleOutlineWidth ?? this.subtitleOutlineWidth,
+      subtitleOutlineColor: subtitleOutlineColor ?? this.subtitleOutlineColor,
+      subtitleShadow: subtitleShadow ?? this.subtitleShadow,
+      subtitleBold: subtitleBold ?? this.subtitleBold,
+      subtitleFontFamily: subtitleFontFamily ?? this.subtitleFontFamily,
+      subtitleBottomMargin: subtitleBottomMargin ?? this.subtitleBottomMargin,
+      secondarySubtitleTopMargin:
+          secondarySubtitleTopMargin ?? this.secondarySubtitleTopMargin,
+      subtitleRespectAss: subtitleRespectAss ?? this.subtitleRespectAss,
+      secondarySubtitleLanguage: identical(secondarySubtitleLanguage, _unset)
+          ? this.secondarySubtitleLanguage
+          : secondarySubtitleLanguage as String?,
     );
   }
 
@@ -451,6 +504,15 @@ class KivoSettings {
         'nightModeLevel': nightModeLevel,
         'voiceBoost': voiceBoost,
         'voiceBoostLevel': voiceBoostLevel,
+        'subtitleOutlineWidth': subtitleOutlineWidth,
+        'subtitleOutlineColor': subtitleOutlineColor,
+        'subtitleShadow': subtitleShadow,
+        'subtitleBold': subtitleBold,
+        'subtitleFontFamily': subtitleFontFamily,
+        'subtitleBottomMargin': subtitleBottomMargin,
+        'secondarySubtitleTopMargin': secondarySubtitleTopMargin,
+        'subtitleRespectAss': subtitleRespectAss,
+        'secondarySubtitleLanguage': secondarySubtitleLanguage,
       };
 
   factory KivoSettings.fromMap(Map<String, dynamic> m) {
@@ -530,6 +592,21 @@ class KivoSettings {
       nightModeLevel: m['nightModeLevel'] ?? d.nightModeLevel,
       voiceBoost: m['voiceBoost'] ?? d.voiceBoost,
       voiceBoostLevel: m['voiceBoostLevel'] ?? d.voiceBoostLevel,
+      // .toDouble(): JSON writes a whole 2.0 back as an int.
+      subtitleOutlineWidth:
+          (m['subtitleOutlineWidth'] ?? d.subtitleOutlineWidth).toDouble(),
+      subtitleOutlineColor: m['subtitleOutlineColor'] ?? d.subtitleOutlineColor,
+      subtitleShadow: m['subtitleShadow'] ?? d.subtitleShadow,
+      subtitleBold: m['subtitleBold'] ?? d.subtitleBold,
+      subtitleFontFamily: m['subtitleFontFamily'] ?? d.subtitleFontFamily,
+      subtitleBottomMargin:
+          (m['subtitleBottomMargin'] ?? d.subtitleBottomMargin).toDouble(),
+      secondarySubtitleTopMargin:
+          (m['secondarySubtitleTopMargin'] ?? d.secondarySubtitleTopMargin)
+              .toDouble(),
+      subtitleRespectAss: m['subtitleRespectAss'] ?? d.subtitleRespectAss,
+      secondarySubtitleLanguage:
+          m['secondarySubtitleLanguage'] ?? d.secondarySubtitleLanguage,
     );
   }
 }

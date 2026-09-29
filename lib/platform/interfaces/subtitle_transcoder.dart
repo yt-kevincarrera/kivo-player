@@ -28,4 +28,9 @@ abstract class SubtitleTranscoder {
 
   /// Every charset the system can decode, for the picker's "Más…".
   Future<List<String>> availableEncodings();
+
+  /// The one font libass may use (it has no font provider on Android): a
+  /// directory holding just that font, and its family name. Null when none
+  /// could be prepared — ASS is then drawn by Kivo instead.
+  Future<({String dir, String family})?> systemSubtitleFont();
 }

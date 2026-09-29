@@ -38,6 +38,7 @@ import 'gestures/player_gestures.dart';
 import 'gestures/ripple_overlay.dart';
 import 'hud/hud_overlay.dart';
 import 'seek/gesture_seek_preview.dart';
+import 'subtitles/subtitle_overlay.dart';
 import 'sleep/sleep_warning_toast.dart';
 import 'speed/speed_ladder_overlay.dart';
 import 'tracks/track_sync_hud.dart';
@@ -276,11 +277,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       }
     }
     final settings = ref.read(settingsProvider);
-    await engine.setSubtitleStyle(
-      fontSize: settings.subtitleFontSize,
-      textColorArgb: settings.subtitleTextColor,
-      backgroundColorArgb: settings.subtitleBackgroundColor,
-    );
     if (!expandingFromMini) {
       applyDefaultTracks(
           engine: engine, settings: settings, session: session,
@@ -585,6 +581,11 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                               // app-background by default, silently defeating
                               // background playback.
                               pauseUponEnteringBackgroundMode: false,
+                              // Kivo draws text subtitles itself
+                              // (SubtitleOverlay); media_kit's fixed-style
+                              // view would draw them a second time.
+                              subtitleViewConfiguration:
+                                  const SubtitleViewConfiguration(visible: false),
                             ),
                             // Cover the singleton texture's stale last-frame (the
                             // previous video) until the freshly-opened media decodes
@@ -616,6 +617,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                   child: Stack(
                     children: [
                       Positioned.fill(child: videoBox),
+                      // Also in PiP: a subtitled video stays subtitled there.
+                      const Positioned.fill(child: SubtitleOverlay()),
                       if (!ref.watch(pipModeProvider)) ...[
                         const Positioned.fill(child: PlayerGestures(child: SizedBox.expand())),
                         const Positioned.fill(child: RippleOverlay()),

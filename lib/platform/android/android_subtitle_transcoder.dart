@@ -30,6 +30,22 @@ class AndroidSubtitleTranscoder implements SubtitleTranscoder {
     }
   }
 
+  /// Best-effort: null only means libass gets no font, and ASS is drawn by
+  /// Kivo's overlay instead.
+  @override
+  Future<({String dir, String family})?> systemSubtitleFont() async {
+    try {
+      final raw = await _channel.invokeMethod<Map<dynamic, dynamic>>('systemFont');
+      final dir = raw?['dir'] as String?;
+      final family = raw?['family'] as String?;
+      if (dir == null || family == null) return null;
+      return (dir: dir, family: family);
+    } catch (e) {
+      _log.record(KivoFailure(KivoOp.subtitleLoad, e));
+      return null;
+    }
+  }
+
   /// Best-effort: an empty list just means "Más…" has nothing extra to show.
   @override
   Future<List<String>> availableEncodings() async {

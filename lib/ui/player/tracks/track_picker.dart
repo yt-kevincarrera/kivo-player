@@ -778,14 +778,8 @@ class _StyleSection extends ConsumerWidget {
       subtitleBackgroundColor:
           patch.backgroundColor ?? s.subtitleBackgroundColor,
     );
+    // Kivo's own overlay draws from the settings: nothing to push to mpv.
     ref.read(settingsProvider.notifier).set(updated);
-    ref
-        .read(playbackEngineProvider)
-        .setSubtitleStyle(
-          fontSize: updated.subtitleFontSize,
-          textColorArgb: updated.subtitleTextColor,
-          backgroundColorArgb: updated.subtitleBackgroundColor,
-        );
   }
 
   void _reset(WidgetRef ref) {
