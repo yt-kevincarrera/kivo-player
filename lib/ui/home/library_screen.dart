@@ -611,11 +611,6 @@ class _FilterChips extends StatelessWidget {
   /// selected do not need to spell themselves out to stay recognisable.
   /// "Todo" keeps its text always — it has no icon that would read as
   /// "everything" without one.
-  /// A chip with an [icon] carries its label only while it is the selected
-  /// one: four full-width chips ate the row, and the three that are not
-  /// selected do not need to spell themselves out to stay recognisable.
-  /// "Todo" keeps its text always — it has no icon that would read as
-  /// "everything" without one.
   Widget _chip(
     BuildContext context,
     ColorScheme cs,
@@ -635,6 +630,10 @@ class _FilterChips extends StatelessWidget {
           label: label,
           button: true,
           selected: active,
+          inMutuallyExclusiveGroup: true,
+          onTap: () => onChanged(i),
+          // The visible text (when shown) would read the label twice.
+          excludeSemantics: true,
           child: GestureDetector(
             onTap: () => onChanged(i),
             child: AnimatedContainer(
@@ -722,7 +721,9 @@ class _UnwatchedChip extends ConsumerWidget {
     return Semantics(
       label: context.l10n.libraryUnwatchedFilter,
       button: true,
-      selected: active,
+      toggled: active,
+      onTap: onTap,
+      excludeSemantics: true,
       child: GestureDetector(
         onTap: onTap,
         child: AnimatedContainer(

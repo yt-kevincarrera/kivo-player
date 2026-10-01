@@ -2229,4 +2229,102 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get libraryIncognitoOffSnackbar => 'Incognito mode off';
+
+  @override
+  String a11yHours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hours',
+      one: '1 hour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String a11yMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes',
+      one: '1 minute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String a11ySeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count seconds',
+      one: '1 second',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String a11yVideoProgress(int percent) {
+    return '$percent% watched';
+  }
+
+  @override
+  String a11yFolderLabel(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count videos',
+      one: '1 video',
+    );
+    return '$name, $_temp0';
+  }
+
+  @override
+  String get videoTileOptionsTooltip => 'Options';
+
+  @override
+  String get playerSurfaceLabel => 'Video';
+
+  @override
+  String get playerSurfaceTapHint => 'show or hide the controls';
+
+  @override
+  String get playerSeekBarLabel => 'Position';
+
+  @override
+  String playerSeekBarValue(String position, String total) {
+    return '$position of $total';
+  }
+
+  @override
+  String playerTotalTimeLabel(String time) {
+    return 'Length: $time';
+  }
+
+  @override
+  String playerRemainingTimeLabel(String time) {
+    return '$time left';
+  }
+
+  @override
+  String get playerTimeToggleHint => 'switch between length and time left';
+
+  @override
+  String get playerUnlockAction => 'Unlock screen';
+
+  @override
+  String get vaultPinBackspace => 'Delete last digit';
+
+  @override
+  String vaultPinProgress(int entered, int total) {
+    return '$entered of $total digits';
+  }
+
+  @override
+  String a11yZoomLabel(String value) {
+    return 'Zoom $value';
+  }
+
+  @override
+  String get a11yZoomResetHint => 'reset the zoom';
 }

@@ -1,3 +1,4 @@
+import 'package:kivo_player/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,11 +15,13 @@ void main() {
     final engine = FakePlaybackEngine();
     addTearDown(engine.dispose);
     final s = await SettingsService.load(InMemorySettingsStore());
-    final c = ProviderContainer(overrides: [
-      settingsServiceProvider.overrideWithValue(s),
-      playbackEngineProvider.overrideWithValue(engine),
-      frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
-    ]);
+    final c = ProviderContainer(
+      overrides: [
+        settingsServiceProvider.overrideWithValue(s),
+        playbackEngineProvider.overrideWithValue(engine),
+        frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
+      ],
+    );
     addTearDown(c.dispose);
 
     // Seed duration so the slider has a non-zero range.
@@ -30,10 +33,17 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 10));
     });
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: const MaterialApp(home: Scaffold(body: Center(child: SeekBar()))),
-    ));
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: c,
+        child: const MaterialApp(
+          locale: Locale('es'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: Center(child: SeekBar())),
+        ),
+      ),
+    );
     await tester.pump();
 
     // Show controls so they start visible.

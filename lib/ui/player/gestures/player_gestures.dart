@@ -7,6 +7,7 @@ import '../../../player/control/gesture_math.dart';
 import '../../../player/control/player_controller.dart';
 import '../../../player/engine/playback_provider.dart';
 import '../state/controls_visibility.dart';
+import '../../../l10n/l10n.dart';
 import '../state/dismiss_state.dart';
 import '../state/hud_state.dart';
 import '../state/lock_state.dart';
@@ -31,7 +32,8 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   bool _holdLeft = false;
   bool _holding = false; // true while a hold-to-speed long-press is active
   double? _lastHoldSpeed;
-  double _preHoldRate = 1.0; // selected rate before a hold — restored on release
+  double _preHoldRate =
+      1.0; // selected rate before a hold — restored on release
   double _holdStartY = 0;
   int _holdBaseIndex = 0;
   static const double _holdStepPx = 48.0;
@@ -41,7 +43,8 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   Duration _seekStart = Duration.zero;
   double _seekAccum = 0;
   double _rotateDy = 0; // accumulated vertical travel of a center-band drag
-  bool _dismissHaptic = false; // fired the threshold-crossing tick once this drag
+  bool _dismissHaptic =
+      false; // fired the threshold-crossing tick once this drag
   double _topInset = 0;
   double _bottomInset = 0;
 
@@ -72,14 +75,18 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   // count and dominant axis. `_intent` is null until the gesture has travelled
   // far enough to commit; see dragIntentFor.
   DragIntent? _intent;
-  Offset _start = Offset.zero; // where the gesture began — dead zones are positional
+  Offset _start =
+      Offset.zero; // where the gesture began — dead zones are positional
   Offset _accum = Offset.zero; // travel since the start
-  double _lastScale = 1.0; // previous ScaleUpdateDetails.scale, for the per-frame factor
+  double _lastScale =
+      1.0; // previous ScaleUpdateDetails.scale, for the per-frame factor
 
   Size get _viewport => Size(_width, _height);
 
   void _haptic() {
-    if (ref.read(settingsProvider).hapticsOnGestures) HapticFeedback.lightImpact();
+    if (ref.read(settingsProvider).hapticsOnGestures) {
+      HapticFeedback.lightImpact();
+    }
   }
 
   void _onDoubleTap() {
@@ -90,11 +97,15 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
       case TapZone.left:
         ctrl.skipBy(-st.doubleTapSkipLeft);
         _haptic();
-        ref.read(rippleControllerProvider).bump(left: true, seconds: st.doubleTapSkipLeft);
+        ref
+            .read(rippleControllerProvider)
+            .bump(left: true, seconds: st.doubleTapSkipLeft);
       case TapZone.right:
         ctrl.skipBy(st.doubleTapSkipRight);
         _haptic();
-        ref.read(rippleControllerProvider).bump(left: false, seconds: st.doubleTapSkipRight);
+        ref
+            .read(rippleControllerProvider)
+            .bump(left: false, seconds: st.doubleTapSkipRight);
       case TapZone.center:
         if (st.doubleTapCenterPause) {
           ctrl.togglePlayPause();
@@ -132,7 +143,10 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
     _intent = next;
     switch (next) {
       case DragIntent.brightness:
-        ref.read(deviceControlsProvider).currentBrightness().then((b) => _brightness = b);
+        ref
+            .read(deviceControlsProvider)
+            .currentBrightness()
+            .then((b) => _brightness = b);
       case DragIntent.volume:
         _volPct = ref.read(volumePercentProvider);
         _volCap = _volPct < 100 ? 100.0 : st.volumeBoostMax.toDouble();
@@ -180,7 +194,11 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
       case DragIntent.zoom:
         final factor = _lastScale == 0 ? 1.0 : d.scale / _lastScale;
         _lastScale = d.scale;
-        zoom.pinch(factor: factor, focal: d.localFocalPoint, viewport: _viewport);
+        zoom.pinch(
+          factor: factor,
+          focal: d.localFocalPoint,
+          viewport: _viewport,
+        );
         // Two fingers reframe as well, so a pinch can be aimed without lifting.
         zoom.panBy(d.focalPointDelta, _viewport);
       case DragIntent.pan:
@@ -188,25 +206,45 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
       case DragIntent.dismiss:
         // Drive dismiss progress live: clamp downward (0..1).
         final current = ref.read(dismissProvider);
-        final fraction = (current + d.focalPointDelta.dy / _height).clamp(0.0, 1.0);
+        final fraction = (current + d.focalPointDelta.dy / _height).clamp(
+          0.0,
+          1.0,
+        );
         ref.read(dismissProvider.notifier).state = fraction;
         if (!_dismissHaptic && fraction >= 0.25) {
           _dismissHaptic = true;
           _haptic(); // tick once when crossing the commit threshold
         }
       case DragIntent.rotate:
-        _rotateDy += d.focalPointDelta.dy; // accumulate; the rotate fires on end
+        _rotateDy +=
+            d.focalPointDelta.dy; // accumulate; the rotate fires on end
       case DragIntent.brightness:
-        _brightness =
-            dragValue(_brightness, d.focalPointDelta.dy, _height, st.brightnessSensitivity);
+        _brightness = dragValue(
+          _brightness,
+          d.focalPointDelta.dy,
+          _height,
+          st.brightnessSensitivity,
+        );
         ctrl.setBrightness(_brightness);
-        ref.read(hudProvider.notifier).show(
-            HudKind.brightness, _brightness, '${(_brightness * 100).round()}%');
+        ref
+            .read(hudProvider.notifier)
+            .show(
+              HudKind.brightness,
+              _brightness,
+              '${(_brightness * 100).round()}%',
+            );
       case DragIntent.volume:
         _volPct = dragVolumePercent(
-            _volPct, d.focalPointDelta.dy, _height, st.volumeSensitivity, _volCap);
+          _volPct,
+          d.focalPointDelta.dy,
+          _height,
+          st.volumeSensitivity,
+          _volCap,
+        );
         ctrl.setVolumePercent(_volPct);
-        ref.read(hudProvider.notifier).show(HudKind.volume, _volPct / 100, '${_volPct.round()}%');
+        ref
+            .read(hudProvider.notifier)
+            .show(HudKind.volume, _volPct / 100, '${_volPct.round()}%');
       case DragIntent.seek:
         if (!st.horizontalSeek) return;
         final total = ref.read(durationProvider).value ?? Duration.zero;
@@ -214,11 +252,18 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
         // a full-width drag at ms precision (× sensitivity).
         _seekAccum += d.focalPointDelta.dx;
         final target = horizontalSeekTarget(
-            start: _seekStart, accumPx: _seekAccum, widthPx: _width,
-            total: total, sensitivity: st.seekSensitivity);
+          start: _seekStart,
+          accumPx: _seekAccum,
+          widthPx: _width,
+          total: total,
+          sensitivity: st.seekSensitivity,
+        );
         // Preview, don't live-seek: the video stays put while a centered card
         // shows the target frame + delta; the seek lands on release.
-        ref.read(gestureSeekProvider.notifier).state = (target: target, from: _seekStart);
+        ref.read(gestureSeekProvider.notifier).state = (
+          target: target,
+          from: _seekStart,
+        );
         ref.read(seekPreviewControllerProvider).request(target);
     }
   }
@@ -310,7 +355,12 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
       return;
     }
     if (inVerticalDeadZone(
-        d.localPosition.dy, _height, _topInset, _bottomInset, kVerticalDeadMargin)) {
+      d.localPosition.dy,
+      _height,
+      _topInset,
+      _bottomInset,
+      kVerticalDeadMargin,
+    )) {
       _holding = false;
       return;
     }
@@ -330,7 +380,12 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
       _holdStartY = d.localPosition.dy;
       _holdBaseIndex = defaultHoldRightIndex(st.holdRightDetents);
       final v = holdRightSpeedFor(
-          _holdStartY, d.localPosition.dy, _holdStepPx, st.holdRightDetents, _holdBaseIndex);
+        _holdStartY,
+        d.localPosition.dy,
+        _holdStepPx,
+        st.holdRightDetents,
+        _holdBaseIndex,
+      );
       ctrl.setRate(v);
       ref.read(holdSpeedProvider.notifier).state = v;
       ref.read(holdSpeedIsLadderProvider.notifier).state = true;
@@ -347,10 +402,18 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
     if (_holdLeft) return;
     final st = ref.read(settingsProvider);
     final v = holdRightSpeedFor(
-        _holdStartY, d.localPosition.dy, _holdStepPx, st.holdRightDetents, _holdBaseIndex);
+      _holdStartY,
+      d.localPosition.dy,
+      _holdStepPx,
+      st.holdRightDetents,
+      _holdBaseIndex,
+    );
     ref.read(playerControllerProvider).setRate(v);
     ref.read(holdSpeedProvider.notifier).state = v;
-    if (v != _lastHoldSpeed) { _haptic(); _lastHoldSpeed = v; }
+    if (v != _lastHoldSpeed) {
+      _haptic();
+      _lastHoldSpeed = v;
+    }
   }
 
   void _onLongPressEnd(LongPressEndDetails d) {
@@ -373,6 +436,31 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
     _holding = false;
   }
 
+  bool? _assistive;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final on = MediaQuery.accessibleNavigationOf(context);
+    if (on == _assistive) return; // first run: _assistive is null
+    _assistive = on;
+    // Not during build: it changes a provider the controls are listening to.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.read(controlsVisibleProvider.notifier).setAssistive(on);
+    });
+  }
+
+  /// What a screen reader gets for the video area: one tap target that shows
+  /// or hides the controls. The swipes, double taps and holds stay with
+  /// touch; TalkBack has the buttons for all of them.
+  Widget _surface(BuildContext context, Widget child) => Semantics(
+    label: context.l10n.playerSurfaceLabel,
+    onTapHint: context.l10n.playerSurfaceTapHint,
+    onTap: () => ref.read(controlsVisibleProvider.notifier).toggle(),
+    excludeSemantics: true,
+    child: child,
+  );
+
   @override
   Widget build(BuildContext context) {
     final locked = ref.watch(lockProvider);
@@ -384,34 +472,40 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
         _width = constraints.maxWidth;
         _height = constraints.maxHeight;
         if (locked) {
-          return GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => ref.read(controlsVisibleProvider.notifier).toggle(),
-            child: widget.child,
+          return _surface(
+            context,
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => ref.read(controlsVisibleProvider.notifier).toggle(),
+              child: widget.child,
+            ),
           );
         }
-        return GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => ref.read(controlsVisibleProvider.notifier).toggle(),
-          onDoubleTapDown: (d) => _lastTapDx = d.localPosition.dx,
-          onDoubleTap: _onDoubleTap,
-          // One scale recognizer owns pinch, pan AND every one-finger drag —
-          // registering scale alongside both drag axes is a hard error.
-          onScaleStart: _onScaleStart,
-          onScaleUpdate: _onScaleUpdate,
-          onScaleEnd: _onScaleEnd,
-          onLongPressStart: _onLongPressStart,
-          onLongPressMoveUpdate: _onLongPressMove,
-          onLongPressEnd: _onLongPressEnd,
-          // A pointer cancelled mid-hold (system gesture, app switch): finish
-          // a subtitle move the same way a release would.
-          onLongPressCancel: () {
-            if (_subtitleDrag) {
-              _subtitleDrag = false;
-              _drag.end();
-            }
-          },
-          child: widget.child,
+        return _surface(
+          context,
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => ref.read(controlsVisibleProvider.notifier).toggle(),
+            onDoubleTapDown: (d) => _lastTapDx = d.localPosition.dx,
+            onDoubleTap: _onDoubleTap,
+            // One scale recognizer owns pinch, pan AND every one-finger drag —
+            // registering scale alongside both drag axes is a hard error.
+            onScaleStart: _onScaleStart,
+            onScaleUpdate: _onScaleUpdate,
+            onScaleEnd: _onScaleEnd,
+            onLongPressStart: _onLongPressStart,
+            onLongPressMoveUpdate: _onLongPressMove,
+            onLongPressEnd: _onLongPressEnd,
+            // A pointer cancelled mid-hold (system gesture, app switch): finish
+            // a subtitle move the same way a release would.
+            onLongPressCancel: () {
+              if (_subtitleDrag) {
+                _subtitleDrag = false;
+                _drag.end();
+              }
+            },
+            child: widget.child,
+          ),
         );
       },
     );

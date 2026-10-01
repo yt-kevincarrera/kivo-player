@@ -1,3 +1,4 @@
+import 'package:kivo_player/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,42 +12,61 @@ import 'package:kivo_player/ui/player/state/player_dismiss_state.dart';
 import '../../../fakes/fakes.dart';
 
 class NoopControls implements DeviceControls {
-  @override Future<double> currentBrightness() async => 0.5;
-  @override Future<void> setBrightness(double v) async {}
-  @override Future<double> currentVolume() async => 0.5;
-  @override Future<void> setSystemVolume(double v) async {}
-  @override Future<void> setOrientation(List<DeviceOrientationLock> o) async {}
-  @override Future<void> keepAwake(bool on) async {}
-  @override Future<void> setImmersive(bool on) async {}
-  @override Future<void> resetBrightness() async {}
-  @override Stream<double> get systemVolumeStream => const Stream<double>.empty();
-  @override Future<void> setVolumeKeyInterception(bool on) async {}
+  @override
+  Future<double> currentBrightness() async => 0.5;
+  @override
+  Future<void> setBrightness(double v) async {}
+  @override
+  Future<double> currentVolume() async => 0.5;
+  @override
+  Future<void> setSystemVolume(double v) async {}
+  @override
+  Future<void> setOrientation(List<DeviceOrientationLock> o) async {}
+  @override
+  Future<void> keepAwake(bool on) async {}
+  @override
+  Future<void> setImmersive(bool on) async {}
+  @override
+  Future<void> resetBrightness() async {}
+  @override
+  Stream<double> get systemVolumeStream => const Stream<double>.empty();
+  @override
+  Future<void> setVolumeKeyInterception(bool on) async {}
 }
 
 void main() {
-  testWidgets('a committed dismiss drag calls PlayerDismissApi.complete', (tester) async {
+  testWidgets('a committed dismiss drag calls PlayerDismissApi.complete', (
+    tester,
+  ) async {
     final engine = FakePlaybackEngine();
     addTearDown(engine.dispose);
     final s = await SettingsService.load(InMemorySettingsStore());
     var completed = 0;
     var cancelled = 0;
-    final c = ProviderContainer(overrides: [
-      settingsServiceProvider.overrideWithValue(s),
-      playbackEngineProvider.overrideWithValue(engine),
-      deviceControlsProvider.overrideWithValue(NoopControls()),
-    ]);
+    final c = ProviderContainer(
+      overrides: [
+        settingsServiceProvider.overrideWithValue(s),
+        playbackEngineProvider.overrideWithValue(engine),
+        deviceControlsProvider.overrideWithValue(NoopControls()),
+      ],
+    );
     addTearDown(c.dispose);
     c.read(playerDismissProvider.notifier).state = PlayerDismissApi(
       complete: () => completed++,
       cancel: () => cancelled++,
     );
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: const MaterialApp(
-        home: Scaffold(body: PlayerGestures(child: SizedBox.expand())),
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: c,
+        child: const MaterialApp(
+          locale: Locale('es'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: PlayerGestures(child: SizedBox.expand())),
+        ),
       ),
-    ));
+    );
 
     // Drag from left strip downward well past the 25% threshold.
     final size = tester.getSize(find.byType(PlayerGestures));
@@ -64,23 +84,30 @@ void main() {
     final s = await SettingsService.load(InMemorySettingsStore());
     var completed = 0;
     var cancelled = 0;
-    final c = ProviderContainer(overrides: [
-      settingsServiceProvider.overrideWithValue(s),
-      playbackEngineProvider.overrideWithValue(engine),
-      deviceControlsProvider.overrideWithValue(NoopControls()),
-    ]);
+    final c = ProviderContainer(
+      overrides: [
+        settingsServiceProvider.overrideWithValue(s),
+        playbackEngineProvider.overrideWithValue(engine),
+        deviceControlsProvider.overrideWithValue(NoopControls()),
+      ],
+    );
     addTearDown(c.dispose);
     c.read(playerDismissProvider.notifier).state = PlayerDismissApi(
       complete: () => completed++,
       cancel: () => cancelled++,
     );
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: const MaterialApp(
-        home: Scaffold(body: PlayerGestures(child: SizedBox.expand())),
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: c,
+        child: const MaterialApp(
+          locale: Locale('es'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: PlayerGestures(child: SizedBox.expand())),
+        ),
       ),
-    ));
+    );
 
     final size = tester.getSize(find.byType(PlayerGestures));
     final start = Offset(20, size.height * 0.5);

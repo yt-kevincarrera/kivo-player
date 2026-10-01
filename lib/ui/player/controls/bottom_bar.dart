@@ -23,14 +23,17 @@ class BottomBar extends ConsumerWidget {
     final rate = ref.watch(rateProvider);
     final mode = ref.watch(aspectModeProvider);
     final hasQueue = (ref.watch(currentVideoProvider)?.queue.length ?? 0) > 1;
-    final landscape = MediaQuery.orientationOf(context) == Orientation.landscape;
+    final landscape =
+        MediaQuery.orientationOf(context) == Orientation.landscape;
 
     const seek = Stack(
       clipBehavior: Clip.none,
       children: [
         SeekBar(),
         Positioned(
-          left: 0, right: 0, bottom: 28, // sit above the bar
+          left: 0,
+          right: 0,
+          bottom: 28, // sit above the bar
           child: SeekPreviewBubble(),
         ),
       ],
@@ -44,8 +47,10 @@ class BottomBar extends ConsumerWidget {
         message: l10n.playerSpeedTooltip,
         child: TextButton(
           onPressed: () => showSpeedPanel(context),
-          child: Text('${rate.toStringAsFixed(2)}x',
-              style: TextStyle(color: accent, fontWeight: FontWeight.w600)),
+          child: Text(
+            '${rate.toStringAsFixed(2)}x',
+            style: TextStyle(color: accent, fontWeight: FontWeight.w600),
+          ),
         ),
       ),
       IconButton(
@@ -54,7 +59,10 @@ class BottomBar extends ConsumerWidget {
         icon: KivoIcon(KivoIcons.lock, size: 24, color: Colors.white),
         onPressed: () {
           ref.read(lockProvider.notifier).lock();
-          ref.read(controlsVisibleProvider.notifier).hide();
+          final controls = ref.read(controlsVisibleProvider.notifier);
+          // Under TalkBack the unlock button has to stay on screen: hidden,
+          // it drops out of what the screen reader can reach.
+          if (!controls.assistive) controls.hide();
         },
       ),
       IconButton(
@@ -63,9 +71,9 @@ class BottomBar extends ConsumerWidget {
         icon: KivoIcon(aspectIconFor(mode), size: 24, color: Colors.white),
         onPressed: () {
           ref.read(aspectModeProvider.notifier).cycle();
-          ref.read(flashProvider.notifier).show(
-                aspectLabelFor(l10n, ref.read(aspectModeProvider)),
-              );
+          ref
+              .read(flashProvider.notifier)
+              .show(aspectLabelFor(l10n, ref.read(aspectModeProvider)));
         },
       ),
       IconButton(
@@ -96,11 +104,17 @@ class BottomBar extends ConsumerWidget {
         children: [
           const QueueStrip(),
           const SizedBox(height: 4),
-          Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: tools),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: tools,
+          ),
         ],
       );
     } else {
-      controlsArea = Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: tools);
+      controlsArea = Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: tools,
+      );
     }
 
     return Column(

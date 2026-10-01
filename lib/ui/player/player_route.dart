@@ -32,7 +32,10 @@ Widget playerTransition(
   // At rest: no wrappers, so the dismiss transforms in PlayerScreen are
   // undisturbed.
   if (animation.isCompleted) return child;
-  if (originRect == null || animation.status == AnimationStatus.reverse) {
+  // "Remove animations" (Accessibility settings): no flight from the tile.
+  if (originRect == null ||
+      animation.status == AnimationStatus.reverse ||
+      MediaQuery.disableAnimationsOf(context)) {
     return FadeTransition(opacity: animation, child: child);
   }
   return GrowFromRect(animation: animation, origin: originRect, child: child);

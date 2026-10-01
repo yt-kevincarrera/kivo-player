@@ -45,11 +45,18 @@ class FolderGrid extends ConsumerWidget {
       itemBuilder: (_, i) {
         final name = folders[i];
         final items = groups[name]!;
-        return GestureDetector(
-          onLongPress: () => showFolderOptionsSheet(context, ref, name),
-          child: PressBounce(
-            onTap: () => onOpenFolder(name, items),
-            child: _FolderCard(name: name, items: items, accent: accent),
+        return Semantics(
+          container: true,
+          button: true,
+          label: context.l10n.a11yFolderLabel(name, items.length),
+          child: GestureDetector(
+            onLongPress: () => showFolderOptionsSheet(context, ref, name),
+            child: PressBounce(
+              onTap: () => onOpenFolder(name, items),
+              child: ExcludeSemantics(
+                child: _FolderCard(name: name, items: items, accent: accent),
+              ),
+            ),
           ),
         );
       },

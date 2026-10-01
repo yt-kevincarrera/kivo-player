@@ -23,7 +23,13 @@ class _HoldToUnlockState extends State<HoldToUnlock> with SingleTickerProviderSt
   @override void dispose() { _c.dispose(); super.dispose(); }
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    // Holding is a touch gesture; TalkBack's double-tap unlocks straight away.
+    return Semantics(
+      button: true,
+      label: context.l10n.playerUnlockAction,
+      onTap: widget.onUnlock,
+      excludeSemantics: true,
+      child: GestureDetector(
       onLongPressStart: (_) { HapticFeedback.selectionClick(); _c.forward(from: 0); },
       onLongPressEnd: (_) => _c.reverse(),
       onLongPressCancel: () => _c.reverse(),
@@ -52,7 +58,7 @@ class _HoldToUnlockState extends State<HoldToUnlock> with SingleTickerProviderSt
               style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
         ]),
       ),
-    );
+    ));
   }
 }
 

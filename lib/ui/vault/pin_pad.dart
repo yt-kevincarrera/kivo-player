@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../l10n/l10n.dart';
 
 /// Numeric PIN entry. Calls [onComplete] when [length] digits are entered,
 /// then clears itself so the parent can show an error and let the user retry.
@@ -45,33 +46,58 @@ class _PinPadState extends State<PinPad> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(widget.title, style: TextStyle(color: cs.onSurface, fontSize: 17, fontWeight: FontWeight.w600)),
+        Text(
+          widget.title,
+          style: TextStyle(
+            color: cs.onSurface,
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         const SizedBox(height: 20),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(widget.length, (i) {
-            final filled = i < _pin.length;
-            return Container(
-              key: Key('pin-dot-$i'),
-              margin: const EdgeInsets.symmetric(horizontal: 8),
-              width: 14, height: 14,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: filled ? cs.secondary : Colors.transparent,
-                border: Border.all(color: cs.secondary, width: 2),
-              ),
-            );
-          }),
+        Semantics(
+          label: context.l10n.vaultPinProgress(_pin.length, widget.length),
+          liveRegion: true,
+          excludeSemantics: true,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(widget.length, (i) {
+              final filled = i < _pin.length;
+              return Container(
+                key: Key('pin-dot-$i'),
+                margin: const EdgeInsets.symmetric(horizontal: 8),
+                width: 14,
+                height: 14,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: filled ? cs.secondary : Colors.transparent,
+                  border: Border.all(color: cs.secondary, width: 2),
+                ),
+              );
+            }),
+          ),
         ),
         const SizedBox(height: 12),
         SizedBox(
           height: 20,
           child: widget.error == null
               ? null
-              : Text(widget.error!, style: TextStyle(color: cs.error, fontSize: 13)),
+              // A live region: the dots have just gone back to 0, and that
+              // alone does not tell a TalkBack user the PIN was wrong.
+              : Semantics(
+                  liveRegion: true,
+                  child: Text(
+                    widget.error!,
+                    style: TextStyle(color: cs.error, fontSize: 13),
+                  ),
+                ),
         ),
         const SizedBox(height: 12),
-        for (final row in const [['1','2','3'],['4','5','6'],['7','8','9']])
+        for (final row in const [
+          ['1', '2', '3'],
+          ['4', '5', '6'],
+          ['7', '8', '9'],
+        ])
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [for (final d in row) _key(cs, d)],
@@ -85,7 +111,11 @@ class _PinPadState extends State<PinPad> {
               width: 76,
               child: IconButton(
                 key: const Key('pin-backspace'),
-                icon: Icon(Icons.backspace_outlined, color: cs.onSurfaceVariant),
+                tooltip: context.l10n.vaultPinBackspace,
+                icon: Icon(
+                  Icons.backspace_outlined,
+                  color: cs.onSurfaceVariant,
+                ),
                 onPressed: _back,
               ),
             ),
@@ -96,12 +126,22 @@ class _PinPadState extends State<PinPad> {
   }
 
   Widget _key(ColorScheme cs, String d) => SizedBox(
-        width: 76, height: 66,
-        child: InkWell(
-          key: Key('pin-key-$d'),
-          borderRadius: BorderRadius.circular(40),
-          onTap: () => _tap(d),
-          child: Center(child: Text(d, style: TextStyle(color: cs.onSurface, fontSize: 26, fontWeight: FontWeight.w500))),
+    width: 76,
+    height: 66,
+    child: InkWell(
+      key: Key('pin-key-$d'),
+      borderRadius: BorderRadius.circular(40),
+      onTap: () => _tap(d),
+      child: Center(
+        child: Text(
+          d,
+          style: TextStyle(
+            color: cs.onSurface,
+            fontSize: 26,
+            fontWeight: FontWeight.w500,
+          ),
         ),
-      );
+      ),
+    ),
+  );
 }
