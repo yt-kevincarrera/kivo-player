@@ -1060,7 +1060,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAboutNavSubtitle => 'Version and updates';
 
   @override
-  String get settingsVaultNavSubtitle => 'Hidden videos';
+  String get settingsVaultNavSubtitle =>
+      'Hidden from the gallery · not encrypted';
 
   @override
   String get settingsResetAction => 'Reset';
@@ -2078,4 +2079,125 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playerTracksSecondaryHint => 'At the top of the screen';
+
+  @override
+  String get vaultHonestNotice =>
+      'The Vault hides your videos from the gallery and other apps, but doesn\'t encrypt them: someone with access to the phone\'s files could find them.';
+
+  @override
+  String vaultPinLockedError(String time) {
+    return 'Too many attempts. Try again in $time';
+  }
+
+  @override
+  String get settingsAboutReportProblem => 'Report a problem';
+
+  @override
+  String get settingsAboutReportProblemSubtitle =>
+      'You see the report before sending it';
+
+  @override
+  String get settingsAboutPrivacy => 'Privacy';
+
+  @override
+  String get settingsAboutPrivacySubtitle =>
+      'What leaves your phone: almost nothing';
+
+  @override
+  String get settingsAboutLicenses => 'Licenses';
+
+  @override
+  String get settingsAboutLicensesSubtitle => 'The free software Kivo runs on';
+
+  @override
+  String get reportTitle => 'Report a problem';
+
+  @override
+  String get reportDescribeHint => 'Tell what happened (optional)';
+
+  @override
+  String get reportPreviewLabel => 'This is everything that gets sent';
+
+  @override
+  String get reportPreviewHint =>
+      'Nothing leaves your phone until you send it, and you can still edit it in your email app.';
+
+  @override
+  String get reportSendEmail => 'Send by email';
+
+  @override
+  String get reportOpenGithub => 'Open on GitHub';
+
+  @override
+  String get reportCopy => 'Copy';
+
+  @override
+  String get reportCopiedSnackbar => 'Report copied';
+
+  @override
+  String get reportOpenFailedSnackbar => 'No app can open it. Use Copy.';
+
+  @override
+  String get privacyTitle => 'Privacy';
+
+  @override
+  String get privacyIntro =>
+      'Kivo has no ads, no trackers and no accounts. Your videos, what you watch and how you watch it stay on your phone.';
+
+  @override
+  String get privacyNetworkTitle => 'The only connection';
+
+  @override
+  String get privacyNetworkBody =>
+      'To look for updates, Kivo checks its releases on GitHub: once a day if automatic checking is on, or when you ask. If you accept an update, the APK is downloaded from there. GitHub sees your IP address, like any website you visit; nothing else is sent.';
+
+  @override
+  String get privacyReportsTitle => 'Problem reports';
+
+  @override
+  String get privacyReportsBody =>
+      'The error log is kept on your phone only. It leaves only if you send it from «Report a problem», and you see exactly what it contains first.';
+
+  @override
+  String get privacyBackupTitle => 'No cloud backup';
+
+  @override
+  String get privacyBackupBody =>
+      'Kivo doesn\'t let Android copy its data to your Google account. To take your settings, playlists and bookmarks to another phone, use Settings › Backup: you keep the file.';
+
+  @override
+  String get privacyPermissionsTitle => 'Permissions';
+
+  @override
+  String get privacyPermissionsBody =>
+      'Videos: to show them. All files (optional): to delete, rename and use the Vault without asking every time. Notifications: for the background playback controls. Install apps: to update itself. Fingerprint: to open the Vault, if you turn it on. Internet: only for the above.';
+
+  @override
+  String get playerTracksGroupText => 'Text';
+
+  @override
+  String get playerTracksGroupOutline => 'Outline and shadow';
+
+  @override
+  String get playerTracksGroupBackground => 'Background';
+
+  @override
+  String get playerTracksGroupPosition => 'Position';
+
+  @override
+  String get playerTracksGroupAss => '.ass files';
+
+  @override
+  String get playerTracksOutlineWidthLabel => 'Width';
+
+  @override
+  String get playerTracksPositionPrimaryLabel => 'Subtitle';
+
+  @override
+  String get playerTracksPositionDragHint =>
+      'You can also press and hold a subtitle on the video and move it with your finger.';
+
+  @override
+  String get reportGithubPublicHint =>
+      'GitHub issues are public: check the report has nothing you\'d rather not show.';
 }

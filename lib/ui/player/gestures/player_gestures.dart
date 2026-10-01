@@ -16,6 +16,7 @@ import '../state/zoom_state.dart';
 import '../seek/seek_preview.dart';
 import 'ripple_state.dart';
 import '../speed/speed_ladder_overlay.dart';
+import '../subtitles/subtitle_drag.dart';
 
 class PlayerGestures extends ConsumerStatefulWidget {
   final Widget child;
@@ -43,6 +44,27 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   bool _dismissHaptic = false; // fired the threshold-crossing tick once this drag
   double _topInset = 0;
   double _bottomInset = 0;
+
+  // A long press that landed on a subtitle line moves the line instead of
+  // changing speed. Cached: dispose() must not touch `ref`.
+  bool _subtitleDrag = false;
+  late final SubtitleDragNotifier _drag;
+  late final SubtitleHitTargets _subtitleTargets;
+
+  @override
+  void initState() {
+    super.initState();
+    _drag = ref.read(subtitleDragProvider.notifier);
+    _subtitleTargets = ref.read(subtitleHitTargetsProvider);
+  }
+
+  @override
+  void dispose() {
+    // Torn down mid-drag (minimize, back with another finger): save where the
+    // line is and resume playback — never leave the video paused.
+    if (_subtitleDrag) _drag.end();
+    super.dispose();
+  }
 
   // ── the drag state machine ───────────────────────────────────────────────
   // A pinch cannot coexist with two drag-axis recognizers (GestureDetector
@@ -278,6 +300,15 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   }
 
   void _onLongPressStart(LongPressStartDetails d) {
+    // Checked before the dead zones: a subtitle set close to the bottom edge
+    // sits inside one, and must still be movable.
+    final line = _subtitleTargets.lineAt(d.globalPosition);
+    if (line != null) {
+      _subtitleDrag = true;
+      _holding = false;
+      _drag.start(line, d.globalPosition.dy, _height);
+      return;
+    }
     if (inVerticalDeadZone(
         d.localPosition.dy, _height, _topInset, _bottomInset, kVerticalDeadMargin)) {
       _holding = false;
@@ -309,6 +340,10 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   }
 
   void _onLongPressMove(LongPressMoveUpdateDetails d) {
+    if (_subtitleDrag) {
+      _drag.update(d.globalPosition.dy);
+      return;
+    }
     if (_holdLeft) return;
     final st = ref.read(settingsProvider);
     final v = holdRightSpeedFor(
@@ -319,6 +354,11 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   }
 
   void _onLongPressEnd(LongPressEndDetails d) {
+    if (_subtitleDrag) {
+      _subtitleDrag = false;
+      _drag.end();
+      return;
+    }
     // A long-press that began in a dead zone never engaged (_holding stays
     // false); Flutter still delivers End, so bail before touching the rate.
     if (!_holding) return;
@@ -363,6 +403,14 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
           onLongPressStart: _onLongPressStart,
           onLongPressMoveUpdate: _onLongPressMove,
           onLongPressEnd: _onLongPressEnd,
+          // A pointer cancelled mid-hold (system gesture, app switch): finish
+          // a subtitle move the same way a release would.
+          onLongPressCancel: () {
+            if (_subtitleDrag) {
+              _subtitleDrag = false;
+              _drag.end();
+            }
+          },
           child: widget.child,
         );
       },

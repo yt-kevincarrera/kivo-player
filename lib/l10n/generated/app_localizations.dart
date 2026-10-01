@@ -1799,7 +1799,7 @@ abstract class AppLocalizations {
   /// Subtítulo de la fila «Vault» en la pantalla raíz de Ajustes.
   ///
   /// In es, this message translates to:
-  /// **'Videos ocultos'**
+  /// **'Videos ocultos de la galería · sin cifrar'**
   String get settingsVaultNavSubtitle;
 
   /// Botón corto de restablecer, reutilizado como confirmación del diálogo de restablecer todos los ajustes y como acción de restablecer la curva del ecualizador.
@@ -3559,6 +3559,222 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Arriba de la pantalla'**
   String get playerTracksSecondaryHint;
+
+  /// Aviso honesto bajo el teclado al crear el PIN del Vault y en la pantalla del Vault: qué protege y qué no.
+  ///
+  /// In es, this message translates to:
+  /// **'El Vault oculta tus videos de la galería y de otras apps, pero no los cifra: alguien con acceso a los archivos del teléfono podría encontrarlos.'**
+  String get vaultHonestNotice;
+
+  /// Error bajo el PinPad mientras el Vault está bloqueado por intentos fallidos; {time} es la cuenta atrás ya formateada (m:ss).
+  ///
+  /// In es, this message translates to:
+  /// **'Demasiados intentos. Prueba de nuevo en {time}'**
+  String vaultPinLockedError(String time);
+
+  /// Fila de Ajustes › Acerca de que abre el informe de problemas.
+  ///
+  /// In es, this message translates to:
+  /// **'Reportar un problema'**
+  String get settingsAboutReportProblem;
+
+  /// Subtítulo de «Reportar un problema».
+  ///
+  /// In es, this message translates to:
+  /// **'Ves el informe antes de enviarlo'**
+  String get settingsAboutReportProblemSubtitle;
+
+  /// Fila de Ajustes › Acerca de que abre la página de privacidad.
+  ///
+  /// In es, this message translates to:
+  /// **'Privacidad'**
+  String get settingsAboutPrivacy;
+
+  /// Subtítulo de «Privacidad».
+  ///
+  /// In es, this message translates to:
+  /// **'Qué sale de tu teléfono: casi nada'**
+  String get settingsAboutPrivacySubtitle;
+
+  /// Fila de Ajustes › Acerca de que abre las licencias de las bibliotecas.
+  ///
+  /// In es, this message translates to:
+  /// **'Licencias'**
+  String get settingsAboutLicenses;
+
+  /// Subtítulo de «Licencias».
+  ///
+  /// In es, this message translates to:
+  /// **'El software libre que hace funcionar Kivo'**
+  String get settingsAboutLicensesSubtitle;
+
+  /// Título de la pantalla del informe de problemas.
+  ///
+  /// In es, this message translates to:
+  /// **'Reportar un problema'**
+  String get reportTitle;
+
+  /// Pista del campo de texto para describir el problema.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuenta qué pasó (opcional)'**
+  String get reportDescribeHint;
+
+  /// Eyebrow sobre la vista previa del informe.
+  ///
+  /// In es, this message translates to:
+  /// **'Esto es todo lo que se envía'**
+  String get reportPreviewLabel;
+
+  /// Texto bajo la vista previa del informe.
+  ///
+  /// In es, this message translates to:
+  /// **'Nada sale de tu teléfono hasta que tú lo envíes, y en tu app de correo aún puedes editarlo.'**
+  String get reportPreviewHint;
+
+  /// Botón que abre la app de correo con el informe.
+  ///
+  /// In es, this message translates to:
+  /// **'Enviar por correo'**
+  String get reportSendEmail;
+
+  /// Botón que abre una incidencia nueva en GitHub con el informe (requiere cuenta de GitHub).
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir en GitHub'**
+  String get reportOpenGithub;
+
+  /// Botón que copia el informe al portapapeles.
+  ///
+  /// In es, this message translates to:
+  /// **'Copiar'**
+  String get reportCopy;
+
+  /// Aviso tras copiar el informe.
+  ///
+  /// In es, this message translates to:
+  /// **'Informe copiado'**
+  String get reportCopiedSnackbar;
+
+  /// Aviso cuando no hay app de correo o navegador para abrir el informe.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay ninguna app para abrirlo. Usa Copiar.'**
+  String get reportOpenFailedSnackbar;
+
+  /// Título de la página de privacidad.
+  ///
+  /// In es, this message translates to:
+  /// **'Privacidad'**
+  String get privacyTitle;
+
+  /// Párrafo inicial de la página de privacidad.
+  ///
+  /// In es, this message translates to:
+  /// **'Kivo no tiene anuncios, ni rastreadores, ni cuentas. Tus videos, lo que ves y cómo lo ves se quedan en tu teléfono.'**
+  String get privacyIntro;
+
+  /// Encabezado de la sección sobre la red.
+  ///
+  /// In es, this message translates to:
+  /// **'La única conexión'**
+  String get privacyNetworkTitle;
+
+  /// Cuerpo de «La única conexión».
+  ///
+  /// In es, this message translates to:
+  /// **'Para buscar actualizaciones, Kivo consulta sus versiones en GitHub: una vez al día si la búsqueda automática está activada, o cuando la pides tú. Si aceptas una actualización, el APK se descarga de allí. GitHub ve tu dirección IP, como cualquier web que visitas; no se envía nada más.'**
+  String get privacyNetworkBody;
+
+  /// Encabezado de la sección sobre el registro de errores.
+  ///
+  /// In es, this message translates to:
+  /// **'Informes de problemas'**
+  String get privacyReportsTitle;
+
+  /// Cuerpo de «Informes de problemas».
+  ///
+  /// In es, this message translates to:
+  /// **'El registro de errores se guarda solo en tu teléfono. Sale únicamente si tú lo envías desde «Reportar un problema», y antes ves exactamente lo que contiene.'**
+  String get privacyReportsBody;
+
+  /// Encabezado de la sección sobre copias de seguridad.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin copia en la nube'**
+  String get privacyBackupTitle;
+
+  /// Cuerpo de «Sin copia en la nube».
+  ///
+  /// In es, this message translates to:
+  /// **'Kivo no deja que Android copie sus datos a tu cuenta de Google. Para llevarte tus ajustes, listas y marcadores a otro teléfono, usa Ajustes › Copia de seguridad: el archivo lo guardas tú.'**
+  String get privacyBackupBody;
+
+  /// Encabezado de la sección sobre permisos.
+  ///
+  /// In es, this message translates to:
+  /// **'Permisos'**
+  String get privacyPermissionsTitle;
+
+  /// Cuerpo de «Permisos»: qué permiso es para qué.
+  ///
+  /// In es, this message translates to:
+  /// **'Videos: para mostrarlos. Todos los archivos (opcional): para borrar, renombrar y usar el Vault sin preguntar cada vez. Notificaciones: para los controles de reproducción en segundo plano. Instalar apps: para actualizarse. Huella: para abrir el Vault, si lo activas. Internet: solo para lo anterior.'**
+  String get privacyPermissionsBody;
+
+  /// Grupo de la pestaña Estilo: tamaño, fuente, color y negrita.
+  ///
+  /// In es, this message translates to:
+  /// **'Texto'**
+  String get playerTracksGroupText;
+
+  /// Grupo de la pestaña Estilo: grosor y color del contorno, sombra.
+  ///
+  /// In es, this message translates to:
+  /// **'Contorno y sombra'**
+  String get playerTracksGroupOutline;
+
+  /// Grupo de la pestaña Estilo: fondo detrás del texto.
+  ///
+  /// In es, this message translates to:
+  /// **'Fondo'**
+  String get playerTracksGroupBackground;
+
+  /// Grupo de la pestaña Estilo: dónde se colocan el subtítulo y el segundo subtítulo.
+  ///
+  /// In es, this message translates to:
+  /// **'Posición'**
+  String get playerTracksGroupPosition;
+
+  /// Grupo de la pestaña Estilo: cómo se muestran los subtítulos ASS/SSA.
+  ///
+  /// In es, this message translates to:
+  /// **'Archivos .ass'**
+  String get playerTracksGroupAss;
+
+  /// Etiqueta del deslizador de grosor del contorno.
+  ///
+  /// In es, this message translates to:
+  /// **'Grosor'**
+  String get playerTracksOutlineWidthLabel;
+
+  /// Etiqueta del deslizador de distancia del subtítulo al borde inferior.
+  ///
+  /// In es, this message translates to:
+  /// **'Subtítulo'**
+  String get playerTracksPositionPrimaryLabel;
+
+  /// Pista bajo los deslizadores de posición.
+  ///
+  /// In es, this message translates to:
+  /// **'También puedes mantener pulsado un subtítulo en el video y moverlo con el dedo.'**
+  String get playerTracksPositionDragHint;
+
+  /// Aviso bajo el botón «Abrir en GitHub».
+  ///
+  /// In es, this message translates to:
+  /// **'Las incidencias de GitHub son públicas: revisa que el informe no tenga nada que no quieras mostrar.'**
+  String get reportGithubPublicHint;
 }
 
 class _AppLocalizationsDelegate

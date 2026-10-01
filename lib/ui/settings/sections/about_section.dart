@@ -10,6 +10,8 @@ import '../../update/update_dialog.dart';
 import '../../widgets/failure_snack_bar.dart';
 import '../widgets/setting_tiles.dart';
 import 'error_log_section.dart';
+import 'privacy_section.dart';
+import 'problem_report_screen.dart';
 
 class AboutSection extends ConsumerStatefulWidget {
   const AboutSection({super.key});
@@ -190,12 +192,46 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
           SettingsCard(
             children: [
               SettingNavRow(
+                icon: Icons.support_agent_outlined,
+                title: l10n.settingsAboutReportProblem,
+                subtitle: l10n.settingsAboutReportProblemSubtitle,
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const ProblemReportScreen()),
+                ),
+              ),
+              SettingNavRow(
                 icon: Icons.bug_report_outlined,
                 title: l10n.settingsAboutErrorLogTitle,
                 subtitle: l10n.settingsAboutErrorLogSubtitle,
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const ErrorLogSection()),
                 ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SettingsCard(
+            children: [
+              SettingNavRow(
+                icon: Icons.privacy_tip_outlined,
+                title: l10n.settingsAboutPrivacy,
+                subtitle: l10n.settingsAboutPrivacySubtitle,
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const PrivacySection()),
+                ),
+              ),
+              SettingNavRow(
+                icon: Icons.description_outlined,
+                title: l10n.settingsAboutLicenses,
+                subtitle: l10n.settingsAboutLicensesSubtitle,
+                onTap: () async {
+                  final version = await _versionFuture;
+                  if (!context.mounted) return;
+                  showLicensePage(
+                      context: context,
+                      applicationName: 'Kivo',
+                      applicationVersion: version);
+                },
               ),
             ],
           ),

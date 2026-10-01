@@ -617,10 +617,14 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                   child: Stack(
                     children: [
                       Positioned.fill(child: videoBox),
-                      // Also in PiP: a subtitled video stays subtitled there.
+                      if (!ref.watch(pipModeProvider))
+                        const Positioned.fill(child: PlayerGestures(child: SizedBox.expand())),
+                      // Above the gestures so a long press on the text can pick
+                      // it up (only the text itself takes touches; everywhere
+                      // else falls through), below the controls. Also in PiP:
+                      // a subtitled video stays subtitled there.
                       const Positioned.fill(child: SubtitleOverlay()),
                       if (!ref.watch(pipModeProvider)) ...[
-                        const Positioned.fill(child: PlayerGestures(child: SizedBox.expand())),
                         const Positioned.fill(child: RippleOverlay()),
                         const Positioned.fill(child: ControlsOverlay()),
                         const Positioned.fill(child: InfoOverlay()),

@@ -23,6 +23,15 @@ class AndroidAppInstaller implements AppInstaller {
   }
 
   @override
+  Future<String> deviceModel() async {
+    try {
+      return (await _channel.invokeMethod<String>('deviceModel')) ?? '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  @override
   Future<int> androidSdk() async {
     try {
       return (await _channel.invokeMethod<int>('androidSdk')) ?? 0;
@@ -92,9 +101,13 @@ class AndroidAppInstaller implements AppInstaller {
   }
 
   @override
-  Future<void> openUrl(String url) async {
+  Future<bool> openUrl(String url) async {
     try {
       await _channel.invokeMethod<void>('openUrl', {'url': url});
-    } catch (_) {/* fire-and-forget */}
+      return true;
+    } catch (_) {
+      // ActivityNotFoundException surfaces as OPEN_FAILED: nothing to open it.
+      return false;
+    }
   }
 }

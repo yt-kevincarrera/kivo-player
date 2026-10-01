@@ -139,6 +139,9 @@ class _TrackPickerSheetState extends ConsumerState<_TrackPickerSheet> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     header,
+                    // Outside the scroll: the sample must stay in sight
+                    // while any option below is being adjusted.
+                    if (showStyle) const _StylePreview(),
                     Expanded(child: SingleChildScrollView(child: body)),
                   ],
                 ),
@@ -779,15 +782,37 @@ class _TrackCard extends StatelessWidget {
   }
 }
 
-class KivoSettingsPatch {
-  final double? fontSize;
-  final int? textColor;
-  final int? backgroundColor;
-  const KivoSettingsPatch({
-    this.fontSize,
-    this.textColor,
-    this.backgroundColor,
-  });
+/// The Estilo preview, pinned above the scrolling options: whatever is being
+/// adjusted, the sample stays in sight and changes as the finger moves. It is
+/// the overlay's own widget, at the preview's scale — what shows here is what
+/// shows over the video.
+class _StylePreview extends ConsumerWidget {
+  const _StylePreview();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = ref.watch(settingsProvider);
+    return Container(
+      key: const Key('style-preview'),
+      height: 96,
+      margin: const EdgeInsets.only(top: 4, bottom: 10),
+      alignment: Alignment.bottomCenter,
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(13),
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF26324A), Color(0xFF070A12)],
+        ),
+      ),
+      child: SubtitleText(
+        text: context.l10n.playerTracksStylePreviewSample,
+        settings: s,
+        scale: 0.62,
+      ),
+    );
+  }
 }
 
 class _StyleSection extends ConsumerWidget {
@@ -800,170 +825,238 @@ class _StyleSection extends ConsumerWidget {
     0xFF2D6CFF,
     0xFFE8B84B,
   ];
+  static const _outlineSwatches = [
+    0xFF000000,
+    0xFFFFFFFF,
+    0xFF3A3A3A,
+    0xFF1B2A4A,
+  ];
   List<({int value, String label})> _bgSwatches(AppLocalizations l10n) => [
         (value: 0x00000000, label: l10n.playerTracksBgTransparent),
         (value: 0xFF000000, label: l10n.playerTracksBgBlack),
         (value: 0xFFFFFFFF, label: l10n.playerTracksBgWhite),
       ];
 
-  void _apply(WidgetRef ref, KivoSettingsPatch patch) {
-    final s = ref.read(settingsProvider);
-    final updated = s.copyWith(
-      subtitleFontSize: patch.fontSize ?? s.subtitleFontSize,
-      subtitleTextColor: patch.textColor ?? s.subtitleTextColor,
-      subtitleBackgroundColor:
-          patch.backgroundColor ?? s.subtitleBackgroundColor,
-    );
-    // Kivo's own overlay draws from the settings: nothing to push to mpv.
-    ref.read(settingsProvider.notifier).set(updated);
+  void _set(WidgetRef ref, KivoSettings Function(KivoSettings) f) {
+    // Kivo's own overlay (and the pinned preview) draw from the settings:
+    // nothing to push to mpv.
+    ref.read(settingsProvider.notifier).set(f(ref.read(settingsProvider)));
   }
 
   void _reset(WidgetRef ref) {
     final d = KivoSettings.defaults();
-    ref.read(settingsProvider.notifier).set(ref.read(settingsProvider).copyWith(
-          subtitleFontSize: d.subtitleFontSize,
-          subtitleTextColor: d.subtitleTextColor,
-          subtitleBackgroundColor: d.subtitleBackgroundColor,
-          subtitleOutlineWidth: d.subtitleOutlineWidth,
-          subtitleOutlineColor: d.subtitleOutlineColor,
-          subtitleShadow: d.subtitleShadow,
-          subtitleBold: d.subtitleBold,
-          subtitleFontFamily: d.subtitleFontFamily,
-          subtitleBottomMargin: d.subtitleBottomMargin,
-          secondarySubtitleTopMargin: d.secondarySubtitleTopMargin,
-          subtitleRespectAss: d.subtitleRespectAss,
-        ));
+    _set(
+        ref,
+        (s) => s.copyWith(
+              subtitleFontSize: d.subtitleFontSize,
+              subtitleTextColor: d.subtitleTextColor,
+              subtitleBackgroundColor: d.subtitleBackgroundColor,
+              subtitleOutlineWidth: d.subtitleOutlineWidth,
+              subtitleOutlineColor: d.subtitleOutlineColor,
+              subtitleShadow: d.subtitleShadow,
+              subtitleBold: d.subtitleBold,
+              subtitleFontFamily: d.subtitleFontFamily,
+              subtitleBottomMargin: d.subtitleBottomMargin,
+              secondarySubtitleTopMargin: d.secondarySubtitleTopMargin,
+              subtitleRespectAss: d.subtitleRespectAss,
+            ));
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(settingsProvider);
     final accent = Color(s.accentColor);
-    final fontSize = s.subtitleFontSize.clamp(16, 48);
     final l10n = context.l10n;
+    final fontSize = s.subtitleFontSize.clamp(16, 48).toDouble();
+    final fonts = [
+      ('default', l10n.playerTracksFontDefault),
+      ('serif', l10n.playerTracksFontSerif),
+      ('mono', l10n.playerTracksFontMono),
+      ('condensed', l10n.playerTracksFontCondensed),
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Live preview (WYSIWYG: see SubtitleText below).
-        Container(
-          height: 110,
-          margin: const EdgeInsets.only(top: 4, bottom: 4),
-          alignment: Alignment.bottomCenter,
-          padding: const EdgeInsets.only(bottom: 14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(13),
-            gradient: const LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFF182338), Color(0xFF070A12)],
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            // The overlay's own widget, at the preview's scale: what shows
-            // here is what shows over the video.
-            child: SubtitleText(
-              text: l10n.playerTracksStylePreviewSample,
-              settings: s,
-              scale: 0.62,
-            ),
-          ),
-        ),
-        _SectionEyebrow(label: l10n.playerTracksSizeLabel),
-        Row(
-          children: [
-            // 'A' here is the size-adjust glyph (small/large), not language —
-            // same call as the ab-loop popover's 'A'/'B' markers.
-            _StepButton(
-              label: 'A',
-              small: true,
-              onTap: () => _apply(
-                ref,
-                KivoSettingsPatch(
-                  fontSize: (fontSize.toDouble() - 2).clamp(16, 48),
-                ),
+        _StyleGroup(title: l10n.playerTracksGroupText, children: [
+          _RowLabel(l10n.playerTracksSizeLabel),
+          Row(
+            children: [
+              // The size-adjust glyph (small/large), not a language.
+              _StepButton(
+                label: 'A',
+                small: true,
+                onTap: () => _set(
+                    ref,
+                    (x) => x.copyWith(
+                        subtitleFontSize: (fontSize - 2).clamp(16, 48))),
               ),
-            ),
-            Expanded(
-              child: SliderTheme(
-                data: SliderTheme.of(context).copyWith(
-                  activeTrackColor: accent,
-                  inactiveTrackColor: Colors.white.withValues(alpha: 0.14),
-                  thumbColor: accent,
-                  overlayColor: accent.withValues(alpha: 0.15),
-                ),
-                child: Slider(
+              Expanded(
+                child: _StyleSlider(
+                  value: fontSize,
                   min: 16,
                   max: 48,
-                  value: fontSize.toDouble(),
-                  onChanged: (v) => _apply(ref, KivoSettingsPatch(fontSize: v)),
-                ),
-              ),
-            ),
-            _StepButton(
-              label: 'A',
-              small: false,
-              onTap: () => _apply(
-                ref,
-                KivoSettingsPatch(
-                  fontSize: (fontSize.toDouble() + 2).clamp(16, 48),
-                ),
-              ),
-            ),
-            SizedBox(
-              width: 30,
-              child: Text(
-                fontSize.round().toString(),
-                textAlign: TextAlign.right,
-                style: TextStyle(
-                  color: accent,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-          ],
-        ),
-        _SectionEyebrow(label: l10n.playerTracksTextColorLabel),
-        Row(
-          children: [
-            for (final c in _textSwatches)
-              Padding(
-                padding: const EdgeInsets.only(right: 10),
-                child: _ColorSquare(
-                  color: c,
-                  active: s.subtitleTextColor == c,
+                  divisions: 32,
                   accent: accent,
-                  onTap: () => _apply(ref, KivoSettingsPatch(textColor: c)),
+                  valueLabel: fontSize.round().toString(),
+                  valueWidth: 30,
+                  onChanged: (v) =>
+                      _set(ref, (x) => x.copyWith(subtitleFontSize: v)),
                 ),
               ),
-          ],
-        ),
-        _SectionEyebrow(label: l10n.playerTracksBackgroundColorLabel),
-        Row(
-          children: [
-            for (final bg in _bgSwatches(l10n))
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: _BackgroundChip(
-                    background: bg.value,
-                    label: bg.label,
-                    textColor: s.subtitleTextColor,
-                    active: s.subtitleBackgroundColor == bg.value,
-                    accent: accent,
-                    onTap: () => _apply(
-                      ref,
-                      KivoSettingsPatch(backgroundColor: bg.value),
+              _StepButton(
+                label: 'A',
+                small: false,
+                onTap: () => _set(
+                    ref,
+                    (x) => x.copyWith(
+                        subtitleFontSize: (fontSize + 2).clamp(16, 48))),
+              ),
+            ],
+          ),
+          _RowLabel(l10n.playerTracksFontLabel),
+          Row(
+            children: [
+              for (final (id, label) in fonts)
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: _FontChip(
+                      label: label,
+                      family: subtitleFontFamily(id),
+                      active: s.subtitleFontFamily == id,
+                      accent: accent,
+                      onTap: () =>
+                          _set(ref, (x) => x.copyWith(subtitleFontFamily: id)),
                     ),
                   ),
                 ),
-              ),
+            ],
+          ),
+          _RowLabel(l10n.playerTracksTextColorLabel),
+          Row(
+            children: [
+              for (final c in _textSwatches)
+                Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: _ColorSquare(
+                    color: c,
+                    active: s.subtitleTextColor == c,
+                    accent: accent,
+                    onTap: () =>
+                        _set(ref, (x) => x.copyWith(subtitleTextColor: c)),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          _StyleSwitch(
+            label: l10n.playerTracksBoldLabel,
+            value: s.subtitleBold,
+            accent: accent,
+            onChanged: (v) => _set(ref, (x) => x.copyWith(subtitleBold: v)),
+          ),
+        ]),
+        _StyleGroup(title: l10n.playerTracksGroupOutline, children: [
+          _RowLabel(l10n.playerTracksOutlineWidthLabel),
+          _StyleSlider(
+            value: s.subtitleOutlineWidth,
+            min: 0,
+            max: 5,
+            divisions: 10,
+            accent: accent,
+            valueLabel: s.subtitleOutlineWidth == 0
+                ? l10n.playerTracksOutlineNone
+                : s.subtitleOutlineWidth.toStringAsFixed(1),
+            onChanged: (v) =>
+                _set(ref, (x) => x.copyWith(subtitleOutlineWidth: v)),
+          ),
+          if (s.subtitleOutlineWidth > 0) ...[
+            _RowLabel(l10n.playerTracksOutlineColorLabel),
+            Row(
+              children: [
+                for (final c in _outlineSwatches)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 10),
+                    child: _ColorSquare(
+                      color: c,
+                      active: s.subtitleOutlineColor == c,
+                      accent: accent,
+                      onTap: () => _set(
+                          ref, (x) => x.copyWith(subtitleOutlineColor: c)),
+                    ),
+                  ),
+              ],
+            ),
           ],
-        ),
-        const _StyleExtras(),
-        const SizedBox(height: 18),
+          const SizedBox(height: 6),
+          _StyleSwitch(
+            label: l10n.playerTracksShadowLabel,
+            value: s.subtitleShadow,
+            accent: accent,
+            onChanged: (v) => _set(ref, (x) => x.copyWith(subtitleShadow: v)),
+          ),
+        ]),
+        _StyleGroup(title: l10n.playerTracksGroupBackground, children: [
+          Row(
+            children: [
+              for (final bg in _bgSwatches(l10n))
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: _BackgroundChip(
+                      background: bg.value,
+                      label: bg.label,
+                      textColor: s.subtitleTextColor,
+                      active: s.subtitleBackgroundColor == bg.value,
+                      accent: accent,
+                      onTap: () => _set(ref,
+                          (x) => x.copyWith(subtitleBackgroundColor: bg.value)),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ]),
+        _StyleGroup(title: l10n.playerTracksGroupPosition, children: [
+          _RowLabel(l10n.playerTracksPositionPrimaryLabel),
+          _StyleSlider(
+            value: s.subtitleBottomMargin,
+            min: 0,
+            max: 40,
+            divisions: 40,
+            accent: accent,
+            valueLabel:
+                l10n.playerTracksPositionValue(s.subtitleBottomMargin.round()),
+            onChanged: (v) =>
+                _set(ref, (x) => x.copyWith(subtitleBottomMargin: v)),
+          ),
+          _RowLabel(l10n.playerTracksSectionSecondary),
+          _StyleSlider(
+            value: s.secondarySubtitleTopMargin,
+            min: 0,
+            max: 40,
+            divisions: 40,
+            accent: accent,
+            valueLabel: l10n
+                .playerTracksPositionValue(s.secondarySubtitleTopMargin.round()),
+            onChanged: (v) =>
+                _set(ref, (x) => x.copyWith(secondarySubtitleTopMargin: v)),
+          ),
+          _Hint(l10n.playerTracksPositionDragHint),
+        ]),
+        _StyleGroup(title: l10n.playerTracksGroupAss, children: [
+          _StyleSwitch(
+            label: l10n.playerTracksRespectAss,
+            hint: l10n.playerTracksRespectAssHint,
+            value: s.subtitleRespectAss,
+            accent: accent,
+            onChanged: (v) =>
+                _set(ref, (x) => x.copyWith(subtitleRespectAss: v)),
+          ),
+          _Hint(l10n.playerTracksPictureSubsNote),
+        ]),
+        const SizedBox(height: 8),
         Center(
           child: TextButton.icon(
             style: TextButton.styleFrom(foregroundColor: accent),

@@ -1636,7 +1636,7 @@
     "description": "Subtítulo de la fila «Acerca de» en la pantalla raíz de Ajustes."
   },
 
-  "settingsVaultNavSubtitle": "Videos ocultos",
+  "settingsVaultNavSubtitle": "Videos ocultos de la galería · sin cifrar",
   "@settingsVaultNavSubtitle": {
     "description": "Subtítulo de la fila «Vault» en la pantalla raíz de Ajustes."
   },
@@ -3243,5 +3243,190 @@
   "playerTracksSecondaryHint": "Arriba de la pantalla",
   "@playerTracksSecondaryHint": {
     "description": "Texto bajo una pista elegible como segundo subtítulo."
+  },
+
+  "vaultHonestNotice": "El Vault oculta tus videos de la galería y de otras apps, pero no los cifra: alguien con acceso a los archivos del teléfono podría encontrarlos.",
+  "@vaultHonestNotice": {
+    "description": "Aviso honesto bajo el teclado al crear el PIN del Vault y en la pantalla del Vault: qué protege y qué no."
+  },
+
+  "vaultPinLockedError": "Demasiados intentos. Prueba de nuevo en {time}",
+  "@vaultPinLockedError": {
+    "description": "Error bajo el PinPad mientras el Vault está bloqueado por intentos fallidos; {time} es la cuenta atrás ya formateada (m:ss).",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+
+  "settingsAboutReportProblem": "Reportar un problema",
+  "@settingsAboutReportProblem": {
+    "description": "Fila de Ajustes › Acerca de que abre el informe de problemas."
+  },
+
+  "settingsAboutReportProblemSubtitle": "Ves el informe antes de enviarlo",
+  "@settingsAboutReportProblemSubtitle": {
+    "description": "Subtítulo de «Reportar un problema»."
+  },
+
+  "settingsAboutPrivacy": "Privacidad",
+  "@settingsAboutPrivacy": {
+    "description": "Fila de Ajustes › Acerca de que abre la página de privacidad."
+  },
+
+  "settingsAboutPrivacySubtitle": "Qué sale de tu teléfono: casi nada",
+  "@settingsAboutPrivacySubtitle": {
+    "description": "Subtítulo de «Privacidad»."
+  },
+
+  "settingsAboutLicenses": "Licencias",
+  "@settingsAboutLicenses": {
+    "description": "Fila de Ajustes › Acerca de que abre las licencias de las bibliotecas."
+  },
+
+  "settingsAboutLicensesSubtitle": "El software libre que hace funcionar Kivo",
+  "@settingsAboutLicensesSubtitle": {
+    "description": "Subtítulo de «Licencias»."
+  },
+
+  "reportTitle": "Reportar un problema",
+  "@reportTitle": {
+    "description": "Título de la pantalla del informe de problemas."
+  },
+
+  "reportDescribeHint": "Cuenta qué pasó (opcional)",
+  "@reportDescribeHint": {
+    "description": "Pista del campo de texto para describir el problema."
+  },
+
+  "reportPreviewLabel": "Esto es todo lo que se envía",
+  "@reportPreviewLabel": {
+    "description": "Eyebrow sobre la vista previa del informe."
+  },
+
+  "reportPreviewHint": "Nada sale de tu teléfono hasta que tú lo envíes, y en tu app de correo aún puedes editarlo.",
+  "@reportPreviewHint": {
+    "description": "Texto bajo la vista previa del informe."
+  },
+
+  "reportSendEmail": "Enviar por correo",
+  "@reportSendEmail": {
+    "description": "Botón que abre la app de correo con el informe."
+  },
+
+  "reportOpenGithub": "Abrir en GitHub",
+  "@reportOpenGithub": {
+    "description": "Botón que abre una incidencia nueva en GitHub con el informe (requiere cuenta de GitHub)."
+  },
+
+  "reportCopy": "Copiar",
+  "@reportCopy": {
+    "description": "Botón que copia el informe al portapapeles."
+  },
+
+  "reportCopiedSnackbar": "Informe copiado",
+  "@reportCopiedSnackbar": {
+    "description": "Aviso tras copiar el informe."
+  },
+
+  "reportOpenFailedSnackbar": "No hay ninguna app para abrirlo. Usa Copiar.",
+  "@reportOpenFailedSnackbar": {
+    "description": "Aviso cuando no hay app de correo o navegador para abrir el informe."
+  },
+
+  "privacyTitle": "Privacidad",
+  "@privacyTitle": {
+    "description": "Título de la página de privacidad."
+  },
+
+  "privacyIntro": "Kivo no tiene anuncios, ni rastreadores, ni cuentas. Tus videos, lo que ves y cómo lo ves se quedan en tu teléfono.",
+  "@privacyIntro": {
+    "description": "Párrafo inicial de la página de privacidad."
+  },
+
+  "privacyNetworkTitle": "La única conexión",
+  "@privacyNetworkTitle": {
+    "description": "Encabezado de la sección sobre la red."
+  },
+
+  "privacyNetworkBody": "Para buscar actualizaciones, Kivo consulta sus versiones en GitHub: una vez al día si la búsqueda automática está activada, o cuando la pides tú. Si aceptas una actualización, el APK se descarga de allí. GitHub ve tu dirección IP, como cualquier web que visitas; no se envía nada más.",
+  "@privacyNetworkBody": {
+    "description": "Cuerpo de «La única conexión»."
+  },
+
+  "privacyReportsTitle": "Informes de problemas",
+  "@privacyReportsTitle": {
+    "description": "Encabezado de la sección sobre el registro de errores."
+  },
+
+  "privacyReportsBody": "El registro de errores se guarda solo en tu teléfono. Sale únicamente si tú lo envías desde «Reportar un problema», y antes ves exactamente lo que contiene.",
+  "@privacyReportsBody": {
+    "description": "Cuerpo de «Informes de problemas»."
+  },
+
+  "privacyBackupTitle": "Sin copia en la nube",
+  "@privacyBackupTitle": {
+    "description": "Encabezado de la sección sobre copias de seguridad."
+  },
+
+  "privacyBackupBody": "Kivo no deja que Android copie sus datos a tu cuenta de Google. Para llevarte tus ajustes, listas y marcadores a otro teléfono, usa Ajustes › Copia de seguridad: el archivo lo guardas tú.",
+  "@privacyBackupBody": {
+    "description": "Cuerpo de «Sin copia en la nube»."
+  },
+
+  "privacyPermissionsTitle": "Permisos",
+  "@privacyPermissionsTitle": {
+    "description": "Encabezado de la sección sobre permisos."
+  },
+
+  "privacyPermissionsBody": "Videos: para mostrarlos. Todos los archivos (opcional): para borrar, renombrar y usar el Vault sin preguntar cada vez. Notificaciones: para los controles de reproducción en segundo plano. Instalar apps: para actualizarse. Huella: para abrir el Vault, si lo activas. Internet: solo para lo anterior.",
+  "@privacyPermissionsBody": {
+    "description": "Cuerpo de «Permisos»: qué permiso es para qué."
+  },
+
+  "playerTracksGroupText": "Texto",
+  "@playerTracksGroupText": {
+    "description": "Grupo de la pestaña Estilo: tamaño, fuente, color y negrita."
+  },
+
+  "playerTracksGroupOutline": "Contorno y sombra",
+  "@playerTracksGroupOutline": {
+    "description": "Grupo de la pestaña Estilo: grosor y color del contorno, sombra."
+  },
+
+  "playerTracksGroupBackground": "Fondo",
+  "@playerTracksGroupBackground": {
+    "description": "Grupo de la pestaña Estilo: fondo detrás del texto."
+  },
+
+  "playerTracksGroupPosition": "Posición",
+  "@playerTracksGroupPosition": {
+    "description": "Grupo de la pestaña Estilo: dónde se colocan el subtítulo y el segundo subtítulo."
+  },
+
+  "playerTracksGroupAss": "Archivos .ass",
+  "@playerTracksGroupAss": {
+    "description": "Grupo de la pestaña Estilo: cómo se muestran los subtítulos ASS/SSA."
+  },
+
+  "playerTracksOutlineWidthLabel": "Grosor",
+  "@playerTracksOutlineWidthLabel": {
+    "description": "Etiqueta del deslizador de grosor del contorno."
+  },
+
+  "playerTracksPositionPrimaryLabel": "Subtítulo",
+  "@playerTracksPositionPrimaryLabel": {
+    "description": "Etiqueta del deslizador de distancia del subtítulo al borde inferior."
+  },
+
+  "playerTracksPositionDragHint": "También puedes mantener pulsado un subtítulo en el video y moverlo con el dedo.",
+  "@playerTracksPositionDragHint": {
+    "description": "Pista bajo los deslizadores de posición."
+  },
+
+  "reportGithubPublicHint": "Las incidencias de GitHub son públicas: revisa que el informe no tenga nada que no quieras mostrar.",
+  "@reportGithubPublicHint": {
+    "description": "Aviso bajo el botón «Abrir en GitHub»."
   }
 }

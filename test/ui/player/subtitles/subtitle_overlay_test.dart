@@ -90,7 +90,8 @@ void main() {
     h.engine.emitSubtitleText('Line');
     await tester.pumpAndSettle();
     final bottom = tester.getBottomLeft(find.byKey(const Key('subtitle-primary'))).dy;
-    expect(bottom, closeTo(360 - 360 * 0.20, 1.0));
+    // 4 px of the (always present, so nothing jumps) drag frame padding.
+    expect(bottom, closeTo(360 - 360 * 0.20 - 4, 1.0));
   });
 
   testWidgets('no lift under the sync panel: the bars are not drawn there',
