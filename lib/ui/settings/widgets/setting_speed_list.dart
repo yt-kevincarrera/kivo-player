@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../l10n/l10n.dart';
 import '../../../player/control/gesture_math.dart';
+import '../../widgets/kivo_focusable.dart';
 
 /// Edits a list of playback speeds as removable chips plus an "add" sheet.
 /// Used for both the speed presets and the hold-right detents.
@@ -67,7 +68,7 @@ class SettingSpeedList extends StatelessWidget {
         Text('${fmt(v)}×', style: TextStyle(color: cs.secondary, fontWeight: FontWeight.w700, fontSize: 13)),
         if (canRemove) ...[
           const SizedBox(width: 3),
-          GestureDetector(
+          FocusableTap(
             onTap: () => onChanged([...values]..remove(v)),
             child: Icon(Icons.close, size: 15, color: cs.secondary),
           ),
@@ -77,7 +78,7 @@ class SettingSpeedList extends StatelessWidget {
   }
 
   Widget _addChip(BuildContext context, ColorScheme cs) {
-    return GestureDetector(
+    return FocusableTap(
       key: const ValueKey('speed-add'),
       onTap: () async {
         final added = await showModalBottomSheet<double>(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../l10n/l10n.dart';
+import '../../widgets/readable_width.dart';
 
 /// What Kivo does and does not do with your data, in plain words. Every
 /// claim here is something the code actually does — change the code, change
@@ -45,7 +46,7 @@ class PrivacySection extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.privacyTitle)),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+        padding: readablePadding(context, const EdgeInsets.fromLTRB(20, 20, 20, 28)),
         children: [
           Text(l10n.privacyIntro,
               style: TextStyle(

@@ -10,6 +10,7 @@ import 'center_controls.dart';
 import 'hold_to_unlock.dart';
 import 'top_bar.dart';
 import '../tracks/track_sync_hud.dart';
+import '../keys/player_keys.dart';
 
 class ControlsOverlay extends ConsumerWidget {
   const ControlsOverlay({super.key});
@@ -24,106 +25,126 @@ class ControlsOverlay extends ConsumerWidget {
     return AnimatedOpacity(
       opacity: visible ? 1 : 0,
       duration: const Duration(milliseconds: 200),
-      child: locked
-          ? IgnorePointer(
-              ignoring: !visible,
-              child: Center(
-                child: HoldToUnlock(
-                  accent: accent,
-                  onUnlock: () => ref.read(lockProvider.notifier).unlock(),
+      // Hidden controls are out of focus traversal too: an invisible button
+      // must not hold the remote's focus (PlayerKeys takes it back).
+      child: ExcludeFocus(
+        excluding: !visible,
+        child: locked
+            ? IgnorePointer(
+                ignoring: !visible,
+                child: Center(
+                  child: HoldToUnlock(
+                    accent: accent,
+                    focusNode: ref.watch(unlockFocusProvider),
+                    onUnlock: () => ref.read(lockProvider.notifier).unlock(),
+                  ),
                 ),
+              )
+            : Stack(
+                children: [
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      ignoring:
+                          true, // never absorb taps — tap-to-hide must reach PlayerGestures
+                      child: Container(
+                        color: Colors.black.withValues(alpha: 0.22),
+                      ),
+                    ),
+                  ),
+                  Listener(
+                    // Any touch on a control restarts the auto-hide timer so the
+                    // controls don't vanish while the user is interacting. Empty
+                    // areas hit no child (deferToChild) and fall through to
+                    // PlayerGestures' tap-to-hide.
+                    onPointerDown: (_) =>
+                        ref.read(controlsVisibleProvider.notifier).show(),
+                    onPointerMove: (_) =>
+                        ref.read(controlsVisibleProvider.notifier).show(),
+                    child: IgnorePointer(
+                      ignoring: !visible,
+                      child: Stack(
+                        children: [
+                          Positioned(
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            child: MeasureHeight(
+                              onHeight: (h) =>
+                                  ref
+                                          .read(
+                                            controlsTopInsetProvider.notifier,
+                                          )
+                                          .state =
+                                      h,
+                              child: Container(
+                                padding: const EdgeInsets.fromLTRB(8, 8, 8, 24),
+                                decoration: const BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Colors.black54,
+                                      Colors.transparent,
+                                    ],
+                                  ),
+                                ),
+                                child: const SafeArea(
+                                  bottom: false,
+                                  child: TopBar(),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const Center(child: CenterControls()),
+                          Positioned(
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            child: MeasureHeight(
+                              onHeight: (h) =>
+                                  ref
+                                          .read(
+                                            controlsBottomInsetProvider
+                                                .notifier,
+                                          )
+                                          .state =
+                                      h,
+                              child: Container(
+                                padding: const EdgeInsets.fromLTRB(
+                                  12,
+                                  24,
+                                  12,
+                                  8,
+                                ),
+                                decoration: const BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.bottomCenter,
+                                    end: Alignment.topCenter,
+                                    colors: [
+                                      Colors.black87,
+                                      Colors.transparent,
+                                    ],
+                                  ),
+                                ),
+                                child: const SafeArea(
+                                  top: false,
+                                  child: BottomBar(),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const Positioned(
+                            right: 14,
+                            bottom: 116, // clear of the seek bar + button row
+                            child: AbLoopChip(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            )
-          : Stack(
-              children: [
-                Positioned.fill(
-                  child: IgnorePointer(
-                    ignoring:
-                        true, // never absorb taps — tap-to-hide must reach PlayerGestures
-                    child: Container(
-                      color: Colors.black.withValues(alpha: 0.22),
-                    ),
-                  ),
-                ),
-                Listener(
-                  // Any touch on a control restarts the auto-hide timer so the
-                  // controls don't vanish while the user is interacting. Empty
-                  // areas hit no child (deferToChild) and fall through to
-                  // PlayerGestures' tap-to-hide.
-                  onPointerDown: (_) =>
-                      ref.read(controlsVisibleProvider.notifier).show(),
-                  onPointerMove: (_) =>
-                      ref.read(controlsVisibleProvider.notifier).show(),
-                  child: IgnorePointer(
-                    ignoring: !visible,
-                    child: Stack(
-                      children: [
-                        Positioned(
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          child: MeasureHeight(
-                            onHeight: (h) =>
-                                ref
-                                        .read(controlsTopInsetProvider.notifier)
-                                        .state =
-                                    h,
-                            child: Container(
-                              padding: const EdgeInsets.fromLTRB(8, 8, 8, 24),
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [Colors.black54, Colors.transparent],
-                                ),
-                              ),
-                              child: const SafeArea(
-                                bottom: false,
-                                child: TopBar(),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const Center(child: CenterControls()),
-                        Positioned(
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          child: MeasureHeight(
-                            onHeight: (h) =>
-                                ref
-                                        .read(
-                                          controlsBottomInsetProvider.notifier,
-                                        )
-                                        .state =
-                                    h,
-                            child: Container(
-                              padding: const EdgeInsets.fromLTRB(12, 24, 12, 8),
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.bottomCenter,
-                                  end: Alignment.topCenter,
-                                  colors: [Colors.black87, Colors.transparent],
-                                ),
-                              ),
-                              child: const SafeArea(
-                                top: false,
-                                child: BottomBar(),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const Positioned(
-                          right: 14,
-                          bottom: 116, // clear of the seek bar + button row
-                          child: AbLoopChip(),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+      ),
     );
   }
 }

@@ -10,6 +10,7 @@ import '../../../player/open/video_source.dart';
 import '../state/controls_visibility.dart';
 import '../../../player/tracks/track_delay.dart';
 import '../../../player/tracks/track_delay_controller.dart';
+import '../../widgets/kivo_focusable.dart';
 
 /// Which stream the sync capsule is currently adjusting.
 enum SyncTarget { subtitles, audio }
@@ -322,9 +323,10 @@ class _TargetChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return FocusableTap(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
+      borderRadius: BorderRadius.circular(999),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
         decoration: BoxDecoration(
@@ -391,35 +393,39 @@ class _PanelButtonState extends State<_PanelButton> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: widget.onStep,
-      onLongPressStart: widget.repeats
-          ? (_) {
-              widget.onStep();
-              _repeat = Timer.periodic(
-                const Duration(milliseconds: 90),
-                (_) => widget.onStep(),
-              );
-            }
-          : null,
-      onLongPressEnd: widget.repeats ? (_) => _stopRepeat() : null,
-      onLongPressCancel: widget.repeats ? _stopRepeat : null,
-      child: Container(
-        width: widget.size,
-        height: widget.size,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: widget.quiet ? 0.05 : 0.08),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Center(
-          child: Text(
-            widget.glyph,
-            style: TextStyle(
-              color: widget.quiet
-                  ? Colors.white.withValues(alpha: 0.7)
-                  : Colors.white,
-              fontSize: widget.quiet ? 17 : 22,
+    return KivoFocusable(
+      onActivate: widget.onStep,
+      borderRadius: BorderRadius.circular(14),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onStep,
+        onLongPressStart: widget.repeats
+            ? (_) {
+                widget.onStep();
+                _repeat = Timer.periodic(
+                  const Duration(milliseconds: 90),
+                  (_) => widget.onStep(),
+                );
+              }
+            : null,
+        onLongPressEnd: widget.repeats ? (_) => _stopRepeat() : null,
+        onLongPressCancel: widget.repeats ? _stopRepeat : null,
+        child: Container(
+          width: widget.size,
+          height: widget.size,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: widget.quiet ? 0.05 : 0.08),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Center(
+            child: Text(
+              widget.glyph,
+              style: TextStyle(
+                color: widget.quiet
+                    ? Colors.white.withValues(alpha: 0.7)
+                    : Colors.white,
+                fontSize: widget.quiet ? 17 : 22,
+              ),
             ),
           ),
         ),

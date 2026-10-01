@@ -8,6 +8,8 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../../player/audio/equalizer.dart';
 import '../../../player/audio/equalizer_controller.dart';
 import '../widgets/setting_tiles.dart';
+import '../../widgets/readable_width.dart';
+import '../../widgets/kivo_focusable.dart';
 
 /// Maps [preset] to its localized display name. Kept outside the widget so
 /// [more_menu.dart]'s Ecualizador subtitle can reuse the same mapping.
@@ -56,7 +58,7 @@ class _EqualizerSectionState extends ConsumerState<EqualizerSection> {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsEqualizerTitle)),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 28),
+        padding: readablePadding(context, const EdgeInsets.fromLTRB(14, 12, 14, 28)),
         children: [
           SettingsCard(children: [
             SettingSwitch(
@@ -147,7 +149,7 @@ class _PresetChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final fg = selected ? onAccent(accent) : cs.onSurfaceVariant;
-    return GestureDetector(
+    return FocusableTap(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),

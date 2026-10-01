@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'color_picker_sheet.dart';
+import '../../widgets/kivo_focusable.dart';
 
 /// Rounded card that groups setting rows with hairline dividers between them.
 class SettingsCard extends StatelessWidget {
@@ -206,7 +207,7 @@ class SettingSegmented<T> extends StatelessWidget {
             child: Row(children: [
               for (final (v, lbl) in options)
                 Expanded(
-                  child: GestureDetector(
+                  child: FocusableTap(
                     onTap: () => onChanged(v),
                     child: Container(
                       margin: const EdgeInsets.symmetric(horizontal: 1.5),
@@ -299,7 +300,7 @@ class SettingColor extends StatelessWidget {
 
   Widget _dot({Key? key, Color? color, Gradient? gradient, required bool selected,
       required Color ring, required VoidCallback onTap}) {
-    return GestureDetector(
+    return FocusableTap(
       key: key,
       onTap: onTap,
       child: Container(

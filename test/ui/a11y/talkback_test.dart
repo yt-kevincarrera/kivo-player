@@ -154,6 +154,9 @@ void main() {
         isSlider: true,
         hasIncreaseAction: true,
         hasDecreaseAction: true,
+        // Focusable for a remote / keyboard (←/→ step).
+        isFocusable: true,
+        hasFocusAction: true,
       ),
     );
 

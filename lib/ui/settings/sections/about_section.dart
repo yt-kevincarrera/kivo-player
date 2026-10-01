@@ -12,6 +12,7 @@ import '../widgets/setting_tiles.dart';
 import 'error_log_section.dart';
 import 'privacy_section.dart';
 import 'problem_report_screen.dart';
+import '../../widgets/readable_width.dart';
 
 class AboutSection extends ConsumerStatefulWidget {
   const AboutSection({super.key});
@@ -135,7 +136,7 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsAboutTitle)),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(14, 20, 14, 28),
+        padding: readablePadding(context, const EdgeInsets.fromLTRB(14, 20, 14, 28)),
         children: [
           Center(
             child: Column(

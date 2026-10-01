@@ -58,6 +58,7 @@ import 'tutorial/gesture_map_route.dart';
 import 'zoom/zoom_chip.dart';
 import '../widgets/failure_snack_bar.dart';
 import '../../l10n/l10n.dart';
+import 'keys/player_keys.dart';
 
 class PlayerScreen extends ConsumerStatefulWidget {
   const PlayerScreen({super.key});
@@ -555,7 +556,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       // Transparent so the (non-opaque) player route lets the library paint
       // behind it; the black backdrop below fades in/out with the dismiss so
       // the swipe reveals the library instead of a black void.
-      child: Scaffold(
+      // Remote, game pad and keyboard (Android TV, a tablet's keyboard).
+      child: PlayerKeys(child: Scaffold(
         backgroundColor: Colors.transparent,
         body: Consumer(
           builder: (context, ref, _) {
@@ -665,7 +667,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
             );
           },
         ),
-      ),
+      )),
     );
   }
 }

@@ -2,25 +2,41 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../l10n/l10n.dart';
+import '../../widgets/kivo_focusable.dart';
 
 class HoldToUnlock extends StatefulWidget {
   final VoidCallback onUnlock;
   final Color accent;
-  const HoldToUnlock({super.key, required this.onUnlock, required this.accent});
-  @override State<HoldToUnlock> createState() => _HoldToUnlockState();
+  final FocusNode? focusNode;
+  const HoldToUnlock({
+    super.key,
+    required this.onUnlock,
+    required this.accent,
+    this.focusNode,
+  });
+  @override
+  State<HoldToUnlock> createState() => _HoldToUnlockState();
 }
 
-class _HoldToUnlockState extends State<HoldToUnlock> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 450))
-    ..addStatusListener((s) {
-      if (s == AnimationStatus.completed) {
-        HapticFeedback.mediumImpact();
-        widget.onUnlock();
-        _c.reset();
-      }
-    });
-  @override void dispose() { _c.dispose(); super.dispose(); }
+class _HoldToUnlockState extends State<HoldToUnlock>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c =
+      AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 450),
+      )..addStatusListener((s) {
+        if (s == AnimationStatus.completed) {
+          HapticFeedback.mediumImpact();
+          widget.onUnlock();
+          _c.reset();
+        }
+      });
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     // Holding is a touch gesture; TalkBack's double-tap unlocks straight away.
@@ -29,36 +45,59 @@ class _HoldToUnlockState extends State<HoldToUnlock> with SingleTickerProviderSt
       label: context.l10n.playerUnlockAction,
       onTap: widget.onUnlock,
       excludeSemantics: true,
-      child: GestureDetector(
-      onLongPressStart: (_) { HapticFeedback.selectionClick(); _c.forward(from: 0); },
-      onLongPressEnd: (_) => _c.reverse(),
-      onLongPressCancel: () => _c.reverse(),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.72),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          SizedBox(
-            width: 44, height: 44,
-            child: Stack(alignment: Alignment.center, children: [
-              AnimatedBuilder(
-                animation: _c,
-                builder: (_, __) => CustomPaint(
-                  size: const Size(44, 44),
-                  painter: _SegmentRingPainter(_c.value, widget.accent),
+      // A remote's OK on the focused button unlocks; holding is for touch.
+      child: KivoFocusable(
+        focusNode: widget.focusNode,
+        onActivate: widget.onUnlock,
+        borderRadius: BorderRadius.circular(16),
+        child: GestureDetector(
+          onLongPressStart: (_) {
+            HapticFeedback.selectionClick();
+            _c.forward(from: 0);
+          },
+          onLongPressEnd: (_) => _c.reverse(),
+          onLongPressCancel: () => _c.reverse(),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.72),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 44,
+                  height: 44,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      AnimatedBuilder(
+                        animation: _c,
+                        builder: (_, __) => CustomPaint(
+                          size: const Size(44, 44),
+                          painter: _SegmentRingPainter(_c.value, widget.accent),
+                        ),
+                      ),
+                      Icon(Icons.lock, color: widget.accent, size: 22),
+                    ],
+                  ),
                 ),
-              ),
-              Icon(Icons.lock, color: widget.accent, size: 22),
-            ]),
+                const SizedBox(height: 10),
+                Text(
+                  context.l10n.playerHoldToUnlockHint,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 10),
-          Text(context.l10n.playerHoldToUnlockHint,
-              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
-        ]),
+        ),
       ),
-    ));
+    );
   }
 }
 
@@ -83,7 +122,9 @@ class _SegmentRingPainter extends CustomPainter {
       ..strokeWidth = 2.6
       ..strokeCap = StrokeCap.round;
     for (var i = 0; i < segments; i++) {
-      final a = -math.pi / 2 + (i / segments) * 2 * math.pi; // start at top, clockwise
+      final a =
+          -math.pi / 2 +
+          (i / segments) * 2 * math.pi; // start at top, clockwise
       final dir = Offset(math.cos(a), math.sin(a));
       canvas.drawLine(
         center + dir * rInner,

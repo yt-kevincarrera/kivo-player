@@ -29,6 +29,7 @@ import 'widgets/folder_grid.dart';
 import 'widgets/library_empty_state.dart';
 import 'widgets/selection_app_bar.dart';
 import 'widgets/video_density_feed.dart';
+import '../widgets/kivo_focusable.dart';
 
 class LibraryScreen extends ConsumerStatefulWidget {
   const LibraryScreen({super.key});
@@ -263,7 +264,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                       message: context.l10n.libraryIncognitoChipTooltip,
                       child: ActionChip(
                         key: const Key('incognito-chip'),
-                        avatar: const Icon(Icons.visibility_off_outlined, size: 16),
+                        avatar: const Icon(
+                          Icons.visibility_off_outlined,
+                          size: 16,
+                        ),
                         label: Text(context.l10n.libraryIncognitoChip),
                         visualDensity: VisualDensity.compact,
                         onPressed: () {
@@ -298,12 +302,16 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                           onPressed: _openSearch,
                         ),
                 ),
-                if (ref.watch(librarySearchActiveProvider) || tab == 0 || tab == 2)
+                if (ref.watch(librarySearchActiveProvider) ||
+                    tab == 0 ||
+                    tab == 2)
                   // While searching, the search view (not `tab`) decides what
                   // is being sorted — but the search view on Listas IS the
                   // playlist list (see `_body`'s search branch above), so
                   // `tab == 2` is still the right switch even mid-search.
-                  (tab == 2 ? const _PlaylistSortMenuButton() : const _SortMenuButton()),
+                  (tab == 2
+                      ? const _PlaylistSortMenuButton()
+                      : const _SortMenuButton()),
                 if (!ref.watch(librarySearchActiveProvider)) ...[
                   // Density is a property of the Todo feed and the Carpetas
                   // grid; on Listas the button would respond and change
@@ -634,36 +642,42 @@ class _FilterChips extends StatelessWidget {
           onTap: () => onChanged(i),
           // The visible text (when shown) would read the label twice.
           excludeSemantics: true,
-          child: GestureDetector(
-            onTap: () => onChanged(i),
-            child: AnimatedContainer(
-              duration: _chipAnim,
-              curve: _chipCurve,
-              padding: EdgeInsets.symmetric(
-                horizontal: showLabel ? 14 : 10,
-                vertical: 6,
-              ),
-              decoration: BoxDecoration(
-                color: active ? accent : cs.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (icon != null) Icon(icon, size: 15, color: fg),
-                  _chipLabel(
-                    show: showLabel,
-                    gap: icon != null,
-                    child: Text(
-                      label,
-                      style: TextStyle(
-                        color: fg,
-                        fontSize: 13,
-                        fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+          child: KivoFocusable(
+            onActivate: () => onChanged(i),
+            borderRadius: BorderRadius.circular(20),
+            child: GestureDetector(
+              onTap: () => onChanged(i),
+              child: AnimatedContainer(
+                duration: _chipAnim,
+                curve: _chipCurve,
+                padding: EdgeInsets.symmetric(
+                  horizontal: showLabel ? 14 : 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: active ? accent : cs.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (icon != null) Icon(icon, size: 15, color: fg),
+                    _chipLabel(
+                      show: showLabel,
+                      gap: icon != null,
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          color: fg,
+                          fontSize: 13,
+                          fontWeight: active
+                              ? FontWeight.w600
+                              : FontWeight.w500,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -724,38 +738,42 @@ class _UnwatchedChip extends ConsumerWidget {
       toggled: active,
       onTap: onTap,
       excludeSemantics: true,
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: _chipAnim,
-          curve: _chipCurve,
-          padding: EdgeInsets.symmetric(
-            horizontal: active ? 14 : 10,
-            vertical: 6,
-          ),
-          decoration: BoxDecoration(
-            color: active ? accent : cs.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          // Same rule as the tabs: the label shows only while the filter is
-          // on, which is also when it is worth saying out loud.
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.visibility_off_outlined, size: 15, color: fg),
-              _chipLabel(
-                show: active,
-                gap: true,
-                child: Text(
-                  context.l10n.libraryUnwatchedFilter,
-                  style: TextStyle(
-                    color: fg,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+      child: KivoFocusable(
+        onActivate: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: GestureDetector(
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: _chipAnim,
+            curve: _chipCurve,
+            padding: EdgeInsets.symmetric(
+              horizontal: active ? 14 : 10,
+              vertical: 6,
+            ),
+            decoration: BoxDecoration(
+              color: active ? accent : cs.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            // Same rule as the tabs: the label shows only while the filter is
+            // on, which is also when it is worth saying out loud.
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.visibility_off_outlined, size: 15, color: fg),
+                _chipLabel(
+                  show: active,
+                  gap: true,
+                  child: Text(
+                    context.l10n.libraryUnwatchedFilter,
+                    style: TextStyle(
+                      color: fg,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

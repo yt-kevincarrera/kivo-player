@@ -12,6 +12,7 @@ import 'sections/general_section.dart';
 import 'sections/interface_section.dart';
 import 'sections/playback_gestures_section.dart';
 import 'widgets/setting_tiles.dart';
+import '../widgets/readable_width.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -22,7 +23,7 @@ class SettingsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsRootTitle)),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(14, 10, 14, 28),
+        padding: readablePadding(context, const EdgeInsets.fromLTRB(14, 10, 14, 28)),
         children: [
           SettingsCard(children: [
             SettingNavRow(

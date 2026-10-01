@@ -5,6 +5,7 @@ import '../../../l10n/l10n.dart';
 import '../../player/tutorial/gesture_map_route.dart';
 import '../widgets/setting_tiles.dart';
 import '../widgets/setting_speed_list.dart';
+import '../../widgets/readable_width.dart';
 
 class PlaybackGesturesSection extends ConsumerWidget {
   const PlaybackGesturesSection({super.key});
@@ -21,7 +22,7 @@ class PlaybackGesturesSection extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsPlaybackGesturesTitle)),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 28),
+        padding: readablePadding(context, const EdgeInsets.fromLTRB(14, 12, 14, 28)),
         children: [
           _label(context, l10n.settingsGesturesGroupLearn),
           SettingsCard(children: [

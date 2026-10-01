@@ -30,6 +30,7 @@ import '../../settings/sections/equalizer_section.dart';
 import '../../widgets/failure_snack_bar.dart';
 import '../../widgets/press_bounce.dart';
 import '../tracks/track_sync_hud.dart';
+import '../../widgets/kivo_focusable.dart';
 
 /// Mini menu behind the top bar's "Más opciones" button.
 ///
@@ -871,7 +872,7 @@ class _SegmentChip extends StatelessWidget {
       button: true,
       selected: active,
       inMutuallyExclusiveGroup: true,
-      child: GestureDetector(
+      child: FocusableTap(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
         child: Container(

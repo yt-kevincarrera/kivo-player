@@ -10,6 +10,7 @@ import '../../../player/control/player_controller.dart';
 import '../../../player/engine/playback_provider.dart';
 import '../state/skip_feedback.dart';
 import '../../widgets/press_bounce.dart';
+import '../keys/player_keys.dart';
 
 // ---------------------------------------------------------------------------
 // _SkipButton — ±10s skip with chevron nudge animation.
@@ -110,6 +111,7 @@ class CenterControls extends ConsumerWidget {
         PressBounce(
           child: IconButton(
             key: const Key('kivo_play_pause'),
+            focusNode: ref.watch(playPauseFocusProvider),
             iconSize: 56,
             color: Colors.white,
             padding: const EdgeInsets.all(16),
