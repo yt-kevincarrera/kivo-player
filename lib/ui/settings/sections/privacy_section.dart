@@ -54,6 +54,7 @@ class PrivacySection extends StatelessWidget {
           const SizedBox(height: 24),
           block(Icons.cloud_sync_outlined, l10n.privacyNetworkTitle,
               l10n.privacyNetworkBody),
+          block(Icons.cast_outlined, l10n.privacyCastTitle, l10n.privacyCastBody),
           block(Icons.bug_report_outlined, l10n.privacyReportsTitle,
               l10n.privacyReportsBody),
           block(Icons.cloud_off_outlined, l10n.privacyBackupTitle,

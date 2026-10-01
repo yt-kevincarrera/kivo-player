@@ -11,6 +11,8 @@ import 'hold_to_unlock.dart';
 import 'top_bar.dart';
 import '../tracks/track_sync_hud.dart';
 import '../keys/player_keys.dart';
+import '../../../player/cast/cast_controller.dart';
+import '../../../player/open/video_source.dart';
 
 class ControlsOverlay extends ConsumerWidget {
   const ControlsOverlay({super.key});
@@ -21,6 +23,9 @@ class ControlsOverlay extends ConsumerWidget {
       syncPanelOpen: ref.watch(syncHudProvider) != null,
     );
     final locked = ref.watch(lockProvider);
+    final key = ref.watch(currentVideoProvider)?.resumeKey;
+    final castingHere = key != null &&
+        ref.watch(castControllerProvider.select((c) => c.active ? c.resumeKey : null)) == key;
     final accent = Color(ref.watch(settingsProvider).accentColor);
     return AnimatedOpacity(
       opacity: visible ? 1 : 0,
@@ -28,7 +33,9 @@ class ControlsOverlay extends ConsumerWidget {
       // Hidden controls are out of focus traversal too: an invisible button
       // must not hold the remote's focus (PlayerKeys takes it back).
       child: ExcludeFocus(
-        excluding: !visible,
+        // Also under the cast screen: the D-pad must not wander into the
+        // phone's own (covered) controls.
+        excluding: !visible || castingHere,
         child: locked
             ? IgnorePointer(
                 ignoring: !visible,

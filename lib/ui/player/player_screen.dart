@@ -59,6 +59,8 @@ import 'zoom/zoom_chip.dart';
 import '../widgets/failure_snack_bar.dart';
 import '../../l10n/l10n.dart';
 import 'keys/player_keys.dart';
+import '../../player/cast/cast_controller.dart';
+import 'cast/cast_screen.dart';
 
 class PlayerScreen extends ConsumerStatefulWidget {
   const PlayerScreen({super.key});
@@ -460,6 +462,14 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     super.dispose();
   }
 
+  /// After a cast: the phone picks up where the TV was, paused — the
+  /// user decides whether to keep watching here.
+  void _carryOnHereAt(Duration at) {
+    if (!mounted) return;
+    ref.read(playerControllerProvider).seekTo(at);
+    _lastPosition = at;
+  }
+
   @override
   Widget build(BuildContext context) {
     _incognito = ref.watch(settingsProvider.select((s) => s.incognito));
@@ -501,6 +511,36 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       final s = ref.read(currentVideoProvider.notifier).sessionAt(index);
       ref.read(queueJumpProvider.notifier).state = null;
       if (s != null) _advance(s, countAsAutoplay: false);
+    });
+    // Casting: the phone stays paused while the TV plays this video.
+    ref.listen<CastState>(castControllerProvider, (_, next) {
+      if (next.isCasting(ref.read(currentVideoProvider)?.resumeKey) &&
+          ref.read(playingProvider).value == true) {
+        _engine.pause();
+      }
+    });
+    ref.listen(playingProvider, (_, next) {
+      final cast = ref.read(castControllerProvider);
+      if (next.value == true &&
+          cast.isCasting(ref.read(currentVideoProvider)?.resumeKey)) {
+        _engine.pause();
+      }
+    });
+    // The TV finished, stopped answering, or the notification stopped it:
+    // carry on here from there (and say why, unless the user just did it).
+    ref.listen<(CastEnd, Duration)?>(castEndedProvider, (_, next) {
+      if (next == null || !mounted) return;
+      ref.read(castEndedProvider.notifier).state = null;
+      _carryOnHereAt(next.$2);
+      if (next.$1 == CastEnd.stopped) return;
+      final l10n = context.l10n;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(
+          content: Text(next.$1 == CastEnd.finished
+              ? l10n.castFinishedSnack
+              : l10n.castLostSnack),
+        ));
     });
     // A launcher shortcut / widget tap while this screen is up: switch videos
     // here, through the normal advance — replacing the route instead would
@@ -657,6 +697,15 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                         const Positioned.fill(child: SleepWarningToast()),
                         const Positioned.fill(child: AutoplayOverlay()),
                         const Positioned.fill(child: TrackSyncHud()),
+                        // On top of everything while this video plays on a TV.
+                        Positioned.fill(
+                          child: Consumer(builder: (context, ref, _) {
+                            final cast = ref.watch(castControllerProvider);
+                            final key = ref.watch(currentVideoProvider)?.resumeKey;
+                            if (!cast.isCasting(key)) return const SizedBox.shrink();
+                            return CastScreen(onStopped: _carryOnHereAt);
+                          }),
+                        ),
                       ],
                     ],
                   ),

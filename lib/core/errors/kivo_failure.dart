@@ -19,6 +19,9 @@ enum KivoOp {
   /// Not a failure the user has to act on: Kivo recovered by switching a
   /// video to software decoding. Logged so a bug report shows it happened.
   decoderFallback,
+
+  /// Sending a video to a TV (DLNA): the TV refused it, or stopped answering.
+  cast,
   updateCheck,
   updateInstall,
 
@@ -56,6 +59,8 @@ const kivoErrorCatalog = <KivoOp, ({String code, String message})>{
     code: 'KV-504',
     message: 'El video no se mostraba con el decodificador por hardware',
   ),
+  KivoOp.cast:
+      (code: 'KV-505', message: 'No pudimos enviar el video a la TV'),
   KivoOp.updateCheck:
       (code: 'KV-601', message: 'No pudimos comprobar si hay actualizaciones'),
   KivoOp.updateInstall:

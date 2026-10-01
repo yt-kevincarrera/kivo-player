@@ -3345,7 +3345,7 @@
     "description": "Párrafo inicial de la página de privacidad."
   },
 
-  "privacyNetworkTitle": "La única conexión",
+  "privacyNetworkTitle": "La única conexión a Internet",
   "@privacyNetworkTitle": {
     "description": "Encabezado de la sección sobre la red."
   },
@@ -3380,7 +3380,7 @@
     "description": "Encabezado de la sección sobre permisos."
   },
 
-  "privacyPermissionsBody": "Videos: para mostrarlos. Todos los archivos (opcional): para borrar, renombrar y usar el Vault sin preguntar cada vez. Notificaciones: para los controles de reproducción en segundo plano. Instalar apps: para actualizarse. Huella: para abrir el Vault, si lo activas. Internet: solo para lo anterior.",
+  "privacyPermissionsBody": "Videos: para mostrarlos. Todos los archivos (opcional): para borrar, renombrar y usar el Vault sin preguntar cada vez. Notificaciones: para los controles de reproducción en segundo plano. Instalar apps: para actualizarse. Huella: para abrir el Vault, si lo activas. Wi-Fi: para encontrar tu TV y seguir enviándole el video con la pantalla apagada. Internet: solo para lo anterior.",
   "@privacyPermissionsBody": {
     "description": "Cuerpo de «Permisos»: qué permiso es para qué."
   },
@@ -3622,5 +3622,90 @@
   "a11yZoomResetHint": "restablecer el zoom",
   "@a11yZoomResetHint": {
     "description": "Lector de pantalla: qué hace tocar la pastilla de zoom."
+  },
+
+  "castButtonTooltip": "Enviar a la TV",
+  "@castButtonTooltip": {
+    "description": "Botón del reproductor que envía el video a una TV."
+  },
+
+  "castPickerTitle": "Enviar a la TV",
+  "@castPickerTitle": {
+    "description": "Título de la hoja que lista los televisores."
+  },
+
+  "castPickerSearching": "Buscando televisores en tu Wi-Fi…",
+  "@castPickerSearching": {
+    "description": "Mientras se buscan televisores."
+  },
+
+  "castPickerEmptyTitle": "No encontramos ninguna TV",
+  "@castPickerEmptyTitle": {
+    "description": "La búsqueda terminó sin televisores."
+  },
+
+  "castPickerEmptyBody": "Comprueba que el teléfono y la TV están en la misma red Wi-Fi, y que la TV está encendida y permite compartir contenido (DLNA; a veces se llama «Compartir pantalla» o «Media Renderer»).",
+  "@castPickerEmptyBody": {
+    "description": "Ayuda cuando no se encuentra ninguna TV."
+  },
+
+  "castPickerRetry": "Buscar de nuevo",
+  "@castPickerRetry": {
+    "description": "Repite la búsqueda de televisores."
+  },
+
+  "castPickerNote": "Funciona con la mayoría de Smart TV. El video va por tu Wi-Fi, sin pasar por Internet. Los subtítulos no se envían.",
+  "@castPickerNote": {
+    "description": "Nota al pie de la lista de televisores."
+  },
+
+  "castConnecting": "Conectando con {device}…",
+  "@castConnecting": {
+    "description": "Mientras la TV acepta el video.",
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+
+  "castPlayingOn": "Reproduciendo en {device}",
+  "@castPlayingOn": {
+    "description": "Pantalla del reproductor mientras se envía a la TV.",
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+
+  "castStop": "Dejar de enviar",
+  "@castStop": {
+    "description": "Termina el envío y sigue en el teléfono."
+  },
+
+  "castFinishedSnack": "La TV terminó el video",
+  "@castFinishedSnack": {
+    "description": "El video acabó en la TV."
+  },
+
+  "castLostSnack": "Se perdió la conexión con la TV. Sigues aquí desde donde iba.",
+  "@castLostSnack": {
+    "description": "La TV dejó de responder."
+  },
+
+  "errorCast": "No pudimos enviar el video a la TV",
+  "@errorCast": {
+    "description": "Error KV-505."
+  },
+
+  "privacyCastTitle": "Enviar a la TV",
+  "@privacyCastTitle": {
+    "description": "Bloque de la página de privacidad."
+  },
+
+  "privacyCastBody": "Cuando envías un video a la TV, Kivo busca televisores en tu red Wi-Fi y le sirve el video solo a la TV que eliges, con una dirección de un solo uso que deja de funcionar al terminar. Nada de eso sale de tu red local.",
+  "@privacyCastBody": {
+    "description": "Bloque de la página de privacidad."
   }
 }

@@ -31,6 +31,7 @@ import '../../widgets/failure_snack_bar.dart';
 import '../../widgets/press_bounce.dart';
 import '../tracks/track_sync_hud.dart';
 import '../../widgets/kivo_focusable.dart';
+import '../cast/cast_flow.dart';
 
 /// Mini menu behind the top bar's "Más opciones" button.
 ///
@@ -357,6 +358,18 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                               showBookmarksSheet(context);
                             },
                           ),
+                          // Here only where the top bar has no room for
+                          // it (see kCastInBarMinWidth).
+                          if (MediaQuery.sizeOf(context).width <
+                              kCastInBarMinWidth)
+                            _MenuRow(
+                              icon: Icons.cast,
+                              title: l10n.castButtonTooltip,
+                              onTap: () {
+                                Navigator.of(sheetContext).pop();
+                                startCasting(context, ref);
+                              },
+                            ),
                         ],
                       ),
                     ],

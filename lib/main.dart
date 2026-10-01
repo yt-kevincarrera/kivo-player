@@ -53,6 +53,8 @@ import 'platform/android/android_vault_ops.dart';
 import 'vault/vault_store.dart';
 import 'vault/vault_auth.dart';
 import 'vault/vault_providers.dart';
+import 'platform/android/android_cast_platform.dart';
+import 'platform/cast_platform_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -114,6 +116,7 @@ Future<void> main() async {
       subtitleTranscoderProvider
           .overrideWithValue(AndroidSubtitleTranscoder(errorLog)),
       launcherBridgeProvider.overrideWithValue(AndroidLauncherBridge()),
+      castPlatformProvider.overrideWithValue(AndroidCastPlatform()),
       mediaSessionProvider.overrideWithValue(AndroidMediaSessionBridge()),
       pipControllerProvider.overrideWithValue(AndroidPipController()),
       allFilesAccessProvider.overrideWithValue(AndroidAllFilesAccess()),
