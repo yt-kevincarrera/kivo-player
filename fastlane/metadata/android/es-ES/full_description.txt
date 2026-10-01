@@ -1,0 +1,32 @@
+Kivo reproduce los videos de tu teléfono, y nada más. Sin anuncios, sin rastreadores, sin cuentas. Rápido, con gestos para todo y casi todo configurable; un solo color de acento (dorado por defecto) tiñe la app entera.
+
+<b>Reproduce casi cualquier cosa</b>
+Por dentro usa libmpv: MKV, MP4, AVI, HEVC y mucho más. Decodificación por hardware que pasa sola a software cuando un video no se ve, y elección del decodificador por video.
+
+<b>Gestos y control</b>
+• Doble toque para saltar, mantener pulsado para acelerar, deslizar para brillo, volumen y avanzar con vista previa del fotograma, pellizcar para hacer zoom.
+• Fotograma a fotograma en pausa, bucle A-B, capítulos y marcadores.
+• Sigue donde lo dejaste, reproducción automática de la carpeta, repetir y aleatorio.
+• Modo incógnito: lo que ves no deja rastro.
+
+<b>Sonido</b>
+Modo noche para pistas Dolby, voces más claras al pasar de 5.1 a estéreo, ecualizador de 10 bandas y volumen por encima del 100 %.
+
+<b>Subtítulos completos</b>
+Fuente, tamaño, negrita, color, contorno, sombra, fondo y posición con vista previa; mueve los subtítulos con el dedo sobre el video. Cualquier codificación, pistas internas y externas, y un segundo subtítulo a la vez.
+
+<b>Enviar a la TV</b>
+Mira el video en tu Smart TV por el Wi-Fi (DLNA: la mayoría de Samsung, LG, Sony, Philips…). El teléfono hace de mando y sigue desde donde iba la tele. El video no sale de tu red.
+
+<b>Y además</b>
+• Imagen en imagen y reproducción en segundo plano.
+• Temporizador para dormir.
+• Vault: oculta videos de la galería y de otras apps con PIN reforzado o huella (los oculta, no los cifra, y la app lo dice).
+• Accesos directos en el icono y widget «Continuar viendo».
+• Funciona con TalkBack, con letra grande y sin animaciones.
+• Android TV, tablets y teclado: toda la app se maneja con el mando.
+
+<b>Privacidad</b>
+La única conexión a Internet es la búsqueda de actualizaciones en GitHub (se puede desactivar). El registro de errores no sale del teléfono salvo que tú envíes un informe, y antes ves lo que contiene.
+
+Software libre (licencia MIT).

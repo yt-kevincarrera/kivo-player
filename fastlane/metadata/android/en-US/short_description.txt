@@ -1,0 +1,1 @@
+A local video player with no ads or tracking, configurable down to the detail
