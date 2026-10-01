@@ -10,7 +10,9 @@ todas las tandas").
 - A small capsule under the play button, **only while paused** (stepping
   frames is what you do on a paused picture; while playing it would be
   noise): ‹ previous frame · › next frame. A tap steps once; holding repeats
-  at ~8 steps/s with a light haptic per step.
+  at up to ~8 steps/s with a light haptic per step, each step waiting for
+  the previous frame to land. The engine hides the brief unpause mpv does
+  while stepping forward, so the controls don't flicker.
 - Backwards is slower on long-GOP files (mpv decodes from the previous
   keyframe); accepted.
 
@@ -43,6 +45,13 @@ formatted position, fraction).
   activity forwards it over `kivo/launch` (initial intent and `onNewIntent`),
   and the library opens it **as a library item** — its folder as the queue,
   so folder subtitles and autoplay work, and resume picks up the position.
+- With a player already on screen, the tap switches it in place (the same
+  path as autoplay's next video) instead of stacking or replacing the route.
+- Native keeps a tap that arrives before Dart asked for it; after that, taps
+  are pushed (the engine outlives the activity). A Recents relaunch replays
+  the old intent and is ignored.
+- Nothing is pushed while the library is still scanning (the list is empty
+  then, and would wipe the shortcuts and the widget on every start).
 - Thumbnails: `ContentResolver.loadThumbnail` (API 29+), else
   `MediaStore.Video.Thumbnails.getThumbnail`, on the IO executor.
 - A video no longer in the library (deleted, hidden in the Vault) is ignored

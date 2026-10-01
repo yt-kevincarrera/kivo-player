@@ -355,8 +355,11 @@ class FakePlaybackEngine implements PlaybackEngine {
   final List<bool> frameSteps = [];
 
   @override
-  Future<void> frameStep({required bool forward}) async =>
-      frameSteps.add(forward);
+  Future<void> frameStep({required bool forward}) async {
+    frameSteps.add(forward);
+    // mpv reports the new position once the frame is shown.
+    _pos.add(Duration(milliseconds: 40 * frameSteps.length));
+  }
 
   bool videoTrackEnabled = true;
 

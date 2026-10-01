@@ -165,7 +165,7 @@ class _FrameStepCapsule extends ConsumerStatefulWidget {
 }
 
 class _FrameStepCapsuleState extends ConsumerState<_FrameStepCapsule> {
-  Timer? _repeat;
+  bool _repeating = false;
 
   void _step(bool forward) {
     ref.read(playbackEngineProvider).frameStep(forward: forward);
@@ -174,21 +174,28 @@ class _FrameStepCapsuleState extends ConsumerState<_FrameStepCapsule> {
     }
   }
 
-  void _startRepeat(bool forward) {
-    _repeat?.cancel();
-    _step(forward);
-    _repeat = Timer.periodic(
-        const Duration(milliseconds: 125), (_) => _step(forward));
+  /// Holding repeats — but each step waits for the previous one to land (a
+  /// position update) instead of a fixed timer: on a slow decoder, queued
+  /// forward steps would otherwise keep the video advancing after release.
+  Future<void> _startRepeat(bool forward) async {
+    if (_repeating) return;
+    _repeating = true;
+    final engine = ref.read(playbackEngineProvider);
+    while (_repeating && mounted) {
+      final landed = engine.positionStream.first
+          .timeout(const Duration(milliseconds: 500), onTimeout: () => Duration.zero);
+      _step(forward);
+      await landed;
+      // About 8 steps a second at most.
+      await Future<void>.delayed(const Duration(milliseconds: 90));
+    }
   }
 
-  void _stopRepeat() {
-    _repeat?.cancel();
-    _repeat = null;
-  }
+  void _stopRepeat() => _repeating = false;
 
   @override
   void dispose() {
-    _repeat?.cancel();
+    _repeating = false;
     super.dispose();
   }
 

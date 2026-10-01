@@ -13,6 +13,9 @@ import '../../player/library/media_index.dart';
 import '../../player/library/played.dart';
 import '../../player/open/video_source.dart';
 import '../player/player_route.dart';
+import '../player/state/external_open_state.dart';
+import '../player/state/mini_player_state.dart';
+import '../player/state/player_dismiss_state.dart';
 
 /// How many entries the launcher shortcuts and the widget get.
 const launcherContinueCount = 3;
@@ -66,6 +69,10 @@ class LaunchCoordinator {
       return;
     }
     _ref.listen<List<ContinueItem>>(continueWatchingProvider, (_, next) {
+      // Empty while the library is still being scanned, which is not "nothing
+      // in progress": sending it would wipe the shortcuts, the widget and its
+      // thumbnails on every start, only to rebuild them a moment later.
+      if (!_ref.read(libraryIndexProvider).hasValue) return;
       _debounce?.cancel();
       _debounce = Timer(const Duration(milliseconds: 600), () => _push(next));
     }, fireImmediately: true);
@@ -93,7 +100,15 @@ class LaunchCoordinator {
     final nav = kivoNavigatorKey.currentState;
     if (target == null || nav == null) return;
     _ref.read(currentVideoProvider.notifier).openFromList(target.video, target.queue);
-    // One player at a time: a tap while another video is up replaces it.
+    final session = _ref.read(currentVideoProvider);
+    // A player already on screen switches in place (see externalOpenProvider)
+    // instead of being replaced: its dispose would undo the new one's setup.
+    final playerUp = _ref.read(playerDismissProvider) != null &&
+        !_ref.read(playerMinimizedProvider);
+    if (playerUp && session != null) {
+      _ref.read(externalOpenProvider.notifier).state = session;
+      return;
+    }
     nav.popUntil((r) => r.isFirst);
     unawaited(nav.push(playerRoute()).then((_) {
       _ref.invalidate(continueWatchingProvider);

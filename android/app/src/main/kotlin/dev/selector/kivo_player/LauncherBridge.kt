@@ -41,6 +41,12 @@ object LauncherBridge {
 
     private var channel: MethodChannel? = null
     private var pendingId: String? = null
+    // The Dart side lives as long as the process (KivoApplication caches the
+    // engine), and asks for the launch request once, at isolate start. After
+    // that, a request has to be pushed to it, not stored for an ask that will
+    // never come again — or a tap with the process already alive (backed out,
+    // background playback, a launcher that recreates the activity) is lost.
+    private var dartReady = false
 
     fun attach(messenger: BinaryMessenger, context: Context, executor: Executor) {
         val main = Handler(Looper.getMainLooper())
@@ -48,6 +54,7 @@ object LauncherBridge {
             setMethodCallHandler { call, result ->
                 when (call.method) {
                     "initialVideo" -> {
+                        dartReady = true
                         result.success(pendingId)
                         pendingId = null
                     }
@@ -70,19 +77,24 @@ object LauncherBridge {
     }
 
     /** An open request from a launch/new intent; null if the intent is not one. */
-    fun videoIdOf(intent: Intent?): String? =
-        if (intent?.action == ACTION_OPEN_VIDEO) intent.getStringExtra(EXTRA_VIDEO_ID) else null
-
-    /** The intent that started the activity: kept until Dart asks for it. */
-    fun onLaunchIntent(intent: Intent?) {
-        videoIdOf(intent)?.let { pendingId = it }
+    fun videoIdOf(intent: Intent?): String? {
+        if (intent?.action != ACTION_OPEN_VIDEO) return null
+        // Reopened from Recents: the system replays the intent the task was
+        // started with — that old tap must not reopen its video again.
+        if (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0) return null
+        return intent.getStringExtra(EXTRA_VIDEO_ID)
     }
 
-    /** A tap while the app is already running. */
-    fun onNewIntent(intent: Intent?) {
-        val id = videoIdOf(intent) ?: return
+    /** The intent that started (or restarted) the activity. */
+    fun onLaunchIntent(intent: Intent?) = deliver(videoIdOf(intent))
+
+    /** A tap while the activity is already on top (singleTop). */
+    fun onNewIntent(intent: Intent?) = deliver(videoIdOf(intent))
+
+    private fun deliver(id: String?) {
+        if (id == null) return
         val ch = channel
-        if (ch == null) pendingId = id else ch.invokeMethod("openVideo", id)
+        if (dartReady && ch != null) ch.invokeMethod("openVideo", id) else pendingId = id
     }
 
     fun openIntent(context: Context, id: String): Intent =
@@ -125,7 +137,12 @@ object LauncherBridge {
         thumbs.listFiles()?.filter { it.name !in keep }?.forEach { it.delete() }
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit().putString(KEY_ENTRIES, entries.toString()).apply()
-        ShortcutManagerCompat.setDynamicShortcuts(context, shortcuts)
+        try {
+            ShortcutManagerCompat.setDynamicShortcuts(context, shortcuts)
+        } catch (e: Exception) {
+            // Rate- or count-limited by the launcher: the widget still updates.
+            android.util.Log.w("kivo/launch", "shortcuts not updated: ${e.message}")
+        }
         ContinueWidgetProvider.updateAll(context)
     }
 

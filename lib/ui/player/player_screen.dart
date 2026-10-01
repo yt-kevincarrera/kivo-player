@@ -45,6 +45,7 @@ import 'tracks/track_sync_hud.dart';
 import 'state/aspect_state.dart';
 import 'state/autoplay_state.dart';
 import 'state/dismiss_state.dart';
+import 'state/external_open_state.dart';
 import 'state/hud_state.dart';
 import 'state/mini_player_state.dart';
 import 'state/orientation_state.dart';
@@ -474,7 +475,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     ref.listen<int>(restartRequestProvider, (prev, next) {
       if (next > 0) {
         ref.read(playerControllerProvider).seekTo(Duration.zero);
-        if (_resumeKey != null) _resume.clear(_resumeKey!);
+        // Incognito leaves existing history alone, deletion included.
+        if (_resumeKey != null && !_incognito) _resume.clear(_resumeKey!);
         _lastPosition = Duration.zero;
       }
     });
@@ -498,6 +500,14 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       final s = ref.read(currentVideoProvider.notifier).sessionAt(index);
       ref.read(queueJumpProvider.notifier).state = null;
       if (s != null) _advance(s, countAsAutoplay: false);
+    });
+    // A launcher shortcut / widget tap while this screen is up: switch videos
+    // here, through the normal advance — replacing the route instead would
+    // leave this screen's dispose undoing the new one's setup.
+    ref.listen<VideoSession?>(externalOpenProvider, (_, next) {
+      if (next == null) return;
+      ref.read(externalOpenProvider.notifier).state = null;
+      _advance(next, countAsAutoplay: false);
     });
     ref.listen(autoplayConfirmProvider, (_, next) {
       final pending = ref.read(autoplayPendingProvider);

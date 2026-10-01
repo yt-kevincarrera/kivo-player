@@ -209,9 +209,8 @@ class MainActivity : FlutterFragmentActivity() {
         // ── kivo/subtitles ── (its own file: this one is big enough already)
         SubtitleCharsets.attach(flutterEngine.dartExecutor.binaryMessenger, applicationContext, ioExecutor)
 
-        // ── kivo/launch ── launcher shortcuts, the "Continuar viendo" widget,
-        // and the taps that come back from them.
-        LauncherBridge.attach(flutterEngine.dartExecutor.binaryMessenger, applicationContext, ioExecutor)
+        // ── kivo/launch ── registered in KivoApplication, with the engine it
+        // belongs to; here only this activity's launch intent is handed over.
         LauncherBridge.onLaunchIntent(intent)
 
         // ── kivo/orientation ──────────────────────────────────────────────────
