@@ -3571,6 +3571,156 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Demasiados intentos. Prueba de nuevo en {time}'**
   String vaultPinLockedError(String time);
+
+  /// Fila de Ajustes › Acerca de que abre el informe de problemas.
+  ///
+  /// In es, this message translates to:
+  /// **'Reportar un problema'**
+  String get settingsAboutReportProblem;
+
+  /// Subtítulo de «Reportar un problema».
+  ///
+  /// In es, this message translates to:
+  /// **'Ves el informe antes de enviarlo'**
+  String get settingsAboutReportProblemSubtitle;
+
+  /// Fila de Ajustes › Acerca de que abre la página de privacidad.
+  ///
+  /// In es, this message translates to:
+  /// **'Privacidad'**
+  String get settingsAboutPrivacy;
+
+  /// Subtítulo de «Privacidad».
+  ///
+  /// In es, this message translates to:
+  /// **'Qué sale de tu teléfono: casi nada'**
+  String get settingsAboutPrivacySubtitle;
+
+  /// Fila de Ajustes › Acerca de que abre las licencias de las bibliotecas.
+  ///
+  /// In es, this message translates to:
+  /// **'Licencias'**
+  String get settingsAboutLicenses;
+
+  /// Subtítulo de «Licencias».
+  ///
+  /// In es, this message translates to:
+  /// **'El software libre que hace funcionar Kivo'**
+  String get settingsAboutLicensesSubtitle;
+
+  /// Título de la pantalla del informe de problemas.
+  ///
+  /// In es, this message translates to:
+  /// **'Reportar un problema'**
+  String get reportTitle;
+
+  /// Pista del campo de texto para describir el problema.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuenta qué pasó (opcional)'**
+  String get reportDescribeHint;
+
+  /// Eyebrow sobre la vista previa del informe.
+  ///
+  /// In es, this message translates to:
+  /// **'Esto es todo lo que se envía'**
+  String get reportPreviewLabel;
+
+  /// Texto bajo la vista previa del informe.
+  ///
+  /// In es, this message translates to:
+  /// **'Nada sale de tu teléfono hasta que tú lo envíes, y en tu app de correo aún puedes editarlo.'**
+  String get reportPreviewHint;
+
+  /// Botón que abre la app de correo con el informe.
+  ///
+  /// In es, this message translates to:
+  /// **'Enviar por correo'**
+  String get reportSendEmail;
+
+  /// Botón que abre una incidencia nueva en GitHub con el informe (requiere cuenta de GitHub).
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir en GitHub'**
+  String get reportOpenGithub;
+
+  /// Botón que copia el informe al portapapeles.
+  ///
+  /// In es, this message translates to:
+  /// **'Copiar'**
+  String get reportCopy;
+
+  /// Aviso tras copiar el informe.
+  ///
+  /// In es, this message translates to:
+  /// **'Informe copiado'**
+  String get reportCopiedSnackbar;
+
+  /// Aviso cuando no hay app de correo o navegador para abrir el informe.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay ninguna app para abrirlo. Usa Copiar.'**
+  String get reportOpenFailedSnackbar;
+
+  /// Título de la página de privacidad.
+  ///
+  /// In es, this message translates to:
+  /// **'Privacidad'**
+  String get privacyTitle;
+
+  /// Párrafo inicial de la página de privacidad.
+  ///
+  /// In es, this message translates to:
+  /// **'Kivo no tiene anuncios, ni rastreadores, ni cuentas. Tus videos, lo que ves y cómo lo ves se quedan en tu teléfono.'**
+  String get privacyIntro;
+
+  /// Encabezado de la sección sobre la red.
+  ///
+  /// In es, this message translates to:
+  /// **'La única conexión'**
+  String get privacyNetworkTitle;
+
+  /// Cuerpo de «La única conexión».
+  ///
+  /// In es, this message translates to:
+  /// **'Para buscar actualizaciones, Kivo consulta sus versiones en GitHub: una vez al día si la búsqueda automática está activada, o cuando la pides tú. Si aceptas una actualización, el APK se descarga de allí. GitHub ve tu dirección IP, como cualquier web que visitas; no se envía nada más.'**
+  String get privacyNetworkBody;
+
+  /// Encabezado de la sección sobre el registro de errores.
+  ///
+  /// In es, this message translates to:
+  /// **'Informes de problemas'**
+  String get privacyReportsTitle;
+
+  /// Cuerpo de «Informes de problemas».
+  ///
+  /// In es, this message translates to:
+  /// **'El registro de errores se guarda solo en tu teléfono. Sale únicamente si tú lo envías desde «Reportar un problema», y antes ves exactamente lo que contiene.'**
+  String get privacyReportsBody;
+
+  /// Encabezado de la sección sobre copias de seguridad.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin copia en la nube'**
+  String get privacyBackupTitle;
+
+  /// Cuerpo de «Sin copia en la nube».
+  ///
+  /// In es, this message translates to:
+  /// **'Kivo no deja que Android copie sus datos a tu cuenta de Google. Para llevarte tus ajustes, listas y marcadores a otro teléfono, usa Ajustes › Copia de seguridad: el archivo lo guardas tú.'**
+  String get privacyBackupBody;
+
+  /// Encabezado de la sección sobre permisos.
+  ///
+  /// In es, this message translates to:
+  /// **'Permisos'**
+  String get privacyPermissionsTitle;
+
+  /// Cuerpo de «Permisos»: qué permiso es para qué.
+  ///
+  /// In es, this message translates to:
+  /// **'Videos: para mostrarlos. Todos los archivos (opcional): para borrar, renombrar y usar el Vault sin preguntar cada vez. Notificaciones: para los controles de reproducción en segundo plano. Instalar apps: para actualizarse. Internet: solo para lo anterior.'**
+  String get privacyPermissionsBody;
 }
 
 class _AppLocalizationsDelegate

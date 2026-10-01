@@ -23,6 +23,15 @@ class AndroidAppInstaller implements AppInstaller {
   }
 
   @override
+  Future<String> deviceModel() async {
+    try {
+      return (await _channel.invokeMethod<String>('deviceModel')) ?? '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  @override
   Future<int> androidSdk() async {
     try {
       return (await _channel.invokeMethod<int>('androidSdk')) ?? 0;

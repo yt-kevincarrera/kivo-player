@@ -26,10 +26,16 @@
       route stacked. The classic path always reaches popRoute. Costs the
       predictive-back preview animation, which Kivo does not use.
     -->
+    <!-- No Android cloud backup or device-to-device transfer of app data: Kivo
+         keeps everything on the phone (settings, history, Vault metadata).
+         Moving to another phone is what Ajustes › Copia de seguridad is for. -->
     <application
         android:label="Kivo"
         android:name=".KivoApplication"
         android:enableOnBackInvokedCallback="false"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

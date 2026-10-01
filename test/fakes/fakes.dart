@@ -801,6 +801,9 @@ class FakeAppInstaller implements AppInstaller {
   Future<int> androidSdk() async => sdk;
 
   @override
+  Future<String> deviceModel() async => 'Google Pixel 6';
+
+  @override
   Future<int> enqueueUpdate(String url, String fileName) async {
     enqueued.add((url, fileName));
     return nextDownloadId;

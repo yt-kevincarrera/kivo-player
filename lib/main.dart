@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'core/legal/native_licenses.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -53,6 +54,8 @@ import 'vault/vault_providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // libmpv, FFmpeg & co. on the licenses page (Flutter only knows Dart packages).
+  registerNativeLicenses();
   MediaKit.ensureInitialized();
 
   final dir = await getApplicationDocumentsDirectory();

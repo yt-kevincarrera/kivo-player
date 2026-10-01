@@ -3259,5 +3259,130 @@
         "type": "String"
       }
     }
+  },
+
+  "settingsAboutReportProblem": "Report a problem",
+  "@settingsAboutReportProblem": {
+    "description": "Row in Settings › About that opens the problem report."
+  },
+
+  "settingsAboutReportProblemSubtitle": "You see the report before sending it",
+  "@settingsAboutReportProblemSubtitle": {
+    "description": "Subtitle of «Report a problem»."
+  },
+
+  "settingsAboutPrivacy": "Privacy",
+  "@settingsAboutPrivacy": {
+    "description": "Row in Settings › About that opens the privacy page."
+  },
+
+  "settingsAboutPrivacySubtitle": "What leaves your phone: almost nothing",
+  "@settingsAboutPrivacySubtitle": {
+    "description": "Subtitle of «Privacy»."
+  },
+
+  "settingsAboutLicenses": "Licenses",
+  "@settingsAboutLicenses": {
+    "description": "Row in Settings › About that opens the libraries' licenses."
+  },
+
+  "settingsAboutLicensesSubtitle": "The free software Kivo runs on",
+  "@settingsAboutLicensesSubtitle": {
+    "description": "Subtitle of «Licenses»."
+  },
+
+  "reportTitle": "Report a problem",
+  "@reportTitle": {
+    "description": "Title of the problem report screen."
+  },
+
+  "reportDescribeHint": "Tell what happened (optional)",
+  "@reportDescribeHint": {
+    "description": "Hint of the text field to describe the problem."
+  },
+
+  "reportPreviewLabel": "This is everything that gets sent",
+  "@reportPreviewLabel": {
+    "description": "Eyebrow above the report preview."
+  },
+
+  "reportPreviewHint": "Nothing leaves your phone until you send it, and you can still edit it in your email app.",
+  "@reportPreviewHint": {
+    "description": "Text under the report preview."
+  },
+
+  "reportSendEmail": "Send by email",
+  "@reportSendEmail": {
+    "description": "Button that opens the email app with the report."
+  },
+
+  "reportOpenGithub": "Open on GitHub",
+  "@reportOpenGithub": {
+    "description": "Button that opens a new GitHub issue with the report (needs a GitHub account)."
+  },
+
+  "reportCopy": "Copy",
+  "@reportCopy": {
+    "description": "Button that copies the report to the clipboard."
+  },
+
+  "reportCopiedSnackbar": "Report copied",
+  "@reportCopiedSnackbar": {
+    "description": "Notice after copying the report."
+  },
+
+  "reportOpenFailedSnackbar": "No app can open it. Use Copy.",
+  "@reportOpenFailedSnackbar": {
+    "description": "Notice when there is no email app or browser to open the report."
+  },
+
+  "privacyTitle": "Privacy",
+  "@privacyTitle": {
+    "description": "Title of the privacy page."
+  },
+
+  "privacyIntro": "Kivo has no ads, no trackers and no accounts. Your videos, what you watch and how you watch it stay on your phone.",
+  "@privacyIntro": {
+    "description": "Opening paragraph of the privacy page."
+  },
+
+  "privacyNetworkTitle": "The only connection",
+  "@privacyNetworkTitle": {
+    "description": "Header of the network section."
+  },
+
+  "privacyNetworkBody": "To look for updates, Kivo checks its releases on GitHub: once a day if automatic checking is on, or when you ask. If you accept an update, the APK is downloaded from there. GitHub sees your IP address, like any website you visit; nothing else is sent.",
+  "@privacyNetworkBody": {
+    "description": "Body of «The only connection»."
+  },
+
+  "privacyReportsTitle": "Problem reports",
+  "@privacyReportsTitle": {
+    "description": "Header of the error log section."
+  },
+
+  "privacyReportsBody": "The error log is kept on your phone only. It leaves only if you send it from «Report a problem», and you see exactly what it contains first.",
+  "@privacyReportsBody": {
+    "description": "Body of «Problem reports»."
+  },
+
+  "privacyBackupTitle": "No cloud backup",
+  "@privacyBackupTitle": {
+    "description": "Header of the backup section."
+  },
+
+  "privacyBackupBody": "Kivo doesn't let Android copy its data to your Google account. To take your settings, playlists and bookmarks to another phone, use Settings › Backup: you keep the file.",
+  "@privacyBackupBody": {
+    "description": "Body of «No cloud backup»."
+  },
+
+  "privacyPermissionsTitle": "Permissions",
+  "@privacyPermissionsTitle": {
+    "description": "Header of the permissions section."
+  },
+
+  "privacyPermissionsBody": "Videos: to show them. All files (optional): to delete, rename and use the Vault without asking every time. Notifications: for the background playback controls. Install apps: to update itself. Internet: only for the above.",
+  "@privacyPermissionsBody": {
+    "description": "Body of «Permissions»: what each permission is for."
   }
 }

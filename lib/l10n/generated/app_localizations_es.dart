@@ -2101,4 +2101,89 @@ class AppLocalizationsEs extends AppLocalizations {
   String vaultPinLockedError(String time) {
     return 'Demasiados intentos. Prueba de nuevo en $time';
   }
+
+  @override
+  String get settingsAboutReportProblem => 'Reportar un problema';
+
+  @override
+  String get settingsAboutReportProblemSubtitle =>
+      'Ves el informe antes de enviarlo';
+
+  @override
+  String get settingsAboutPrivacy => 'Privacidad';
+
+  @override
+  String get settingsAboutPrivacySubtitle =>
+      'Qué sale de tu teléfono: casi nada';
+
+  @override
+  String get settingsAboutLicenses => 'Licencias';
+
+  @override
+  String get settingsAboutLicensesSubtitle =>
+      'El software libre que hace funcionar Kivo';
+
+  @override
+  String get reportTitle => 'Reportar un problema';
+
+  @override
+  String get reportDescribeHint => 'Cuenta qué pasó (opcional)';
+
+  @override
+  String get reportPreviewLabel => 'Esto es todo lo que se envía';
+
+  @override
+  String get reportPreviewHint =>
+      'Nada sale de tu teléfono hasta que tú lo envíes, y en tu app de correo aún puedes editarlo.';
+
+  @override
+  String get reportSendEmail => 'Enviar por correo';
+
+  @override
+  String get reportOpenGithub => 'Abrir en GitHub';
+
+  @override
+  String get reportCopy => 'Copiar';
+
+  @override
+  String get reportCopiedSnackbar => 'Informe copiado';
+
+  @override
+  String get reportOpenFailedSnackbar =>
+      'No hay ninguna app para abrirlo. Usa Copiar.';
+
+  @override
+  String get privacyTitle => 'Privacidad';
+
+  @override
+  String get privacyIntro =>
+      'Kivo no tiene anuncios, ni rastreadores, ni cuentas. Tus videos, lo que ves y cómo lo ves se quedan en tu teléfono.';
+
+  @override
+  String get privacyNetworkTitle => 'La única conexión';
+
+  @override
+  String get privacyNetworkBody =>
+      'Para buscar actualizaciones, Kivo consulta sus versiones en GitHub: una vez al día si la búsqueda automática está activada, o cuando la pides tú. Si aceptas una actualización, el APK se descarga de allí. GitHub ve tu dirección IP, como cualquier web que visitas; no se envía nada más.';
+
+  @override
+  String get privacyReportsTitle => 'Informes de problemas';
+
+  @override
+  String get privacyReportsBody =>
+      'El registro de errores se guarda solo en tu teléfono. Sale únicamente si tú lo envías desde «Reportar un problema», y antes ves exactamente lo que contiene.';
+
+  @override
+  String get privacyBackupTitle => 'Sin copia en la nube';
+
+  @override
+  String get privacyBackupBody =>
+      'Kivo no deja que Android copie sus datos a tu cuenta de Google. Para llevarte tus ajustes, listas y marcadores a otro teléfono, usa Ajustes › Copia de seguridad: el archivo lo guardas tú.';
+
+  @override
+  String get privacyPermissionsTitle => 'Permisos';
+
+  @override
+  String get privacyPermissionsBody =>
+      'Videos: para mostrarlos. Todos los archivos (opcional): para borrar, renombrar y usar el Vault sin preguntar cada vez. Notificaciones: para los controles de reproducción en segundo plano. Instalar apps: para actualizarse. Internet: solo para lo anterior.';
 }
