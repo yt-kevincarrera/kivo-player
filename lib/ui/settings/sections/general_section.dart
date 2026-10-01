@@ -4,6 +4,7 @@ import '../../../core/settings/settings_provider.dart';
 import '../../../l10n/l10n.dart';
 import '../widgets/setting_tiles.dart';
 import 'hidden_folders_section.dart';
+import '../../widgets/readable_width.dart';
 
 class GeneralSettingsSection extends ConsumerWidget {
   const GeneralSettingsSection({super.key});
@@ -16,7 +17,7 @@ class GeneralSettingsSection extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsGeneralTitle)),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 28),
+        padding: readablePadding(context, const EdgeInsets.fromLTRB(14, 12, 14, 28)),
         children: [
           _label(context, l10n.settingsGeneralGroupAppearance),
           SettingsCard(children: [

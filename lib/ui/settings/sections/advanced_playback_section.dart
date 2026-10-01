@@ -8,6 +8,7 @@ import '../../../player/decoder/decoder_controller.dart';
 import '../../../player/decoder/decoder_mode.dart';
 import '../widgets/setting_tiles.dart';
 import '../widgets/setting_choice.dart';
+import '../../widgets/readable_width.dart';
 
 class AdvancedPlaybackSection extends ConsumerWidget {
   const AdvancedPlaybackSection({super.key});
@@ -32,7 +33,7 @@ class AdvancedPlaybackSection extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsAdvancedPlaybackTitle)),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 28),
+        padding: readablePadding(context, const EdgeInsets.fromLTRB(14, 12, 14, 28)),
         children: [
           _label(context, l10n.settingsAdvancedGroupContinueWatching),
           SettingsCard(children: [

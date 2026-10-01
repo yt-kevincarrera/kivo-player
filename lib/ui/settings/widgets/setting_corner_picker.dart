@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/kivo_focusable.dart';
 
 /// Picks one of the four corners ('tl'/'tr'/'bl'/'br') on a mini rectangle.
 class SettingCornerPicker extends StatelessWidget {
@@ -29,7 +30,7 @@ class SettingCornerPicker extends StatelessWidget {
             for (final (code, align) in _corners)
               Align(
                 alignment: align,
-                child: GestureDetector(
+                child: FocusableTap(
                   key: ValueKey('corner-$code'),
                   behavior: HitTestBehavior.opaque,
                   onTap: () => onChanged(code),

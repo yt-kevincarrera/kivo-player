@@ -15,6 +15,7 @@ import '../state/library_selection.dart';
 import 'continue_row.dart';
 import 'video_options_sheet.dart';
 import 'video_tile.dart';
+import '../../widgets/readable_width.dart';
 
 /// Maps [group] to its localized display label. `dated` groups carry an
 /// already-formatted (non-localized — date formatting is out of scope this
@@ -32,6 +33,13 @@ String dateGroupLabel(AppLocalizations l10n, DateGroup group) => switch (group.k
 /// Used by both the "Todo" tab (grouped by day, with the "Continuar viendo"
 /// strip) and by [FolderScreen] (flat, no strip) so a folder looks and behaves
 /// exactly like the main library.
+/// Columns for a library grid: [chosen] is the phone setting (1–3); wider
+/// screens get proportionally more, up to 8. One column stays a list.
+int adaptiveColumns(int chosen, double width) {
+  if (chosen <= 1) return 1;
+  return (chosen * width / 420).floor().clamp(chosen, 8);
+}
+
 class VideoDensityFeed extends ConsumerStatefulWidget {
   final List<VideoItem> videos;
   final void Function(VideoItem current, List<VideoItem> all, Rect? origin)
@@ -154,7 +162,16 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
       return widget.emptyState!;
     }
 
-    final cols = ref.watch(settingsProvider).libraryColumns;
+    final width = MediaQuery.sizeOf(context).width;
+    // The setting is what the user picked on a phone; a tablet or a TV
+    // gets as many more columns as fit at the same tile size.
+    final chosen = ref.watch(settingsProvider).libraryColumns;
+    final cols = isLargeScreen(context) ? adaptiveColumns(chosen, width) : chosen;
+    // A one-column list stays readable on a wide screen: centred, not a
+    // row with its title a screen away from its picture.
+    final hPad = cols == 1
+        ? readablePadding(context, const EdgeInsets.symmetric(horizontal: _sectionPad)).left
+        : _sectionPad;
     final sections = widget.groupByDate
         ? groupByDay(widget.videos, DateTime.now())
         : [DaySection(null, widget.videos)];
@@ -188,12 +205,7 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
             if (s.group != null)
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    _sectionPad,
-                    18,
-                    _sectionPad,
-                    8,
-                  ),
+                  padding: EdgeInsets.fromLTRB(hPad, 18, hPad, 8),
                   child: Row(
                     children: [
                       if (selecting) ...[
@@ -225,7 +237,7 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
                 ),
               ),
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: _sectionPad),
+              padding: EdgeInsets.symmetric(horizontal: hPad),
               sliver: cols == 1
                   ? SliverList(
                       delegate: SliverChildBuilderDelegate((_, i) {

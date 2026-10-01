@@ -15,6 +15,11 @@
          releases API. Flutter adds INTERNET to the debug/profile manifests only,
          so without this line every check silently fails in a RELEASE build. -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Android TV: listed on the TV launcher (LEANBACK_LAUNCHER below,
+         banner on the application), and not filtered out for lacking a
+         touchscreen — the remote drives the app through D-pad focus. -->
+    <uses-feature android:name="android.software.leanback" android:required="false" />
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <!--
       Back takes the classic onBackPressed path on purpose. On Android 13+
       the OnBackInvokedCallback door only opens when Flutter has told the
@@ -31,6 +36,7 @@
          Moving to another phone is what Ajustes › Copia de seguridad is for. -->
     <application
         android:label="Kivo"
+        android:banner="@drawable/tv_banner"
         android:name=".KivoApplication"
         android:enableOnBackInvokedCallback="false"
         android:allowBackup="false"
@@ -58,6 +64,10 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />

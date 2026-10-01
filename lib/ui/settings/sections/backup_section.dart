@@ -11,6 +11,7 @@ import '../../../core/backup/backup_merge.dart';
 import '../../../core/backup/backup_service.dart';
 import '../../../l10n/l10n.dart';
 import '../widgets/setting_tiles.dart';
+import '../../widgets/readable_width.dart';
 
 class BackupSection extends ConsumerWidget {
   const BackupSection({super.key});
@@ -21,7 +22,7 @@ class BackupSection extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsBackupTitle)),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 28),
+        padding: readablePadding(context, const EdgeInsets.fromLTRB(14, 12, 14, 28)),
         children: [
           SettingsCard(children: [
             SettingNavRow(

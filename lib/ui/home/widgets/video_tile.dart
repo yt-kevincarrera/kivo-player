@@ -8,6 +8,7 @@ import '../../../l10n/spoken.dart';
 import '../../../platform/interfaces/media_indexer.dart';
 import '../../widgets/press_bounce.dart';
 import 'thumbnail_image.dart';
+import '../../widgets/kivo_focusable.dart';
 
 class VideoTile extends ConsumerStatefulWidget {
   final VideoItem video;
@@ -73,9 +74,16 @@ class _VideoTileState extends ConsumerState<VideoTile> {
       button: true,
       label: _spokenLabel(context),
       selected: widget.selecting ? widget.selected : null,
-      child: widget.listRow
-          ? _buildListRow(context, accent)
-          : _buildCover(context, accent),
+      // D-pad / keyboard: OK opens it, the menu key does what a long press
+      // would (the options, or selection where there is no ⋮).
+      child: KivoFocusable(
+        onActivate: _handleTap,
+        onSecondary: widget.onOptions ?? widget.onLongPress,
+        borderRadius: BorderRadius.circular(widget.listRow ? 8 : 12),
+        child: widget.listRow
+            ? _buildListRow(context, accent)
+            : _buildCover(context, accent),
+      ),
     );
   }
 
@@ -219,7 +227,10 @@ class _VideoTileState extends ConsumerState<VideoTile> {
                   onPressed: widget.onOptions ?? () {},
                   padding: const EdgeInsets.all(4),
                   // Small icon, full-size touch target.
-                  constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                  constraints: const BoxConstraints(
+                    minWidth: 48,
+                    minHeight: 48,
+                  ),
                 ),
               ],
             ),

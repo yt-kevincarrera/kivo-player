@@ -23,6 +23,7 @@ import '../../../player/tracks/track_selection.dart';
 import '../../widgets/failure_snack_bar.dart';
 import '../subtitles/subtitle_text.dart';
 import 'track_sync_hud.dart';
+import '../../widgets/kivo_focusable.dart';
 
 part 'subtitle_encoding_sheet.dart';
 part 'subtitle_style_controls.dart';
@@ -1121,7 +1122,7 @@ class _ColorSquare extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return FocusableTap(
       onTap: onTap,
       child: Container(
         width: 30,
@@ -1168,7 +1169,7 @@ class _BackgroundChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return FocusableTap(
       onTap: onTap,
       child: Container(
         height: 46,

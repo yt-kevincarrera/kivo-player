@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/format.dart';
 import '../../../core/settings/settings_provider.dart';
@@ -52,6 +53,7 @@ class SeekBar extends ConsumerStatefulWidget {
 class _SeekBarState extends ConsumerState<SeekBar>
     with SingleTickerProviderStateMixin {
   late final AnimationController _thumbAnim;
+  final _sliderFocus = FocusNode(canRequestFocus: false, skipTraversal: true);
 
   @override
   void initState() {
@@ -65,6 +67,7 @@ class _SeekBarState extends ConsumerState<SeekBar>
   @override
   void dispose() {
     _thumbAnim.dispose();
+    _sliderFocus.dispose();
     super.dispose();
   }
 
@@ -137,63 +140,73 @@ class _SeekBarState extends ConsumerState<SeekBar>
               const Positioned.fill(child: AbRangeLayer()),
               const Positioned.fill(child: ChapterMarksLayer()),
               const Positioned.fill(child: BookmarkMarksLayer()),
-              Semantics(
-                slider: true,
-                label: l10n.playerSeekBarLabel,
-                value: spokenAt(shownPos),
-                // From what was just announced (a quick second swipe lands
-                // one more step on), and held as the pending seek so the
-                // value does not jump back until playback catches up. No
-                // steps before the duration is known: they would all clamp
-                // to 0 and restart the video.
-                increasedValue: hasTotal
-                    ? spokenAt(clampTo(shownPos + step))
-                    : null,
-                decreasedValue: hasTotal
-                    ? spokenAt(clampTo(shownPos - step))
-                    : null,
-                onIncrease: hasTotal
-                    ? () => stepTo(clampTo(shownPos + step))
-                    : null,
-                onDecrease: hasTotal
-                    ? () => stepTo(clampTo(shownPos - step))
-                    : null,
-                excludeSemantics: true,
-                child: AnimatedBuilder(
-                  animation: _thumbAnim,
-                  builder: (context, _) => SliderTheme(
-                    data: SliderTheme.of(context).copyWith(
-                      thumbShape: _GrowingThumbShape(_thumbAnim, accent),
-                      overlayShape: SliderComponentShape.noOverlay,
-                    ),
-                    child: Slider(
-                      min: 0,
-                      max: maxMs,
-                      value: shownPos.inMilliseconds
-                          .clamp(0, maxMs.toInt())
-                          .toDouble(),
-                      activeColor: accent,
-                      inactiveColor: Colors.white24,
-                      onChanged: (v) {
-                        final d = Duration(milliseconds: v.round());
-                        ref.read(pendingSeekProvider.notifier).state =
-                            null; // new drag supersedes
-                        ref.read(scrubProvider.notifier).state = d;
-                        ref.read(controlsVisibleProvider.notifier).show();
-                        ref.read(seekPreviewControllerProvider).request(d);
-                      },
-                      onChangeEnd: (v) {
-                        final target = Duration(milliseconds: v.round());
-                        ref.read(playerControllerProvider).seekTo(target);
-                        ref.read(pendingSeekProvider.notifier).state =
-                            target; // hold slider until pos catches up
-                        ref.read(scrubProvider.notifier).state =
-                            null; // hide the bubble
-                        // Drop the last preview frame so the next scrub doesn't briefly
-                        // flash the previous position's frame before the new one loads.
-                        ref.read(seekPreviewFrameProvider.notifier).state =
-                            null;
-                      },
+              _SeekKeys(
+                enabled: hasTotal,
+                onStep: (forward) {
+                  stepTo(clampTo(shownPos + (forward ? step : -step)));
+                  ref.read(controlsVisibleProvider.notifier).show();
+                },
+                child: Semantics(
+                  slider: true,
+                  label: l10n.playerSeekBarLabel,
+                  value: spokenAt(shownPos),
+                  // From what was just announced (a quick second swipe lands
+                  // one more step on), and held as the pending seek so the
+                  // value does not jump back until playback catches up. No
+                  // steps before the duration is known: they would all clamp
+                  // to 0 and restart the video.
+                  increasedValue: hasTotal
+                      ? spokenAt(clampTo(shownPos + step))
+                      : null,
+                  decreasedValue: hasTotal
+                      ? spokenAt(clampTo(shownPos - step))
+                      : null,
+                  onIncrease: hasTotal
+                      ? () => stepTo(clampTo(shownPos + step))
+                      : null,
+                  onDecrease: hasTotal
+                      ? () => stepTo(clampTo(shownPos - step))
+                      : null,
+                  excludeSemantics: true,
+                  child: AnimatedBuilder(
+                    animation: _thumbAnim,
+                    builder: (context, _) => SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        thumbShape: _GrowingThumbShape(_thumbAnim, accent),
+                        overlayShape: SliderComponentShape.noOverlay,
+                      ),
+                      child: Slider(
+                        // Never takes the remote's focus: its own arrow keys
+                        // step 5 % and trap ↑/↓ (see _SeekKeys).
+                        focusNode: _sliderFocus,
+                        min: 0,
+                        max: maxMs,
+                        value: shownPos.inMilliseconds
+                            .clamp(0, maxMs.toInt())
+                            .toDouble(),
+                        activeColor: accent,
+                        inactiveColor: Colors.white24,
+                        onChanged: (v) {
+                          final d = Duration(milliseconds: v.round());
+                          ref.read(pendingSeekProvider.notifier).state =
+                              null; // new drag supersedes
+                          ref.read(scrubProvider.notifier).state = d;
+                          ref.read(controlsVisibleProvider.notifier).show();
+                          ref.read(seekPreviewControllerProvider).request(d);
+                        },
+                        onChangeEnd: (v) {
+                          final target = Duration(milliseconds: v.round());
+                          ref.read(playerControllerProvider).seekTo(target);
+                          ref.read(pendingSeekProvider.notifier).state =
+                              target; // hold slider until pos catches up
+                          ref.read(scrubProvider.notifier).state =
+                              null; // hide the bubble
+                          // Drop the last preview frame so the next scrub doesn't briefly
+                          // flash the previous position's frame before the new one loads.
+                          ref.read(seekPreviewFrameProvider.notifier).state =
+                              null;
+                        },
+                      ),
                     ),
                   ),
                 ),
@@ -221,6 +234,59 @@ class _SeekBarState extends ConsumerState<SeekBar>
           ),
         ),
       ],
+    );
+  }
+}
+
+/// The seek bar as a remote / keyboard sees it: focusable, ←/→ step by the
+/// skip jump, ↑/↓ left to focus traversal so the D-pad can leave it. (The
+/// Slider itself stays out of focus: on a D-pad it would take all four
+/// arrows as 5 % steps — six minutes of a film — and never let go.)
+class _SeekKeys extends StatelessWidget {
+  final bool enabled;
+  final void Function(bool forward) onStep;
+  final Widget child;
+  const _SeekKeys({
+    required this.enabled,
+    required this.onStep,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Focus(
+      canRequestFocus: enabled,
+      onKeyEvent: (node, event) {
+        if (event is KeyUpEvent) return KeyEventResult.ignored;
+        final k = event.logicalKey;
+        if (k != LogicalKeyboardKey.arrowLeft &&
+            k != LogicalKeyboardKey.arrowRight) {
+          return KeyEventResult.ignored;
+        }
+        onStep(k == LogicalKeyboardKey.arrowRight);
+        return KeyEventResult.handled;
+      },
+      child: Builder(
+        builder: (context) {
+          final ring =
+              Focus.of(context).hasPrimaryFocus &&
+              FocusManager.instance.highlightMode ==
+                  FocusHighlightMode.traditional;
+          return DecoratedBox(
+            position: DecorationPosition.foreground,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: ring
+                  ? Border.all(
+                      color: Theme.of(context).colorScheme.secondary,
+                      width: 2,
+                    )
+                  : const Border.fromBorderSide(BorderSide.none),
+            ),
+            child: child,
+          );
+        },
+      ),
     );
   }
 }

@@ -7,6 +7,7 @@ import '../../../core/theme/kivo_theme.dart';
 import '../../../l10n/l10n.dart';
 import '../../../player/control/gesture_math.dart';
 import '../../../player/control/player_controller.dart';
+import '../../widgets/kivo_focusable.dart';
 
 Future<void> showSpeedPanel(BuildContext context) {
   return showModalBottomSheet(
@@ -83,7 +84,7 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
           alignment: WrapAlignment.center,
           children: [
             for (final p in st.speedPresets)
-              GestureDetector(
+              FocusableTap(
                 onTap: () => ctrl.setRate(p),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -105,7 +106,7 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
                 ),
               ),
             if (isCustomRate)
-              GestureDetector(
+              FocusableTap(
                 onTap: () {
                   final next = {...st.speedPresets, round2(rate)}.toList()..sort();
                   ref.read(settingsProvider.notifier).set(st.copyWith(speedPresets: next));
@@ -180,7 +181,7 @@ class _RepeatButtonState extends State<_RepeatButton> {
   }
 
   @override
-  Widget build(BuildContext context) => GestureDetector(
+  Widget build(BuildContext context) => FocusableTap(
         onTap: widget.onStep,
         onLongPress: _start,
         onLongPressUp: _stop,

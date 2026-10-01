@@ -8,6 +8,8 @@ import '../../widgets/press_bounce.dart';
 import 'folder_options_sheet.dart';
 import 'library_empty_state.dart';
 import 'thumbnail_image.dart';
+import '../../widgets/kivo_focusable.dart';
+import '../../widgets/readable_width.dart';
 
 class FolderGrid extends ConsumerWidget {
   final List<VideoItem> videos;
@@ -35,12 +37,20 @@ class FolderGrid extends ConsumerWidget {
 
     return GridView.builder(
       padding: const EdgeInsets.all(24),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 1.25,
-      ),
+      // Two across on a phone, as many as fit on a tablet or a TV.
+      gridDelegate: isLargeScreen(context)
+          ? const SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 240,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              childAspectRatio: 1.25,
+            )
+          : const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              childAspectRatio: 1.25,
+            ),
       itemCount: folders.length,
       itemBuilder: (_, i) {
         final name = folders[i];
@@ -49,12 +59,17 @@ class FolderGrid extends ConsumerWidget {
           container: true,
           button: true,
           label: context.l10n.a11yFolderLabel(name, items.length),
-          child: GestureDetector(
-            onLongPress: () => showFolderOptionsSheet(context, ref, name),
-            child: PressBounce(
-              onTap: () => onOpenFolder(name, items),
-              child: ExcludeSemantics(
-                child: _FolderCard(name: name, items: items, accent: accent),
+          child: KivoFocusable(
+            onActivate: () => onOpenFolder(name, items),
+            onSecondary: () => showFolderOptionsSheet(context, ref, name),
+            borderRadius: BorderRadius.circular(10),
+            child: GestureDetector(
+              onLongPress: () => showFolderOptionsSheet(context, ref, name),
+              child: PressBounce(
+                onTap: () => onOpenFolder(name, items),
+                child: ExcludeSemantics(
+                  child: _FolderCard(name: name, items: items, accent: accent),
+                ),
               ),
             ),
           ),
@@ -69,7 +84,11 @@ class _FolderCard extends StatelessWidget {
   final List<VideoItem> items;
   final Color accent;
 
-  const _FolderCard({required this.name, required this.items, required this.accent});
+  const _FolderCard({
+    required this.name,
+    required this.items,
+    required this.accent,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +97,10 @@ class _FolderCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: cs.onSurface.withValues(alpha: 0.08), width: 0.5),
+        border: Border.all(
+          color: cs.onSurface.withValues(alpha: 0.08),
+          width: 0.5,
+        ),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -87,10 +109,7 @@ class _FolderCard extends StatelessWidget {
           // Thumbnail cover — takes ~65% of the card
           Expanded(
             flex: 65,
-            child: ThumbnailImage(
-              items.first.id,
-              fit: BoxFit.cover,
-            ),
+            child: ThumbnailImage(items.first.id, fit: BoxFit.cover),
           ),
           // Footer with folder name and count pill
           Expanded(

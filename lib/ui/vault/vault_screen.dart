@@ -11,6 +11,7 @@ import '../../vault/vault_selection.dart';
 import 'vault_gate.dart';
 import 'widgets/vault_bottom_bar.dart';
 import 'widgets/vault_thumbnail.dart';
+import '../widgets/kivo_focusable.dart';
 
 class VaultScreen extends ConsumerWidget {
   const VaultScreen({super.key});
@@ -81,7 +82,7 @@ class _VaultContent extends ConsumerWidget {
               itemBuilder: (context, i) {
                 final e = entries[i];
                 final isSel = selected.contains(e.privatePath);
-                return GestureDetector(
+                return FocusableTap(
                   onTap: () {
                     if (selecting) {
                       HapticFeedback.selectionClick();
@@ -94,6 +95,9 @@ class _VaultContent extends ConsumerWidget {
                     HapticFeedback.selectionClick();
                     sel.toggle(e.privatePath);
                   },
+                  // The remote's menu key selects, like a long press.
+                  onSecondary: () => sel.toggle(e.privatePath),
+                  borderRadius: BorderRadius.circular(10),
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
