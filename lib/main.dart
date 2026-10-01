@@ -45,6 +45,8 @@ import 'platform/media_session_provider.dart';
 import 'platform/pip_controller_provider.dart';
 import 'platform/subtitle_finder_provider.dart';
 import 'platform/subtitle_transcoder_provider.dart';
+import 'platform/launcher_bridge_provider.dart';
+import 'platform/android/android_launcher_bridge.dart';
 import 'platform/android/android_subtitle_transcoder.dart';
 import 'platform/vault_ops_provider.dart';
 import 'platform/android/android_vault_ops.dart';
@@ -111,6 +113,7 @@ Future<void> main() async {
       subtitleFinderProvider.overrideWithValue(AndroidSubtitleFinder()),
       subtitleTranscoderProvider
           .overrideWithValue(AndroidSubtitleTranscoder(errorLog)),
+      launcherBridgeProvider.overrideWithValue(AndroidLauncherBridge()),
       mediaSessionProvider.overrideWithValue(AndroidMediaSessionBridge()),
       pipControllerProvider.overrideWithValue(AndroidPipController()),
       allFilesAccessProvider.overrideWithValue(AndroidAllFilesAccess()),

@@ -209,6 +209,11 @@ class MainActivity : FlutterFragmentActivity() {
         // ── kivo/subtitles ── (its own file: this one is big enough already)
         SubtitleCharsets.attach(flutterEngine.dartExecutor.binaryMessenger, applicationContext, ioExecutor)
 
+        // ── kivo/launch ── launcher shortcuts, the "Continuar viendo" widget,
+        // and the taps that come back from them.
+        LauncherBridge.attach(flutterEngine.dartExecutor.binaryMessenger, applicationContext, ioExecutor)
+        LauncherBridge.onLaunchIntent(intent)
+
         // ── kivo/orientation ──────────────────────────────────────────────────
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "kivo/orientation")
             .setMethodCallHandler { call, result ->
@@ -970,6 +975,12 @@ class MainActivity : FlutterFragmentActivity() {
     // never runs. Outside the player interceptVolume is false → normal OS behavior.
     private fun isVolumeKey(keyCode: Int) =
         keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        // A shortcut/widget tap with Kivo already open (singleTop).
+        LauncherBridge.onNewIntent(intent)
+    }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (interceptVolume && isVolumeKey(keyCode)) {

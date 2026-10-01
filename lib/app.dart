@@ -8,6 +8,7 @@ import 'l10n/generated/app_localizations.dart';
 import 'player/audio/audio_pipeline_controller.dart';
 import 'player/autoplay/autoplay_coordinator.dart';
 import 'player/subtitles/subtitle_render_controller.dart';
+import 'ui/launch/launch_coordinator.dart';
 import 'player/background/background_playback.dart';
 import 'ui/home/home_shell.dart';
 import 'ui/update/update_dialog.dart';
@@ -29,6 +30,8 @@ class _KivoAppState extends ConsumerState<KivoApp> {
       ref.read(audioPipelineProvider).apply();
       // Same reason: libass must have its font before the first ASS track.
       ref.read(subtitleRenderProvider).start();
+      // Launcher shortcuts + home-screen widget, and a tap on one of them.
+      ref.read(launchCoordinatorProvider).start();
       _maybeAutoCheck();
     });
   }
