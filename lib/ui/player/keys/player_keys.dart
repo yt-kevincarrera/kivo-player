@@ -12,6 +12,7 @@ import '../state/lock_state.dart';
 import '../state/queue_strip_state.dart';
 import '../state/skip_feedback.dart';
 import '../tracks/track_sync_hud.dart';
+import '../../../player/cast/cast_controller.dart';
 
 /// Media keys do the same whatever is on screen, locked included.
 final _mediaKeys = <LogicalKeyboardKey, PlayerKeyAction>{
@@ -81,6 +82,13 @@ final playPauseFocusProvider = Provider<FocusNode>((ref) {
   return node;
 });
 
+/// Where the focus lands when the D-pad first touches the cast screen.
+final castStopFocusProvider = Provider<FocusNode>((ref) {
+  final node = FocusNode(debugLabel: 'cast-stop');
+  ref.onDispose(node.dispose);
+  return node;
+});
+
 /// Where the focus lands when a key wakes the lock overlay.
 final unlockFocusProvider = Provider<FocusNode>((ref) {
   final node = FocusNode(debugLabel: 'unlock');
@@ -121,8 +129,50 @@ class _PlayerKeysState extends ConsumerState<PlayerKeys> {
     });
   }
 
+  bool get _castingThis => ref
+      .read(castControllerProvider)
+      .isCasting(ref.read(currentVideoProvider)?.resumeKey);
+
+  /// While this video plays on a TV the cast screen is the player: media
+  /// keys and Space drive the TV; the D-pad moves between the cast screen's
+  /// buttons (the first press lands on "Dejar de enviar").
+  KeyEventResult _onCastKey(FocusNode node, KeyEvent event) {
+    final key = event.logicalKey;
+    final cast = ref.read(castControllerProvider.notifier);
+    final skip = ref.read(settingsProvider).centerSkipSeconds;
+    final media = _mediaKeys[key];
+    if (media != null || key == LogicalKeyboardKey.space) {
+      if (event is KeyRepeatEvent &&
+          media != PlayerKeyAction.seekBack &&
+          media != PlayerKeyAction.seekForward) {
+        return KeyEventResult.handled;
+      }
+      switch (media ?? PlayerKeyAction.togglePlay) {
+        case PlayerKeyAction.togglePlay:
+          cast.togglePlay();
+        case PlayerKeyAction.play:
+          cast.play();
+        case PlayerKeyAction.pause:
+          cast.pause();
+        case PlayerKeyAction.seekBack:
+          cast.skip(-skip);
+        case PlayerKeyAction.seekForward:
+          cast.skip(skip);
+        default:
+          break;
+      }
+      return KeyEventResult.handled;
+    }
+    if (node.hasPrimaryFocus && _navigates(key)) {
+      ref.read(castStopFocusProvider).requestFocus();
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
+
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
     if (event is KeyUpEvent) return KeyEventResult.ignored;
+    if (_castingThis) return _onCastKey(node, event);
     final key = event.logicalKey;
     final controls = ref.read(controlsVisibleProvider.notifier);
     final locked = ref.read(lockProvider);

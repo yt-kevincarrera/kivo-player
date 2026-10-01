@@ -3346,7 +3346,7 @@
     "description": "Opening paragraph of the privacy page."
   },
 
-  "privacyNetworkTitle": "The only connection",
+  "privacyNetworkTitle": "The only internet connection",
   "@privacyNetworkTitle": {
     "description": "Header of the network section."
   },
@@ -3381,7 +3381,7 @@
     "description": "Header of the permissions section."
   },
 
-  "privacyPermissionsBody": "Videos: to show them. All files (optional): to delete, rename and use the Vault without asking every time. Notifications: for the background playback controls. Install apps: to update itself. Fingerprint: to open the Vault, if you turn it on. Internet: only for the above.",
+  "privacyPermissionsBody": "Videos: to show them. All files (optional): to delete, rename and use the Vault without asking every time. Notifications: for the background playback controls. Install apps: to update itself. Fingerprint: to open the Vault, if you turn it on. Wi-Fi: to find your TV and keep sending it the video with the screen off. Internet: only for the above.",
   "@privacyPermissionsBody": {
     "description": "Body of «Permissions»: what each permission is for."
   },
@@ -3623,5 +3623,90 @@
   "a11yZoomResetHint": "reset the zoom",
   "@a11yZoomResetHint": {
     "description": "Screen reader: what tapping the zoom chip does."
+  },
+
+  "castButtonTooltip": "Send to TV",
+  "@castButtonTooltip": {
+    "description": "Player button that sends the video to a TV."
+  },
+
+  "castPickerTitle": "Send to TV",
+  "@castPickerTitle": {
+    "description": "Title of the sheet listing TVs."
+  },
+
+  "castPickerSearching": "Looking for TVs on your Wi-Fi…",
+  "@castPickerSearching": {
+    "description": "While searching for TVs."
+  },
+
+  "castPickerEmptyTitle": "No TV found",
+  "@castPickerEmptyTitle": {
+    "description": "The search ended without TVs."
+  },
+
+  "castPickerEmptyBody": "Check that the phone and the TV are on the same Wi-Fi, and that the TV is on and accepts shared media (DLNA; sometimes called \"Screen share\" or \"Media Renderer\").",
+  "@castPickerEmptyBody": {
+    "description": "Help when no TV is found."
+  },
+
+  "castPickerRetry": "Search again",
+  "@castPickerRetry": {
+    "description": "Repeats the TV search."
+  },
+
+  "castPickerNote": "Works with most smart TVs. The video goes over your Wi-Fi, never through the internet. Subtitles are not sent.",
+  "@castPickerNote": {
+    "description": "Footnote under the list of TVs."
+  },
+
+  "castConnecting": "Connecting to {device}…",
+  "@castConnecting": {
+    "description": "While the TV takes the video.",
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+
+  "castPlayingOn": "Playing on {device}",
+  "@castPlayingOn": {
+    "description": "Player screen while casting.",
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+
+  "castStop": "Stop casting",
+  "@castStop": {
+    "description": "Ends the cast and carries on on the phone."
+  },
+
+  "castFinishedSnack": "The TV finished the video",
+  "@castFinishedSnack": {
+    "description": "The video ended on the TV."
+  },
+
+  "castLostSnack": "Lost the connection to the TV. Carrying on here from where it was.",
+  "@castLostSnack": {
+    "description": "The TV stopped answering."
+  },
+
+  "errorCast": "We couldn't send the video to the TV",
+  "@errorCast": {
+    "description": "Error KV-505."
+  },
+
+  "privacyCastTitle": "Send to TV",
+  "@privacyCastTitle": {
+    "description": "Block of the privacy page."
+  },
+
+  "privacyCastBody": "When you send a video to a TV, Kivo looks for TVs on your Wi-Fi and serves the video only to the one you pick, at a one-time address that stops working when you finish. None of it leaves your local network.",
+  "@privacyCastBody": {
+    "description": "Block of the privacy page."
   }
 }

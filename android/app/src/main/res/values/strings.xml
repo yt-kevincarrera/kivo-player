@@ -15,4 +15,9 @@
     <string name="widget_description">The video you left halfway, one tap away</string>
     <string name="widget_continue_at">Resume at %1$s</string>
     <string name="widget_empty">Nothing in progress</string>
+    <!-- Send to TV (CastBridge.kt) -->
+    <string name="cast_channel_name">Send to TV</string>
+    <string name="cast_notification_title">Playing on %1$s</string>
+    <string name="cast_notification_text">Kivo is sending the video over your Wi-Fi</string>
+    <string name="cast_notification_stop">Stop</string>
 </resources>

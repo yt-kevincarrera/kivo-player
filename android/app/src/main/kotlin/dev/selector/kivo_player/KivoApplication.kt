@@ -29,6 +29,9 @@ class KivoApplication : Application() {
         // executor it never holds one an activity has shut down.
         LauncherBridge.attach(
             engine.dartExecutor.binaryMessenger, this, Executors.newSingleThreadExecutor())
+        // kivo/cast (Enviar a la TV) likewise outlives any activity: a cast
+        // keeps going with the app in the background.
+        CastBridge.attach(engine.dartExecutor.binaryMessenger, this)
     }
 
     companion object {

@@ -3677,7 +3677,7 @@ abstract class AppLocalizations {
   /// Encabezado de la sección sobre la red.
   ///
   /// In es, this message translates to:
-  /// **'La única conexión'**
+  /// **'La única conexión a Internet'**
   String get privacyNetworkTitle;
 
   /// Cuerpo de «La única conexión».
@@ -3719,7 +3719,7 @@ abstract class AppLocalizations {
   /// Cuerpo de «Permisos»: qué permiso es para qué.
   ///
   /// In es, this message translates to:
-  /// **'Videos: para mostrarlos. Todos los archivos (opcional): para borrar, renombrar y usar el Vault sin preguntar cada vez. Notificaciones: para los controles de reproducción en segundo plano. Instalar apps: para actualizarse. Huella: para abrir el Vault, si lo activas. Internet: solo para lo anterior.'**
+  /// **'Videos: para mostrarlos. Todos los archivos (opcional): para borrar, renombrar y usar el Vault sin preguntar cada vez. Notificaciones: para los controles de reproducción en segundo plano. Instalar apps: para actualizarse. Huella: para abrir el Vault, si lo activas. Wi-Fi: para encontrar tu TV y seguir enviándole el video con la pantalla apagada. Internet: solo para lo anterior.'**
   String get privacyPermissionsBody;
 
   /// Grupo de la pestaña Estilo: tamaño, fuente, color y negrita.
@@ -3937,6 +3937,96 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'restablecer el zoom'**
   String get a11yZoomResetHint;
+
+  /// Botón del reproductor que envía el video a una TV.
+  ///
+  /// In es, this message translates to:
+  /// **'Enviar a la TV'**
+  String get castButtonTooltip;
+
+  /// Título de la hoja que lista los televisores.
+  ///
+  /// In es, this message translates to:
+  /// **'Enviar a la TV'**
+  String get castPickerTitle;
+
+  /// Mientras se buscan televisores.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscando televisores en tu Wi-Fi…'**
+  String get castPickerSearching;
+
+  /// La búsqueda terminó sin televisores.
+  ///
+  /// In es, this message translates to:
+  /// **'No encontramos ninguna TV'**
+  String get castPickerEmptyTitle;
+
+  /// Ayuda cuando no se encuentra ninguna TV.
+  ///
+  /// In es, this message translates to:
+  /// **'Comprueba que el teléfono y la TV están en la misma red Wi-Fi, y que la TV está encendida y permite compartir contenido (DLNA; a veces se llama «Compartir pantalla» o «Media Renderer»).'**
+  String get castPickerEmptyBody;
+
+  /// Repite la búsqueda de televisores.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar de nuevo'**
+  String get castPickerRetry;
+
+  /// Nota al pie de la lista de televisores.
+  ///
+  /// In es, this message translates to:
+  /// **'Funciona con la mayoría de Smart TV. El video va por tu Wi-Fi, sin pasar por Internet. Los subtítulos no se envían.'**
+  String get castPickerNote;
+
+  /// Mientras la TV acepta el video.
+  ///
+  /// In es, this message translates to:
+  /// **'Conectando con {device}…'**
+  String castConnecting(String device);
+
+  /// Pantalla del reproductor mientras se envía a la TV.
+  ///
+  /// In es, this message translates to:
+  /// **'Reproduciendo en {device}'**
+  String castPlayingOn(String device);
+
+  /// Termina el envío y sigue en el teléfono.
+  ///
+  /// In es, this message translates to:
+  /// **'Dejar de enviar'**
+  String get castStop;
+
+  /// El video acabó en la TV.
+  ///
+  /// In es, this message translates to:
+  /// **'La TV terminó el video'**
+  String get castFinishedSnack;
+
+  /// La TV dejó de responder.
+  ///
+  /// In es, this message translates to:
+  /// **'Se perdió la conexión con la TV. Sigues aquí desde donde iba.'**
+  String get castLostSnack;
+
+  /// Error KV-505.
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos enviar el video a la TV'**
+  String get errorCast;
+
+  /// Bloque de la página de privacidad.
+  ///
+  /// In es, this message translates to:
+  /// **'Enviar a la TV'**
+  String get privacyCastTitle;
+
+  /// Bloque de la página de privacidad.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuando envías un video a la TV, Kivo busca televisores en tu red Wi-Fi y le sirve el video solo a la TV que eliges, con una dirección de un solo uso que deja de funcionar al terminar. Nada de eso sale de tu red local.'**
+  String get privacyCastBody;
 }
 
 class _AppLocalizationsDelegate

@@ -11,4 +11,9 @@
     <string name="widget_description">El video que dejaste a medias, a un toque</string>
     <string name="widget_continue_at">Continuar en %1$s</string>
     <string name="widget_empty">Nada a medias</string>
+    <!-- Enviar a la TV (CastBridge.kt) -->
+    <string name="cast_channel_name">Enviar a la TV</string>
+    <string name="cast_notification_title">Reproduciendo en %1$s</string>
+    <string name="cast_notification_text">Kivo envía el video por tu Wi-Fi</string>
+    <string name="cast_notification_stop">Dejar de enviar</string>
 </resources>

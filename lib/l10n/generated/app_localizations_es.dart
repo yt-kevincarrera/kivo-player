@@ -2160,7 +2160,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Kivo no tiene anuncios, ni rastreadores, ni cuentas. Tus videos, lo que ves y cómo lo ves se quedan en tu teléfono.';
 
   @override
-  String get privacyNetworkTitle => 'La única conexión';
+  String get privacyNetworkTitle => 'La única conexión a Internet';
 
   @override
   String get privacyNetworkBody =>
@@ -2185,7 +2185,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get privacyPermissionsBody =>
-      'Videos: para mostrarlos. Todos los archivos (opcional): para borrar, renombrar y usar el Vault sin preguntar cada vez. Notificaciones: para los controles de reproducción en segundo plano. Instalar apps: para actualizarse. Huella: para abrir el Vault, si lo activas. Internet: solo para lo anterior.';
+      'Videos: para mostrarlos. Todos los archivos (opcional): para borrar, renombrar y usar el Vault sin preguntar cada vez. Notificaciones: para los controles de reproducción en segundo plano. Instalar apps: para actualizarse. Huella: para abrir el Vault, si lo activas. Wi-Fi: para encontrar tu TV y seguir enviándole el video con la pantalla apagada. Internet: solo para lo anterior.';
 
   @override
   String get playerTracksGroupText => 'Texto';
@@ -2342,4 +2342,57 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get a11yZoomResetHint => 'restablecer el zoom';
+
+  @override
+  String get castButtonTooltip => 'Enviar a la TV';
+
+  @override
+  String get castPickerTitle => 'Enviar a la TV';
+
+  @override
+  String get castPickerSearching => 'Buscando televisores en tu Wi-Fi…';
+
+  @override
+  String get castPickerEmptyTitle => 'No encontramos ninguna TV';
+
+  @override
+  String get castPickerEmptyBody =>
+      'Comprueba que el teléfono y la TV están en la misma red Wi-Fi, y que la TV está encendida y permite compartir contenido (DLNA; a veces se llama «Compartir pantalla» o «Media Renderer»).';
+
+  @override
+  String get castPickerRetry => 'Buscar de nuevo';
+
+  @override
+  String get castPickerNote =>
+      'Funciona con la mayoría de Smart TV. El video va por tu Wi-Fi, sin pasar por Internet. Los subtítulos no se envían.';
+
+  @override
+  String castConnecting(String device) {
+    return 'Conectando con $device…';
+  }
+
+  @override
+  String castPlayingOn(String device) {
+    return 'Reproduciendo en $device';
+  }
+
+  @override
+  String get castStop => 'Dejar de enviar';
+
+  @override
+  String get castFinishedSnack => 'La TV terminó el video';
+
+  @override
+  String get castLostSnack =>
+      'Se perdió la conexión con la TV. Sigues aquí desde donde iba.';
+
+  @override
+  String get errorCast => 'No pudimos enviar el video a la TV';
+
+  @override
+  String get privacyCastTitle => 'Enviar a la TV';
+
+  @override
+  String get privacyCastBody =>
+      'Cuando envías un video a la TV, Kivo busca televisores en tu red Wi-Fi y le sirve el video solo a la TV que eliges, con una dirección de un solo uso que deja de funcionar al terminar. Nada de eso sale de tu red local.';
 }

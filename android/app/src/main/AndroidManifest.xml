@@ -15,6 +15,11 @@
          releases API. Flutter adds INTERNET to the debug/profile manifests only,
          so without this line every check silently fails in a RELEASE build. -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Send to TV (DLNA): find TVs on the Wi-Fi (multicast), and keep the
+         stream alive with the screen off while the TV plays. -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <!-- Android TV: listed on the TV launcher (LEANBACK_LAUNCHER below,
          banner on the application), and not filtered out for lacking a
          touchscreen — the remote drives the app through D-pad focus. -->
@@ -87,6 +92,11 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/continue_widget_info" />
         </receiver>
+        <!-- Send to TV: keeps the video stream alive while the TV plays. -->
+        <service
+            android:name=".CastService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
         <service
             android:name=".PlaybackSessionService"
             android:exported="false"

@@ -9,8 +9,8 @@ import '../../../player/engine/playback_provider.dart';
 import '../../../player/open/video_source.dart';
 import '../../../player/sleep/sleep_timer.dart';
 import '../more/more_menu.dart';
+import '../cast/cast_flow.dart';
 import '../tracks/track_picker.dart';
-
 
 class TopBar extends ConsumerWidget {
   const TopBar({super.key});
@@ -30,32 +30,50 @@ class TopBar extends ConsumerWidget {
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         Expanded(
-          child: Text(session?.displayName ?? 'Kivo',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+          child: Text(
+            session?.displayName ?? 'Kivo',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
         IconButton(
           color: infoOn ? accent : Colors.white54,
-          tooltip: infoOn ? l10n.playerInfoOverlayHideTooltip : l10n.playerInfoOverlayShowTooltip,
-          icon: KivoIcon(KivoIcons.info, size: 24, color: infoOn ? accent : Colors.white54),
+          tooltip: infoOn
+              ? l10n.playerInfoOverlayHideTooltip
+              : l10n.playerInfoOverlayShowTooltip,
+          icon: KivoIcon(
+            KivoIcons.info,
+            size: 24,
+            color: infoOn ? accent : Colors.white54,
+          ),
           onPressed: () {
             final s = ref.read(settingsProvider);
-            ref.read(settingsProvider.notifier).set(s.copyWith(showInfoOverlay: !s.showInfoOverlay));
+            ref
+                .read(settingsProvider.notifier)
+                .set(s.copyWith(showInfoOverlay: !s.showInfoOverlay));
           },
         ),
         Builder(
           builder: (context) {
             // Tint only when a subtitle track is actually active right now —
             // "mostrar por defecto" being on doesn't mean this video has one.
-            final subsActive = ref.watch(currentSubtitleTrackProvider).valueOrNull != null;
+            final subsActive =
+                ref.watch(currentSubtitleTrackProvider).valueOrNull != null;
             return IconButton(
               color: subsActive ? accent : Colors.white,
               tooltip: l10n.playerSubtitlesTooltip,
               icon: Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  KivoIcon(KivoIcons.subtitles, size: 24, color: subsActive ? accent : Colors.white),
+                  KivoIcon(
+                    KivoIcons.subtitles,
+                    size: 24,
+                    color: subsActive ? accent : Colors.white,
+                  ),
                   if (subsActive)
                     Positioned(
                       right: -1,
@@ -63,7 +81,10 @@ class TopBar extends ConsumerWidget {
                       child: Container(
                         width: 6,
                         height: 6,
-                        decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
+                        decoration: BoxDecoration(
+                          color: accent,
+                          shape: BoxShape.circle,
+                        ),
                       ),
                     ),
                 ],
@@ -72,6 +93,17 @@ class TopBar extends ConsumerWidget {
             );
           },
         ),
+        // In the bar only when there is room (landscape, tablets): a
+        // portrait phone would squeeze the title to nothing. The More menu
+        // always has it.
+        if (MediaQuery.sizeOf(context).width >= kCastInBarMinWidth)
+          IconButton(
+            key: const Key('cast-button'),
+            color: Colors.white,
+            tooltip: l10n.castButtonTooltip,
+            icon: const Icon(Icons.cast, size: 24),
+            onPressed: () => startCasting(context, ref),
+          ),
         Consumer(
           builder: (context, ref, _) {
             final supported = ref.watch(pipSupportedProvider).value ?? false;
@@ -102,7 +134,11 @@ class TopBar extends ConsumerWidget {
               icon: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  KivoIcon(KivoIcons.more, size: active ? 20 : 24, color: active ? accent : Colors.white),
+                  KivoIcon(
+                    KivoIcons.more,
+                    size: active ? 20 : 24,
+                    color: active ? accent : Colors.white,
+                  ),
                   if (active)
                     Text(
                       fmtDuration(sleep.remaining),
