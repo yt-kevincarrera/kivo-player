@@ -1,0 +1,1 @@
+Reproductor de video local, sin anuncios ni rastreo, y configurable al detalle

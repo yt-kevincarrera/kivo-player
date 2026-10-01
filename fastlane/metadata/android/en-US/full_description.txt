@@ -1,0 +1,32 @@
+Kivo plays the videos on your phone, and nothing else. No ads, no trackers, no accounts. Fast, gesture-driven and configurable almost everywhere; a single accent color (gold by default) themes the whole app.
+
+<b>Plays almost anything</b>
+libmpv inside: MKV, MP4, AVI, HEVC and much more. Hardware decoding that falls back to software on its own when a video would not show, and a per-video decoder choice.
+
+<b>Gestures and control</b>
+• Double-tap to skip, hold to speed up, swipe for brightness, volume and seeking with a frame preview, pinch to zoom.
+• Frame by frame while paused, A–B loop, chapters and bookmarks.
+• Resume where you left off, autoplay through the folder, repeat and shuffle.
+• Incognito mode: what you watch leaves no trace.
+
+<b>Sound</b>
+Night mode for Dolby tracks, clearer voices when 5.1 is folded down to stereo, a 10-band equalizer and volume past 100%.
+
+<b>Complete subtitles</b>
+Font, size, bold, color, outline, shadow, background and position with a live preview; drag subtitles with your finger on the video. Any encoding, embedded and external tracks, and a second subtitle line at once.
+
+<b>Send to TV</b>
+Watch on your smart TV over Wi-Fi (DLNA: most Samsung, LG, Sony, Philips…). The phone becomes the remote and carries on from where the TV was. The video never leaves your network.
+
+<b>And more</b>
+• Picture-in-Picture and background playback.
+• Sleep timer.
+• Vault: hide videos from the gallery and other apps behind a strengthened PIN or your fingerprint (hidden, not encrypted — and the app says so).
+• Launcher shortcuts and a "Continue watching" widget.
+• Works with TalkBack, large text and "remove animations".
+• Android TV, tablets and keyboards: the whole app works with a remote.
+
+<b>Privacy</b>
+The only internet connection is the update check against GitHub (can be turned off). The error log never leaves the phone unless you send a report, and you see what's in it first.
+
+Free software (MIT license).
