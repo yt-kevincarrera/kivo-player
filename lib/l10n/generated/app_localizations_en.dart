@@ -2200,4 +2200,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get reportGithubPublicHint =>
       'GitHub issues are public: check the report has nothing you\'d rather not show.';
+
+  @override
+  String get vaultUseBiometricAction => 'Use fingerprint';
 }

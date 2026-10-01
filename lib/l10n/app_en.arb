@@ -3429,5 +3429,10 @@
   "reportGithubPublicHint": "GitHub issues are public: check the report has nothing you'd rather not show.",
   "@reportGithubPublicHint": {
     "description": "Notice under the «Open on GitHub» button."
+  },
+
+  "vaultUseBiometricAction": "Use fingerprint",
+  "@vaultUseBiometricAction": {
+    "description": "Button under the Vault PinPad to try the fingerprint again (it never relaunches on its own after being cancelled)."
   }
 }

@@ -138,12 +138,13 @@ void main() {
     expect(find.text('VAULT-CONTENT'), findsNothing);
   });
 
-  testWidgets('backgrounding mid-attempt (genuinely interrupted) then resuming '
-      'still re-attempts biometric', (tester) async {
-    // Distinguishes the case above from a real interruption: the app was
-    // backgrounded WHILE the OS sheet/authenticate() call was still
-    // pending (nothing resolved it), so on return it's worth trying again
-    // rather than silently downgrading to PIN-only.
+  // Reported on 1.20.0: cancelling the fingerprint sheet threw the user back
+  // into it, with no way to reach the PIN. The sheet itself pauses the app
+  // while it is up, so this — paused mid-attempt, resolved false, resumed —
+  // is the real event sequence of tapping Cancel. It must land on the PIN
+  // pad and stay there; a retry is the user's call ("Usar huella").
+  testWidgets("cancel with the sheet's own pause/resume around it lands on "
+      'the PIN pad and never re-prompts', (tester) async {
     final gate = Completer<bool>();
     final bio = FakeBiometricAuth(available: true, gate: gate);
     final c = await _container(biometricEnabled: true, bio: bio);
@@ -151,21 +152,48 @@ void main() {
     await _pumpGate(tester, c);
     await tester.pump();
     await tester.pump();
-
     expect(bio.authCalls, 1);
 
-    // Backgrounded while the first attempt is still unresolved...
+    // The sheet opens: the app goes inactive/paused while it is up...
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    await tester.pump();
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
     await tester.pump();
-    // ...and only now does that in-flight attempt resolve negatively (e.g.
-    // the OS tore down the sheet because the app lost foreground).
+    // ...the user taps Cancel: the attempt resolves false...
     gate.complete(false);
     await tester.pump();
-
+    // ...and the sheet's dismissal brings the app back.
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await tester.pumpAndSettle();
 
+    expect(bio.authCalls, 1, reason: 'no loop back into the sheet');
+    expect(find.byKey(const Key('pin-key-1')), findsOneWidget);
+  });
+
+  testWidgets('"Usar huella" on the PIN pad tries the fingerprint again',
+      (tester) async {
+    final bio = FakeBiometricAuth(available: true, willSucceed: false);
+    final c = await _container(biometricEnabled: true, bio: bio);
+    addTearDown(c.dispose);
+    await _pumpGate(tester, c);
+    await tester.pumpAndSettle();
+    expect(bio.authCalls, 1);
+
+    await tester.tap(find.byKey(const Key('vault-use-biometric')));
+    await tester.pumpAndSettle();
     expect(bio.authCalls, 2);
+    expect(find.byKey(const Key('pin-key-1')), findsOneWidget,
+        reason: 'failed again: back on the PIN pad, not stuck');
+  });
+
+  testWidgets('no "Usar huella" when the fingerprint is not enabled',
+      (tester) async {
+    final bio = FakeBiometricAuth(available: true, willSucceed: false);
+    final c = await _container(biometricEnabled: false, bio: bio);
+    addTearDown(c.dispose);
+    await _pumpGate(tester, c);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('vault-use-biometric')), findsNothing);
   });
 
   testWidgets('resume while biometric prompt is still pending does not fire a concurrent authenticate() call', (tester) async {

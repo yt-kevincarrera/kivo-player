@@ -3428,5 +3428,10 @@
   "reportGithubPublicHint": "Las incidencias de GitHub son públicas: revisa que el informe no tenga nada que no quieras mostrar.",
   "@reportGithubPublicHint": {
     "description": "Aviso bajo el botón «Abrir en GitHub»."
+  },
+
+  "vaultUseBiometricAction": "Usar huella",
+  "@vaultUseBiometricAction": {
+    "description": "Botón bajo el PinPad del Vault para volver a intentar con la huella (nunca se relanza sola tras cancelarla)."
   }
 }

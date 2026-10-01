@@ -3775,6 +3775,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Las incidencias de GitHub son públicas: revisa que el informe no tenga nada que no quieras mostrar.'**
   String get reportGithubPublicHint;
+
+  /// Botón bajo el PinPad del Vault para volver a intentar con la huella (nunca se relanza sola tras cancelarla).
+  ///
+  /// In es, this message translates to:
+  /// **'Usar huella'**
+  String get vaultUseBiometricAction;
 }
 
 class _AppLocalizationsDelegate

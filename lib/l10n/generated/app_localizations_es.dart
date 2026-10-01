@@ -2215,4 +2215,7 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get reportGithubPublicHint =>
       'Las incidencias de GitHub son públicas: revisa que el informe no tenga nada que no quieras mostrar.';
+
+  @override
+  String get vaultUseBiometricAction => 'Usar huella';
 }
