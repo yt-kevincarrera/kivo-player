@@ -1799,7 +1799,7 @@ abstract class AppLocalizations {
   /// Subtítulo de la fila «Vault» en la pantalla raíz de Ajustes.
   ///
   /// In es, this message translates to:
-  /// **'Videos ocultos'**
+  /// **'Videos ocultos de la galería · sin cifrar'**
   String get settingsVaultNavSubtitle;
 
   /// Botón corto de restablecer, reutilizado como confirmación del diálogo de restablecer todos los ajustes y como acción de restablecer la curva del ecualizador.
@@ -3559,6 +3559,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Arriba de la pantalla'**
   String get playerTracksSecondaryHint;
+
+  /// Aviso honesto bajo el teclado al crear el PIN del Vault y en la pantalla del Vault: qué protege y qué no.
+  ///
+  /// In es, this message translates to:
+  /// **'El Vault oculta tus videos de la galería y de otras apps, pero no los cifra: alguien con acceso a los archivos del teléfono podría encontrarlos.'**
+  String get vaultHonestNotice;
+
+  /// Error bajo el PinPad mientras el Vault está bloqueado por intentos fallidos; {time} es la cuenta atrás ya formateada (m:ss).
+  ///
+  /// In es, this message translates to:
+  /// **'Demasiados intentos. Prueba de nuevo en {time}'**
+  String vaultPinLockedError(String time);
 }
 
 class _AppLocalizationsDelegate

@@ -1637,7 +1637,7 @@
     "description": "Subtitle of the \"About\" row on the Settings root screen."
   },
 
-  "settingsVaultNavSubtitle": "Hidden videos",
+  "settingsVaultNavSubtitle": "Hidden from the gallery · not encrypted",
   "@settingsVaultNavSubtitle": {
     "description": "Subtitle of the \"Vault\" row on the Settings root screen."
   },
@@ -3244,5 +3244,20 @@
   "playerTracksSecondaryHint": "At the top of the screen",
   "@playerTracksSecondaryHint": {
     "description": "Text under a track that can be the second subtitle."
+  },
+
+  "vaultHonestNotice": "The Vault hides your videos from the gallery and other apps, but doesn't encrypt them: someone with access to the phone's files could find them.",
+  "@vaultHonestNotice": {
+    "description": "Honest notice under the keypad when creating the Vault PIN and in the Vault screen: what it protects and what it doesn't."
+  },
+
+  "vaultPinLockedError": "Too many attempts. Try again in {time}",
+  "@vaultPinLockedError": {
+    "description": "Error under the PinPad while the Vault is locked after failed attempts; {time} is the formatted countdown (m:ss).",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   }
 }

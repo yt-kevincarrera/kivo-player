@@ -1636,7 +1636,7 @@
     "description": "Subtítulo de la fila «Acerca de» en la pantalla raíz de Ajustes."
   },
 
-  "settingsVaultNavSubtitle": "Videos ocultos",
+  "settingsVaultNavSubtitle": "Videos ocultos de la galería · sin cifrar",
   "@settingsVaultNavSubtitle": {
     "description": "Subtítulo de la fila «Vault» en la pantalla raíz de Ajustes."
   },
@@ -3243,5 +3243,20 @@
   "playerTracksSecondaryHint": "Arriba de la pantalla",
   "@playerTracksSecondaryHint": {
     "description": "Texto bajo una pista elegible como segundo subtítulo."
+  },
+
+  "vaultHonestNotice": "El Vault oculta tus videos de la galería y de otras apps, pero no los cifra: alguien con acceso a los archivos del teléfono podría encontrarlos.",
+  "@vaultHonestNotice": {
+    "description": "Aviso honesto bajo el teclado al crear el PIN del Vault y en la pantalla del Vault: qué protege y qué no."
+  },
+
+  "vaultPinLockedError": "Demasiados intentos. Prueba de nuevo en {time}",
+  "@vaultPinLockedError": {
+    "description": "Error bajo el PinPad mientras el Vault está bloqueado por intentos fallidos; {time} es la cuenta atrás ya formateada (m:ss).",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   }
 }

@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/settings/settings_provider.dart';
+import '../../core/format.dart';
 import '../../l10n/l10n.dart';
 import '../../platform/biometric_auth_provider.dart';
 import '../../platform/interfaces/biometric_auth.dart';
+import '../../vault/vault_auth.dart';
 import '../../vault/vault_providers.dart';
 import 'pin_pad.dart';
 
@@ -57,12 +61,15 @@ class _VaultGateState extends ConsumerState<VaultGate> with WidgetsBindingObserv
       // known footgun in this codebase.
       ref.read(vaultUnlockedProvider.notifier).state = false;
       if (mounted) setState(() => _showPinPad = !_willAttemptBiometric());
+      // A lockout from a previous visit (or before a restart) is still on.
+      if (ref.read(vaultAuthProvider).lockRemaining() != null) _showLock();
       _maybeBiometric();
     });
   }
 
   @override
   void dispose() {
+    _lockTicker?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -153,6 +160,8 @@ class _VaultGateState extends ConsumerState<VaultGate> with WidgetsBindingObserv
     try {
       final ok = await bio.authenticate(messages);
       if (ok && mounted) {
+        await ref.read(vaultAuthProvider).recordSuccess();
+        if (!mounted) return;
         ref.read(vaultUnlockedProvider.notifier).state = true;
       } else if (mounted) {
         setState(() => _showPinPad = true);
@@ -166,13 +175,48 @@ class _VaultGateState extends ConsumerState<VaultGate> with WidgetsBindingObserv
     setState(() => _showPinPad = true);
   }
 
-  void _submitPin(String pin) {
-    final auth = ref.read(vaultAuthProvider);
-    if (auth.verify(pin)) {
-      ref.read(vaultUnlockedProvider.notifier).state = true;
-    } else {
-      setState(() => _error = context.l10n.vaultPinIncorrectError);
+  bool _verifying = false;
+  Timer? _lockTicker;
+
+  Future<void> _submitPin(String pin) async {
+    // The derivation takes a moment; a second entry meanwhile is ignored,
+    // not queued as another (possibly locking) attempt.
+    if (_verifying) return;
+    _verifying = true;
+    try {
+      final check = await ref.read(vaultAuthProvider).verify(pin);
+      if (!mounted) return;
+      switch (check.result) {
+        case PinResult.ok:
+          _lockTicker?.cancel();
+          ref.read(vaultUnlockedProvider.notifier).state = true;
+        case PinResult.wrong:
+          setState(() => _error = context.l10n.vaultPinIncorrectError);
+        case PinResult.locked:
+          _showLock();
+      }
+    } finally {
+      _verifying = false;
     }
+  }
+
+  /// Shows the lockout with a live countdown, until it is over.
+  void _showLock() {
+    _lockTicker?.cancel();
+    void tick() {
+      if (!mounted) return;
+      final left = ref.read(vaultAuthProvider).lockRemaining();
+      if (left == null) {
+        _lockTicker?.cancel();
+        setState(() => _error = null);
+        return;
+      }
+      setState(() => _error = context.l10n
+          .vaultPinLockedError(fmtDuration(left + const Duration(seconds: 1))));
+    }
+
+    tick();
+    _lockTicker = Timer.periodic(const Duration(seconds: 1), (_) => tick());
   }
 
   Future<void> _submitSetPin(String pin) async {
@@ -206,10 +250,30 @@ class _VaultGateState extends ConsumerState<VaultGate> with WidgetsBindingObserv
       appBar: AppBar(title: const Text('Vault')),
       body: Center(
         child: _showPinPad
-            ? PinPad(
-                title: title,
-                error: _error,
-                onComplete: configuring ? _submitSetPin : _submitPin,
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  PinPad(
+                    title: title,
+                    error: _error,
+                    onComplete: configuring ? _submitSetPin : _submitPin,
+                  ),
+                  // Said before the first video goes in, not discovered later:
+                  // the Vault hides, it does not encrypt.
+                  if (configuring)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(32, 20, 32, 0),
+                      child: Text(
+                        l10n.vaultHonestNotice,
+                        key: const Key('vault-honest-notice'),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            fontSize: 12.5,
+                            height: 1.4,
+                            color: cs.onSurfaceVariant),
+                      ),
+                    ),
+                ],
               )
             : Column(
                 mainAxisSize: MainAxisSize.min,

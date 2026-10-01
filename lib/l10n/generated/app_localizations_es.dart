@@ -1064,7 +1064,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsAboutNavSubtitle => 'Versión y actualizaciones';
 
   @override
-  String get settingsVaultNavSubtitle => 'Videos ocultos';
+  String get settingsVaultNavSubtitle =>
+      'Videos ocultos de la galería · sin cifrar';
 
   @override
   String get settingsResetAction => 'Restablecer';
@@ -2091,4 +2092,13 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get playerTracksSecondaryHint => 'Arriba de la pantalla';
+
+  @override
+  String get vaultHonestNotice =>
+      'El Vault oculta tus videos de la galería y de otras apps, pero no los cifra: alguien con acceso a los archivos del teléfono podría encontrarlos.';
+
+  @override
+  String vaultPinLockedError(String time) {
+    return 'Demasiados intentos. Prueba de nuevo en $time';
+  }
 }

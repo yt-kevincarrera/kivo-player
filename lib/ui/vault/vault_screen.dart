@@ -54,7 +54,25 @@ class _VaultContent extends ConsumerWidget {
       ),
       bottomNavigationBar: selecting ? const VaultBottomBar() : null,
       body: entries.isEmpty
-          ? Center(child: Text(context.l10n.vaultEmptyMessage, style: TextStyle(color: cs.onSurfaceVariant)))
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(context.l10n.vaultEmptyMessage,
+                        style: TextStyle(color: cs.onSurfaceVariant)),
+                    const SizedBox(height: 12),
+                    Text(context.l10n.vaultHonestNotice,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            fontSize: 12.5,
+                            height: 1.4,
+                            color: cs.onSurfaceVariant.withValues(alpha: 0.8))),
+                  ],
+                ),
+              ),
+            )
           : GridView.builder(
               padding: const EdgeInsets.all(10),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(

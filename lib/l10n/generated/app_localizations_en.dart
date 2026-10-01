@@ -1060,7 +1060,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAboutNavSubtitle => 'Version and updates';
 
   @override
-  String get settingsVaultNavSubtitle => 'Hidden videos';
+  String get settingsVaultNavSubtitle =>
+      'Hidden from the gallery · not encrypted';
 
   @override
   String get settingsResetAction => 'Reset';
@@ -2078,4 +2079,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playerTracksSecondaryHint => 'At the top of the screen';
+
+  @override
+  String get vaultHonestNotice =>
+      'The Vault hides your videos from the gallery and other apps, but doesn\'t encrypt them: someone with access to the phone\'s files could find them.';
+
+  @override
+  String vaultPinLockedError(String time) {
+    return 'Too many attempts. Try again in $time';
+  }
 }
