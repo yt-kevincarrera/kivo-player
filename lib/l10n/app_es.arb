@@ -3380,7 +3380,7 @@
     "description": "Encabezado de la sección sobre permisos."
   },
 
-  "privacyPermissionsBody": "Videos: para mostrarlos. Todos los archivos (opcional): para borrar, renombrar y usar el Vault sin preguntar cada vez. Notificaciones: para los controles de reproducción en segundo plano. Instalar apps: para actualizarse. Internet: solo para lo anterior.",
+  "privacyPermissionsBody": "Videos: para mostrarlos. Todos los archivos (opcional): para borrar, renombrar y usar el Vault sin preguntar cada vez. Notificaciones: para los controles de reproducción en segundo plano. Instalar apps: para actualizarse. Huella: para abrir el Vault, si lo activas. Internet: solo para lo anterior.",
   "@privacyPermissionsBody": {
     "description": "Cuerpo de «Permisos»: qué permiso es para qué."
   },
@@ -3423,5 +3423,10 @@
   "playerTracksPositionDragHint": "También puedes mantener pulsado un subtítulo en el video y moverlo con el dedo.",
   "@playerTracksPositionDragHint": {
     "description": "Pista bajo los deslizadores de posición."
+  },
+
+  "reportGithubPublicHint": "Las incidencias de GitHub son públicas: revisa que el informe no tenga nada que no quieras mostrar.",
+  "@reportGithubPublicHint": {
+    "description": "Aviso bajo el botón «Abrir en GitHub»."
   }
 }

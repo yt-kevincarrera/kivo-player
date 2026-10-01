@@ -55,10 +55,20 @@ String problemReportSubject(String appVersion, List<ErrorLogEntry> entries) =>
 /// GitHub's new-issue URL with the report prefilled. Long reports are cut
 /// (URLs past ~8 KB are refused); the email route has no such limit.
 Uri issueUrl(String subject, String body) {
-  const maxBody = 6000;
-  final b = body.length <= maxBody
-      ? body
-      : '${body.substring(0, maxBody)}\n… (cut: send by email for the full report)';
+  // Measured encoded: Spanish text, dashes and line breaks grow 3–9× when
+  // percent-encoded, so a character count lets the URL run past ~8 KB.
+  const maxEncoded = 6000;
+  const cutNote = '\n… (cut: send by email for the full report)';
+  var b = body;
+  if (Uri.encodeQueryComponent(b).length > maxEncoded) {
+    var keep = b.length;
+    while (keep > 0 &&
+        Uri.encodeQueryComponent(b.substring(0, keep) + cutNote).length >
+            maxEncoded) {
+      keep = (keep * 0.9).floor();
+    }
+    b = b.substring(0, keep) + cutNote;
+  }
   return Uri.parse(problemReportIssuesUrl)
       .replace(queryParameters: {'title': subject, 'body': b});
 }

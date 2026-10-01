@@ -66,7 +66,6 @@ void main() {
 
     expect((await auth.verify('4321')).result, PinResult.ok);
     expect(store.kdf, VaultAuth.kdfName);
-    expect(store.salt, isNot('oldsalt'));
     expect((await auth.verify('4321')).result, PinResult.ok,
         reason: 'and opens with the new hash too');
   });
@@ -78,6 +77,26 @@ void main() {
     expect(store.kdf, isNull);
   });
 
+  // A crash between the upgrade's writes: the PBKDF2 hash landed, the scheme
+  // marker did not. The owner must still get in (and the record be repaired).
+  test('a half-written upgrade still opens and is repaired', () async {
+    final store = InMemoryVaultCredentialStore();
+    await store.save(await _fastKdf('4321', 'salt0', 0), 'salt0'); // kdf missing
+    final auth = VaultAuth(store, kdf: _fastKdf);
+    expect((await auth.verify('4321')).result, PinResult.ok);
+    expect(store.kdf, VaultAuth.kdfName);
+    expect(store.salt, 'salt0', reason: 'the upgrade keeps the salt');
+    expect(store.failedAttempts, 0);
+  });
+
+  test('the upgrade reuses the salt, so any partial write stays checkable',
+      () async {
+    final store = InMemoryVaultCredentialStore();
+    await store.save(VaultAuth.legacyHash('4321', 'oldsalt'), 'oldsalt');
+    await VaultAuth(store, kdf: _fastKdf).verify('4321');
+    expect(store.salt, 'oldsalt');
+  });
+
   group('lockout', () {
     test('lockFor: free for 4 misses, then 30 s doubling, capped at 1 h', () {
       expect(lockFor(4), Duration.zero);
@@ -85,6 +104,9 @@ void main() {
       expect(lockFor(6), const Duration(seconds: 60));
       expect(lockFor(7), const Duration(seconds: 120));
       expect(lockFor(20), const Duration(hours: 1));
+      // pow() would overflow to a negative (= no lock) from here on.
+      expect(lockFor(64), const Duration(hours: 1));
+      expect(lockFor(1000), const Duration(hours: 1));
     });
 
     test('the fifth miss locks; while locked even the right PIN is refused',
@@ -116,6 +138,19 @@ void main() {
       }
       final restarted = VaultAuth(store, kdf: _fastKdf, now: clock.call);
       expect(restarted.lockRemaining(), isNotNull);
+    });
+
+    test('a clock moved back cannot stretch the lock past what was earned',
+        () async {
+      final clock = _Clock();
+      final store = InMemoryVaultCredentialStore();
+      final auth = VaultAuth(store, kdf: _fastKdf, now: clock.call);
+      await auth.setPin('1111');
+      for (var i = 0; i < 5; i++) {
+        await auth.verify('0000');
+      }
+      clock.t = clock.t.subtract(const Duration(days: 3));
+      expect(auth.lockRemaining(), const Duration(seconds: 30));
     });
 
     test('a fingerprint unlock ends the miss streak', () async {

@@ -52,6 +52,14 @@ void main() {
         'Kivo 1.20.0 — problem report');
   });
 
+  test('the cut is by encoded length: accented text cannot overflow the URL',
+      () {
+    final u = issueUrl('T', 'Información — línea\n' * 600);
+    expect(Uri.encodeQueryComponent(u.queryParameters['body']!).length,
+        lessThanOrEqualTo(6000));
+    expect(u.toString().length, lessThan(8000));
+  });
+
   test('the mailto link encodes spaces as %20, not +', () {
     final u = emailUrl('Kivo 1.20.0', 'a b\nc');
     expect(u.toString(),
@@ -61,7 +69,8 @@ void main() {
   test('the GitHub link prefills title and body, and cuts a long body', () {
     final u = issueUrl('T', 'x' * 7000);
     expect(u.queryParameters['title'], 'T');
-    expect(u.queryParameters['body']!.length, lessThan(6100));
+    expect(Uri.encodeQueryComponent(u.queryParameters['body']!).length,
+        lessThanOrEqualTo(6000));
     expect(u.queryParameters['body'], contains('send by email'));
   });
 }

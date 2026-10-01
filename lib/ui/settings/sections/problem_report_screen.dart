@@ -49,11 +49,8 @@ class _ProblemReportScreenState extends ConsumerState<ProblemReportScreen> {
   Future<void> _open(Uri url) async {
     final messenger = ScaffoldMessenger.of(context);
     final failed = context.l10n.reportOpenFailedSnackbar;
-    try {
-      await ref.read(appInstallerProvider).openUrl(url.toString());
-    } catch (_) {
-      messenger.showSnackBar(SnackBar(content: Text(failed)));
-    }
+    final opened = await ref.read(appInstallerProvider).openUrl(url.toString());
+    if (!opened) messenger.showSnackBar(SnackBar(content: Text(failed)));
   }
 
   @override
@@ -132,6 +129,11 @@ class _ProblemReportScreenState extends ConsumerState<ProblemReportScreen> {
                 onPressed: () => _open(issueUrl(subject, report)),
                 icon: const Icon(Icons.open_in_new_rounded),
                 label: Text(l10n.reportOpenGithub),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
+                child: Text(l10n.reportGithubPublicHint,
+                    style: TextStyle(fontSize: 11.5, color: cs.onSurfaceVariant)),
               ),
               const SizedBox(height: 8),
               TextButton.icon(

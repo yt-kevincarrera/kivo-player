@@ -182,7 +182,7 @@ class _VaultGateState extends ConsumerState<VaultGate> with WidgetsBindingObserv
     // The derivation takes a moment; a second entry meanwhile is ignored,
     // not queued as another (possibly locking) attempt.
     if (_verifying) return;
-    _verifying = true;
+    setState(() => _verifying = true);
     try {
       final check = await ref.read(vaultAuthProvider).verify(pin);
       if (!mounted) return;
@@ -196,7 +196,11 @@ class _VaultGateState extends ConsumerState<VaultGate> with WidgetsBindingObserv
           _showLock();
       }
     } finally {
-      _verifying = false;
+      if (mounted) {
+        setState(() => _verifying = false);
+      } else {
+        _verifying = false;
+      }
     }
   }
 
@@ -228,7 +232,15 @@ class _VaultGateState extends ConsumerState<VaultGate> with WidgetsBindingObserv
       setState(() { _firstPin = null; _error = context.l10n.vaultPinMismatchError; });
       return;
     }
-    await ref.read(vaultAuthProvider).setPin(pin);
+    // Same guard as unlocking: a second entry during the derivation must not
+    // start a second setPin whose writes could interleave with the first.
+    if (_verifying) return;
+    setState(() => _verifying = true);
+    try {
+      await ref.read(vaultAuthProvider).setPin(pin);
+    } finally {
+      if (mounted) setState(() => _verifying = false);
+    }
     if (mounted) ref.read(vaultUnlockedProvider.notifier).state = true;
   }
 
@@ -253,10 +265,28 @@ class _VaultGateState extends ConsumerState<VaultGate> with WidgetsBindingObserv
             ? Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  PinPad(
-                    title: title,
-                    error: _error,
-                    onComplete: configuring ? _submitSetPin : _submitPin,
+                  // While the PIN is being derived (a moment, by design) the
+                  // pad takes no input and says it is working, instead of
+                  // silently dropping digits.
+                  AbsorbPointer(
+                    absorbing: _verifying,
+                    child: AnimatedOpacity(
+                      opacity: _verifying ? 0.5 : 1,
+                      duration: const Duration(milliseconds: 120),
+                      child: PinPad(
+                        title: title,
+                        error: _error,
+                        onComplete: configuring ? _submitSetPin : _submitPin,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 4,
+                    width: 160,
+                    child: _verifying
+                        ? LinearProgressIndicator(
+                            key: const Key('vault-verifying'), color: cs.secondary)
+                        : null,
                   ),
                   // Said before the first video goes in, not discovered later:
                   // the Vault hides, it does not encrypt.

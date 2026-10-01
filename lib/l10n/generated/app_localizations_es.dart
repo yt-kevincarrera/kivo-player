@@ -2185,7 +2185,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get privacyPermissionsBody =>
-      'Videos: para mostrarlos. Todos los archivos (opcional): para borrar, renombrar y usar el Vault sin preguntar cada vez. Notificaciones: para los controles de reproducción en segundo plano. Instalar apps: para actualizarse. Internet: solo para lo anterior.';
+      'Videos: para mostrarlos. Todos los archivos (opcional): para borrar, renombrar y usar el Vault sin preguntar cada vez. Notificaciones: para los controles de reproducción en segundo plano. Instalar apps: para actualizarse. Huella: para abrir el Vault, si lo activas. Internet: solo para lo anterior.';
 
   @override
   String get playerTracksGroupText => 'Texto';
@@ -2211,4 +2211,8 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get playerTracksPositionDragHint =>
       'También puedes mantener pulsado un subtítulo en el video y moverlo con el dedo.';
+
+  @override
+  String get reportGithubPublicHint =>
+      'Las incidencias de GitHub son públicas: revisa que el informe no tenga nada que no quieras mostrar.';
 }

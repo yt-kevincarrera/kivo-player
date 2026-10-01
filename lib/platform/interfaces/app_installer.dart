@@ -76,5 +76,7 @@ abstract class AppInstaller {
   /// Hands the finished APK to the system installer.
   Future<InstallOutcome> installDownload(int id);
 
-  Future<void> openUrl(String url);
+  /// Opens [url] in whatever app handles it. False when none could (no mail
+  /// app for a mailto, no browser): never throws.
+  Future<bool> openUrl(String url);
 }

@@ -61,3 +61,29 @@ language-neutral codes).
 PBKDF2 vectors; legacy open + upgrade; no upgrade on a miss; lockout timing,
 persistence and biometric reset; gate notice + countdown; report contents,
 live description, mailto/GitHub URLs; privacy page; native licenses registered.
+
+## Also in this release (user requests, subtitles)
+
+- Estilo tab regrouped (Texto · Contorno y sombra · Fondo · Posición ·
+  Archivos .ass) with the preview pinned above the scrolling options, so it
+  never scrolls away while something is being adjusted.
+- Press and hold a subtitle line on the video to move it: pauses if playing,
+  resumes on release, paused stays paused; framed with its percentage while
+  held; saved on release. The subtitle layer takes no touches — the player's
+  gestures start the move when a long press lands on a line
+  (`SubtitleHitTargets`), so double-tap, swipes and pinch keep working over
+  the text. A gesture torn down mid-move saves and resumes.
+
+## Branch review (applied)
+
+- Vault upgrade reuses the salt; the store writes hash/salt/scheme in one
+  Hive batch; `verify` checks both schemes before counting a miss — a crash
+  mid-upgrade can no longer lock the owner out.
+- `lockFor` caps at 1 h from 12 misses (pow() overflowed to "no lock" at 64);
+  the remaining lock is capped at what the streak earned (clock moved back).
+  A clock moved forward still shortens it — the accepted limit of persisting
+  wall-clock time.
+- PIN setup guarded against a second entry; the pad shows it is busy.
+- `openUrl` returns whether anything opened, so "no app to open it" shows.
+- Privacy lists the fingerprint; GitHub issues are flagged as public; the
+  issue URL is cut by encoded length.

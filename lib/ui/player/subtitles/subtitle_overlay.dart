@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/settings/settings_provider.dart';
@@ -13,12 +12,8 @@ import '../state/controls_visibility.dart';
 import '../state/lock_state.dart';
 import '../state/pip_state.dart';
 import '../tracks/track_sync_hud.dart';
+import 'subtitle_drag.dart';
 import 'subtitle_text.dart';
-
-enum _Line { primary, secondary }
-
-/// The same 0–40 % range the Estilo sliders offer.
-const _maxMargin = 40.0;
 
 /// Kivo's own subtitle layer, over the video and outside the zoom transform
 /// (pinch-zoom enlarges the picture, not the words).
@@ -28,78 +23,22 @@ const _maxMargin = 40.0;
 /// The secondary subtitle is always Kivo's, at the top. Both step out of the
 /// way of the control bars while those show, by the bars' measured height.
 ///
-/// Press and hold a line to move it with the finger: playback pauses while it
-/// is held (if it was playing) and carries on when it is let go; paused stays
-/// paused. Only the text itself takes touches — a tap on it toggles the
-/// controls as a tap anywhere else would, and the rest of the screen falls
-/// through to the player's gestures.
-class SubtitleOverlay extends ConsumerStatefulWidget {
+/// Takes no touches at all, so every player gesture works over the text too.
+/// Moving a line is the gestures' job: a long press that lands on one (found
+/// through [SubtitleHitTargets]) drives [subtitleDragProvider], and this
+/// layer only shows it — following the finger, framed, with its percentage.
+class SubtitleOverlay extends ConsumerWidget {
   const SubtitleOverlay({super.key});
 
-  @override
-  ConsumerState<SubtitleOverlay> createState() => _SubtitleOverlayState();
-}
-
-class _SubtitleOverlayState extends ConsumerState<SubtitleOverlay> {
   static const _move = Duration(milliseconds: 180);
 
-  _Line? _dragging;
-  double _startMargin = 0;
-  double _startY = 0;
-  double _liveMargin = 0;
-  bool _resumeAfterDrag = false;
-
-  double _marginOf(_Line line) {
-    final s = ref.read(settingsProvider);
-    return line == _Line.primary
-        ? s.subtitleBottomMargin
-        : s.secondarySubtitleTopMargin;
-  }
-
-  void _pickUp(_Line line, LongPressStartDetails d) {
-    final playing = ref.read(playingProvider).value ?? false;
-    _resumeAfterDrag = playing;
-    if (playing) ref.read(playbackEngineProvider).pause();
-    HapticFeedback.mediumImpact();
-    setState(() {
-      _dragging = line;
-      _startMargin = _marginOf(line);
-      _liveMargin = _startMargin;
-      _startY = d.globalPosition.dy;
-    });
-  }
-
-  void _drag(LongPressMoveUpdateDetails d, double height) {
-    final line = _dragging;
-    if (line == null || height <= 0) return;
-    final dy = d.globalPosition.dy - _startY;
-    // The primary is measured from the bottom (up = more), the secondary from
-    // the top (down = more).
-    final delta = (line == _Line.primary ? -dy : dy) / height * 100;
-    final next = (_startMargin + delta).clamp(0.0, _maxMargin).roundToDouble();
-    if (next != _liveMargin) {
-      HapticFeedback.selectionClick();
-      setState(() => _liveMargin = next);
-    }
-  }
-
-  void _drop() {
-    final line = _dragging;
-    if (line == null) return;
-    final s = ref.read(settingsProvider);
-    ref.read(settingsProvider.notifier).set(line == _Line.primary
-        ? s.copyWith(subtitleBottomMargin: _liveMargin)
-        : s.copyWith(secondarySubtitleTopMargin: _liveMargin));
-    if (_resumeAfterDrag) ref.read(playbackEngineProvider).play();
-    _resumeAfterDrag = false;
-    setState(() => _dragging = null);
-  }
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final engine = ref.read(playbackEngineProvider);
     final settings = ref.watch(settingsProvider);
     final drawer = ref.watch(subtitleDrawerProvider);
+    final drag = ref.watch(subtitleDragProvider);
+    final targets = ref.read(subtitleHitTargetsProvider);
     final locked = ref.watch(lockProvider);
     final pip = ref.watch(pipModeProvider);
     // Lift only for bars that are actually drawn: not while locked (only the
@@ -120,8 +59,6 @@ class _SubtitleOverlayState extends ConsumerState<SubtitleOverlay> {
     final accent = Color(settings.accentColor);
 
     return IgnorePointer(
-      // Locked means locked; PiP has no touch to give.
-      ignoring: locked || pip,
       child: LayoutBuilder(builder: (context, box) {
         final size = box.biggest;
         final scale = subtitleScaleFor(size);
@@ -140,49 +77,53 @@ class _SubtitleOverlayState extends ConsumerState<SubtitleOverlay> {
                 secondaryOn && lines.length > 1 ? lines[1].trim() : '';
             final side = EdgeInsets.symmetric(horizontal: 16 * scale);
 
-            Widget line(_Line which, String text) {
-              final dragging = _dragging == which;
-              final margin = dragging ? _liveMargin : _marginOf(which);
-              final child = GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () =>
-                    ref.read(controlsVisibleProvider.notifier).toggle(),
-                onLongPressStart: (d) => _pickUp(which, d),
-                onLongPressMoveUpdate: (d) => _drag(d, size.height),
-                onLongPressEnd: (_) => _drop(),
-                onLongPressCancel: _drop,
-                child: _Grabbable(
-                  dragging: dragging,
-                  accent: accent,
-                  percent: margin.round(),
-                  above: which == _Line.primary,
-                  child: SubtitleText(
-                    key: Key(which == _Line.primary
-                        ? 'subtitle-primary'
-                        : 'subtitle-secondary'),
-                    text: text,
-                    settings: settings,
-                    scale: scale,
-                  ),
-                ),
-              );
+            Widget line(SubtitleLine which, String text) {
+              final dragging = drag?.line == which;
+              final margin = dragging
+                  ? drag!.margin
+                  : which == SubtitleLine.primary
+                      ? settings.subtitleBottomMargin
+                      : settings.secondarySubtitleTopMargin;
               final offset = size.height * margin / 100;
               return AnimatedPositioned(
+                key: ValueKey(which),
                 // Follows the finger exactly while held; eases otherwise.
                 duration: dragging ? Duration.zero : _move,
                 curve: Curves.easeOut,
                 left: 0,
                 right: 0,
-                top: which == _Line.secondary ? offset + topInset : null,
-                bottom: which == _Line.primary ? offset + bottomInset : null,
-                child: Padding(padding: side, child: Center(child: child)),
+                top: which == SubtitleLine.secondary ? offset + topInset : null,
+                bottom:
+                    which == SubtitleLine.primary ? offset + bottomInset : null,
+                child: Padding(
+                  padding: side,
+                  child: Center(
+                    child: KeyedSubtree(
+                      key: targets.keyOf(which),
+                      child: _Grabbable(
+                        dragging: dragging,
+                        accent: accent,
+                        percent: margin.round(),
+                        above: which == SubtitleLine.primary,
+                        child: SubtitleText(
+                          key: Key(which == SubtitleLine.primary
+                              ? 'subtitle-primary'
+                              : 'subtitle-secondary'),
+                          text: text,
+                          settings: settings,
+                          scale: scale,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               );
             }
 
             return Stack(
               children: [
-                if (secondary.isNotEmpty) line(_Line.secondary, secondary),
-                if (primary.isNotEmpty) line(_Line.primary, primary),
+                if (secondary.isNotEmpty) line(SubtitleLine.secondary, secondary),
+                if (primary.isNotEmpty) line(SubtitleLine.primary, primary),
               ],
             );
           },

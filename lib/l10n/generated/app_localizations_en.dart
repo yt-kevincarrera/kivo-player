@@ -2170,7 +2170,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyPermissionsBody =>
-      'Videos: to show them. All files (optional): to delete, rename and use the Vault without asking every time. Notifications: for the background playback controls. Install apps: to update itself. Internet: only for the above.';
+      'Videos: to show them. All files (optional): to delete, rename and use the Vault without asking every time. Notifications: for the background playback controls. Install apps: to update itself. Fingerprint: to open the Vault, if you turn it on. Internet: only for the above.';
 
   @override
   String get playerTracksGroupText => 'Text';
@@ -2196,4 +2196,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get playerTracksPositionDragHint =>
       'You can also press and hold a subtitle on the video and move it with your finger.';
+
+  @override
+  String get reportGithubPublicHint =>
+      'GitHub issues are public: check the report has nothing you\'d rather not show.';
 }

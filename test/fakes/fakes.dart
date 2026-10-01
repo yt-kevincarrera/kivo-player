@@ -822,8 +822,14 @@ class FakeAppInstaller implements AppInstaller {
     return installOutcome;
   }
 
+  /// What [openUrl] reports; false = no app could open it.
+  bool canOpenUrls = true;
+
   @override
-  Future<void> openUrl(String url) async => openedUrls.add(url);
+  Future<bool> openUrl(String url) async {
+    openedUrls.add(url);
+    return canOpenUrls;
+  }
 }
 
 /// Passes every file through as UTF-8 unless told otherwise — what the real

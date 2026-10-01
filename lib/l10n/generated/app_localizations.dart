@@ -3719,7 +3719,7 @@ abstract class AppLocalizations {
   /// Cuerpo de «Permisos»: qué permiso es para qué.
   ///
   /// In es, this message translates to:
-  /// **'Videos: para mostrarlos. Todos los archivos (opcional): para borrar, renombrar y usar el Vault sin preguntar cada vez. Notificaciones: para los controles de reproducción en segundo plano. Instalar apps: para actualizarse. Internet: solo para lo anterior.'**
+  /// **'Videos: para mostrarlos. Todos los archivos (opcional): para borrar, renombrar y usar el Vault sin preguntar cada vez. Notificaciones: para los controles de reproducción en segundo plano. Instalar apps: para actualizarse. Huella: para abrir el Vault, si lo activas. Internet: solo para lo anterior.'**
   String get privacyPermissionsBody;
 
   /// Grupo de la pestaña Estilo: tamaño, fuente, color y negrita.
@@ -3769,6 +3769,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'También puedes mantener pulsado un subtítulo en el video y moverlo con el dedo.'**
   String get playerTracksPositionDragHint;
+
+  /// Aviso bajo el botón «Abrir en GitHub».
+  ///
+  /// In es, this message translates to:
+  /// **'Las incidencias de GitHub son públicas: revisa que el informe no tenga nada que no quieras mostrar.'**
+  String get reportGithubPublicHint;
 }
 
 class _AppLocalizationsDelegate

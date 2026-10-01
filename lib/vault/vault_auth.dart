@@ -116,6 +116,9 @@ class PinCheck {
 /// the phone from simply trying them.
 Duration lockFor(int failed) {
   if (failed < 5) return Duration.zero;
+  // Past this the doubling is over the cap anyway — and pow() would overflow
+  // to a negative (no lock at all) from 64 misses on.
+  if (failed >= 12) return const Duration(hours: 1);
   final seconds = 30 * pow(2, failed - 5).toInt();
   return Duration(seconds: min(seconds, 3600));
 }
@@ -159,10 +162,26 @@ class VaultAuth {
     await _store.saveAttempts(0, 0);
   }
 
+  /// Re-derives a legacy PIN with PBKDF2 under the SAME salt: if the app dies
+  /// mid-write, whatever landed is still checkable with that salt (see the
+  /// two-scheme check in [verify]).
+  Future<void> _upgrade(String pin, String salt) async {
+    final hash = await _kdf(pin, salt, defaultIterations);
+    await _store.save(hash, salt, kdf: kdfName, iterations: defaultIterations);
+  }
+
   /// Time left on the lockout, or null when a try is allowed.
+  ///
+  /// Never more than the lock the current streak earns: a clock moved back
+  /// (or corrected after running ahead) would otherwise lock the owner out
+  /// for days. A clock moved FORWARD does shorten the wait — the wall clock
+  /// is all an app can persist across a reboot; an accepted limit.
   Duration? lockRemaining() {
     final left = _store.lockedUntilMs - _now().millisecondsSinceEpoch;
-    return left > 0 ? Duration(milliseconds: left) : null;
+    if (left <= 0) return null;
+    final cap = lockFor(_store.failedAttempts);
+    final d = Duration(milliseconds: left);
+    return d > cap ? cap : d;
   }
 
   Future<PinCheck> verify(String pin) async {
@@ -173,13 +192,25 @@ class VaultAuth {
     if (locked != null) return PinCheck(PinResult.locked, retryIn: locked);
 
     final legacy = _store.kdf == null;
-    final candidate = legacy
-        ? legacyHash(pin, s)
-        : await _kdf(pin, s, _store.iterations);
-    if (_constantTimeEquals(candidate, h)) {
+    final iterations =
+        _store.iterations > 0 ? _store.iterations : defaultIterations;
+    final candidate =
+        legacy ? legacyHash(pin, s) : await _kdf(pin, s, iterations);
+    var ok = _constantTimeEquals(candidate, h);
+    var needsUpgrade = legacy && ok;
+    if (!ok) {
+      // The record may say one scheme and hold the other: an upgrade cut off
+      // between its writes. Checking both before counting a miss is what
+      // keeps a crash from locking the owner out of their own Vault.
+      final other =
+          legacy ? await _kdf(pin, s, defaultIterations) : legacyHash(pin, s);
+      ok = _constantTimeEquals(other, h);
+      needsUpgrade = ok;
+    }
+    if (ok) {
       await _store.saveAttempts(0, 0);
-      // A PIN from before PBKDF2: re-derive it now, while we have it.
-      if (legacy) await setPin(pin);
+      // Legacy or half-upgraded: (re-)derive it now, while we have the PIN.
+      if (needsUpgrade) await _upgrade(pin, s);
       return const PinCheck(PinResult.ok);
     }
 
@@ -226,14 +257,14 @@ class HiveVaultCredentialStore implements VaultCredentialStore {
   @override
   Future<void> save(String hash, String salt,
       {String? kdf, int iterations = 0}) async {
-    await box.put('hash', hash);
-    await box.put('salt', salt);
+    // One batch, not four puts: Hive appends the whole batch in a single
+    // write, so a crash cannot leave a hash paired with the wrong salt/scheme.
     if (kdf == null) {
-      await box.delete('kdf');
-      await box.delete('iter');
+      await box.deleteAll(['kdf', 'iter']);
+      await box.putAll({'hash': hash, 'salt': salt});
     } else {
-      await box.put('kdf', kdf);
-      await box.put('iter', iterations);
+      await box.putAll(
+          {'kdf': kdf, 'iter': iterations, 'hash': hash, 'salt': salt});
     }
   }
 
