@@ -11,6 +11,7 @@ import '../../player/library/played.dart';
 import '../../player/open/video_source.dart';
 import '../player/player_route.dart';
 import '../player/state/mini_player_state.dart';
+import '../../l10n/l10n.dart';
 
 /// Global, persistent mini-bar shown above any screen while a video is
 /// minimized (see [playerMinimizedProvider]). Mounted once in `app.dart` via
@@ -43,7 +44,10 @@ class _MiniPlayerBarState extends ConsumerState<MiniPlayerBar> {
   @override
   void initState() {
     super.initState();
-    _saveTimer = Timer.periodic(const Duration(seconds: 4), (_) => _maybeSaveProgress());
+    _saveTimer = Timer.periodic(
+      const Duration(seconds: 4),
+      (_) => _maybeSaveProgress(),
+    );
   }
 
   @override
@@ -59,9 +63,13 @@ class _MiniPlayerBarState extends ConsumerState<MiniPlayerBar> {
     if (!(ref.read(playingProvider).valueOrNull ?? false)) return;
     final position = ref.read(positionProvider).valueOrNull;
     final duration = ref.read(durationProvider).valueOrNull;
-    if (position == null || duration == null || duration == Duration.zero) return;
+    if (position == null || duration == null || duration == Duration.zero) {
+      return;
+    }
     if (ref.read(settingsProvider).incognito) return; // no trace
-    await ref.read(resumeServiceProvider).record(
+    await ref
+        .read(resumeServiceProvider)
+        .record(
           session.resumeKey,
           position,
           duration,
@@ -70,9 +78,7 @@ class _MiniPlayerBarState extends ConsumerState<MiniPlayerBar> {
   }
 
   void _expand() {
-    kivoNavigatorKey.currentState
-        ?.push(playerRoute())
-        .then((_) {
+    kivoNavigatorKey.currentState?.push(playerRoute()).then((_) {
       ref.invalidate(continueWatchingProvider);
       ref.invalidate(playedKeysProvider);
     });
@@ -97,7 +103,10 @@ class _MiniPlayerBarState extends ConsumerState<MiniPlayerBar> {
           curve: Curves.easeOutCubic,
           builder: (context, t, child) => Opacity(
             opacity: t,
-            child: Transform.translate(offset: Offset(0, (1 - t) * 24), child: child),
+            child: Transform.translate(
+              offset: Offset(0, (1 - t) * 24),
+              child: child,
+            ),
           ),
           child: Dismissible(
             key: ValueKey('mini-player-${session.playbackPath}'),
@@ -175,10 +184,18 @@ class _MiniPlayerContent extends ConsumerWidget {
                     ),
                   ),
                   IconButton(
-                    icon: Icon(playing ? Icons.pause : Icons.play_arrow, color: cs.onSurface),
-                    onPressed: () => ref.read(playerControllerProvider).togglePlayPause(),
+                    tooltip: playing
+                        ? context.l10n.playerPauseTooltip
+                        : context.l10n.playerPlayTooltip,
+                    icon: Icon(
+                      playing ? Icons.pause : Icons.play_arrow,
+                      color: cs.onSurface,
+                    ),
+                    onPressed: () =>
+                        ref.read(playerControllerProvider).togglePlayPause(),
                   ),
                   IconButton(
+                    tooltip: context.l10n.commonClose,
                     icon: Icon(Icons.close, color: cs.onSurfaceVariant),
                     onPressed: () {
                       ref.read(playbackEngineProvider).pause();
@@ -211,7 +228,11 @@ class _Preview extends StatelessWidget {
             ? Image.memory(bytes!, fit: BoxFit.cover, gaplessPlayback: true)
             : Container(
                 color: cs.surfaceContainerHigh,
-                child: Icon(Icons.movie_outlined, color: cs.onSurfaceVariant, size: 20),
+                child: Icon(
+                  Icons.movie_outlined,
+                  color: cs.onSurfaceVariant,
+                  size: 20,
+                ),
               ),
       ),
     );

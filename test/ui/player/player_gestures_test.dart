@@ -1,3 +1,4 @@
+import 'package:kivo_player/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,16 +14,26 @@ import 'package:kivo_player/ui/player/gestures/player_gestures.dart';
 import '../../fakes/fakes.dart';
 
 class NoopControls implements DeviceControls {
-  @override Future<double> currentBrightness() async => 0.5;
-  @override Future<void> setBrightness(double v) async {}
-  @override Future<double> currentVolume() async => 0.5;
-  @override Future<void> setSystemVolume(double v) async {}
-  @override Future<void> setOrientation(List<DeviceOrientationLock> o) async {}
-  @override Future<void> keepAwake(bool on) async {}
-  @override Future<void> setImmersive(bool on) async {}
-  @override Future<void> resetBrightness() async {}
-  @override Stream<double> get systemVolumeStream => const Stream<double>.empty();
-  @override Future<void> setVolumeKeyInterception(bool on) async {}
+  @override
+  Future<double> currentBrightness() async => 0.5;
+  @override
+  Future<void> setBrightness(double v) async {}
+  @override
+  Future<double> currentVolume() async => 0.5;
+  @override
+  Future<void> setSystemVolume(double v) async {}
+  @override
+  Future<void> setOrientation(List<DeviceOrientationLock> o) async {}
+  @override
+  Future<void> keepAwake(bool on) async {}
+  @override
+  Future<void> setImmersive(bool on) async {}
+  @override
+  Future<void> resetBrightness() async {}
+  @override
+  Stream<double> get systemVolumeStream => const Stream<double>.empty();
+  @override
+  Future<void> setVolumeKeyInterception(bool on) async {}
 }
 
 void main() {
@@ -30,19 +41,26 @@ void main() {
     final engine = FakePlaybackEngine();
     addTearDown(engine.dispose);
     final s = await SettingsService.load(InMemorySettingsStore());
-    final c = ProviderContainer(overrides: [
-      settingsServiceProvider.overrideWithValue(s),
-      playbackEngineProvider.overrideWithValue(engine),
-      deviceControlsProvider.overrideWithValue(NoopControls()),
-    ]);
+    final c = ProviderContainer(
+      overrides: [
+        settingsServiceProvider.overrideWithValue(s),
+        playbackEngineProvider.overrideWithValue(engine),
+        deviceControlsProvider.overrideWithValue(NoopControls()),
+      ],
+    );
     addTearDown(c.dispose);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: const MaterialApp(
-        home: Scaffold(body: PlayerGestures(child: SizedBox.expand())),
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: c,
+        child: const MaterialApp(
+          locale: Locale('es'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: PlayerGestures(child: SizedBox.expand())),
+        ),
       ),
-    ));
+    );
 
     expect(c.read(controlsVisibleProvider), false);
     await tester.tap(find.byType(PlayerGestures));
@@ -57,11 +75,13 @@ void main() {
     final engine = FakePlaybackEngine();
     addTearDown(engine.dispose);
     final s = await SettingsService.load(InMemorySettingsStore());
-    final c = ProviderContainer(overrides: [
-      settingsServiceProvider.overrideWithValue(s),
-      playbackEngineProvider.overrideWithValue(engine),
-      deviceControlsProvider.overrideWithValue(NoopControls()),
-    ]);
+    final c = ProviderContainer(
+      overrides: [
+        settingsServiceProvider.overrideWithValue(s),
+        playbackEngineProvider.overrideWithValue(engine),
+        deviceControlsProvider.overrideWithValue(NoopControls()),
+      ],
+    );
     // No addTearDown(c.dispose) here: this test disposes c explicitly before the
     // final pump (to cancel timers), so a teardown dispose would double-dispose.
 
@@ -75,10 +95,17 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 10));
     });
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: const MaterialApp(home: Scaffold(body: PlayerGestures(child: SizedBox.expand()))),
-    ));
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: c,
+        child: const MaterialApp(
+          locale: Locale('es'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: PlayerGestures(child: SizedBox.expand())),
+        ),
+      ),
+    );
     await tester.pump(); // settle initial frame
 
     final box = tester.getRect(find.byType(PlayerGestures));
@@ -97,42 +124,58 @@ void main() {
     final engine = FakePlaybackEngine();
     addTearDown(engine.dispose);
     final s = await SettingsService.load(InMemorySettingsStore());
-    final c = ProviderContainer(overrides: [
-      settingsServiceProvider.overrideWithValue(s),
-      playbackEngineProvider.overrideWithValue(engine),
-      deviceControlsProvider.overrideWithValue(NoopControls()),
-    ]);
+    final c = ProviderContainer(
+      overrides: [
+        settingsServiceProvider.overrideWithValue(s),
+        playbackEngineProvider.overrideWithValue(engine),
+        deviceControlsProvider.overrideWithValue(NoopControls()),
+      ],
+    );
     addTearDown(c.dispose);
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: const MaterialApp(home: Scaffold(body: PlayerGestures(child: SizedBox.expand()))),
-    ));
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: c,
+        child: const MaterialApp(
+          locale: Locale('es'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: PlayerGestures(child: SizedBox.expand())),
+        ),
+      ),
+    );
     await tester.pump();
     return c;
   }
 
   /// A point in the center band, clear of the inert strip at the bottom.
-  Offset upperCenter(Rect box) => Offset(box.center.dx, box.top + box.height * 0.25);
+  Offset upperCenter(Rect box) =>
+      Offset(box.center.dx, box.top + box.height * 0.25);
 
   testWidgets('center swipe UP rotates portrait→landscape', (tester) async {
     final c = await pumpGestures(tester);
     expect(c.read(orientationProvider), DeviceOrientationLock.portrait);
     final box = tester.getRect(find.byType(PlayerGestures));
     await tester.dragFrom(upperCenter(box), const Offset(0, -140));
-    await tester.pump(const Duration(milliseconds: 400)); // drain the double-tap countdown
+    await tester.pump(
+      const Duration(milliseconds: 400),
+    ); // drain the double-tap countdown
     expect(c.read(orientationProvider), DeviceOrientationLock.landscape);
   });
 
   testWidgets('center swipe DOWN rotates landscape→portrait', (tester) async {
     final c = await pumpGestures(tester);
-    c.read(orientationProvider.notifier).rotateTo(DeviceOrientationLock.landscape);
+    c
+        .read(orientationProvider.notifier)
+        .rotateTo(DeviceOrientationLock.landscape);
     final box = tester.getRect(find.byType(PlayerGestures));
     await tester.dragFrom(upperCenter(box), const Offset(0, 140));
     await tester.pump(const Duration(milliseconds: 400));
     expect(c.read(orientationProvider), DeviceOrientationLock.portrait);
   });
 
-  testWidgets('center swipe in the wrong direction does NOT rotate', (tester) async {
+  testWidgets('center swipe in the wrong direction does NOT rotate', (
+    tester,
+  ) async {
     final c = await pumpGestures(tester);
     final box = tester.getRect(find.byType(PlayerGestures));
     // Already portrait: a downward center swipe has nothing to open into.
@@ -147,47 +190,74 @@ void main() {
     // Only the strip at the very bottom is off limits — rotating must not
     // require reaching for the top half of the screen.
     await tester.dragFrom(
-        Offset(box.center.dx, box.top + box.height * 0.70), const Offset(0, -140));
+      Offset(box.center.dx, box.top + box.height * 0.70),
+      const Offset(0, -140),
+    );
     await tester.pump(const Duration(milliseconds: 400));
     expect(c.read(orientationProvider), DeviceOrientationLock.landscape);
   });
 
-  testWidgets('a swipe UP from the bottom center does NOT rotate (system home gesture)',
-      (tester) async {
-    final c = await pumpGestures(tester);
-    final box = tester.getRect(find.byType(PlayerGestures));
-    // The reported accident: reaching for the system home gesture used to rotate.
-    await tester.dragFrom(Offset(box.center.dx, box.bottom - 60), const Offset(0, -140));
-    await tester.pump(const Duration(seconds: 4)); // drain any HUD/controls timers
-    expect(c.read(orientationProvider), DeviceOrientationLock.portrait);
-  });
+  testWidgets(
+    'a swipe UP from the bottom center does NOT rotate (system home gesture)',
+    (tester) async {
+      final c = await pumpGestures(tester);
+      final box = tester.getRect(find.byType(PlayerGestures));
+      // The reported accident: reaching for the system home gesture used to rotate.
+      await tester.dragFrom(
+        Offset(box.center.dx, box.bottom - 60),
+        const Offset(0, -140),
+      );
+      await tester.pump(
+        const Duration(seconds: 4),
+      ); // drain any HUD/controls timers
+      expect(c.read(orientationProvider), DeviceOrientationLock.portrait);
+    },
+  );
 
-  testWidgets('the top strip no longer rotates (pulling the status bar down is safe)', (tester) async {
-    final c = await pumpGestures(tester);
-    final box = tester.getRect(find.byType(PlayerGestures));
-    // The reported accident: reaching for the system status bar used to rotate.
-    await tester.dragFrom(Offset(box.center.dx, box.top + 6), const Offset(0, 140));
-    await tester.pump(const Duration(seconds: 4)); // drain any HUD/controls timers
-    expect(c.read(orientationProvider), DeviceOrientationLock.portrait);
-  });
+  testWidgets(
+    'the top strip no longer rotates (pulling the status bar down is safe)',
+    (tester) async {
+      final c = await pumpGestures(tester);
+      final box = tester.getRect(find.byType(PlayerGestures));
+      // The reported accident: reaching for the system status bar used to rotate.
+      await tester.dragFrom(
+        Offset(box.center.dx, box.top + 6),
+        const Offset(0, 140),
+      );
+      await tester.pump(
+        const Duration(seconds: 4),
+      ); // drain any HUD/controls timers
+      expect(c.read(orientationProvider), DeviceOrientationLock.portrait);
+    },
+  );
 
-  testWidgets('with the controls visible, the center swipe does NOT rotate', (tester) async {
+  testWidgets('with the controls visible, the center swipe does NOT rotate', (
+    tester,
+  ) async {
     final c = await pumpGestures(tester);
     c.read(controlsVisibleProvider.notifier).show();
     await tester.pump();
     final box = tester.getRect(find.byType(PlayerGestures));
     await tester.dragFrom(box.center, const Offset(0, -140));
-    await tester.pump(const Duration(seconds: 5)); // drain controls auto-hide + HUD timers
+    await tester.pump(
+      const Duration(seconds: 5),
+    ); // drain controls auto-hide + HUD timers
     expect(c.read(orientationProvider), DeviceOrientationLock.portrait);
   });
 
-  testWidgets('releasing a hold-to-speed restores the selected rate, not 1x', (tester) async {
+  testWidgets('releasing a hold-to-speed restores the selected rate, not 1x', (
+    tester,
+  ) async {
     final c = await pumpGestures(tester);
     c.read(rateProvider.notifier).state = 1.5; // user's selected speed
     final box = tester.getRect(find.byType(PlayerGestures));
     // Long-press on the left half → hold-left accelerates; release restores.
-    await tester.longPressAt(Offset(box.left + box.width * 0.25, box.center.dy));
-    await tester.pump(const Duration(milliseconds: 500)); // drain gesture timers
+    await tester.longPressAt(
+      Offset(box.left + box.width * 0.25, box.center.dy),
+    );
+    await tester.pump(
+      const Duration(milliseconds: 500),
+    ); // drain gesture timers
     expect(c.read(rateProvider), 1.5);
   });
 }

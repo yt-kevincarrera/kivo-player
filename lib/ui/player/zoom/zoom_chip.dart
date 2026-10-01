@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../state/zoom_state.dart';
+import '../../../l10n/l10n.dart';
 
 /// Floating pill shown whenever the video is zoomed: the live factor plus
 /// tap-to-restore.
@@ -34,39 +35,54 @@ class ZoomChip extends ConsumerWidget {
             opacity: t,
             child: Transform.scale(scale: 0.92 + 0.08 * t, child: child),
           ),
-          child: GestureDetector(
-            onTap: () {
-              ref.read(zoomProvider.notifier).reset();
-              if (ref.read(settingsProvider).hapticsOnGestures) {
-                HapticFeedback.lightImpact();
-              }
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.55),
-                borderRadius: BorderRadius.circular(100),
-                border: Border.all(color: accent.withValues(alpha: 0.5)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.center_focus_strong, size: 13, color: accent),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${zoom.scale.toStringAsFixed(1)}×',
-                    style: TextStyle(
-                      color: accent,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      // Tabular so the digits don't jitter from 1.9× to 2.0×.
-                      fontFeatures: const [FontFeature.tabularFigures()],
+          child: Semantics(
+            button: true,
+            label: context.l10n.a11yZoomLabel(
+              '${zoom.scale.toStringAsFixed(1)}×',
+            ),
+            onTapHint: context.l10n.a11yZoomResetHint,
+            excludeSemantics: true,
+            onTap: () => ref.read(zoomProvider.notifier).reset(),
+            child: GestureDetector(
+              onTap: () {
+                ref.read(zoomProvider.notifier).reset();
+                if (ref.read(settingsProvider).hapticsOnGestures) {
+                  HapticFeedback.lightImpact();
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 7,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.55),
+                  borderRadius: BorderRadius.circular(100),
+                  border: Border.all(color: accent.withValues(alpha: 0.5)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.center_focus_strong, size: 13, color: accent),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${zoom.scale.toStringAsFixed(1)}×',
+                      style: TextStyle(
+                        color: accent,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        // Tabular so the digits don't jitter from 1.9× to 2.0×.
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 6),
-                  Icon(Icons.close_rounded,
-                      size: 12, color: Colors.white.withValues(alpha: 0.42)),
-                ],
+                    const SizedBox(width: 6),
+                    Icon(
+                      Icons.close_rounded,
+                      size: 12,
+                      color: Colors.white.withValues(alpha: 0.42),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

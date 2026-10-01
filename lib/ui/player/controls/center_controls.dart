@@ -71,13 +71,14 @@ class _SkipButtonState extends ConsumerState<_SkipButton>
                   size: 30, color: Colors.white),
             ),
             const SizedBox(height: 1),
-            Text('${skip}s',
+            // Said by the tooltip ("Avanzar 10s"); read twice otherwise.
+            ExcludeSemantics(child: Text('${skip}s',
                 style: const TextStyle(
                     color: Colors.white,
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     height: 1.0,
-                    shadows: [Shadow(color: Colors.black87, blurRadius: 4)])),
+                    shadows: [Shadow(color: Colors.black87, blurRadius: 4)]))),
           ],
         ),
         onPressed: () {
@@ -157,7 +158,7 @@ class CenterControls extends ConsumerWidget {
 class _FrameStepCapsule extends ConsumerStatefulWidget {
   const _FrameStepCapsule();
 
-  static const double height = 40;
+  static const double height = 48; // the minimum touch target
   static const double gap = 14;
 
   @override
@@ -233,10 +234,12 @@ class _FrameStepCapsuleState extends ConsumerState<_FrameStepCapsule> {
         mainAxisSize: MainAxisSize.min,
         children: [
           _button(false, l10n.playerFramePrevTooltip),
-          Text(
-            l10n.playerFrameLabel,
-            style: const TextStyle(
-                color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+          ExcludeSemantics(
+            child: Text(
+              l10n.playerFrameLabel,
+              style: const TextStyle(
+                  color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+            ),
           ),
           _button(true, l10n.playerFrameNextTooltip),
         ],

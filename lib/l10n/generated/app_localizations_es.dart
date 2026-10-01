@@ -2244,4 +2244,102 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get libraryIncognitoOffSnackbar => 'Modo incógnito desactivado';
+
+  @override
+  String a11yHours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count horas',
+      one: '1 hora',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String a11yMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutos',
+      one: '1 minuto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String a11ySeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count segundos',
+      one: '1 segundo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String a11yVideoProgress(int percent) {
+    return 'visto al $percent %';
+  }
+
+  @override
+  String a11yFolderLabel(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count videos',
+      one: '1 video',
+    );
+    return '$name, $_temp0';
+  }
+
+  @override
+  String get videoTileOptionsTooltip => 'Opciones';
+
+  @override
+  String get playerSurfaceLabel => 'Video';
+
+  @override
+  String get playerSurfaceTapHint => 'mostrar u ocultar los controles';
+
+  @override
+  String get playerSeekBarLabel => 'Posición';
+
+  @override
+  String playerSeekBarValue(String position, String total) {
+    return '$position de $total';
+  }
+
+  @override
+  String playerTotalTimeLabel(String time) {
+    return 'Duración: $time';
+  }
+
+  @override
+  String playerRemainingTimeLabel(String time) {
+    return 'Quedan $time';
+  }
+
+  @override
+  String get playerTimeToggleHint => 'cambiar entre duración y tiempo restante';
+
+  @override
+  String get playerUnlockAction => 'Desbloquear pantalla';
+
+  @override
+  String get vaultPinBackspace => 'Borrar último dígito';
+
+  @override
+  String vaultPinProgress(int entered, int total) {
+    return '$entered de $total dígitos';
+  }
+
+  @override
+  String a11yZoomLabel(String value) {
+    return 'Zoom $value';
+  }
+
+  @override
+  String get a11yZoomResetHint => 'restablecer el zoom';
 }

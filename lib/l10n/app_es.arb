@@ -3473,5 +3473,154 @@
   "libraryIncognitoOffSnackbar": "Modo incógnito desactivado",
   "@libraryIncognitoOffSnackbar": {
     "description": "Aviso tras desactivar el modo incógnito desde el chip."
+  },
+
+  "a11yHours": "{count, plural, =1{1 hora} other{{count} horas}}",
+  "@a11yHours": {
+    "description": "Parte de una duración leída por el lector de pantalla.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "a11yMinutes": "{count, plural, =1{1 minuto} other{{count} minutos}}",
+  "@a11yMinutes": {
+    "description": "Parte de una duración leída por el lector de pantalla.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "a11ySeconds": "{count, plural, =1{1 segundo} other{{count} segundos}}",
+  "@a11ySeconds": {
+    "description": "Parte de una duración leída por el lector de pantalla.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "a11yVideoProgress": "visto al {percent} %",
+  "@a11yVideoProgress": {
+    "description": "Lector de pantalla: cuánto se ha visto de un video.",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+
+  "a11yFolderLabel": "{name}, {count, plural, =1{1 video} other{{count} videos}}",
+  "@a11yFolderLabel": {
+    "description": "Lector de pantalla: una carpeta de la biblioteca.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "videoTileOptionsTooltip": "Opciones",
+  "@videoTileOptionsTooltip": {
+    "description": "Botón ⋮ de un video: abre sus opciones."
+  },
+
+  "playerSurfaceLabel": "Video",
+  "@playerSurfaceLabel": {
+    "description": "Lector de pantalla: la zona del video en el reproductor."
+  },
+
+  "playerSurfaceTapHint": "mostrar u ocultar los controles",
+  "@playerSurfaceTapHint": {
+    "description": "Lector de pantalla: qué hace tocar el video (se lee tras «toca dos veces para»)."
+  },
+
+  "playerSeekBarLabel": "Posición",
+  "@playerSeekBarLabel": {
+    "description": "Lector de pantalla: la barra de progreso del reproductor."
+  },
+
+  "playerSeekBarValue": "{position} de {total}",
+  "@playerSeekBarValue": {
+    "description": "Lector de pantalla: valor de la barra de progreso.",
+    "placeholders": {
+      "position": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerTotalTimeLabel": "Duración: {time}",
+  "@playerTotalTimeLabel": {
+    "description": "Lector de pantalla: el tiempo total, a la derecha de la barra.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerRemainingTimeLabel": "Quedan {time}",
+  "@playerRemainingTimeLabel": {
+    "description": "Lector de pantalla: el tiempo restante, a la derecha de la barra.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerTimeToggleHint": "cambiar entre duración y tiempo restante",
+  "@playerTimeToggleHint": {
+    "description": "Lector de pantalla: qué hace tocar el tiempo de la derecha."
+  },
+
+  "playerUnlockAction": "Desbloquear pantalla",
+  "@playerUnlockAction": {
+    "description": "Lector de pantalla: el botón de desbloqueo con la pantalla bloqueada."
+  },
+
+  "vaultPinBackspace": "Borrar último dígito",
+  "@vaultPinBackspace": {
+    "description": "Botón de borrar del teclado del PIN."
+  },
+
+  "vaultPinProgress": "{entered} de {total} dígitos",
+  "@vaultPinProgress": {
+    "description": "Lector de pantalla: cuántos dígitos del PIN van escritos.",
+    "placeholders": {
+      "entered": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+
+  "a11yZoomLabel": "Zoom {value}",
+  "@a11yZoomLabel": {
+    "description": "Lector de pantalla: la pastilla de zoom del reproductor.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+
+  "a11yZoomResetHint": "restablecer el zoom",
+  "@a11yZoomResetHint": {
+    "description": "Lector de pantalla: qué hace tocar la pastilla de zoom."
   }
 }

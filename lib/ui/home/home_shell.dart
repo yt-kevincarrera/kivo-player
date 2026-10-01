@@ -120,8 +120,18 @@ class _BottomTabBar extends StatelessWidget {
           padding: const EdgeInsets.only(top: 8, bottom: 6),
           child: Row(
             children: [
-              _item(cs, 0, Icons.play_circle_outline, context.l10n.homeTabVideos),
-              _item(cs, 1, Icons.settings_outlined, context.l10n.homeTabSettings),
+              _item(
+                cs,
+                0,
+                Icons.play_circle_outline,
+                context.l10n.homeTabVideos,
+              ),
+              _item(
+                cs,
+                1,
+                Icons.settings_outlined,
+                context.l10n.homeTabSettings,
+              ),
             ],
           ),
         ),
@@ -133,22 +143,27 @@ class _BottomTabBar extends StatelessWidget {
     final active = i == index;
     final color = active ? cs.secondary : cs.onSurfaceVariant;
     return Expanded(
-      child: InkWell(
-        onTap: () => onTap(i),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 24, color: color),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-                color: color,
+      child: Semantics(
+        button: true,
+        selected: active,
+        inMutuallyExclusiveGroup: true,
+        child: InkWell(
+          onTap: () => onTap(i),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 24, color: color),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                  color: color,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

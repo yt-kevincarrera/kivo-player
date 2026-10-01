@@ -53,8 +53,8 @@ String _decoderSubtitle(AppLocalizations l10n, DecoderStatus s) {
   final status = s.active == null
       ? l10n.playerMenuDecoderActivePending
       : isHardwareActive(s.active)
-          ? l10n.playerMenuDecoderActiveHardware
-          : l10n.playerMenuDecoderActiveSoftware;
+      ? l10n.playerMenuDecoderActiveHardware
+      : l10n.playerMenuDecoderActiveSoftware;
   return s.overridden ? l10n.playerMenuDecoderThisVideoOnly(status) : status;
 }
 
@@ -96,10 +96,11 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                   final loop = sheetRef.watch(abLoopProvider);
                   final loopSubtitle = switch (loop?.phase) {
                     null => l10n.playerLoopSubtitleIdle,
-                    AbLoopPhase.armedA || AbLoopPhase.armedB => l10n.playerLoopSubtitleMarking,
+                    AbLoopPhase.armedA ||
+                    AbLoopPhase.armedB => l10n.playerLoopSubtitleMarking,
                     AbLoopPhase.active => l10n.playerLoopSubtitleActive(
-                        '${fmtDuration(loop!.a!)}–${fmtDuration(loop.b!)}',
-                      ),
+                      '${fmtDuration(loop!.a!)}–${fmtDuration(loop.b!)}',
+                    ),
                   };
                   final settings = sheetRef.watch(settingsProvider);
                   final accent = Color(settings.accentColor);
@@ -113,14 +114,18 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                       ? Colors.white70
                       : accent;
                   final chapters = sheetRef.watch(chaptersProvider);
-                  final chaptersSubtitle = l10n.playerMenuChaptersSubtitle(chapters.length);
+                  final chaptersSubtitle = l10n.playerMenuChaptersSubtitle(
+                    chapters.length,
+                  );
                   final sleepState = sheetRef.watch(sleepTimerProvider);
                   final sleepBadge = switch (sleepState?.mode) {
                     null => null,
                     SleepTimerMode.fixed => fmtDuration(sleepState!.remaining),
                     SleepTimerMode.episode => l10n.playerMenuSleepBadgeEpisode,
                     SleepTimerMode.episodes =>
-                      l10n.playerMenuSleepBadgeEpisodes(sleepState!.episodesLeft),
+                      l10n.playerMenuSleepBadgeEpisodes(
+                        sleepState!.episodesLeft,
+                      ),
                   };
 
                   // Built once each, then placed either in a single column
@@ -222,7 +227,10 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                               options: [
                                 (RepeatMode.off, l10n.playerMenuOptionOff),
                                 (RepeatMode.list, l10n.playerMenuRepeatList),
-                                (RepeatMode.video, l10n.playerMenuRepeatVideoOption),
+                                (
+                                  RepeatMode.video,
+                                  l10n.playerMenuRepeatVideoOption,
+                                ),
                               ],
                               selected: repeatMode,
                               accent: accent,
@@ -280,15 +288,25 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                               // Lit only when this video has its own decoder:
                               // "differs from your default" is the thing
                               // worth noticing at a glance.
-                              iconColor:
-                                  decoder.overridden ? accent : Colors.white70,
+                              iconColor: decoder.overridden
+                                  ? accent
+                                  : Colors.white70,
                               title: l10n.playerMenuDecoder,
                               subtitle: _decoderSubtitle(l10n, decoder),
                               trailing: _SegmentedPill<DecoderMode>(
                                 options: [
-                                  (DecoderMode.auto, l10n.playerMenuDecoderAuto),
-                                  (DecoderMode.hardware, l10n.playerMenuDecoderHw),
-                                  (DecoderMode.software, l10n.playerMenuDecoderSw),
+                                  (
+                                    DecoderMode.auto,
+                                    l10n.playerMenuDecoderAuto,
+                                  ),
+                                  (
+                                    DecoderMode.hardware,
+                                    l10n.playerMenuDecoderHw,
+                                  ),
+                                  (
+                                    DecoderMode.software,
+                                    l10n.playerMenuDecoderSw,
+                                  ),
                                 ],
                                 selected: decoder.mode,
                                 accent: accent,
@@ -466,7 +484,9 @@ Future<void> _addBookmarkHere(BuildContext context, WidgetRef ref) async {
   messenger.hideCurrentSnackBar();
   messenger.showSnackBar(
     SnackBar(
-      content: Text(l10n.playerMenuBookmarkSavedSnackbar(fmtDuration(position))),
+      content: Text(
+        l10n.playerMenuBookmarkSavedSnackbar(fmtDuration(position)),
+      ),
       action: SnackBarAction(
         label: l10n.playerMenuBookmarkNameAction,
         onPressed: () => _nameBookmark(context, ref, bookmark, videoKey),
@@ -847,23 +867,28 @@ class _SegmentChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: active ? accent : Colors.transparent,
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: active
-                ? onAccent(accent)
-                : Colors.white.withValues(alpha: 0.55),
-            fontSize: 10.5,
-            fontWeight: FontWeight.w600,
+    return Semantics(
+      button: true,
+      selected: active,
+      inMutuallyExclusiveGroup: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: active ? accent : Colors.transparent,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: active
+                  ? onAccent(accent)
+                  : Colors.white.withValues(alpha: 0.55),
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ),

@@ -154,78 +154,85 @@ class _QueueCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: SizedBox(
-        width: width,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              height: thumbH,
-              width: width,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: active ? accent : Colors.transparent,
-                  width: 2,
-                ),
-                color: const Color(0xFF0C1120),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Opacity(
-                    opacity: active ? 1 : 0.6,
-                    child: id.isEmpty
-                        ? const ColoredBox(color: Color(0xFF1C2A44))
-                        : ThumbnailImage(id, fit: BoxFit.cover),
+    return Semantics(
+      button: true,
+      selected: active,
+      child: GestureDetector(
+        onTap: onTap,
+        child: SizedBox(
+          width: width,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                height: thumbH,
+                width: width,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: active ? accent : Colors.transparent,
+                    width: 2,
                   ),
-                  if (active)
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      child: Container(
-                        color: accent,
-                        padding: const EdgeInsets.symmetric(vertical: 1.5),
-                        child: Text(
-                          context.l10n.playerQueueNowBadge,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: onAccent(accent),
-                            fontSize: 8,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.5,
+                  color: const Color(0xFF0C1120),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Opacity(
+                      opacity: active ? 1 : 0.6,
+                      child: id.isEmpty
+                          ? const ColoredBox(color: Color(0xFF1C2A44))
+                          : ThumbnailImage(id, fit: BoxFit.cover),
+                    ),
+                    if (active)
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          color: accent,
+                          padding: const EdgeInsets.symmetric(vertical: 1.5),
+                          // Said by the card's selected state already.
+                          child: ExcludeSemantics(
+                            child: Text(
+                              context.l10n.playerQueueNowBadge,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: onAccent(accent),
+                                fontSize: 8,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
                           ),
                         ),
+                      )
+                    else
+                      const Center(
+                        child: Icon(
+                          Icons.play_arrow_rounded,
+                          color: Colors.white70,
+                          size: 22,
+                        ),
                       ),
-                    )
-                  else
-                    const Center(
-                      child: Icon(
-                        Icons.play_arrow_rounded,
-                        color: Colors.white70,
-                        size: 22,
-                      ),
-                    ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: active ? accent : Colors.white.withValues(alpha: 0.6),
-                fontSize: 10,
-                fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+              const SizedBox(height: 3),
+              Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: active ? accent : Colors.white.withValues(alpha: 0.6),
+                  fontSize: 10,
+                  fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

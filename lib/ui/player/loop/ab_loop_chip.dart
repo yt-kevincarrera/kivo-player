@@ -46,59 +46,73 @@ class _AbLoopChipState extends ConsumerState<AbLoopChip> {
             ),
             const SizedBox(height: 8),
           ],
-          GestureDetector(
-            onTap: () {
-              if (_popoverOpen) {
-                setState(() => _popoverOpen = false);
-                return;
-              }
-              n.mark();
-            },
-            onLongPress: active ? () => setState(() => _popoverOpen = true) : null,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-              decoration: BoxDecoration(
-                color: active ? accent.withValues(alpha: 0.16) : Colors.black.withValues(alpha: 0.55),
-                borderRadius: BorderRadius.circular(100),
-                border: Border.all(
-                  color: active
-                      ? accent
-                      : accent.withValues(alpha: 0.5),
+          // Reads as its text ("Marcar A", "1:02–1:40") and says it is a button.
+          Semantics(
+            button: true,
+            child: GestureDetector(
+              onTap: () {
+                if (_popoverOpen) {
+                  setState(() => _popoverOpen = false);
+                  return;
+                }
+                n.mark();
+              },
+              onLongPress: active
+                  ? () => setState(() => _popoverOpen = true)
+                  : null,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 7,
                 ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.repeat_rounded,
-                      size: 13, color: active ? accent : Colors.white),
-                  const SizedBox(width: 6),
-                  Text(
-                    switch (loop.phase) {
-                      AbLoopPhase.armedA => context.l10n.playerLoopMarkA,
-                      AbLoopPhase.armedB => context.l10n.playerLoopMarkB,
-                      AbLoopPhase.active =>
-                        '${fmtDuration(loop.a!)}–${fmtDuration(loop.b!)}',
-                    },
-                    style: TextStyle(
-                      color: active ? accent : Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
+                decoration: BoxDecoration(
+                  color: active
+                      ? accent.withValues(alpha: 0.16)
+                      : Colors.black.withValues(alpha: 0.55),
+                  borderRadius: BorderRadius.circular(100),
+                  border: Border.all(
+                    color: active ? accent : accent.withValues(alpha: 0.5),
                   ),
-                  if (loop.phase == AbLoopPhase.armedB) ...[
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.repeat_rounded,
+                      size: 13,
+                      color: active ? accent : Colors.white,
+                    ),
                     const SizedBox(width: 6),
                     Text(
-                      context.l10n.playerLoopPointALabel(fmtDuration(loop.a!)),
+                      switch (loop.phase) {
+                        AbLoopPhase.armedA => context.l10n.playerLoopMarkA,
+                        AbLoopPhase.armedB => context.l10n.playerLoopMarkB,
+                        AbLoopPhase.active =>
+                          '${fmtDuration(loop.a!)}–${fmtDuration(loop.b!)}',
+                      },
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.42),
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
+                        color: active ? accent : Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
                         fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
+                    if (loop.phase == AbLoopPhase.armedB) ...[
+                      const SizedBox(width: 6),
+                      Text(
+                        context.l10n.playerLoopPointALabel(
+                          fmtDuration(loop.a!),
+                        ),
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.42),
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ),
@@ -157,9 +171,14 @@ class _AdjustPopover extends StatelessWidget {
             borderRadius: BorderRadius.circular(7),
           ),
           alignment: Alignment.center,
-          child: Text(label,
-              style: TextStyle(
-                  color: accent, fontSize: 10, fontWeight: FontWeight.w800)),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: accent,
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
         ),
         const SizedBox(width: 8),
         // '−1s'/'+1s': a numeric step with a unit abbreviation, same as
@@ -189,17 +208,22 @@ class _StepBtn extends StatelessWidget {
   const _StepBtn({required this.label, required this.onTap});
   @override
   Widget build(BuildContext context) => InkWell(
+    borderRadius: BorderRadius.circular(7),
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(7),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.07),
-            borderRadius: BorderRadius.circular(7),
-          ),
-          child: Text(label,
-              style: const TextStyle(
-                  color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
         ),
-      );
+      ),
+    ),
+  );
 }

@@ -3829,6 +3829,114 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Modo incógnito desactivado'**
   String get libraryIncognitoOffSnackbar;
+
+  /// Parte de una duración leída por el lector de pantalla.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 hora} other{{count} horas}}'**
+  String a11yHours(int count);
+
+  /// Parte de una duración leída por el lector de pantalla.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 minuto} other{{count} minutos}}'**
+  String a11yMinutes(int count);
+
+  /// Parte de una duración leída por el lector de pantalla.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 segundo} other{{count} segundos}}'**
+  String a11ySeconds(int count);
+
+  /// Lector de pantalla: cuánto se ha visto de un video.
+  ///
+  /// In es, this message translates to:
+  /// **'visto al {percent} %'**
+  String a11yVideoProgress(int percent);
+
+  /// Lector de pantalla: una carpeta de la biblioteca.
+  ///
+  /// In es, this message translates to:
+  /// **'{name}, {count, plural, =1{1 video} other{{count} videos}}'**
+  String a11yFolderLabel(String name, int count);
+
+  /// Botón ⋮ de un video: abre sus opciones.
+  ///
+  /// In es, this message translates to:
+  /// **'Opciones'**
+  String get videoTileOptionsTooltip;
+
+  /// Lector de pantalla: la zona del video en el reproductor.
+  ///
+  /// In es, this message translates to:
+  /// **'Video'**
+  String get playerSurfaceLabel;
+
+  /// Lector de pantalla: qué hace tocar el video (se lee tras «toca dos veces para»).
+  ///
+  /// In es, this message translates to:
+  /// **'mostrar u ocultar los controles'**
+  String get playerSurfaceTapHint;
+
+  /// Lector de pantalla: la barra de progreso del reproductor.
+  ///
+  /// In es, this message translates to:
+  /// **'Posición'**
+  String get playerSeekBarLabel;
+
+  /// Lector de pantalla: valor de la barra de progreso.
+  ///
+  /// In es, this message translates to:
+  /// **'{position} de {total}'**
+  String playerSeekBarValue(String position, String total);
+
+  /// Lector de pantalla: el tiempo total, a la derecha de la barra.
+  ///
+  /// In es, this message translates to:
+  /// **'Duración: {time}'**
+  String playerTotalTimeLabel(String time);
+
+  /// Lector de pantalla: el tiempo restante, a la derecha de la barra.
+  ///
+  /// In es, this message translates to:
+  /// **'Quedan {time}'**
+  String playerRemainingTimeLabel(String time);
+
+  /// Lector de pantalla: qué hace tocar el tiempo de la derecha.
+  ///
+  /// In es, this message translates to:
+  /// **'cambiar entre duración y tiempo restante'**
+  String get playerTimeToggleHint;
+
+  /// Lector de pantalla: el botón de desbloqueo con la pantalla bloqueada.
+  ///
+  /// In es, this message translates to:
+  /// **'Desbloquear pantalla'**
+  String get playerUnlockAction;
+
+  /// Botón de borrar del teclado del PIN.
+  ///
+  /// In es, this message translates to:
+  /// **'Borrar último dígito'**
+  String get vaultPinBackspace;
+
+  /// Lector de pantalla: cuántos dígitos del PIN van escritos.
+  ///
+  /// In es, this message translates to:
+  /// **'{entered} de {total} dígitos'**
+  String vaultPinProgress(int entered, int total);
+
+  /// Lector de pantalla: la pastilla de zoom del reproductor.
+  ///
+  /// In es, this message translates to:
+  /// **'Zoom {value}'**
+  String a11yZoomLabel(String value);
+
+  /// Lector de pantalla: qué hace tocar la pastilla de zoom.
+  ///
+  /// In es, this message translates to:
+  /// **'restablecer el zoom'**
+  String get a11yZoomResetHint;
 }
 
 class _AppLocalizationsDelegate

@@ -4,6 +4,7 @@ import '../../../core/settings/settings_provider.dart';
 
 class ControlsVisibilityNotifier extends Notifier<bool> {
   Timer? _timer;
+  bool _assistive = false;
 
   @override
   bool build() {
@@ -24,8 +25,30 @@ class ControlsVisibilityNotifier extends Notifier<bool> {
 
   void toggle() => state ? hide() : show();
 
+  /// A screen reader (TalkBack) is on. Its user moves through the controls
+  /// one by one, with no way to know they are about to fade: they stay up
+  /// until hidden on purpose, and come up as soon as it turns on.
+  ///
+  /// Called on every player mount, not only on a change: this provider
+  /// outlives the player, so a second video opened under TalkBack after the
+  /// controls were hidden would otherwise start with them hidden.
+  void setAssistive(bool on) {
+    final was = _assistive;
+    _assistive = on;
+    if (on) {
+      show();
+    } else if (was && state) {
+      _restartTimer();
+    }
+  }
+
+  /// Whether a screen reader is driving the player (see [setAssistive]).
+  bool get assistive => _assistive;
+
   void _restartTimer() {
     _timer?.cancel();
+    _timer = null;
+    if (_assistive) return;
     final ms = ref.read(settingsProvider).controlsAutoHideMs;
     _timer = Timer(Duration(milliseconds: ms), () => state = false);
   }

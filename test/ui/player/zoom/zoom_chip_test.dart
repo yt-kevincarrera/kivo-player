@@ -1,3 +1,4 @@
+import 'package:kivo_player/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,14 +14,23 @@ void main() {
 
   Future<ProviderContainer> harness(WidgetTester tester) async {
     final s = await SettingsService.load(InMemorySettingsStore());
-    final c = ProviderContainer(overrides: [settingsServiceProvider.overrideWithValue(s)]);
+    final c = ProviderContainer(
+      overrides: [settingsServiceProvider.overrideWithValue(s)],
+    );
     addTearDown(c.dispose);
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: c,
-      child: const MaterialApp(
-        home: Scaffold(body: Stack(children: [Positioned.fill(child: ZoomChip())])),
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: c,
+        child: const MaterialApp(
+          locale: Locale('es'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Stack(children: [Positioned.fill(child: ZoomChip())]),
+          ),
+        ),
       ),
-    ));
+    );
     return c;
   }
 
@@ -29,9 +39,13 @@ void main() {
     expect(find.textContaining('×'), findsNothing);
   });
 
-  testWidgets('shows the factor once zoomed and restores on tap', (tester) async {
+  testWidgets('shows the factor once zoomed and restores on tap', (
+    tester,
+  ) async {
     final c = await harness(tester);
-    c.read(zoomProvider.notifier).pinch(factor: 1.8, focal: centre, viewport: viewport);
+    c
+        .read(zoomProvider.notifier)
+        .pinch(factor: 1.8, focal: centre, viewport: viewport);
     await tester.pumpAndSettle();
 
     expect(find.text('1.8×'), findsOneWidget);
@@ -45,11 +59,15 @@ void main() {
 
   testWidgets('the factor tracks the zoom live', (tester) async {
     final c = await harness(tester);
-    c.read(zoomProvider.notifier).pinch(factor: 2.0, focal: centre, viewport: viewport);
+    c
+        .read(zoomProvider.notifier)
+        .pinch(factor: 2.0, focal: centre, viewport: viewport);
     await tester.pumpAndSettle();
     expect(find.text('2.0×'), findsOneWidget);
 
-    c.read(zoomProvider.notifier).pinch(factor: 1.5, focal: centre, viewport: viewport);
+    c
+        .read(zoomProvider.notifier)
+        .pinch(factor: 1.5, focal: centre, viewport: viewport);
     await tester.pumpAndSettle();
     expect(find.text('3.0×'), findsOneWidget);
     expect(find.text('2.0×'), findsNothing);
