@@ -350,6 +350,13 @@ class FakePlaybackEngine implements PlaybackEngine {
   @override
   Future<String?> currentSubtitleId() async => subtitleIdValue;
 
+  /// Every frameStep call, in order (true = forward).
+  final List<bool> frameSteps = [];
+
+  @override
+  Future<void> frameStep({required bool forward}) async =>
+      frameSteps.add(forward);
+
   bool videoTrackEnabled = true;
 
   @override

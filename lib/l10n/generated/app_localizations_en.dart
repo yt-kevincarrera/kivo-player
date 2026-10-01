@@ -2203,4 +2203,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get vaultUseBiometricAction => 'Use fingerprint';
+
+  @override
+  String get playerFramePrevTooltip => 'Previous frame';
+
+  @override
+  String get playerFrameNextTooltip => 'Next frame';
+
+  @override
+  String get playerFrameLabel => 'Frame';
+
+  @override
+  String get settingsAdvancedIncognito => 'Incognito mode';
+
+  @override
+  String get settingsAdvancedIncognitoSubtitle =>
+      'While it\'s on, where you stop and what you\'ve watched isn\'t saved';
+
+  @override
+  String get libraryIncognitoChip => 'Incognito';
+
+  @override
+  String get libraryIncognitoChipTooltip =>
+      'Incognito mode is on. Tap to turn it off.';
+
+  @override
+  String get libraryIncognitoOffSnackbar => 'Incognito mode off';
 }

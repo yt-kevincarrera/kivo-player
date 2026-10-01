@@ -3433,5 +3433,45 @@
   "vaultUseBiometricAction": "Usar huella",
   "@vaultUseBiometricAction": {
     "description": "Botón bajo el PinPad del Vault para volver a intentar con la huella (nunca se relanza sola tras cancelarla)."
+  },
+
+  "playerFramePrevTooltip": "Fotograma anterior",
+  "@playerFramePrevTooltip": {
+    "description": "Botón de la cápsula de fotogramas (solo en pausa): retrocede un fotograma; mantener repite."
+  },
+
+  "playerFrameNextTooltip": "Fotograma siguiente",
+  "@playerFrameNextTooltip": {
+    "description": "Botón de la cápsula de fotogramas (solo en pausa): avanza un fotograma; mantener repite."
+  },
+
+  "playerFrameLabel": "Fotograma",
+  "@playerFrameLabel": {
+    "description": "Etiqueta en el centro de la cápsula de fotogramas."
+  },
+
+  "settingsAdvancedIncognito": "Modo incógnito",
+  "@settingsAdvancedIncognito": {
+    "description": "Interruptor en Ajustes › Reproducción avanzada › Continuar viendo."
+  },
+
+  "settingsAdvancedIncognitoSubtitle": "Mientras esté activo, no se guarda dónde te quedas ni qué has visto",
+  "@settingsAdvancedIncognitoSubtitle": {
+    "description": "Subtítulo del interruptor del modo incógnito."
+  },
+
+  "libraryIncognitoChip": "Incógnito",
+  "@libraryIncognitoChip": {
+    "description": "Chip en la barra de la biblioteca mientras el modo incógnito está activo."
+  },
+
+  "libraryIncognitoChipTooltip": "Modo incógnito activado. Toca para desactivarlo.",
+  "@libraryIncognitoChipTooltip": {
+    "description": "Tooltip del chip de incógnito."
+  },
+
+  "libraryIncognitoOffSnackbar": "Modo incógnito desactivado",
+  "@libraryIncognitoOffSnackbar": {
+    "description": "Aviso tras desactivar el modo incógnito desde el chip."
   }
 }

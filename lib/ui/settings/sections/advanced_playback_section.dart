@@ -48,6 +48,11 @@ class AdvancedPlaybackSection extends ConsumerWidget {
               title: l10n.settingsAdvancedResumeMinSeconds, value: s.resumeMinSeconds,
               min: 0, max: 120, step: 5, label: (v) => '$v s',
               onChanged: (v) => n.set(s.copyWith(resumeMinSeconds: v))),
+            SettingSwitch(
+              title: l10n.settingsAdvancedIncognito,
+              subtitle: l10n.settingsAdvancedIncognitoSubtitle,
+              value: s.incognito,
+              onChanged: (v) => n.set(s.copyWith(incognito: v))),
           ]),
           const SizedBox(height: 16),
           _label(context, l10n.settingsAdvancedGroupPlayback),

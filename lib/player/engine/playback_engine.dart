@@ -207,6 +207,11 @@ abstract class PlaybackEngine {
   /// output is never left holding a surface Android is about to destroy.
   Future<void> setVideoTrackEnabled(bool enabled);
 
+  /// One video frame forward or back (mpv `frame-step` / `frame-back-step`).
+  /// Leaves playback paused. Backwards decodes from the previous keyframe, so
+  /// it can take a moment on long-GOP files.
+  Future<void> frameStep({required bool forward});
+
   /// Safety net for the background round-trip: if mpv has not brought its video
   /// output back shortly after [setVideoTrackEnabled]`(true)`, nudge it once.
   /// Fire-and-forget — never await this from UI code.

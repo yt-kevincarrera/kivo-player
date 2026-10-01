@@ -399,6 +399,13 @@ class MediaKitEngine implements PlaybackEngine {
   }
 
   @override
+  Future<void> frameStep({required bool forward}) async {
+    final native = _player.platform as NativePlayer?;
+    if (native == null) return;
+    await native.command([forward ? 'frame-step' : 'frame-back-step']);
+  }
+
+  @override
   Future<void> setVideoTrackEnabled(bool enabled) async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;

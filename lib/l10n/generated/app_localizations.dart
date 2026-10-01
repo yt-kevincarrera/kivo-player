@@ -3781,6 +3781,54 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Usar huella'**
   String get vaultUseBiometricAction;
+
+  /// Botón de la cápsula de fotogramas (solo en pausa): retrocede un fotograma; mantener repite.
+  ///
+  /// In es, this message translates to:
+  /// **'Fotograma anterior'**
+  String get playerFramePrevTooltip;
+
+  /// Botón de la cápsula de fotogramas (solo en pausa): avanza un fotograma; mantener repite.
+  ///
+  /// In es, this message translates to:
+  /// **'Fotograma siguiente'**
+  String get playerFrameNextTooltip;
+
+  /// Etiqueta en el centro de la cápsula de fotogramas.
+  ///
+  /// In es, this message translates to:
+  /// **'Fotograma'**
+  String get playerFrameLabel;
+
+  /// Interruptor en Ajustes › Reproducción avanzada › Continuar viendo.
+  ///
+  /// In es, this message translates to:
+  /// **'Modo incógnito'**
+  String get settingsAdvancedIncognito;
+
+  /// Subtítulo del interruptor del modo incógnito.
+  ///
+  /// In es, this message translates to:
+  /// **'Mientras esté activo, no se guarda dónde te quedas ni qué has visto'**
+  String get settingsAdvancedIncognitoSubtitle;
+
+  /// Chip en la barra de la biblioteca mientras el modo incógnito está activo.
+  ///
+  /// In es, this message translates to:
+  /// **'Incógnito'**
+  String get libraryIncognitoChip;
+
+  /// Tooltip del chip de incógnito.
+  ///
+  /// In es, this message translates to:
+  /// **'Modo incógnito activado. Toca para desactivarlo.'**
+  String get libraryIncognitoChipTooltip;
+
+  /// Aviso tras desactivar el modo incógnito desde el chip.
+  ///
+  /// In es, this message translates to:
+  /// **'Modo incógnito desactivado'**
+  String get libraryIncognitoOffSnackbar;
 }
 
 class _AppLocalizationsDelegate

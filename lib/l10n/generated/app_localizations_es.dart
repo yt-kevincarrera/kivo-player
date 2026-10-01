@@ -2218,4 +2218,30 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get vaultUseBiometricAction => 'Usar huella';
+
+  @override
+  String get playerFramePrevTooltip => 'Fotograma anterior';
+
+  @override
+  String get playerFrameNextTooltip => 'Fotograma siguiente';
+
+  @override
+  String get playerFrameLabel => 'Fotograma';
+
+  @override
+  String get settingsAdvancedIncognito => 'Modo incógnito';
+
+  @override
+  String get settingsAdvancedIncognitoSubtitle =>
+      'Mientras esté activo, no se guarda dónde te quedas ni qué has visto';
+
+  @override
+  String get libraryIncognitoChip => 'Incógnito';
+
+  @override
+  String get libraryIncognitoChipTooltip =>
+      'Modo incógnito activado. Toca para desactivarlo.';
+
+  @override
+  String get libraryIncognitoOffSnackbar => 'Modo incógnito desactivado';
 }

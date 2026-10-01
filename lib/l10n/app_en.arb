@@ -3434,5 +3434,45 @@
   "vaultUseBiometricAction": "Use fingerprint",
   "@vaultUseBiometricAction": {
     "description": "Button under the Vault PinPad to try the fingerprint again (it never relaunches on its own after being cancelled)."
+  },
+
+  "playerFramePrevTooltip": "Previous frame",
+  "@playerFramePrevTooltip": {
+    "description": "Frame capsule button (paused only): one frame back; hold to repeat."
+  },
+
+  "playerFrameNextTooltip": "Next frame",
+  "@playerFrameNextTooltip": {
+    "description": "Frame capsule button (paused only): one frame forward; hold to repeat."
+  },
+
+  "playerFrameLabel": "Frame",
+  "@playerFrameLabel": {
+    "description": "Label in the middle of the frame capsule."
+  },
+
+  "settingsAdvancedIncognito": "Incognito mode",
+  "@settingsAdvancedIncognito": {
+    "description": "Switch in Settings › Advanced playback › Continue watching."
+  },
+
+  "settingsAdvancedIncognitoSubtitle": "While it's on, where you stop and what you've watched isn't saved",
+  "@settingsAdvancedIncognitoSubtitle": {
+    "description": "Subtitle of the incognito switch."
+  },
+
+  "libraryIncognitoChip": "Incognito",
+  "@libraryIncognitoChip": {
+    "description": "Chip in the library bar while incognito mode is on."
+  },
+
+  "libraryIncognitoChipTooltip": "Incognito mode is on. Tap to turn it off.",
+  "@libraryIncognitoChipTooltip": {
+    "description": "Tooltip of the incognito chip."
+  },
+
+  "libraryIncognitoOffSnackbar": "Incognito mode off",
+  "@libraryIncognitoOffSnackbar": {
+    "description": "Notice after turning incognito off from the chip."
   }
 }
