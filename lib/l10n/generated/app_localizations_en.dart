@@ -2171,4 +2171,29 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get privacyPermissionsBody =>
       'Videos: to show them. All files (optional): to delete, rename and use the Vault without asking every time. Notifications: for the background playback controls. Install apps: to update itself. Internet: only for the above.';
+
+  @override
+  String get playerTracksGroupText => 'Text';
+
+  @override
+  String get playerTracksGroupOutline => 'Outline and shadow';
+
+  @override
+  String get playerTracksGroupBackground => 'Background';
+
+  @override
+  String get playerTracksGroupPosition => 'Position';
+
+  @override
+  String get playerTracksGroupAss => '.ass files';
+
+  @override
+  String get playerTracksOutlineWidthLabel => 'Width';
+
+  @override
+  String get playerTracksPositionPrimaryLabel => 'Subtitle';
+
+  @override
+  String get playerTracksPositionDragHint =>
+      'You can also press and hold a subtitle on the video and move it with your finger.';
 }

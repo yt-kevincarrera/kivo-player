@@ -3721,6 +3721,54 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Videos: para mostrarlos. Todos los archivos (opcional): para borrar, renombrar y usar el Vault sin preguntar cada vez. Notificaciones: para los controles de reproducción en segundo plano. Instalar apps: para actualizarse. Internet: solo para lo anterior.'**
   String get privacyPermissionsBody;
+
+  /// Grupo de la pestaña Estilo: tamaño, fuente, color y negrita.
+  ///
+  /// In es, this message translates to:
+  /// **'Texto'**
+  String get playerTracksGroupText;
+
+  /// Grupo de la pestaña Estilo: grosor y color del contorno, sombra.
+  ///
+  /// In es, this message translates to:
+  /// **'Contorno y sombra'**
+  String get playerTracksGroupOutline;
+
+  /// Grupo de la pestaña Estilo: fondo detrás del texto.
+  ///
+  /// In es, this message translates to:
+  /// **'Fondo'**
+  String get playerTracksGroupBackground;
+
+  /// Grupo de la pestaña Estilo: dónde se colocan el subtítulo y el segundo subtítulo.
+  ///
+  /// In es, this message translates to:
+  /// **'Posición'**
+  String get playerTracksGroupPosition;
+
+  /// Grupo de la pestaña Estilo: cómo se muestran los subtítulos ASS/SSA.
+  ///
+  /// In es, this message translates to:
+  /// **'Archivos .ass'**
+  String get playerTracksGroupAss;
+
+  /// Etiqueta del deslizador de grosor del contorno.
+  ///
+  /// In es, this message translates to:
+  /// **'Grosor'**
+  String get playerTracksOutlineWidthLabel;
+
+  /// Etiqueta del deslizador de distancia del subtítulo al borde inferior.
+  ///
+  /// In es, this message translates to:
+  /// **'Subtítulo'**
+  String get playerTracksPositionPrimaryLabel;
+
+  /// Pista bajo los deslizadores de posición.
+  ///
+  /// In es, this message translates to:
+  /// **'También puedes mantener pulsado un subtítulo en el video y moverlo con el dedo.'**
+  String get playerTracksPositionDragHint;
 }
 
 class _AppLocalizationsDelegate

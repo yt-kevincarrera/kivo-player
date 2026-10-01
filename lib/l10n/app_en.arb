@@ -3384,5 +3384,45 @@
   "privacyPermissionsBody": "Videos: to show them. All files (optional): to delete, rename and use the Vault without asking every time. Notifications: for the background playback controls. Install apps: to update itself. Internet: only for the above.",
   "@privacyPermissionsBody": {
     "description": "Body of «Permissions»: what each permission is for."
+  },
+
+  "playerTracksGroupText": "Text",
+  "@playerTracksGroupText": {
+    "description": "Style tab group: size, font, color and bold."
+  },
+
+  "playerTracksGroupOutline": "Outline and shadow",
+  "@playerTracksGroupOutline": {
+    "description": "Style tab group: outline width and color, shadow."
+  },
+
+  "playerTracksGroupBackground": "Background",
+  "@playerTracksGroupBackground": {
+    "description": "Style tab group: background behind the text."
+  },
+
+  "playerTracksGroupPosition": "Position",
+  "@playerTracksGroupPosition": {
+    "description": "Style tab group: where the subtitle and the second subtitle go."
+  },
+
+  "playerTracksGroupAss": ".ass files",
+  "@playerTracksGroupAss": {
+    "description": "Style tab group: how ASS/SSA subtitles are shown."
+  },
+
+  "playerTracksOutlineWidthLabel": "Width",
+  "@playerTracksOutlineWidthLabel": {
+    "description": "Label of the outline width slider."
+  },
+
+  "playerTracksPositionPrimaryLabel": "Subtitle",
+  "@playerTracksPositionPrimaryLabel": {
+    "description": "Label of the slider for the subtitle's distance from the bottom edge."
+  },
+
+  "playerTracksPositionDragHint": "You can also press and hold a subtitle on the video and move it with your finger.",
+  "@playerTracksPositionDragHint": {
+    "description": "Hint under the position sliders."
   }
 }

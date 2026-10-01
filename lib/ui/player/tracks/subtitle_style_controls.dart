@@ -1,144 +1,71 @@
 part of 'track_picker.dart';
 
-/// The Estilo tab's controls beyond size and colours: outline, font, shadow,
-/// bold, position, and how ASS files are drawn. Every change lands in the
-/// settings, which Kivo's overlay (and the preview above) read directly.
-class _StyleExtras extends ConsumerWidget {
-  const _StyleExtras();
+/// One captioned group of the Estilo tab: an eyebrow and a card holding the
+/// related controls, so what belongs together reads together.
+class _StyleGroup extends StatelessWidget {
+  const _StyleGroup({required this.title, required this.children});
 
-  static const _outlineSwatches = [
-    0xFF000000,
-    0xFFFFFFFF,
-    0xFF3A3A3A,
-    0xFF1B2A4A,
-  ];
-
-  void _set(WidgetRef ref, KivoSettings Function(KivoSettings) f) {
-    ref.read(settingsProvider.notifier).set(f(ref.read(settingsProvider)));
-  }
+  final String title;
+  final List<Widget> children;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final s = ref.watch(settingsProvider);
-    final accent = Color(s.accentColor);
-    final l10n = context.l10n;
-    final fonts = [
-      ('default', l10n.playerTracksFontDefault),
-      ('serif', l10n.playerTracksFontSerif),
-      ('mono', l10n.playerTracksFontMono),
-      ('condensed', l10n.playerTracksFontCondensed),
-    ];
-
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _SectionEyebrow(label: l10n.playerTracksOutlineLabel),
-        _StyleSlider(
-          value: s.subtitleOutlineWidth,
-          min: 0,
-          max: 5,
-          divisions: 10,
-          accent: accent,
-          valueLabel: s.subtitleOutlineWidth == 0
-              ? l10n.playerTracksOutlineNone
-              : s.subtitleOutlineWidth.toStringAsFixed(1),
-          onChanged: (v) => _set(ref, (x) => x.copyWith(subtitleOutlineWidth: v)),
-        ),
-        if (s.subtitleOutlineWidth > 0) ...[
-          _SectionEyebrow(label: l10n.playerTracksOutlineColorLabel),
-          Row(
-            children: [
-              for (final c in _outlineSwatches)
-                Padding(
-                  padding: const EdgeInsets.only(right: 10),
-                  child: _ColorSquare(
-                    color: c,
-                    active: s.subtitleOutlineColor == c,
-                    accent: accent,
-                    onTap: () =>
-                        _set(ref, (x) => x.copyWith(subtitleOutlineColor: c)),
-                  ),
-                ),
-            ],
+        _SectionEyebrow(label: title),
+        Container(
+          padding: const EdgeInsets.fromLTRB(12, 6, 10, 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFF141C2E),
+            borderRadius: BorderRadius.circular(14),
           ),
-        ],
-        _SectionEyebrow(label: l10n.playerTracksFontLabel),
-        Row(
-          children: [
-            for (final (id, label) in fonts)
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 6),
-                  child: _FontChip(
-                    label: label,
-                    family: subtitleFontFamily(id),
-                    active: s.subtitleFontFamily == id,
-                    accent: accent,
-                    onTap: () =>
-                        _set(ref, (x) => x.copyWith(subtitleFontFamily: id)),
-                  ),
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        _StyleSwitch(
-          label: l10n.playerTracksShadowLabel,
-          value: s.subtitleShadow,
-          accent: accent,
-          onChanged: (v) => _set(ref, (x) => x.copyWith(subtitleShadow: v)),
-        ),
-        _StyleSwitch(
-          label: l10n.playerTracksBoldLabel,
-          value: s.subtitleBold,
-          accent: accent,
-          onChanged: (v) => _set(ref, (x) => x.copyWith(subtitleBold: v)),
-        ),
-        _SectionEyebrow(label: l10n.playerTracksPositionLabel),
-        _StyleSlider(
-          value: s.subtitleBottomMargin,
-          min: 0,
-          max: 40,
-          divisions: 40,
-          accent: accent,
-          valueLabel:
-              l10n.playerTracksPositionValue(s.subtitleBottomMargin.round()),
-          onChanged: (v) => _set(ref, (x) => x.copyWith(subtitleBottomMargin: v)),
-        ),
-        _SectionEyebrow(label: l10n.playerTracksSecondaryPositionLabel),
-        _StyleSlider(
-          value: s.secondarySubtitleTopMargin,
-          min: 0,
-          max: 40,
-          divisions: 40,
-          accent: accent,
-          valueLabel: l10n
-              .playerTracksPositionValue(s.secondarySubtitleTopMargin.round()),
-          onChanged: (v) =>
-              _set(ref, (x) => x.copyWith(secondarySubtitleTopMargin: v)),
-        ),
-        const SizedBox(height: 6),
-        _StyleSwitch(
-          label: l10n.playerTracksRespectAss,
-          hint: l10n.playerTracksRespectAssHint,
-          value: s.subtitleRespectAss,
-          accent: accent,
-          onChanged: (v) => _set(ref, (x) => x.copyWith(subtitleRespectAss: v)),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(2, 10, 2, 0),
-          child: Text(
-            l10n.playerTracksPictureSubsNote,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.42),
-              fontSize: 11,
-              height: 1.35,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: children,
           ),
         ),
       ],
     );
   }
+}
+
+/// A control's name inside a group.
+class _RowLabel extends StatelessWidget {
+  const _RowLabel(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(top: 6, bottom: 2),
+        child: Text(
+          text,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.72),
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      );
+}
+
+/// Small explanatory text at the end of a group.
+class _Hint extends StatelessWidget {
+  const _Hint(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(0, 6, 2, 0),
+        child: Text(
+          text,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.42),
+            fontSize: 11,
+            height: 1.35,
+          ),
+        ),
+      );
 }
 
 class _StyleSlider extends StatelessWidget {
@@ -150,12 +77,14 @@ class _StyleSlider extends StatelessWidget {
     required this.accent,
     required this.valueLabel,
     required this.onChanged,
+    this.valueWidth = 84,
   });
 
   final double value, min, max;
   final int divisions;
   final Color accent;
   final String valueLabel;
+  final double valueWidth;
   final ValueChanged<double> onChanged;
 
   @override
@@ -180,7 +109,7 @@ class _StyleSlider extends StatelessWidget {
           ),
         ),
         SizedBox(
-          width: 84,
+          width: valueWidth,
           child: Text(
             valueLabel,
             textAlign: TextAlign.right,
@@ -199,6 +128,7 @@ class _StyleSlider extends StatelessWidget {
   }
 }
 
+/// A labelled switch row, flat — it sits inside a group's card.
 class _StyleSwitch extends StatelessWidget {
   const _StyleSwitch({
     required this.label,
@@ -216,38 +146,28 @@ class _StyleSwitch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(14, 4, 8, 4),
-        decoration: BoxDecoration(
-          color: const Color(0xFF182036),
-          borderRadius: BorderRadius.circular(13),
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(label,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600)),
+              if (hint != null)
+                Text(hint!,
+                    style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.42),
+                        fontSize: 11)),
+            ],
+          ),
         ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(label,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600)),
-                  if (hint != null)
-                    Text(hint!,
-                        style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.42),
-                            fontSize: 11)),
-                ],
-              ),
-            ),
-            Switch(value: value, activeThumbColor: accent, onChanged: onChanged),
-          ],
-        ),
-      ),
+        Switch(value: value, activeThumbColor: accent, onChanged: onChanged),
+      ],
     );
   }
 }
@@ -277,7 +197,7 @@ class _FontChip extends StatelessWidget {
         height: 38,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: active ? accent.withValues(alpha: 0.16) : const Color(0xFF182036),
+          color: active ? accent.withValues(alpha: 0.16) : const Color(0xFF1E2840),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
               color: active ? accent.withValues(alpha: 0.6) : Colors.transparent),
