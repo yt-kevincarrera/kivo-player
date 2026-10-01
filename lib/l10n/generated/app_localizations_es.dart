@@ -2233,7 +2233,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settingsAdvancedIncognitoSubtitle =>
-      'Mientras esté activo, no se guarda dónde te quedas ni qué has visto';
+      'Mientras esté activo, no se guarda dónde te quedas ni qué has visto. Atajo: toca 5 veces «Kivo» en la biblioteca';
 
   @override
   String get libraryIncognitoChip => 'Incógnito';
@@ -2395,4 +2395,7 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get privacyCastBody =>
       'Cuando envías un video a la TV, Kivo busca televisores en tu red Wi-Fi y le sirve el video solo a la TV que eliges, con una dirección de un solo uso que deja de funcionar al terminar. Nada de eso sale de tu red local.';
+
+  @override
+  String get libraryIncognitoOnSnackbar => 'Modo incógnito activado';
 }

@@ -2218,7 +2218,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsAdvancedIncognitoSubtitle =>
-      'While it\'s on, where you stop and what you\'ve watched isn\'t saved';
+      'While it\'s on, where you stop and what you\'ve watched isn\'t saved. Shortcut: tap «Kivo» 5 times in the library';
 
   @override
   String get libraryIncognitoChip => 'Incognito';
@@ -2380,4 +2380,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get privacyCastBody =>
       'When you send a video to a TV, Kivo looks for TVs on your Wi-Fi and serves the video only to the one you pick, at a one-time address that stops working when you finish. None of it leaves your local network.';
+
+  @override
+  String get libraryIncognitoOnSnackbar => 'Incognito mode on';
 }

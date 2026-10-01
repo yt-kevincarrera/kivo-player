@@ -3809,7 +3809,7 @@ abstract class AppLocalizations {
   /// Subtítulo del interruptor del modo incógnito.
   ///
   /// In es, this message translates to:
-  /// **'Mientras esté activo, no se guarda dónde te quedas ni qué has visto'**
+  /// **'Mientras esté activo, no se guarda dónde te quedas ni qué has visto. Atajo: toca 5 veces «Kivo» en la biblioteca'**
   String get settingsAdvancedIncognitoSubtitle;
 
   /// Chip en la barra de la biblioteca mientras el modo incógnito está activo.
@@ -4027,6 +4027,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Cuando envías un video a la TV, Kivo busca televisores en tu red Wi-Fi y le sirve el video solo a la TV que eliges, con una dirección de un solo uso que deja de funcionar al terminar. Nada de eso sale de tu red local.'**
   String get privacyCastBody;
+
+  /// Aviso al activar el modo incógnito con 5 toques en el título.
+  ///
+  /// In es, this message translates to:
+  /// **'Modo incógnito activado'**
+  String get libraryIncognitoOnSnackbar;
 }
 
 class _AppLocalizationsDelegate
