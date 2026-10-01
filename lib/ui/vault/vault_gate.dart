@@ -168,7 +168,22 @@ class _VaultGateState extends ConsumerState<VaultGate> with WidgetsBindingObserv
       }
     } finally {
       _biometricInFlight = false;
+      // The attempt RESOLVED, whatever happened around it: a later resume is
+      // never a reason to prompt again. The OS sheet itself makes the app
+      // inactive/paused while it is up, so "backgrounded mid-attempt, then
+      // resolved false" is the exact event sequence of the user tapping
+      // Cancel — retrying on it threw people back into the fingerprint sheet
+      // in a loop with no way to reach the PIN (reported on 1.20.0). Going
+      // back to the fingerprint is the user's choice: "Usar huella".
+      _biometricInterrupted = false;
     }
+  }
+
+  /// "Usar huella" on the PIN pad: an explicit, user-chosen retry.
+  void _retryBiometric() {
+    _biometricTried = false;
+    setState(() => _showPinPad = !_willAttemptBiometric());
+    _maybeBiometric();
   }
 
   void _bailToPinPad() {
@@ -288,6 +303,17 @@ class _VaultGateState extends ConsumerState<VaultGate> with WidgetsBindingObserv
                             key: const Key('vault-verifying'), color: cs.secondary)
                         : null,
                   ),
+                  if (!configuring &&
+                      ref.watch(settingsProvider).vaultBiometricEnabled)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: TextButton.icon(
+                        key: const Key('vault-use-biometric'),
+                        onPressed: _verifying ? null : _retryBiometric,
+                        icon: const Icon(Icons.fingerprint),
+                        label: Text(l10n.vaultUseBiometricAction),
+                      ),
+                    ),
                   // Said before the first video goes in, not discovered later:
                   // the Vault hides, it does not encrypt.
                   if (configuring)
