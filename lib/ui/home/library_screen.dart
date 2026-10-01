@@ -254,6 +254,30 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                       ),
               ),
               actions: [
+                // Visible only while incognito is on: a mode that changes what
+                // gets remembered must never be on without saying so.
+                if (ref.watch(settingsProvider.select((s) => s.incognito)))
+                  Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: Tooltip(
+                      message: context.l10n.libraryIncognitoChipTooltip,
+                      child: ActionChip(
+                        key: const Key('incognito-chip'),
+                        avatar: const Icon(Icons.visibility_off_outlined, size: 16),
+                        label: Text(context.l10n.libraryIncognitoChip),
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () {
+                          final messenger = ScaffoldMessenger.of(context);
+                          final off = context.l10n.libraryIncognitoOffSnackbar;
+                          final s = ref.read(settingsProvider);
+                          ref
+                              .read(settingsProvider.notifier)
+                              .set(s.copyWith(incognito: false));
+                          messenger.showSnackBar(SnackBar(content: Text(off)));
+                        },
+                      ),
+                    ),
+                  ),
                 // Distinct keys force Flutter to treat search/close as genuinely
                 // different widgets rather than reusing the same IconButton
                 // Element with a swapped icon — without this, an in-flight tap

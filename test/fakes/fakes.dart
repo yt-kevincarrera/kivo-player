@@ -23,6 +23,7 @@ import 'package:kivo_player/player/tracks/subtitle_importer.dart';
 import 'package:kivo_player/player/tracks/subtitle_loader.dart';
 import 'package:kivo_player/player/tracks/track_prefs_store.dart';
 import 'package:kivo_player/platform/interfaces/subtitle_transcoder.dart';
+import 'package:kivo_player/platform/interfaces/launcher_bridge.dart';
 
 class InMemorySettingsStore implements SettingsStore {
   Map<String, dynamic>? _data;
@@ -349,6 +350,16 @@ class FakePlaybackEngine implements PlaybackEngine {
 
   @override
   Future<String?> currentSubtitleId() async => subtitleIdValue;
+
+  /// Every frameStep call, in order (true = forward).
+  final List<bool> frameSteps = [];
+
+  @override
+  Future<void> frameStep({required bool forward}) async {
+    frameSteps.add(forward);
+    // mpv reports the new position once the frame is shown.
+    _pos.add(Duration(milliseconds: 40 * frameSteps.length));
+  }
 
   bool videoTrackEnabled = true;
 
@@ -877,4 +888,24 @@ SubtitleLoader rawSubtitleLoader(PlaybackEngine engine) {
     readActive: () => active,
     writeActive: (v) => active = v,
   );
+}
+
+class FakeLauncherBridge implements LauncherBridge {
+  final List<List<ContinueEntry>> updates = [];
+  String? initial;
+  final requests = StreamController<String>.broadcast();
+
+  @override
+  Future<void> updateContinue(List<ContinueEntry> entries) async =>
+      updates.add(entries);
+
+  @override
+  Future<String?> takeInitialOpenRequest() async {
+    final i = initial;
+    initial = null;
+    return i;
+  }
+
+  @override
+  Stream<String> get openRequests => requests.stream;
 }

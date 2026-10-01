@@ -69,7 +69,9 @@ class AutoplayCoordinator {
     try {
       _ref.read(sleepTimerProvider.notifier).onAutoplayAdvance();
       _ref.read(currentVideoProvider.notifier).advanceTo(next);
-      _ref.read(playedStoreProvider).markPlayed(next.resumeKey);
+      if (!settings.incognito) {
+        _ref.read(playedStoreProvider).markPlayed(next.resumeKey);
+      }
       final plan = planResume(
         _ref.read(resumeServiceProvider).positionFor(next.resumeKey),
         settings.resumeBehavior);

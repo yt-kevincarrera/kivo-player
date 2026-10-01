@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/icons/kivo_icons.dart';
 import '../../../core/settings/settings_provider.dart';
@@ -98,7 +101,7 @@ class CenterControls extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final playing = ref.watch(playingProvider).value ?? false;
     final ctrl = ref.read(playerControllerProvider);
-    return Row(
+    final row = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         const _SkipButton(forward: false),
@@ -126,6 +129,118 @@ class CenterControls extends ConsumerWidget {
         const SizedBox(width: 36),
         const _SkipButton(forward: true),
       ],
+    );
+    // The capsule always takes its room (invisible and untouchable while
+    // playing), with the same room reserved above: pausing must not make the
+    // play button jump.
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const SizedBox(height: _FrameStepCapsule.height + _FrameStepCapsule.gap),
+        row,
+        const SizedBox(height: _FrameStepCapsule.gap),
+        IgnorePointer(
+          ignoring: playing,
+          child: AnimatedOpacity(
+            opacity: playing ? 0 : 1,
+            duration: const Duration(milliseconds: 160),
+            child: const _FrameStepCapsule(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Paused only: one frame back / forward. A tap steps once; holding repeats
+/// at about 8 steps a second, with a light tick per step.
+class _FrameStepCapsule extends ConsumerStatefulWidget {
+  const _FrameStepCapsule();
+
+  static const double height = 40;
+  static const double gap = 14;
+
+  @override
+  ConsumerState<_FrameStepCapsule> createState() => _FrameStepCapsuleState();
+}
+
+class _FrameStepCapsuleState extends ConsumerState<_FrameStepCapsule> {
+  bool _repeating = false;
+
+  void _step(bool forward) {
+    ref.read(playbackEngineProvider).frameStep(forward: forward);
+    if (ref.read(settingsProvider).hapticsOnGestures) {
+      HapticFeedback.selectionClick();
+    }
+  }
+
+  /// Holding repeats — but each step waits for the previous one to land (a
+  /// position update) instead of a fixed timer: on a slow decoder, queued
+  /// forward steps would otherwise keep the video advancing after release.
+  Future<void> _startRepeat(bool forward) async {
+    if (_repeating) return;
+    _repeating = true;
+    final engine = ref.read(playbackEngineProvider);
+    while (_repeating && mounted) {
+      final landed = engine.positionStream.first
+          .timeout(const Duration(milliseconds: 500), onTimeout: () => Duration.zero);
+      _step(forward);
+      await landed;
+      // About 8 steps a second at most.
+      await Future<void>.delayed(const Duration(milliseconds: 90));
+    }
+  }
+
+  void _stopRepeat() => _repeating = false;
+
+  @override
+  void dispose() {
+    _repeating = false;
+    super.dispose();
+  }
+
+  Widget _button(bool forward, String tooltip) => Tooltip(
+        message: tooltip,
+        child: GestureDetector(
+          key: Key(forward ? 'frame-next' : 'frame-prev'),
+          behavior: HitTestBehavior.opaque,
+          onTap: () => _step(forward),
+          onLongPressStart: (_) => _startRepeat(forward),
+          onLongPressEnd: (_) => _stopRepeat(),
+          onLongPressCancel: _stopRepeat,
+          child: SizedBox(
+            width: 48,
+            height: _FrameStepCapsule.height,
+            child: Icon(
+              forward ? Icons.chevron_right_rounded : Icons.chevron_left_rounded,
+              color: Colors.white,
+              size: 26,
+            ),
+          ),
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Container(
+      height: _FrameStepCapsule.height,
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(_FrameStepCapsule.height / 2),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _button(false, l10n.playerFramePrevTooltip),
+          Text(
+            l10n.playerFrameLabel,
+            style: const TextStyle(
+                color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+          ),
+          _button(true, l10n.playerFrameNextTooltip),
+        ],
+      ),
     );
   }
 }

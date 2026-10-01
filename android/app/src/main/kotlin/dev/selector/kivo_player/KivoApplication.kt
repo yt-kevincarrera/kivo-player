@@ -4,6 +4,7 @@ import android.app.Application
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.FlutterEngineCache
 import io.flutter.embedding.engine.dart.DartExecutor.DartEntrypoint
+import java.util.concurrent.Executors
 
 /// Creates ONE FlutterEngine at process start and caches it for the process
 /// lifetime. MainActivity reuses this cached engine (see provideFlutterEngine)
@@ -23,6 +24,11 @@ class KivoApplication : Application() {
         val engine = FlutterEngine(this) // auto-registers plugins
         engine.dartExecutor.executeDartEntrypoint(DartEntrypoint.createDefault())
         FlutterEngineCache.getInstance().put(ENGINE_ID, engine)
+        // kivo/launch lives with the engine, not with an activity: the Dart
+        // side can call it before any activity configures it, and with its own
+        // executor it never holds one an activity has shut down.
+        LauncherBridge.attach(
+            engine.dartExecutor.binaryMessenger, this, Executors.newSingleThreadExecutor())
     }
 
     companion object {

@@ -11,4 +11,8 @@
     <string name="notif_playing">Playing</string>
     <string name="notif_paused">Paused</string>
     <string name="notif_channel_playback">Playback</string>
+    <string name="widget_label">Continue watching</string>
+    <string name="widget_description">The video you left halfway, one tap away</string>
+    <string name="widget_continue_at">Resume at %1$s</string>
+    <string name="widget_empty">Nothing in progress</string>
 </resources>

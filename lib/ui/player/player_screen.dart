@@ -45,6 +45,7 @@ import 'tracks/track_sync_hud.dart';
 import 'state/aspect_state.dart';
 import 'state/autoplay_state.dart';
 import 'state/dismiss_state.dart';
+import 'state/external_open_state.dart';
 import 'state/hud_state.dart';
 import 'state/mini_player_state.dart';
 import 'state/orientation_state.dart';
@@ -90,6 +91,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   // Read ONCE at minimize time, never in dispose(): reading a provider there
   // throws and silently drops the work.
   bool _keepPlayingOnMinimize = false;
+  // Mirrored on every build: _saveProgress runs from dispose(), where ref
+  // cannot be read.
+  bool _incognito = false;
 
   @override
   void initState() {
@@ -246,7 +250,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   Future<void> _openSession(VideoSession session, {required bool expandingFromMini}) async {
     final engine = ref.read(playbackEngineProvider);
     _resumeKey = session.resumeKey;
-    ref.read(playedStoreProvider).markPlayed(_resumeKey!);
+    // Incognito: watching leaves no trace (no "played" mark, no resume).
+    if (!ref.read(settingsProvider).incognito) {
+      ref.read(playedStoreProvider).markPlayed(_resumeKey!);
+    }
     // Seed the stale-frame cover BEFORE the Video widget is revealed: a fresh
     // open must cover until the new first frame (below); expanding the same
     // session shows its already-correct frame immediately. The frame stream
@@ -368,6 +375,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   Future<void> _saveProgress() async {
     final key = _resumeKey;
     if (key == null || _lastDuration == Duration.zero) return;
+    if (_incognito) return; // watching leaves no trace
     // Use the cached service, never `ref` — this runs from dispose(), where
     // reading a provider throws "ref used after dispose" and silently drops
     // the save (the root cause of resume never persisting on back-exit).
@@ -453,6 +461,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
 
   @override
   Widget build(BuildContext context) {
+    _incognito = ref.watch(settingsProvider.select((s) => s.incognito));
     ref.listen(positionProvider, (_, next) {
       next.whenData((d) => _lastPosition = d);
     });
@@ -466,7 +475,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     ref.listen<int>(restartRequestProvider, (prev, next) {
       if (next > 0) {
         ref.read(playerControllerProvider).seekTo(Duration.zero);
-        if (_resumeKey != null) _resume.clear(_resumeKey!);
+        // Incognito leaves existing history alone, deletion included.
+        if (_resumeKey != null && !_incognito) _resume.clear(_resumeKey!);
         _lastPosition = Duration.zero;
       }
     });
@@ -490,6 +500,14 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       final s = ref.read(currentVideoProvider.notifier).sessionAt(index);
       ref.read(queueJumpProvider.notifier).state = null;
       if (s != null) _advance(s, countAsAutoplay: false);
+    });
+    // A launcher shortcut / widget tap while this screen is up: switch videos
+    // here, through the normal advance — replacing the route instead would
+    // leave this screen's dispose undoing the new one's setup.
+    ref.listen<VideoSession?>(externalOpenProvider, (_, next) {
+      if (next == null) return;
+      ref.read(externalOpenProvider.notifier).state = null;
+      _advance(next, countAsAutoplay: false);
     });
     ref.listen(autoplayConfirmProvider, (_, next) {
       final pending = ref.read(autoplayPendingProvider);

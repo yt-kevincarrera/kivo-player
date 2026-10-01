@@ -7,4 +7,8 @@
     <string name="notif_playing">Reproduciendo</string>
     <string name="notif_paused">En pausa</string>
     <string name="notif_channel_playback">Reproducción</string>
+    <string name="widget_label">Continuar viendo</string>
+    <string name="widget_description">El video que dejaste a medias, a un toque</string>
+    <string name="widget_continue_at">Continuar en %1$s</string>
+    <string name="widget_empty">Nada a medias</string>
 </resources>

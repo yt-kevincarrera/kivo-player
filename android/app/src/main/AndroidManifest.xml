@@ -65,6 +65,18 @@
                 <data android:mimeType="video/*" />
             </intent-filter>
         </activity>
+        <!-- "Continuar viendo" home-screen widget (LauncherBridge.kt). -->
+        <receiver
+            android:name=".ContinueWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/continue_widget_info" />
+        </receiver>
         <service
             android:name=".PlaybackSessionService"
             android:exported="false"

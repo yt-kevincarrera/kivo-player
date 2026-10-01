@@ -60,6 +60,7 @@ class _MiniPlayerBarState extends ConsumerState<MiniPlayerBar> {
     final position = ref.read(positionProvider).valueOrNull;
     final duration = ref.read(durationProvider).valueOrNull;
     if (position == null || duration == null || duration == Duration.zero) return;
+    if (ref.read(settingsProvider).incognito) return; // no trace
     await ref.read(resumeServiceProvider).record(
           session.resumeKey,
           position,

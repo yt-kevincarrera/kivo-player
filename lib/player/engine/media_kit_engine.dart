@@ -35,7 +35,13 @@ class MediaKitEngine implements PlaybackEngine {
   @override
   Stream<Duration> get durationStream => _player.stream.duration;
   @override
-  Stream<bool> get playingStream => _player.stream.playing;
+  Stream<bool> get playingStream => _player.stream.playing
+      // mpv 0.36 unpauses for one frame on a forward frame-step, then pauses
+      // again: to the app the video never started — no icon flicker, no
+      // audio-focus grab, no notification update per step.
+      .where((_) => DateTime.now().isAfter(_stepQuietUntil));
+
+  DateTime _stepQuietUntil = DateTime.fromMillisecondsSinceEpoch(0);
   @override
   Stream<bool> get bufferingStream => _player.stream.buffering;
   @override
@@ -396,6 +402,14 @@ class MediaKitEngine implements PlaybackEngine {
       // No audio track selected (yet).
       return null;
     }
+  }
+
+  @override
+  Future<void> frameStep({required bool forward}) async {
+    final native = _player.platform as NativePlayer?;
+    if (native == null) return;
+    _stepQuietUntil = DateTime.now().add(const Duration(milliseconds: 300));
+    await native.command([forward ? 'frame-step' : 'frame-back-step']);
   }
 
   @override

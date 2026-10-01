@@ -96,6 +96,8 @@ class KivoSettings {
   final bool subtitleRespectAss;
   /// Language of the secondary subtitle to pick on every open; null = off.
   final String? secondarySubtitleLanguage;
+  /// Watching leaves no trace: no resume position, nothing marked as played.
+  final bool incognito;
 
   const KivoSettings({
     required this.doubleTapSkipLeft,
@@ -175,6 +177,7 @@ class KivoSettings {
     required this.secondarySubtitleTopMargin,
     required this.subtitleRespectAss,
     required this.secondarySubtitleLanguage,
+    required this.incognito,
   });
 
   factory KivoSettings.defaults() => const KivoSettings(
@@ -259,6 +262,7 @@ class KivoSettings {
         secondarySubtitleTopMargin: 6.0,
         subtitleRespectAss: true,
         secondarySubtitleLanguage: null,
+        incognito: false,
       );
 
   static const Object _unset = Object();
@@ -341,6 +345,7 @@ class KivoSettings {
     double? secondarySubtitleTopMargin,
     bool? subtitleRespectAss,
     Object? secondarySubtitleLanguage = _unset,
+    bool? incognito,
   }) {
     return KivoSettings(
       doubleTapSkipLeft: doubleTapSkipLeft ?? this.doubleTapSkipLeft,
@@ -432,6 +437,7 @@ class KivoSettings {
       secondarySubtitleLanguage: identical(secondarySubtitleLanguage, _unset)
           ? this.secondarySubtitleLanguage
           : secondarySubtitleLanguage as String?,
+      incognito: incognito ?? this.incognito,
     );
   }
 
@@ -513,6 +519,7 @@ class KivoSettings {
         'secondarySubtitleTopMargin': secondarySubtitleTopMargin,
         'subtitleRespectAss': subtitleRespectAss,
         'secondarySubtitleLanguage': secondarySubtitleLanguage,
+        'incognito': incognito,
       };
 
   factory KivoSettings.fromMap(Map<String, dynamic> m) {
@@ -607,6 +614,7 @@ class KivoSettings {
       subtitleRespectAss: m['subtitleRespectAss'] ?? d.subtitleRespectAss,
       secondarySubtitleLanguage:
           m['secondarySubtitleLanguage'] ?? d.secondarySubtitleLanguage,
+      incognito: m['incognito'] ?? d.incognito,
     );
   }
 }
