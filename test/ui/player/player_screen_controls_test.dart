@@ -456,10 +456,9 @@ void main() {
     await tester.pump(const Duration(seconds: 4)); // drain the periodic save timer
   });
 
-  // A per-video setting written while the video already plays restarts the
-  // audio (a gap) and makes mpv resync the picture (a jump) right at the
-  // start. Opened paused, configured, then started.
-  testWidgets('a video opens paused and starts once its audio settings are in',
+  // v1.26.0 opened paused until the audio settings were in: every open got
+  // slower and showed the pause icon before playing. A video starts at once.
+  testWidgets('a video starts playing as it opens, without waiting for its settings',
       (tester) async {
     final engine = FakePlaybackEngine();
     addTearDown(engine.dispose);
@@ -483,9 +482,7 @@ void main() {
     await pumpLocalized(tester, const PlayerScreen(), container: c);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
-    expect(engine.openedPlaying, false);
-    expect(engine.audioDelayBeforePlay, true);
-    expect(engine.lastPlayingCommand, true, reason: 'started after setup');
+    expect(engine.openedPlaying, true);
     await tester.pump(const Duration(seconds: 4));
   });
 }

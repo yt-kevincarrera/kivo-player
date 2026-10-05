@@ -1,0 +1,1 @@
+Los videos vuelven a abrir al instante (se deshace el cambio de la 1.26.0 que los abría en pausa).

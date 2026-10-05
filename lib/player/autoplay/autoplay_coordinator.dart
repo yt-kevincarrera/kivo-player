@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/settings/settings_provider.dart';
 import '../../platform/frame_extractor_provider.dart';
@@ -75,22 +76,16 @@ class AutoplayCoordinator {
       final plan = planResume(
         _ref.read(resumeServiceProvider).positionFor(next.resumeKey),
         settings.resumeBehavior);
-      // Paused until its audio settings are in, as in the player: written
-      // while playing they would cut the audio as the next video starts.
       await _ref
           .read(decoderControllerProvider)
-          .open(next, startAt: plan.startAt, play: false);
-      try {
-        await applyDefaultTracks(
-          engine: engine, settings: settings, session: next,
-          subtitleFinder: _ref.read(subtitleFinderProvider),
-          subtitlePrefs: _ref.read(trackPrefsStoreProvider),
-          subtitleLoader: _ref.read(subtitleLoaderProvider),
-          applyAudio: _ref.read(audioPipelineProvider).onOpen);
-      } catch (_) {
-        // Best-effort: never keeps the next video from starting.
-      }
+          .open(next, startAt: plan.startAt);
       await engine.play();
+      unawaited(applyDefaultTracks(
+        engine: engine, settings: settings, session: next,
+        subtitleFinder: _ref.read(subtitleFinderProvider),
+        subtitlePrefs: _ref.read(trackPrefsStoreProvider),
+        subtitleLoader: _ref.read(subtitleLoaderProvider),
+        applyAudio: _ref.read(audioPipelineProvider).onOpen));
       _refreshMiniThumb(next.playbackPath);
     } finally {
       _advancing = false;

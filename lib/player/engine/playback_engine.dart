@@ -98,10 +98,9 @@ abstract class PlaybackEngine {
   /// Same UI-thread hazard as [setSubtitleDelay]: once per open or per user
   /// switch, never in a loop.
   ///
-  /// [beforeOpen]: written for the video about to open, while the previous
-  /// one may still be loaded — re-creating ITS decoder would repaint its
-  /// picture for a moment on the way out. The engine unloads it first then.
-  /// (Writing the value mpv already holds does nothing at all.)
+  /// Writing the value mpv already holds does nothing at all: any write
+  /// re-creates the decoder, and before an open that repainted the previous
+  /// video for an instant. ([beforeOpen] marks that call; kept for callers.)
   Future<void> setHwdec(String value, {bool beforeOpen = false});
 
   /// What mpv is actually decoding with right now (`hwdec-current`):

@@ -277,9 +277,6 @@ class MediaKitEngine implements PlaybackEngine {
     } catch (_) {
       // Unknown: write it.
     }
-    if (beforeOpen && _player.state.playlist.medias.isNotEmpty) {
-      await _player.stop();
-    }
     await native.setProperty('hwdec', value);
   }
 

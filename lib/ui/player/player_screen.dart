@@ -271,10 +271,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       final plan = planResume(
           _resume.positionFor(_resumeKey!), ref.read(settingsProvider).resumeBehavior);
       try {
-        // Paused until the video's own audio settings are in (below).
         await ref
             .read(decoderControllerProvider)
-            .open(session, startAt: plan.startAt, play: false);
+            .open(session, startAt: plan.startAt);
       } on KivoFailure catch (f) {
         // Report and stop setting this session up. A failed open must not
         // replace the whole player with an error screen — the previous video
@@ -289,21 +288,14 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     }
     final settings = ref.read(settingsProvider);
     if (!expandingFromMini) {
-      // Audio track, audio offset and audio chain go in before the first
-      // sound: written while playing, each restarts the audio (a gap) and
-      // makes mpv resync the picture (a jump) right as the video starts.
-      try {
-        await applyDefaultTracks(
-            engine: engine, settings: settings, session: session,
-            subtitleFinder: ref.read(subtitleFinderProvider),
-            subtitlePrefs: ref.read(trackPrefsStoreProvider),
-            subtitleLoader: ref.read(subtitleLoaderProvider),
-            applyAudio: ref.read(audioPipelineProvider).onOpen);
-      } catch (_) {
-        // Best-effort: it must never keep the video from starting.
-      }
-      // Superseded meanwhile (another video opened): that open starts its own.
-      if (_resumeKey == session.resumeKey) await engine.play();
+      // Not awaited: opening paused until these were in (v1.26.0) made every
+      // open slower and visibly paused-then-playing.
+      unawaited(applyDefaultTracks(
+          engine: engine, settings: settings, session: session,
+          subtitleFinder: ref.read(subtitleFinderProvider),
+          subtitlePrefs: ref.read(trackPrefsStoreProvider),
+          subtitleLoader: ref.read(subtitleLoaderProvider),
+          applyAudio: ref.read(audioPipelineProvider).onOpen));
     }
     _frames.prepare(session.playbackPath);
     _armPip();
