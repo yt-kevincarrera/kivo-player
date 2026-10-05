@@ -1,0 +1,1 @@
+No more micro-jump or flash of the previous video when a video starts.
