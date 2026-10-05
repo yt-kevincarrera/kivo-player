@@ -2395,10 +2395,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAdvancedIncognitoTapsOff => 'Off';
 
   @override
-  String get settingsAdvancedFastVideoStart =>
-      'Fast video start (experimental)';
+  String get settingsAdvancedClassicSurface => 'Classic video rendering';
 
   @override
-  String get settingsAdvancedFastVideoStartSubtitle =>
-      'Videos start sooner, with no hitch on a resolution change. If you see a flat colour instead of the video, turn it off and send a report';
+  String get settingsAdvancedClassicSurfaceSubtitle =>
+      'Turn it on only if you see a flat colour instead of the video. Videos take a little longer to start and may hitch on a resolution change';
 }

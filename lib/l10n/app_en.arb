@@ -3730,13 +3730,13 @@
     "description": "Option: no tap shortcut."
   },
 
-  "settingsAdvancedFastVideoStart": "Fast video start (experimental)",
-  "@settingsAdvancedFastVideoStart": {
-    "description": "Experimental setting: fixed render surface."
+  "settingsAdvancedClassicSurface": "Classic video rendering",
+  "@settingsAdvancedClassicSurface": {
+    "description": "Setting: back to the per-video render surface."
   },
 
-  "settingsAdvancedFastVideoStartSubtitle": "Videos start sooner, with no hitch on a resolution change. If you see a flat colour instead of the video, turn it off and send a report",
-  "@settingsAdvancedFastVideoStartSubtitle": {
-    "description": "Subtitle of the experimental setting."
+  "settingsAdvancedClassicSurfaceSubtitle": "Turn it on only if you see a flat colour instead of the video. Videos take a little longer to start and may hitch on a resolution change",
+  "@settingsAdvancedClassicSurfaceSubtitle": {
+    "description": "Subtitle of classic rendering."
   }
 }

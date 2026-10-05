@@ -4052,17 +4052,17 @@ abstract class AppLocalizations {
   /// **'No'**
   String get settingsAdvancedIncognitoTapsOff;
 
-  /// Ajuste experimental: superficie de dibujo fija.
+  /// Ajuste: volver a la superficie de dibujo por video.
   ///
   /// In es, this message translates to:
-  /// **'Arranque rápido de video (experimental)'**
-  String get settingsAdvancedFastVideoStart;
+  /// **'Dibujo de video clásico'**
+  String get settingsAdvancedClassicSurface;
 
-  /// Subtítulo del ajuste experimental.
+  /// Subtítulo del dibujo clásico.
   ///
   /// In es, this message translates to:
-  /// **'Los videos empiezan antes y sin tirón al cambiar de resolución. Si ves un color plano en vez del video, desactívalo y envía un informe'**
-  String get settingsAdvancedFastVideoStartSubtitle;
+  /// **'Actívalo solo si ves un color plano en lugar del video. Los videos tardan un poco más en empezar y pueden dar un tirón al cambiar de resolución'**
+  String get settingsAdvancedClassicSurfaceSubtitle;
 }
 
 class _AppLocalizationsDelegate
