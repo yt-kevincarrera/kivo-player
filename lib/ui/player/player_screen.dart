@@ -61,6 +61,7 @@ import '../../l10n/l10n.dart';
 import 'keys/player_keys.dart';
 import '../../player/cast/cast_controller.dart';
 import 'cast/cast_screen.dart';
+import '../../core/diagnostics/open_trace.dart';
 
 class PlayerScreen extends ConsumerStatefulWidget {
   const PlayerScreen({super.key});
@@ -101,6 +102,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   @override
   void initState() {
     super.initState();
+    OpenTrace.instance.mark('player: screen created');
     _deviceControls = ref.read(deviceControlsProvider);
     _engine = ref.read(playbackEngineProvider);
     // Drive the stale-frame cover: media_kit's texture is a singleton that keeps
@@ -251,6 +253,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   }
 
   Future<void> _openSession(VideoSession session, {required bool expandingFromMini}) async {
+    final trace = OpenTrace.instance;
+    trace.mark(expandingFromMini
+        ? 'player: open session (expand from mini)'
+        : 'player: open session');
     final engine = ref.read(playbackEngineProvider);
     _resumeKey = session.resumeKey;
     // Incognito: watching leaves no trace (no "played" mark, no resume).
@@ -297,6 +303,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
           subtitleLoader: ref.read(subtitleLoaderProvider),
           applyAudio: ref.read(audioPipelineProvider).onOpen));
     }
+    trace.mark('player: session set up');
     _frames.prepare(session.playbackPath);
     _armPip();
   }

@@ -6,6 +6,7 @@ import '../../../core/errors/error_log_provider.dart';
 import '../../../core/report/problem_report.dart';
 import '../../../l10n/l10n.dart';
 import '../../../platform/app_installer_provider.dart';
+import '../../../core/diagnostics/open_trace.dart';
 
 /// "Reportar un problema": the whole report, visible and editable before it
 /// goes anywhere — Kivo never sends anything by itself.
@@ -73,6 +74,8 @@ class _ProblemReportScreenState extends ConsumerState<ProblemReportScreen> {
             locale: locale,
             entries: entries,
             description: _description.text,
+            // What the last video opens did, step by step (OpenTrace).
+            recentOpens: OpenTrace.instance.report(),
           );
           final subject = problemReportSubject(d?.version ?? '', entries);
           return ListView(

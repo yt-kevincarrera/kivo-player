@@ -17,6 +17,7 @@ String buildProblemReport({
   required String locale,
   required List<ErrorLogEntry> entries,
   String description = '',
+  String recentOpens = '',
 }) {
   final b = StringBuffer()
     ..writeln('Kivo $appVersion')
@@ -37,6 +38,12 @@ String buildProblemReport({
     b.writeln('${_stamp(at)}  ${e.code}  ${e.op}'
         '${e.appVersion.isNotEmpty && e.appVersion != appVersion ? '  (v${e.appVersion})' : ''}');
     if (e.detail.isNotEmpty) b.writeln('    ${e.detail}');
+  }
+  if (recentOpens.isNotEmpty) {
+    b
+      ..writeln()
+      ..writeln('— Recent video opens —')
+      ..writeln(recentOpens);
   }
   return b.toString().trimRight();
 }

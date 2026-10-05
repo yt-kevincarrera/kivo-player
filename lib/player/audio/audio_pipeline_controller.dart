@@ -61,10 +61,15 @@ class AudioPipelineController {
   ///
   /// Reads the track directly rather than waiting for an event: the track
   /// list may well have arrived before this is called.
+  ///
+  /// The chain itself is NOT re-derived for "unknown" in between: with a
+  /// source-dependent chain (Realzar voces) that meant writing `af` twice
+  /// right after the video started — and mpv rebuilds the audio filters on
+  /// every `af` write, a gap and a resync each time. It stays as it was until
+  /// this video's track is known, and changes only if that track needs it.
   Future<void> onOpen() {
-    _source = null;
     _ref.read(currentAudioSourceProvider.notifier).state = null;
-    return _refreshSource(always: true);
+    return _refreshSource();
   }
 
   Future<void> _refreshSource({bool always = false}) async {
@@ -83,9 +88,11 @@ class AudioPipelineController {
     // assumption and back, rebuilding the filter graph twice at every start.
     // Only an open resets the source.
     if (source == null && !always) return;
+    // The sheet shows this video's track even when it is the same kind as
+    // the last one (the chain then needs nothing).
+    _ref.read(currentAudioSourceProvider.notifier).state = source;
     if (source == _source && !always) return;
     _source = source;
-    _ref.read(currentAudioSourceProvider.notifier).state = source;
     await apply();
   }
 

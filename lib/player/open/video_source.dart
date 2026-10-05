@@ -8,6 +8,7 @@ import '../resume/resume_service.dart';
 import '../queue/file_system_lister.dart';
 import '../queue/folder_queue_scanner.dart';
 import '../queue/queue_order.dart';
+import '../../core/diagnostics/open_trace.dart';
 
 /// An immutable snapshot of the currently-opened video and its folder queue.
 ///
@@ -72,6 +73,7 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
   /// single-item open (file picker, or any test session with no shuffle
   /// concerns) never requires a settings override.
   void open(VideoSession session) {
+    OpenTrace.instance.begin('a file');
     if (session.order != null || session.queue.length <= 1) {
       state = session;
       return;
@@ -113,6 +115,7 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
   /// the session at the first, and autoplay would walk the list again from
   /// there instead of continuing past it.
   void openFromList(VideoItem current, List<VideoItem> shown, {int? at}) {
+    OpenTrace.instance.begin('the library');
     var idx = (at != null && at >= 0 && at < shown.length)
         ? at
         : shown.indexWhere((v) => v.uri == current.uri);
@@ -174,7 +177,10 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
   /// Never regenerates [VideoSession.order] here — [next] already carries it
   /// forward (built via [sessionAt] or [peekNext]), and the shuffled order is
   /// meant to be drawn once per session, not re-rolled on every step.
-  void advanceTo(VideoSession next) => state = next;
+  void advanceTo(VideoSession next) {
+    OpenTrace.instance.begin('the queue (strip / next / autoplay)');
+    state = next;
+  }
 
   /// Toggles shuffle: persists the setting AND updates the active session's
   /// play order to match, so the two never drift apart. This notifier is the
