@@ -12,6 +12,9 @@ import 'ui/launch/launch_coordinator.dart';
 import 'player/background/background_playback.dart';
 import 'ui/home/home_shell.dart';
 import 'ui/update/update_dialog.dart';
+import 'core/diagnostics/open_trace.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:media_kit_video/media_kit_video.dart' show kivoTrace;
 
 class KivoApp extends ConsumerStatefulWidget {
   const KivoApp({super.key});
@@ -28,6 +31,10 @@ class _KivoAppState extends ConsumerState<KivoApp> {
       // audio decoder at init only, so it has to be in mpv already when the
       // first file's decoder starts.
       ref.read(audioPipelineProvider).apply();
+      // The problem report's open timeline: slow frames and media_kit's
+      // surface work while a video starts (OpenTrace).
+      SchedulerBinding.instance.addTimingsCallback(OpenTrace.instance.frames);
+      kivoTrace = OpenTrace.instance.mark;
       // Same reason: libass must have its font before the first ASS track.
       ref.read(subtitleRenderProvider).start();
       // Launcher shortcuts + home-screen widget, and a tap on one of them.

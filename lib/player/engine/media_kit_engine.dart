@@ -5,6 +5,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'frame_ready.dart';
 import 'playback_engine.dart';
+import '../../core/diagnostics/open_trace.dart';
 
 /// Process-lifetime singleton engine.
 ///
@@ -17,6 +18,31 @@ import 'playback_engine.dart';
 /// user opens in a session.
 class MediaKitEngine implements PlaybackEngine {
   final Player _player = Player();
+
+  MediaKitEngine() {
+    // The problem report's "Recent video opens" timeline (OpenTrace): what
+    // mpv says while a video starts.
+    final t = OpenTrace.instance;
+    _player.stream.playing.listen((p) => t.mark('mpv playing=$p'));
+    _player.stream.buffering.listen((b) => t.mark('mpv buffering=$b'));
+    _player.stream.videoParams.listen((p) {
+      if (p.dw != null) t.mark('mpv video ${p.dw}x${p.dh} rotate ${p.rotate} ${p.hwPixelformat ?? p.pixelformat ?? ''}');
+    });
+    _player.stream.width.listen((w) => t.mark('mpv width=$w'));
+    kivoSettledSurfaceSize.addListener(() {
+      final z = kivoSettledSurfaceSize.value;
+      t.mark('surface settled ${z?.width.round()}x${z?.height.round()}');
+    });
+  }
+
+  // Every call into mpv is synchronous on this isolate: timed, for the
+  // problem report, while a video is starting.
+  Future<void> _setProp(NativePlayer n, String k, String v) =>
+      OpenTrace.instance.timed('set $k=$v', () => n.setProperty(k, v));
+  Future<String> _getProp(NativePlayer n, String k) =>
+      OpenTrace.instance.timed('get $k', () => n.getProperty(k));
+  Future<void> _cmd(NativePlayer n, List<String> c) =>
+      OpenTrace.instance.timed('cmd ${c.join(' ')}', () => n.command(c));
 
   /// Cached controller — created lazily on first call, reused for all opens.
   VideoController? _videoController;
@@ -104,6 +130,7 @@ class MediaKitEngine implements PlaybackEngine {
       }
       beat = Timer(const Duration(milliseconds: 80), () {
         last = true;
+        OpenTrace.instance.mark('picture shown (cover lifted)');
         if (!c.isClosed) c.add(true);
       });
     }
@@ -136,7 +163,8 @@ class MediaKitEngine implements PlaybackEngine {
       {Duration startAt = Duration.zero, bool play = true}) async {
     _stepped = false;
     _armLoaded();
-    await _player.open(Media(path, start: startAt), play: play);
+    await OpenTrace.instance.timed('media_kit open (start ${startAt.inSeconds}s)',
+        () => _player.open(Media(path, start: startAt), play: play));
   }
 
   // "The file just opened has been read": armed BEFORE loadfile, so the
@@ -203,9 +231,9 @@ class MediaKitEngine implements PlaybackEngine {
       // the video to it and resume from a different point than the frame on
       // screen. An exact seek to that frame puts the audio back with it.
       try {
-        final at = (await native.getProperty('time-pos')).trim();
+        final at = (await _getProp(native, 'time-pos')).trim();
         if (at.isNotEmpty && double.tryParse(at) != null) {
-          await native.command(['seek', at, 'absolute+exact']);
+          await _cmd(native, ['seek', at, 'absolute+exact']);
         }
       } catch (e) {
         debugPrint('MediaKitEngine.play resync failed: $e');
@@ -348,11 +376,11 @@ class MediaKitEngine implements PlaybackEngine {
     // the previous video still loaded that repainted its picture for an
     // instant before the next one opened.
     try {
-      if ((await native.getProperty('hwdec')).trim() == value) return;
+      if ((await _getProp(native, 'hwdec')).trim() == value) return;
     } catch (_) {
       // Unknown: write it.
     }
-    await native.setProperty('hwdec', value);
+    await _setProp(native, 'hwdec', value);
   }
 
   @override
@@ -360,7 +388,7 @@ class MediaKitEngine implements PlaybackEngine {
     final native = _player.platform as NativePlayer?;
     if (native == null) return null;
     try {
-      final v = (await native.getProperty('hwdec-current')).trim();
+      final v = (await _getProp(native, 'hwdec-current')).trim();
       return v.isEmpty ? null : v;
     } catch (e) {
       // Unavailable while nothing is loaded.
@@ -389,7 +417,7 @@ class MediaKitEngine implements PlaybackEngine {
     final native = _player.platform as NativePlayer?;
     if (native == null) return null;
     try {
-      final codec = (await native.getProperty('current-tracks/sub/codec')).trim();
+      final codec = (await _getProp(native, 'current-tracks/sub/codec')).trim();
       return codec.isEmpty ? null : codec;
     } catch (_) {
       return null; // no subtitle track selected
@@ -400,7 +428,7 @@ class MediaKitEngine implements PlaybackEngine {
   Future<void> setSubtitleRendering({required bool mpvDraws}) async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;
-    await native.setProperty('sub-visibility', mpvDraws ? 'yes' : 'no');
+    await _setProp(native, 'sub-visibility', mpvDraws ? 'yes' : 'no');
   }
 
   @override
@@ -408,12 +436,12 @@ class MediaKitEngine implements PlaybackEngine {
       {required String dir, required String family}) async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;
-    await native.setProperty('sub-fonts-dir', dir);
-    await native.setProperty('sub-font', family);
+    await _setProp(native, 'sub-fonts-dir', dir);
+    await _setProp(native, 'sub-font', family);
     // media_kit's Flutter-rendering mode set sub-ass=no; ASS only keeps its
     // look with it on, and only in the file's own style with override=no.
-    await native.setProperty('sub-ass', 'yes');
-    await native.setProperty('sub-ass-override', 'no');
+    await _setProp(native, 'sub-ass', 'yes');
+    await _setProp(native, 'sub-ass-override', 'no');
   }
 
   String? _secondarySubtitleId;
@@ -425,10 +453,10 @@ class MediaKitEngine implements PlaybackEngine {
   Future<void> setSecondarySubtitleTrack(String? id) async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;
-    await native.setProperty('secondary-sid', id ?? 'no');
+    await _setProp(native, 'secondary-sid', id ?? 'no');
     // Believe mpv, not the request: it refuses the primary's own track.
     try {
-      final actual = (await native.getProperty('secondary-sid')).trim();
+      final actual = (await _getProp(native, 'secondary-sid')).trim();
       _secondarySubtitleId =
           (actual.isEmpty || actual == 'no' || actual == 'auto') ? null : actual;
     } catch (_) {
@@ -441,7 +469,7 @@ class MediaKitEngine implements PlaybackEngine {
     final native = _player.platform as NativePlayer?;
     if (native == null) return null;
     try {
-      final id = (await native.getProperty('current-tracks/sub/id')).trim();
+      final id = (await _getProp(native, 'current-tracks/sub/id')).trim();
       return id.isEmpty ? null : id;
     } catch (_) {
       return null;
@@ -452,7 +480,7 @@ class MediaKitEngine implements PlaybackEngine {
   Future<void> setSubtitleDelay(double seconds) async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;
-    await native.setProperty('sub-delay', seconds.toStringAsFixed(3));
+    await _setProp(native, 'sub-delay', seconds.toStringAsFixed(3));
   }
 
   @override
@@ -463,16 +491,16 @@ class MediaKitEngine implements PlaybackEngine {
       // A file with no chapters costs exactly this one read — the loop below
       // never runs. Only files that actually have chapters pay for them.
       final count = int.tryParse(
-        await native.getProperty('chapter-list/count'),
+        await _getProp(native, 'chapter-list/count'),
       );
       if (count == null || count <= 0) return const [];
 
       final out = <MediaChapter>[];
       for (var i = 0; i < count; i++) {
         final seconds =
-            double.tryParse(await native.getProperty('chapter-list/$i/time')) ??
+            double.tryParse(await _getProp(native, 'chapter-list/$i/time')) ??
             0;
-        final title = await native.getProperty('chapter-list/$i/title');
+        final title = await _getProp(native, 'chapter-list/$i/title');
         out.add(
           MediaChapter(
             // mpv leaves the title empty for unnamed chapters, which is
@@ -497,21 +525,21 @@ class MediaKitEngine implements PlaybackEngine {
   Future<void> setAudioDelay(double seconds) async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;
-    await native.setProperty('audio-delay', seconds.toStringAsFixed(3));
+    await _setProp(native, 'audio-delay', seconds.toStringAsFixed(3));
   }
 
   @override
   Future<void> setAudioFilter(String af) async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;
-    await native.setProperty('af', af);
+    await _setProp(native, 'af', af);
   }
 
   @override
   Future<void> setAudioGain(double db) async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;
-    await native.setProperty('replaygain-fallback', db.toStringAsFixed(2));
+    await _setProp(native, 'replaygain-fallback', db.toStringAsFixed(2));
   }
 
   @override
@@ -519,8 +547,8 @@ class MediaKitEngine implements PlaybackEngine {
       {required bool forceStereo, required String swresample}) async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;
-    await native.setProperty('audio-swresample-o', swresample);
-    await native.setProperty(
+    await _setProp(native, 'audio-swresample-o', swresample);
+    await _setProp(native, 
         'audio-channels', forceStereo ? 'stereo' : 'auto-safe');
   }
 
@@ -528,10 +556,10 @@ class MediaKitEngine implements PlaybackEngine {
   Future<void> setDolbyDrc(double scale, {bool heavyCompression = false}) async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;
-    await native.setProperty('ad-lavc-ac3drc', scale.toStringAsFixed(2));
+    await _setProp(native, 'ad-lavc-ac3drc', scale.toStringAsFixed(2));
     // Every decoder gets ad-lavc-o; one without heavy_compr just logs that it
     // could not set it.
-    await native.setProperty(
+    await _setProp(native, 
         'ad-lavc-o', heavyCompression ? 'heavy_compr=1' : '');
   }
 
@@ -539,10 +567,10 @@ class MediaKitEngine implements PlaybackEngine {
   Future<void> reloadAudioDecoder() async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;
-    final aid = (await native.getProperty('aid')).trim();
+    final aid = (await _getProp(native, 'aid')).trim();
     if (aid.isEmpty || aid == 'no') return;
-    await native.setProperty('aid', 'no');
-    await native.setProperty('aid', aid);
+    await _setProp(native, 'aid', 'no');
+    await _setProp(native, 'aid', aid);
   }
 
   @override
@@ -550,9 +578,9 @@ class MediaKitEngine implements PlaybackEngine {
     final native = _player.platform as NativePlayer?;
     if (native == null) return null;
     try {
-      final codec = (await native.getProperty('current-tracks/audio/codec')).trim();
+      final codec = (await _getProp(native, 'current-tracks/audio/codec')).trim();
       final channels = int.tryParse(
-          (await native.getProperty('current-tracks/audio/demux-channel-count'))
+          (await _getProp(native, 'current-tracks/audio/demux-channel-count'))
               .trim());
       if (codec.isEmpty && channels == null) return null;
       return (codec: codec.isEmpty ? null : codec, channels: channels);
@@ -568,7 +596,7 @@ class MediaKitEngine implements PlaybackEngine {
     if (native == null) return;
     _stepQuietUntil = DateTime.now().add(const Duration(milliseconds: 300));
     _stepped = true;
-    await native.command([forward ? 'frame-step' : 'frame-back-step']);
+    await _cmd(native, [forward ? 'frame-step' : 'frame-back-step']);
   }
 
   @override
@@ -579,7 +607,7 @@ class MediaKitEngine implements PlaybackEngine {
     // through with the flag in the wrong state.
     _videoOutputEnabled = enabled;
     _videoOutputController.add(enabled);
-    await native.setProperty('vid', enabled ? 'auto' : 'no');
+    await _setProp(native, 'vid', enabled ? 'auto' : 'no');
   }
 
   @override
@@ -595,7 +623,7 @@ class MediaKitEngine implements PlaybackEngine {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;
     // One retry, no loops: re-apply the property and force a frame.
-    await native.setProperty('vid', 'auto');
+    await _setProp(native, 'vid', 'auto');
     await _player.seek(_player.state.position);
   }
 

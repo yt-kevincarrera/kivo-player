@@ -1,0 +1,1 @@
+Fewer audio gaps when switching videos; the problem report includes the timeline of recent video opens.

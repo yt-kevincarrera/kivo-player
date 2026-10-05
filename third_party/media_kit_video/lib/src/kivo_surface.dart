@@ -10,3 +10,6 @@ import 'package:flutter/widgets.dart';
 /// until its first frame should also wait for this to match the video's
 /// size. `null` until the first surface has settled.
 final ValueNotifier<Size?> kivoSettledSurfaceSize = ValueNotifier<Size?>(null);
+
+/// Kivo patch: a diagnostics hook (Kivo's open timeline). Null = silent.
+void Function(String event)? kivoTrace;

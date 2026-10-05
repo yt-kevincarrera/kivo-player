@@ -57,6 +57,7 @@ class AndroidVideoController extends PlatformVideoController {
       // When --wid is 0, vo=null is required to avoid SIGSEGV.
       final voValue = widValue == '0' ? 'null' : configuration.vo!;
       final vidValue = widValue == '0' ? 'no' : 'auto';
+      kivoTrace?.call('media_kit vo re-init on wid=$widValue ${width}x$height');
       // It is important to re-initialize --vo after --android-surface-size.
       await setProperty('vo', 'null');
       await setProperties(
@@ -90,6 +91,7 @@ class AndroidVideoController extends PlatformVideoController {
           await player.seek(player.state.position);
         }
       }
+      kivoTrace?.call('media_kit vo re-init done');
       if (widValue != '0') {
         _kivoResizePending = false;
         kivoSettledSurfaceSize.value =
@@ -142,6 +144,7 @@ class AndroidVideoController extends PlatformVideoController {
         }
 
         _kivoResizePending = true;
+        kivoTrace?.call('media_kit surface resize to ${width}x$height');
 
         final handle = await player.handle;
 

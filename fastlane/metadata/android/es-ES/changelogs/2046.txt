@@ -1,0 +1,1 @@
+Menos cortes de audio al cambiar de video; el informe de problemas incluye el detalle de las últimas aperturas.
