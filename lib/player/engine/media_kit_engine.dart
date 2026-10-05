@@ -29,10 +29,8 @@ class MediaKitEngine implements PlaybackEngine {
       if (p.dw != null) t.mark('mpv video ${p.dw}x${p.dh} rotate ${p.rotate} ${p.hwPixelformat ?? p.pixelformat ?? ''}');
     });
     _player.stream.width.listen((w) => t.mark('mpv width=$w'));
-    kivoSettledSurfaceSize.addListener(() {
-      final z = kivoSettledSurfaceSize.value;
-      t.mark('surface settled ${z?.width.round()}x${z?.height.round()}');
-    });
+    kivoSurfaceBusy.addListener(
+        () => t.mark('surface ${kivoSurfaceBusy.value ? 'busy' : 'ready'}'));
   }
 
   // Every call into mpv is synchronous on this isolate: timed, for the
@@ -84,30 +82,16 @@ class MediaKitEngine implements PlaybackEngine {
 
   StreamController<bool>? _frameShowable;
 
-  /// [frameShowable] over mpv's width and video size and media_kit's settled
-  /// surface (kivoSettledSurfaceSize, from Kivo's media_kit_video patch).
-  /// Events while the output is intentionally off are dropped, as before
-  /// (see [frameReadyStream]). "Showable" is held back one beat: the surface
-  /// has settled, mpv still has to paint the first frame on it.
+  /// [frameShowable] over mpv's width and media_kit's surface state
+  /// (kivoSurfaceBusy, from Kivo's media_kit_video patch). Events while the
+  /// output is intentionally off are dropped, as before (see
+  /// [frameReadyStream]). "Showable" is held back one beat: mpv knows the
+  /// first frame, it still has to paint it.
   StreamController<bool> _buildFrameShowable() {
     late final StreamController<bool> c;
     final subs = <StreamSubscription<Object?>>[];
     Timer? beat;
     bool? last;
-    PixelSize? videoSize() {
-      final p = _player.state.videoParams;
-      final dw = p.dw, dh = p.dh;
-      if (dw == null || dh == null) return null;
-      // media_kit's own rule for the surface: swapped unless 0 / 180.
-      final swap = !(p.rotate == 0 || p.rotate == 180);
-      return swap ? (w: dh, h: dw) : (w: dw, h: dh);
-    }
-
-    PixelSize? surfaceSize() {
-      final s = kivoSettledSurfaceSize.value;
-      return s == null ? null : (w: s.width.round(), h: s.height.round());
-    }
-
     void evaluate() {
       // Any newer reading supersedes a pending "showable": skipping on within
       // the beat must not let the old video's true through.
@@ -121,14 +105,14 @@ class MediaKitEngine implements PlaybackEngine {
         return;
       }
       final now = frameShowable(
-          width: _player.state.width, video: videoSize(), surface: surfaceSize());
+          width: _player.state.width, surfaceBusy: kivoSurfaceBusy.value);
       if (now == last) return;
       if (!now) {
         last = false;
         c.add(false);
         return;
       }
-      beat = Timer(const Duration(milliseconds: 80), () {
+      beat = Timer(const Duration(milliseconds: 50), () {
         last = true;
         OpenTrace.instance.mark('picture shown (cover lifted)');
         if (!c.isClosed) c.add(true);
@@ -143,7 +127,7 @@ class MediaKitEngine implements PlaybackEngine {
           ..add(_player.stream.videoParams.listen((_) => evaluate()))
           // The output coming back is a reading too: nothing else may change.
           ..add(_videoOutputController.stream.listen((_) => evaluate()));
-        kivoSettledSurfaceSize.addListener(onSurface);
+        kivoSurfaceBusy.addListener(onSurface);
       },
       onCancel: () {
         for (final s in subs) {
@@ -151,7 +135,7 @@ class MediaKitEngine implements PlaybackEngine {
         }
         subs.clear();
         beat?.cancel();
-        kivoSettledSurfaceSize.removeListener(onSurface);
+        kivoSurfaceBusy.removeListener(onSurface);
         last = null;
       },
     );
@@ -179,8 +163,23 @@ class MediaKitEngine implements PlaybackEngine {
     _loadedSubs.clear();
     final c = Completer<void>();
     _loaded = c;
+
+    // "Started": mpv has finished opening the file (it held its core lock
+    // until then, and every property read blocked this isolate — up to
+    // ~110 ms each, measured, right during the player's opening animation).
+    final started = Completer<void>();
+    _started = started;
+    var sawBuffering = false;
+    void start() {
+      if (!started.isCompleted) started.complete();
+    }
+
     void done() {
-      if (!c.isCompleted) c.complete();
+      if (c.isCompleted) return;
+      c.complete();
+      // A file with no picture (audio only, opened paused) may never send
+      // the width or the buffering edge below: loaded + a beat counts too.
+      Timer(const Duration(milliseconds: 300), start);
     }
 
     // open() first unloads the previous file (duration 0, pseudo-tracks
@@ -194,7 +193,27 @@ class MediaKitEngine implements PlaybackEngine {
         if (t.audio.any((a) => real(a.id)) || t.video.any((v) => real(v.id))) {
           done();
         }
+      }))
+      ..add(_player.stream.buffering.listen((b) {
+        if (b) {
+          sawBuffering = true;
+        } else if (sawBuffering) {
+          start();
+        }
+      }))
+      ..add(_player.stream.width.listen((w) {
+        if ((w ?? 0) > 0) start();
       }));
+  }
+
+  Completer<void>? _started;
+
+  /// Waits (bounded) until the file just opened has started: reading mpv
+  /// properties before that blocks the UI isolate on mpv's core lock.
+  Future<void> _untilStarted() async {
+    final s = _started;
+    if (s == null || s.isCompleted) return;
+    await s.future.timeout(const Duration(seconds: 3), onTimeout: () {});
   }
 
   @override
@@ -480,8 +499,16 @@ class MediaKitEngine implements PlaybackEngine {
   Future<void> setSubtitleDelay(double seconds) async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;
-    await _setProp(native, 'sub-delay', seconds.toStringAsFixed(3));
+    // Written for every video (it survives loadfile), almost always 0 again:
+    // skipped when mpv already holds it — a write blocks while a file opens.
+    final v = seconds.toStringAsFixed(3);
+    if (v == _subDelayWritten) return;
+    await _setProp(native, 'sub-delay', v);
+    _subDelayWritten = v;
   }
+
+  String? _subDelayWritten;
+  String? _audioDelayWritten;
 
   @override
   Future<List<MediaChapter>> chapters() async {
@@ -525,7 +552,11 @@ class MediaKitEngine implements PlaybackEngine {
   Future<void> setAudioDelay(double seconds) async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;
-    await _setProp(native, 'audio-delay', seconds.toStringAsFixed(3));
+    // Same as sub-delay: only a change is written.
+    final v = seconds.toStringAsFixed(3);
+    if (v == _audioDelayWritten) return;
+    await _setProp(native, 'audio-delay', v);
+    _audioDelayWritten = v;
   }
 
   @override
@@ -577,6 +608,7 @@ class MediaKitEngine implements PlaybackEngine {
   Future<({String? codec, int? channels})?> currentAudioSource() async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return null;
+    await _untilStarted();
     try {
       final codec = (await _getProp(native, 'current-tracks/audio/codec')).trim();
       final channels = int.tryParse(

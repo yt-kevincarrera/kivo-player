@@ -25,7 +25,10 @@ class OpenTrace {
   }
 
   /// A new open starts ([source]: library, strip, autoplay…).
+  /// A begin right after another (the library open goes through the plain
+  /// one) is the same open: the first, more specific source is kept.
   void begin(String source) {
+    if (_opens.isNotEmpty && _opens.last.clock.elapsedMilliseconds < 50) return;
     _opens.add(_Open(source, DateTime.now()));
     if (_opens.length > _keepOpens) _opens.removeAt(0);
   }
