@@ -2393,4 +2393,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsAdvancedIncognitoTapsOff => 'Off';
+
+  @override
+  String get settingsAdvancedFastVideoStart =>
+      'Fast video start (experimental)';
+
+  @override
+  String get settingsAdvancedFastVideoStartSubtitle =>
+      'Videos start sooner, with no hitch on a resolution change. If you see a flat colour instead of the video, turn it off and send a report';
 }

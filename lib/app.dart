@@ -14,7 +14,8 @@ import 'ui/home/home_shell.dart';
 import 'ui/update/update_dialog.dart';
 import 'core/diagnostics/open_trace.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:media_kit_video/media_kit_video.dart' show kivoTrace;
+import 'package:media_kit_video/media_kit_video.dart'
+    show kivoTrace, kivoFixedSurface;
 
 class KivoApp extends ConsumerStatefulWidget {
   const KivoApp({super.key});
@@ -63,6 +64,10 @@ class _KivoAppState extends ConsumerState<KivoApp> {
   Widget build(BuildContext context) {
     ref.watch(backgroundPlaybackProvider);
     ref.watch(autoplayCoordinatorProvider);
+    // The media_kit_video patch reads this when it sizes the surface: kept in
+    // step with the (experimental) setting, before any video opens.
+    kivoFixedSurface =
+        ref.watch(settingsProvider.select((s) => s.fastVideoStart));
     final mode = ref.watch(settingsProvider.select((s) => s.themeMode));
     final accent = Color(ref.watch(settingsProvider.select((s) => s.accentColor)));
     final localeSetting = ref.watch(settingsProvider.select((s) => s.locale));

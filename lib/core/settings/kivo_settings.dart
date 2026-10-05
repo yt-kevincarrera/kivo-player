@@ -103,6 +103,11 @@ class KivoSettings {
   /// 0 = the shortcut is off.
   final int incognitoTapCount;
 
+  /// EXPERIMENTAL: a fixed render surface instead of one per video size
+  /// (media_kit_video patch, `kivoFixedSurface`). Off by default: on a
+  /// Pixel 6 it showed a single stretched pixel instead of the video.
+  final bool fastVideoStart;
+
   const KivoSettings({
     required this.doubleTapSkipLeft,
     required this.doubleTapSkipRight,
@@ -183,6 +188,7 @@ class KivoSettings {
     required this.secondarySubtitleLanguage,
     required this.incognito,
     required this.incognitoTapCount,
+    required this.fastVideoStart,
   });
 
   factory KivoSettings.defaults() => const KivoSettings(
@@ -269,6 +275,7 @@ class KivoSettings {
         secondarySubtitleLanguage: null,
         incognito: false,
         incognitoTapCount: 3,
+        fastVideoStart: false,
       );
 
   static const Object _unset = Object();
@@ -353,6 +360,7 @@ class KivoSettings {
     Object? secondarySubtitleLanguage = _unset,
     bool? incognito,
     int? incognitoTapCount,
+    bool? fastVideoStart,
   }) {
     return KivoSettings(
       doubleTapSkipLeft: doubleTapSkipLeft ?? this.doubleTapSkipLeft,
@@ -446,6 +454,7 @@ class KivoSettings {
           : secondarySubtitleLanguage as String?,
       incognito: incognito ?? this.incognito,
       incognitoTapCount: incognitoTapCount ?? this.incognitoTapCount,
+      fastVideoStart: fastVideoStart ?? this.fastVideoStart,
     );
   }
 
@@ -529,6 +538,7 @@ class KivoSettings {
         'secondarySubtitleLanguage': secondarySubtitleLanguage,
         'incognito': incognito,
         'incognitoTapCount': incognitoTapCount,
+        'fastVideoStart': fastVideoStart,
       };
 
   factory KivoSettings.fromMap(Map<String, dynamic> m) {
@@ -625,6 +635,7 @@ class KivoSettings {
           m['secondarySubtitleLanguage'] ?? d.secondarySubtitleLanguage,
       incognito: m['incognito'] ?? d.incognito,
       incognitoTapCount: m['incognitoTapCount'] ?? d.incognitoTapCount,
+      fastVideoStart: m['fastVideoStart'] ?? d.fastVideoStart,
     );
   }
 }

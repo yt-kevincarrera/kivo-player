@@ -12,3 +12,9 @@ final ValueNotifier<bool> kivoSurfaceBusy = ValueNotifier<bool>(false);
 
 /// Kivo patch: a diagnostics hook (Kivo's open timeline). Null = silent.
 void Function(String event)? kivoTrace;
+
+/// Kivo patch: EXPERIMENTAL fixed render surface (see KIVO_PATCHES.md).
+/// Off: the surface follows each video's size, like upstream (a resize per
+/// size change, but known to work everywhere). On: sized once to the screen,
+/// only grows. Kivo sets this from its settings.
+bool kivoFixedSurface = false;

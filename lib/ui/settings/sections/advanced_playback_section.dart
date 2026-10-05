@@ -63,6 +63,11 @@ class AdvancedPlaybackSection extends ConsumerWidget {
               ],
               value: s.incognitoTapCount,
               onChanged: (v) => n.set(s.copyWith(incognitoTapCount: v))),
+            SettingSwitch(
+              title: l10n.settingsAdvancedFastVideoStart,
+              subtitle: l10n.settingsAdvancedFastVideoStartSubtitle,
+              value: s.fastVideoStart,
+              onChanged: (v) => n.set(s.copyWith(fastVideoStart: v))),
           ]),
           const SizedBox(height: 16),
           _label(context, l10n.settingsAdvancedGroupPlayback),
