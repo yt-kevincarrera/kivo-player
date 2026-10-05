@@ -21,16 +21,19 @@ with Kivo's open timeline (problem report → "Recent video opens"):
 
 ## What changed (`lib/src/video_controller/android_video_controller/real.dart`)
 
-**Default (`kivoFixedSurface == false`): the surface follows each video's
-size, as upstream.** The fixed surface below is EXPERIMENTAL, behind Kivo's
-"Arranque rápido de video" setting: shipped on by default in Kivo 1.26.4, it
-showed a single stretched pixel instead of the video on a Pixel 6 (suspected:
-Android re-creating the surface at another size than the one asked for —
-`_kivoReassert` now asks again, and the native size of every new surface is
-traced). Common to both modes: no seek while playing, `rect` = the video,
-`kivoSurfaceBusy`, `kivoTrace`.
+**History.** Kivo 1.26.4 shipped the fixed surface below and showed a
+single stretched pixel instead of the video on a Pixel 6: Android re-created
+the surface at another size than the one asked for, and mpv drew a full
+frame into a tiny buffer. `_kivoReassert` now asks for the size again
+whenever a new surface comes back at another size (confirmed working on the
+Pixel 6 in 1.26.5), and the native size of every surface is traced.
 
-Experimental fixed surface:
+**Default since Kivo 1.26.6: the fixed surface** (`kivoFixedSurface == true`).
+Kivo's "Dibujo de video clásico" setting turns it off: the surface then
+follows each video's size, as upstream. Common to both: no seek while
+playing, `rect` = the video, `kivoSurfaceBusy`, `kivoTrace`.
+
+The fixed surface:
 
 - **The surface is not re-sized per video.** It starts at 16:9 of the
   DISPLAY's short side (1920x1080 on a 1080-wide screen, so 16:9 video maps

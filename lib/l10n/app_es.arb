@@ -3729,13 +3729,13 @@
     "description": "Opción: sin atajo de toques."
   },
 
-  "settingsAdvancedFastVideoStart": "Arranque rápido de video (experimental)",
-  "@settingsAdvancedFastVideoStart": {
-    "description": "Ajuste experimental: superficie de dibujo fija."
+  "settingsAdvancedClassicSurface": "Dibujo de video clásico",
+  "@settingsAdvancedClassicSurface": {
+    "description": "Ajuste: volver a la superficie de dibujo por video."
   },
 
-  "settingsAdvancedFastVideoStartSubtitle": "Los videos empiezan antes y sin tirón al cambiar de resolución. Si ves un color plano en vez del video, desactívalo y envía un informe",
-  "@settingsAdvancedFastVideoStartSubtitle": {
-    "description": "Subtítulo del ajuste experimental."
+  "settingsAdvancedClassicSurfaceSubtitle": "Actívalo solo si ves un color plano en lugar del video. Los videos tardan un poco más en empezar y pueden dar un tirón al cambiar de resolución",
+  "@settingsAdvancedClassicSurfaceSubtitle": {
+    "description": "Subtítulo del dibujo clásico."
   }
 }

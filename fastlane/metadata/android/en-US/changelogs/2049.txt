@@ -1,0 +1,1 @@
+Fast video start is on by default; if you see a flat colour, turn on Classic video rendering.

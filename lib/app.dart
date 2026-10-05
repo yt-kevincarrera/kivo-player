@@ -65,9 +65,9 @@ class _KivoAppState extends ConsumerState<KivoApp> {
     ref.watch(backgroundPlaybackProvider);
     ref.watch(autoplayCoordinatorProvider);
     // The media_kit_video patch reads this when it sizes the surface: kept in
-    // step with the (experimental) setting, before any video opens.
+    // step with the setting (its escape hatch), before any video opens.
     kivoFixedSurface =
-        ref.watch(settingsProvider.select((s) => s.fastVideoStart));
+        !ref.watch(settingsProvider.select((s) => s.classicVideoSurface));
     final mode = ref.watch(settingsProvider.select((s) => s.themeMode));
     final accent = Color(ref.watch(settingsProvider.select((s) => s.accentColor)));
     final localeSetting = ref.watch(settingsProvider.select((s) => s.locale));

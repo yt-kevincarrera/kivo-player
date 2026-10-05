@@ -103,10 +103,11 @@ class KivoSettings {
   /// 0 = the shortcut is off.
   final int incognitoTapCount;
 
-  /// EXPERIMENTAL: a fixed render surface instead of one per video size
-  /// (media_kit_video patch, `kivoFixedSurface`). Off by default: on a
-  /// Pixel 6 it showed a single stretched pixel instead of the video.
-  final bool fastVideoStart;
+  /// The escape hatch from the fixed render surface (media_kit_video patch,
+  /// `kivoFixedSurface`): true = the surface follows each video's size, as
+  /// upstream does. The fixed one is the default since 1.26.6 (confirmed on
+  /// a Pixel 6); this is for a device where it shows a flat colour.
+  final bool classicVideoSurface;
 
   const KivoSettings({
     required this.doubleTapSkipLeft,
@@ -188,7 +189,7 @@ class KivoSettings {
     required this.secondarySubtitleLanguage,
     required this.incognito,
     required this.incognitoTapCount,
-    required this.fastVideoStart,
+    required this.classicVideoSurface,
   });
 
   factory KivoSettings.defaults() => const KivoSettings(
@@ -275,7 +276,7 @@ class KivoSettings {
         secondarySubtitleLanguage: null,
         incognito: false,
         incognitoTapCount: 3,
-        fastVideoStart: false,
+        classicVideoSurface: false,
       );
 
   static const Object _unset = Object();
@@ -360,7 +361,7 @@ class KivoSettings {
     Object? secondarySubtitleLanguage = _unset,
     bool? incognito,
     int? incognitoTapCount,
-    bool? fastVideoStart,
+    bool? classicVideoSurface,
   }) {
     return KivoSettings(
       doubleTapSkipLeft: doubleTapSkipLeft ?? this.doubleTapSkipLeft,
@@ -454,7 +455,7 @@ class KivoSettings {
           : secondarySubtitleLanguage as String?,
       incognito: incognito ?? this.incognito,
       incognitoTapCount: incognitoTapCount ?? this.incognitoTapCount,
-      fastVideoStart: fastVideoStart ?? this.fastVideoStart,
+      classicVideoSurface: classicVideoSurface ?? this.classicVideoSurface,
     );
   }
 
@@ -538,7 +539,7 @@ class KivoSettings {
         'secondarySubtitleLanguage': secondarySubtitleLanguage,
         'incognito': incognito,
         'incognitoTapCount': incognitoTapCount,
-        'fastVideoStart': fastVideoStart,
+        'classicVideoSurface': classicVideoSurface,
       };
 
   factory KivoSettings.fromMap(Map<String, dynamic> m) {
@@ -635,7 +636,9 @@ class KivoSettings {
           m['secondarySubtitleLanguage'] ?? d.secondarySubtitleLanguage,
       incognito: m['incognito'] ?? d.incognito,
       incognitoTapCount: m['incognitoTapCount'] ?? d.incognitoTapCount,
-      fastVideoStart: m['fastVideoStart'] ?? d.fastVideoStart,
+      // A new key (not fastVideoStart, 1.26.5's opt-in, stored as false for
+      // everyone): the fixed surface reaches every install.
+      classicVideoSurface: m['classicVideoSurface'] ?? d.classicVideoSurface,
     );
   }
 }
