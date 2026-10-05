@@ -4051,6 +4051,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'No'**
   String get settingsAdvancedIncognitoTapsOff;
+
+  /// Ajuste experimental: superficie de dibujo fija.
+  ///
+  /// In es, this message translates to:
+  /// **'Arranque rápido de video (experimental)'**
+  String get settingsAdvancedFastVideoStart;
+
+  /// Subtítulo del ajuste experimental.
+  ///
+  /// In es, this message translates to:
+  /// **'Los videos empiezan antes y sin tirón al cambiar de resolución. Si ves un color plano en vez del video, desactívalo y envía un informe'**
+  String get settingsAdvancedFastVideoStartSubtitle;
 }
 
 class _AppLocalizationsDelegate

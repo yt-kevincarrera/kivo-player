@@ -91,6 +91,10 @@ class AndroidVideoController extends PlatformVideoController {
   /// what this video is shown at on this screen (fitted, in the orientation
   /// that suits it, never more than its own pixels), never less than now.
   _KivoSize _kivoTarget(int w, int h) {
+    // Default: the surface is exactly the video, as upstream does.
+    if (!kivoFixedSurface) {
+      return w > 0 && h > 0 ? _KivoSize(w, h) : _KivoSize(_surfaceW, _surfaceH);
+    }
     final d = _display();
     if (d == null) {
       return _KivoSize(math.max(_surfaceW, w), math.max(_surfaceH, h));
@@ -116,6 +120,7 @@ class AndroidVideoController extends PlatformVideoController {
   Future<void> _kivoEnsure(int videoW, int videoH) async {
     final t = _kivoTarget(videoW, videoH);
     if (t.a == _surfaceW && t.b == _surfaceH) return;
+    _kivoReasserts = 0;
     kivoSurfaceBusy.value = true;
     _kivoNewSurface = false;
     kivoTrace?.call('media_kit surface resize to ${t.a}x${t.b}');
@@ -159,8 +164,40 @@ class AndroidVideoController extends PlatformVideoController {
 
   /// Sizes the surface before any video, so the first one plays with no
   /// resize at all.
-  Future<void> _kivoPresize() =>
-      lock.synchronized(() => _kivoEnsure(0, 0));
+  Future<void> _kivoPresize() async {
+    if (!kivoFixedSurface) return;
+    await lock.synchronized(() => _kivoEnsure(0, 0));
+  }
+
+  /// How many times the current size has been asked for again.
+  int _kivoReasserts = 0;
+
+  /// A new surface came back at another size than the one asked for (Android
+  /// may re-create it): ask again, so mpv never draws a full frame into a
+  /// smaller buffer (seen as one stretched pixel). Twice at most per size.
+  void _kivoReassert(int gotW, int gotH) {
+    if (_surfaceW <= 0 || _surfaceH <= 0) return;
+    if (gotW == _surfaceW && gotH == _surfaceH) {
+      _kivoReasserts = 0;
+      return;
+    }
+    if (_kivoReasserts >= 2) return;
+    _kivoReasserts++;
+    kivoTrace?.call('media_kit surface came back ${gotW}x$gotH, asking ${_surfaceW}x$_surfaceH again');
+    lock.synchronized(() async {
+      kivoSurfaceBusy.value = true;
+      _kivoNewSurface = false;
+      final handle = await player.handle;
+      await _channel.invokeMethod(
+        'VideoOutputManager.SetSurfaceSize',
+        {
+          'handle': handle.toString(),
+          'width': _surfaceW.toString(),
+          'height': _surfaceH.toString(),
+        },
+      );
+    });
+  }
   // ---- end Kivo patch --------------------------------------------------
 
   /// Listener for updating the --wid property.
@@ -396,8 +433,12 @@ class AndroidVideoController extends PlatformVideoController {
                     // the surface is bigger and stretched; Flutter must lay the
                     // texture out at the VIDEO's size to undo the stretch.
                     final c = _controllers[handle];
+                    kivoTrace?.call('native surface ${rect.width.round()}x${rect.height.round()} wid=$wid');
                     c?.rect.value = c._kivoVideoRect ?? rect;
-                    if (wid != 0) c?._kivoNewSurface = true;
+                    if (wid != 0) {
+                      c?._kivoNewSurface = true;
+                      c?._kivoReassert(rect.width.round(), rect.height.round());
+                    }
                     _controllers[handle]?.id.value = id;
                     _controllers[handle]?.wid.value = wid;
                     break;

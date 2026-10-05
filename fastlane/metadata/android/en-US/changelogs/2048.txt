@@ -1,0 +1,1 @@
+Videos show again (the 1.26.4 rendering is undone; it stays as an experimental option).
