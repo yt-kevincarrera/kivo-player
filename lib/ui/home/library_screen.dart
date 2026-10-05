@@ -46,19 +46,21 @@ class LibraryScreen extends ConsumerStatefulWidget {
 final librarySubTabProvider = StateProvider<int>((ref) => 0);
 
 class _LibraryScreenState extends ConsumerState<LibraryScreen> {
-  // Five quick taps on the title toggle incognito (a shortcut to the switch
-  // in Ajustes › Reproducción avanzada). Taps more than [_tapGap] apart
-  // start the count again, so ordinary taps never add up to it.
+  // Quick taps on the title toggle incognito (a shortcut to the switch in
+  // Ajustes › Reproducción avanzada; how many is a setting, 0 = off). Taps
+  // more than [_tapGap] apart start the count again, so ordinary taps never
+  // add up to it.
   static const _tapGap = Duration(milliseconds: 600);
-  static const _tapsForIncognito = 5;
   int _titleTaps = 0;
   DateTime _lastTitleTap = DateTime.fromMillisecondsSinceEpoch(0);
 
   void _onTitleTap() {
+    final needed = ref.read(settingsProvider).incognitoTapCount;
+    if (needed <= 0) return;
     final now = DateTime.now();
     _titleTaps = now.difference(_lastTitleTap) > _tapGap ? 1 : _titleTaps + 1;
     _lastTitleTap = now;
-    if (_titleTaps < _tapsForIncognito) return;
+    if (_titleTaps < needed) return;
     _titleTaps = 0;
     final s = ref.read(settingsProvider);
     final on = !s.incognito;

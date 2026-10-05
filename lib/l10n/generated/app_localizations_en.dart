@@ -2218,7 +2218,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsAdvancedIncognitoSubtitle =>
-      'While it\'s on, where you stop and what you\'ve watched isn\'t saved. Shortcut: tap «Kivo» 5 times in the library';
+      'While it\'s on, where you stop and what you\'ve watched isn\'t saved';
 
   @override
   String get libraryIncognitoChip => 'Incognito';
@@ -2383,4 +2383,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get libraryIncognitoOnSnackbar => 'Incognito mode on';
+
+  @override
+  String get settingsAdvancedIncognitoTaps => 'Shortcut: taps on «Kivo»';
+
+  @override
+  String get settingsAdvancedIncognitoTapsSubtitle =>
+      'Quick taps on the name at the top of the library turn it on or off';
+
+  @override
+  String get settingsAdvancedIncognitoTapsOff => 'Off';
 }

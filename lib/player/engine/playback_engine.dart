@@ -48,7 +48,10 @@ abstract class PlaybackEngine {
   /// without importing package:media_kit.
   Object? createVideoController();
 
-  Future<void> open(String path, {Duration startAt});
+  /// [play] false: load paused, so per-video settings (audio track, delays,
+  /// the audio chain) can be written before anything is heard — written
+  /// while playing, each one restarts the audio and nudges the picture.
+  Future<void> open(String path, {Duration startAt, bool play});
   Future<void> play();
   Future<void> pause();
   Future<void> seek(Duration position);
@@ -57,6 +60,14 @@ abstract class PlaybackEngine {
   Future<void> dispose();
 
   Stream<List<MediaTrack>> get audioTracksStream;
+
+  /// The audio tracks of the video just opened, once mpv has read them.
+  /// Never misses them (the wait starts before the file loads, so a fast
+  /// local file cannot announce its tracks before anyone listens), and
+  /// gives up after [timeout] with whatever is known — for a file with no
+  /// audio at all.
+  Future<List<MediaTrack>> loadedAudioTracks(
+      {Duration timeout = const Duration(milliseconds: 1500)});
   Stream<List<MediaTrack>> get subtitleTracksStream;
   Stream<MediaTrack?> get currentAudioTrackStream;
   Stream<MediaTrack?> get currentSubtitleTrackStream; // null = off
@@ -86,7 +97,12 @@ abstract class PlaybackEngine {
   ///
   /// Same UI-thread hazard as [setSubtitleDelay]: once per open or per user
   /// switch, never in a loop.
-  Future<void> setHwdec(String value);
+  ///
+  /// [beforeOpen]: written for the video about to open, while the previous
+  /// one may still be loaded — re-creating ITS decoder would repaint its
+  /// picture for a moment on the way out. The engine unloads it first then.
+  /// (Writing the value mpv already holds does nothing at all.)
+  Future<void> setHwdec(String value, {bool beforeOpen = false});
 
   /// What mpv is actually decoding with right now (`hwdec-current`):
   /// e.g. `mediacodec-copy`, `no` for software, or null when nothing is loaded

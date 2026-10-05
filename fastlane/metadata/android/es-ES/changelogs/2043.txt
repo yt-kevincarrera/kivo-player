@@ -1,0 +1,1 @@
+Atajo de incógnito: 3 toques por defecto y configurable. Arreglos: arranque limpio de los videos, fotograma a fotograma reanuda donde ves, el Vault ya no parpadea al seleccionar.

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import '../../core/settings/kivo_settings.dart';
 import '../../platform/interfaces/subtitle_finder.dart';
 import '../engine/playback_engine.dart';
@@ -11,9 +13,15 @@ import 'track_selection.dart';
 /// [VideoSession.folder]) an external subtitle file next to it whose filename
 /// encodes the preferred language, then this specific video's remembered
 /// subtitle setup (a hand-picked file and/or a timing offset), which wins
-/// over everything above. Fire-and-forget; best-effort — a track/finder error
-/// must never break playback start.
-void applyDefaultTracks({
+/// over everything above. Best-effort — a track/finder error must never
+/// break playback start.
+///
+/// The returned future completes once everything that touches the AUDIO is
+/// written — the track, the audio offset, the audio chain — so a video
+/// opened paused can be started after it: written while playing, each of
+/// those restarts the audio (a gap you hear) and makes mpv resync the
+/// picture (a jump you see). Subtitles carry on in the background.
+Future<void> applyDefaultTracks({
   required PlaybackEngine engine,
   required KivoSettings settings,
   required VideoSession session,
@@ -21,15 +29,39 @@ void applyDefaultTracks({
   required TrackPrefsStore subtitlePrefs,
   required SubtitleLoader subtitleLoader,
   required Future<void> Function() applyAudio,
-}) {
+}) async {
   // A new video: whatever external subtitle the last one had is gone.
   subtitleLoader.clear();
-  () async {
-    final audioTracks = await engine.audioTracksStream.first.timeout(
-      const Duration(seconds: 2), onTimeout: () => const <MediaTrack>[]);
+  final prefs = () {
+    try {
+      return subtitlePrefs.forKey(session.resumeKey);
+    } catch (_) {
+      // A corrupted record: both offsets stay at 0 so the resets still happen.
+      return null;
+    }
+  }();
+  try {
+    final audioTracks = await engine.loadedAudioTracks();
     final audioPick = selectAudioTrack(
       tracks: audioTracks, preferredLanguage: settings.preferredAudioLanguage);
     if (audioPick != null) await engine.setAudioTrack(audioPick.id);
+  } catch (_) {
+    // Best-effort.
+  }
+  // Unconditional, even for 0: audio-delay is an ordinary mpv option that
+  // survives loadfile on the one process-lifetime Player — without this the
+  // previous video's offset rides along into this one.
+  try {
+    await engine.setAudioDelay((prefs?.audioDelayMs ?? 0) / 1000);
+  } catch (_) {}
+  // The audio chain (equalizer, gain, Modo noche, Realzar voces) belongs to
+  // AudioPipelineController, which tracks what mpv holds and derives it for
+  // this video's track — known by now, so it is written once.
+  try {
+    await applyAudio();
+  } catch (_) {}
+
+  unawaited(() async {
 
     final subtitleTracks = await engine.subtitleTracksStream.first.timeout(
       const Duration(seconds: 2), onTimeout: () => const <MediaTrack>[]);
@@ -84,12 +116,8 @@ void applyDefaultTracks({
     // What this video remembers wins over the language defaults above: the
     // user picked it for this file specifically. The file is loaded before the
     // offset so the delay lands on the track it was measured against.
-    var subtitleDelayMs = 0;
-    var audioDelayMs = 0;
+    final subtitleDelayMs = prefs?.subtitleDelayMs ?? 0;
     try {
-      final prefs = subtitlePrefs.forKey(session.resumeKey);
-      subtitleDelayMs = prefs?.subtitleDelayMs ?? 0;
-      audioDelayMs = prefs?.audioDelayMs ?? 0;
       final path = prefs?.subtitlePath;
       if (path != null) {
         await subtitleLoader.load(path, resumeKey: session.resumeKey);
@@ -100,8 +128,9 @@ void applyDefaultTracks({
       // and leave both offsets at 0 so the resets below still happen.
     }
 
-    // Both unconditional, even with no prefs at all and even for a zero
-    // offset: sub-delay and audio-delay are ordinary mpv options, not per-file
+    // Unconditional, even with no prefs at all and even for a zero offset
+    // (audio-delay is written above, before playback): sub-delay is an
+    // ordinary mpv option, not per-file
     // state, and the engine holds one process-lifetime Player that open()
     // reuses — mpv does not reset them on loadfile. Without this, the previous
     // video's offset silently rides along into a video that has none, while
@@ -113,21 +142,5 @@ void applyDefaultTracks({
       // Best-effort like everything else here: a native failure must not break
       // playback start.
     }
-    try {
-      await engine.setAudioDelay(audioDelayMs / 1000);
-    } catch (_) {
-      // Separate try: a failure applying one offset must not skip the other.
-    }
-
-    // The audio chain (equalizer, gain, Modo noche, Realzar voces) belongs to
-    // AudioPipelineController, which tracks what mpv holds — these are global
-    // options that survive loadfile — and re-derives it for this video's
-    // track once that is known.
-    try {
-      await applyAudio();
-    } catch (_) {
-      // Separate try: a failure here must not skip playback start, and must
-      // not be masked by (or mask) the two offsets above.
-    }
-  }();
+  }());
 }

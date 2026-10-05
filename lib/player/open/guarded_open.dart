@@ -10,9 +10,10 @@ Future<void> guardedOpen(
   String path,
   ErrorLog log, {
   Duration startAt = Duration.zero,
+  bool play = true,
 }) async {
   try {
-    await engine.open(path, startAt: startAt);
+    await engine.open(path, startAt: startAt, play: play);
   } catch (e) {
     throw log.record(KivoFailure(KivoOp.openVideo, e));
   }

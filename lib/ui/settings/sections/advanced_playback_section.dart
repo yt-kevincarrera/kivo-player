@@ -54,6 +54,15 @@ class AdvancedPlaybackSection extends ConsumerWidget {
               subtitle: l10n.settingsAdvancedIncognitoSubtitle,
               value: s.incognito,
               onChanged: (v) => n.set(s.copyWith(incognito: v))),
+            SettingSegmented<int>(
+              title: l10n.settingsAdvancedIncognitoTaps,
+              subtitle: l10n.settingsAdvancedIncognitoTapsSubtitle,
+              options: [
+                (0, l10n.settingsAdvancedIncognitoTapsOff),
+                for (final c in const [2, 3, 4, 5, 6]) (c, '$c'),
+              ],
+              value: s.incognitoTapCount,
+              onChanged: (v) => n.set(s.copyWith(incognitoTapCount: v))),
           ]),
           const SizedBox(height: 16),
           _label(context, l10n.settingsAdvancedGroupPlayback),

@@ -57,12 +57,87 @@ class MediaKitEngine implements PlaybackEngine {
       frameReadyStream(_player.stream.width, () => _videoOutputEnabled);
 
   @override
-  Future<void> open(String path, {Duration startAt = Duration.zero}) async {
-    await _player.open(Media(path, start: startAt), play: true);
+  Future<void> open(String path,
+      {Duration startAt = Duration.zero, bool play = true}) async {
+    _stepped = false;
+    _armLoaded();
+    await _player.open(Media(path, start: startAt), play: play);
+  }
+
+  // "The file just opened has been read": armed BEFORE loadfile, so the
+  // events cannot slip past (see [loadedAudioTracks]).
+  Completer<void>? _loaded;
+  final _loadedSubs = <StreamSubscription<Object?>>[];
+
+  void _armLoaded() {
+    for (final s in _loadedSubs) {
+      s.cancel();
+    }
+    _loadedSubs.clear();
+    final c = Completer<void>();
+    _loaded = c;
+    void done() {
+      if (!c.isCompleted) c.complete();
+    }
+
+    // open() first unloads the previous file (duration 0, pseudo-tracks
+    // only): those do not count.
+    _loadedSubs
+      ..add(_player.stream.duration.listen((d) {
+        if (d > Duration.zero) done();
+      }))
+      ..add(_player.stream.tracks.listen((t) {
+        bool real(String id) => id != 'auto' && id != 'no';
+        if (t.audio.any((a) => real(a.id)) || t.video.any((v) => real(v.id))) {
+          done();
+        }
+      }));
   }
 
   @override
-  Future<void> play() => _player.play();
+  Future<List<MediaTrack>> loadedAudioTracks(
+      {Duration timeout = const Duration(milliseconds: 1500)}) async {
+    final loaded = _loaded;
+    if (loaded != null) {
+      await loaded.future.timeout(timeout, onTimeout: () {});
+    }
+    var tracks = currentAudioTracks;
+    if (tracks.isEmpty && loaded != null && loaded.isCompleted) {
+      // Loaded by its duration, track list a beat behind.
+      try {
+        tracks = await audioTracksStream
+            .firstWhere((t) => t.isNotEmpty)
+            .timeout(const Duration(milliseconds: 250));
+      } catch (_) {
+        // No audio in this file.
+      }
+    }
+    return tracks;
+  }
+
+  /// Frame-stepped since the last play: see [play].
+  bool _stepped = false;
+
+  @override
+  Future<void> play() async {
+    final native = _player.platform as NativePlayer?;
+    if (_stepped && native != null) {
+      _stepped = false;
+      // Each forward frame-step unpauses for a moment and the audio keeps
+      // going, so by now it is ahead of the picture; unpaused, mpv would sync
+      // the video to it and resume from a different point than the frame on
+      // screen. An exact seek to that frame puts the audio back with it.
+      try {
+        final at = (await native.getProperty('time-pos')).trim();
+        if (at.isNotEmpty && double.tryParse(at) != null) {
+          await native.command(['seek', at, 'absolute+exact']);
+        }
+      } catch (e) {
+        debugPrint('MediaKitEngine.play resync failed: $e');
+      }
+    }
+    await _player.play();
+  }
   @override
   Future<void> pause() => _player.pause();
   @override
@@ -179,7 +254,7 @@ class MediaKitEngine implements PlaybackEngine {
   }
 
   @override
-  Future<void> setHwdec(String value) async {
+  Future<void> setHwdec(String value, {bool beforeOpen = false}) async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;
     // media_kit writes its own hwdec (auto-safe) when the VideoController's
@@ -193,6 +268,17 @@ class MediaKitEngine implements PlaybackEngine {
       } catch (_) {
         // No video controller on this platform: nothing will overwrite us.
       }
+    }
+    // mpv re-creates the decoder on any write, same value included: with
+    // the previous video still loaded that repainted its picture for an
+    // instant before the next one opened.
+    try {
+      if ((await native.getProperty('hwdec')).trim() == value) return;
+    } catch (_) {
+      // Unknown: write it.
+    }
+    if (beforeOpen && _player.state.playlist.medias.isNotEmpty) {
+      await _player.stop();
     }
     await native.setProperty('hwdec', value);
   }
@@ -409,6 +495,7 @@ class MediaKitEngine implements PlaybackEngine {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;
     _stepQuietUntil = DateTime.now().add(const Duration(milliseconds: 300));
+    _stepped = true;
     await native.command([forward ? 'frame-step' : 'frame-back-step']);
   }
 

@@ -95,13 +95,18 @@ class FakePlaybackEngine implements PlaybackEngine {
   void emitVideoFrame(bool v) => _frame.add(v);
 
   @override
-  Future<void> open(String path, {Duration startAt = Duration.zero}) async {
+  Future<void> open(String path,
+      {Duration startAt = Duration.zero, bool play = true}) async {
     openHook?.call(path);
     if (openError != null) throw openError!;
     openedPath = path;
     openedAt = startAt;
+    openedPlaying = play;
     openCount++;
   }
+
+  /// Whether the last open started playing by itself.
+  bool? openedPlaying;
 
   @override
   Future<void> play() async {
@@ -165,6 +170,19 @@ class FakePlaybackEngine implements PlaybackEngine {
   List<MediaTrack> get currentSubtitleTracks => subtitleTracksValue;
   @override
   List<MediaTrack> get currentAudioTracks => audioTracksValue;
+
+  /// How long [loadedAudioTracks] waits for an [emitAudioTracks] when none
+  /// are set. Zero by default, so a test that never emits tracks is not held
+  /// up; an emit right after the open still lands.
+  Duration loadedAudioTracksWait = Duration.zero;
+
+  @override
+  Future<List<MediaTrack>> loadedAudioTracks(
+      {Duration timeout = const Duration(milliseconds: 1500)}) async {
+    if (audioTracksValue.isNotEmpty) return audioTracksValue;
+    return _audioTracks.stream.first
+        .timeout(loadedAudioTracksWait, onTimeout: () => audioTracksValue);
+  }
   @override
   MediaTrack? get currentSubtitleTrack => currentSubtitleTrackValue;
   @override
@@ -232,7 +250,7 @@ class FakePlaybackEngine implements PlaybackEngine {
   String? activeHwdecValue;
 
   @override
-  Future<void> setHwdec(String value) async {
+  Future<void> setHwdec(String value, {bool beforeOpen = false}) async {
     hwdecWrites.add(value);
     activeHwdecValue = value == 'no' ? 'no' : 'mediacodec-copy';
   }
@@ -271,7 +289,13 @@ class FakePlaybackEngine implements PlaybackEngine {
   }
 
   @override
-  Future<void> setAudioDelay(double seconds) async => audioDelays.add(seconds);
+  Future<void> setAudioDelay(double seconds) async {
+    audioDelays.add(seconds);
+    audioDelayBeforePlay ??= lastPlayingCommand != true;
+  }
+
+  /// Whether the first audio-delay write came before anything started playing.
+  bool? audioDelayBeforePlay;
 
   final List<String> audioFilters = [];
   String? lastAudioFilter;
@@ -729,8 +753,14 @@ class FakeVaultOps implements VaultOps {
     return privatePaths.where((p) => !failPaths.contains(p)).toList();
   }
 
+  /// Every thumbnail request, in order.
+  final List<String> thumbnailRequests = [];
+  Uint8List? thumb;
   @override
-  Future<Uint8List?> thumbnail(String privatePath) async => null;
+  Future<Uint8List?> thumbnail(String privatePath) async {
+    thumbnailRequests.add(privatePath);
+    return thumb;
+  }
 
   @override
   Future<List<Map<String, dynamic>>> migrate() async => const [];

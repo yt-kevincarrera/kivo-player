@@ -57,6 +57,8 @@ const _session = VideoSession(
 Future<void> _settle(WidgetTester tester) async {
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 400));
+  // A route pushed at the very end of that slice builds on the next frame.
+  await tester.pump();
 }
 
 /// Drains applyDefaultTracks' two SEQUENTIAL 2s stream timeouts (the fake

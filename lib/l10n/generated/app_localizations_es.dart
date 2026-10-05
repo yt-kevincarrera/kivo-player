@@ -2233,7 +2233,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settingsAdvancedIncognitoSubtitle =>
-      'Mientras esté activo, no se guarda dónde te quedas ni qué has visto. Atajo: toca 5 veces «Kivo» en la biblioteca';
+      'Mientras esté activo, no se guarda dónde te quedas ni qué has visto';
 
   @override
   String get libraryIncognitoChip => 'Incógnito';
@@ -2398,4 +2398,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get libraryIncognitoOnSnackbar => 'Modo incógnito activado';
+
+  @override
+  String get settingsAdvancedIncognitoTaps => 'Atajo: toques en «Kivo»';
+
+  @override
+  String get settingsAdvancedIncognitoTapsSubtitle =>
+      'Toques seguidos sobre el nombre, arriba en la biblioteca, para activarlo o desactivarlo';
+
+  @override
+  String get settingsAdvancedIncognitoTapsOff => 'No';
 }

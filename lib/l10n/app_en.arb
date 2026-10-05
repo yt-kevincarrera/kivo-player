@@ -3456,7 +3456,7 @@
     "description": "Switch in Settings › Advanced playback › Continue watching."
   },
 
-  "settingsAdvancedIncognitoSubtitle": "While it's on, where you stop and what you've watched isn't saved. Shortcut: tap «Kivo» 5 times in the library",
+  "settingsAdvancedIncognitoSubtitle": "While it's on, where you stop and what you've watched isn't saved",
   "@settingsAdvancedIncognitoSubtitle": {
     "description": "Subtitle of the incognito switch."
   },
@@ -3713,5 +3713,20 @@
   "libraryIncognitoOnSnackbar": "Incognito mode on",
   "@libraryIncognitoOnSnackbar": {
     "description": "Shown when incognito is turned on with 5 taps on the title."
+  },
+
+  "settingsAdvancedIncognitoTaps": "Shortcut: taps on «Kivo»",
+  "@settingsAdvancedIncognitoTaps": {
+    "description": "Setting: how many quick taps on the library title toggle incognito."
+  },
+
+  "settingsAdvancedIncognitoTapsSubtitle": "Quick taps on the name at the top of the library turn it on or off",
+  "@settingsAdvancedIncognitoTapsSubtitle": {
+    "description": "Subtitle of the incognito shortcut."
+  },
+
+  "settingsAdvancedIncognitoTapsOff": "Off",
+  "@settingsAdvancedIncognitoTapsOff": {
+    "description": "Option: no tap shortcut."
   }
 }

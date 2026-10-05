@@ -455,4 +455,37 @@ void main() {
 
     await tester.pump(const Duration(seconds: 4)); // drain the periodic save timer
   });
+
+  // A per-video setting written while the video already plays restarts the
+  // audio (a gap) and makes mpv resync the picture (a jump) right at the
+  // start. Opened paused, configured, then started.
+  testWidgets('a video opens paused and starts once its audio settings are in',
+      (tester) async {
+    final engine = FakePlaybackEngine();
+    addTearDown(engine.dispose);
+    final s = await SettingsService.load(InMemorySettingsStore());
+    await s.update(s.current.copyWith(gestureMapShown: true));
+    final c = ProviderContainer(overrides: [
+      settingsServiceProvider.overrideWithValue(s),
+      playbackEngineProvider.overrideWithValue(engine),
+      deviceControlsProvider.overrideWithValue(NoopControls()),
+      resumeServiceProvider.overrideWithValue(ResumeService(InMemoryResumeStore())),
+      playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
+      bookmarkStoreProvider.overrideWithValue(InMemoryBookmarkStore()),
+      frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
+      subtitleFinderProvider.overrideWithValue(FakeSubtitleFinder()),
+      pipControllerProvider.overrideWithValue(FakePipController()),
+    ]);
+    addTearDown(c.dispose);
+    c.read(currentVideoProvider.notifier).open(
+      const VideoSession(playbackPath: '/v/ep1.mkv', displayName: 'ep1.mkv', queue: ['/v/ep1.mkv'], index: 0),
+    );
+    await pumpLocalized(tester, const PlayerScreen(), container: c);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(engine.openedPlaying, false);
+    expect(engine.audioDelayBeforePlay, true);
+    expect(engine.lastPlayingCommand, true, reason: 'started after setup');
+    await tester.pump(const Duration(seconds: 4));
+  });
 }
