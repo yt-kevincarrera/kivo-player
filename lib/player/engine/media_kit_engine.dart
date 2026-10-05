@@ -54,7 +54,82 @@ class MediaKitEngine implements PlaybackEngine {
 
   @override
   Stream<bool> get hasVideoFrameStream =>
-      frameReadyStream(_player.stream.width, () => _videoOutputEnabled);
+      (_frameShowable ??= _buildFrameShowable()).stream;
+
+  StreamController<bool>? _frameShowable;
+
+  /// [frameShowable] over mpv's width and video size and media_kit's settled
+  /// surface (kivoSettledSurfaceSize, from Kivo's media_kit_video patch).
+  /// Events while the output is intentionally off are dropped, as before
+  /// (see [frameReadyStream]). "Showable" is held back one beat: the surface
+  /// has settled, mpv still has to paint the first frame on it.
+  StreamController<bool> _buildFrameShowable() {
+    late final StreamController<bool> c;
+    final subs = <StreamSubscription<Object?>>[];
+    Timer? beat;
+    bool? last;
+    PixelSize? videoSize() {
+      final p = _player.state.videoParams;
+      final dw = p.dw, dh = p.dh;
+      if (dw == null || dh == null) return null;
+      // media_kit's own rule for the surface: swapped unless 0 / 180.
+      final swap = !(p.rotate == 0 || p.rotate == 180);
+      return swap ? (w: dh, h: dw) : (w: dw, h: dh);
+    }
+
+    PixelSize? surfaceSize() {
+      final s = kivoSettledSurfaceSize.value;
+      return s == null ? null : (w: s.width.round(), h: s.height.round());
+    }
+
+    void evaluate() {
+      // Any newer reading supersedes a pending "showable": skipping on within
+      // the beat must not let the old video's true through.
+      beat?.cancel();
+      if (!_videoOutputEnabled) {
+        // Events while the output is off are dropped (see frameReadyStream),
+        // and so is what we last said: the screen may have re-armed its cover
+        // meanwhile (an autoplay advance in the background), and the same
+        // reading on return must still be reported.
+        last = null;
+        return;
+      }
+      final now = frameShowable(
+          width: _player.state.width, video: videoSize(), surface: surfaceSize());
+      if (now == last) return;
+      if (!now) {
+        last = false;
+        c.add(false);
+        return;
+      }
+      beat = Timer(const Duration(milliseconds: 80), () {
+        last = true;
+        if (!c.isClosed) c.add(true);
+      });
+    }
+
+    void onSurface() => evaluate();
+    c = StreamController<bool>.broadcast(
+      onListen: () {
+        subs
+          ..add(_player.stream.width.listen((_) => evaluate()))
+          ..add(_player.stream.videoParams.listen((_) => evaluate()))
+          // The output coming back is a reading too: nothing else may change.
+          ..add(_videoOutputController.stream.listen((_) => evaluate()));
+        kivoSettledSurfaceSize.addListener(onSurface);
+      },
+      onCancel: () {
+        for (final s in subs) {
+          s.cancel();
+        }
+        subs.clear();
+        beat?.cancel();
+        kivoSettledSurfaceSize.removeListener(onSurface);
+        last = null;
+      },
+    );
+    return c;
+  }
 
   @override
   Future<void> open(String path,
