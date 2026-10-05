@@ -1,0 +1,1 @@
+Videos start sooner and without hitches; the app no longer stalls on open; report buttons at the top.

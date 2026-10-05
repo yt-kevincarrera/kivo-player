@@ -46,47 +46,18 @@ void main() {
 
   group('frameShowable', () {
     test('nothing decoded yet: hidden', () {
-      expect(frameShowable(width: null, video: null, surface: null), false);
-      expect(
-        frameShowable(
-          width: 0,
-          video: (w: 1920, h: 1080),
-          surface: (w: 1920, h: 1080),
-        ),
-        false,
-      );
+      expect(frameShowable(width: null, surfaceBusy: false), false);
+      expect(frameShowable(width: 0, surfaceBusy: false), false);
     });
 
-    // media_kit resizes the surface after the first frame; until it settles
-    // the texture still shows the previous video.
-    test('decoded but the surface is still the old size: hidden', () {
-      expect(
-        frameShowable(
-          width: 1280,
-          video: (w: 1280, h: 720),
-          surface: (w: 1920, h: 1080),
-        ),
-        false,
-      );
-      expect(
-        frameShowable(width: 1280, video: (w: 1280, h: 720), surface: null),
-        false,
-      );
+    // While media_kit re-creates the surface the texture still shows the
+    // previous video.
+    test('decoded but the surface is being re-created: hidden', () {
+      expect(frameShowable(width: 1280, surfaceBusy: true), false);
     });
 
-    test('decoded and the surface settled at its size: shown', () {
-      expect(
-        frameShowable(
-          width: 1280,
-          video: (w: 1280, h: 720),
-          surface: (w: 1280, h: 720),
-        ),
-        true,
-      );
-    });
-
-    test('video size unknown: the decoded frame is enough', () {
-      expect(frameShowable(width: 640, video: null, surface: null), true);
+    test('decoded and the surface ready: shown', () {
+      expect(frameShowable(width: 1280, surfaceBusy: false), true);
     });
   });
 }

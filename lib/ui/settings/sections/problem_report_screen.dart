@@ -93,6 +93,37 @@ class _ProblemReportScreenState extends ConsumerState<ProblemReportScreen> {
                 ),
               ),
               const SizedBox(height: 20),
+              FilledButton.icon(
+                onPressed: () => _open(emailUrl(subject, report)),
+                icon: const Icon(Icons.email_outlined),
+                label: Text(l10n.reportSendEmail),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: () => _open(issueUrl(subject, report)),
+                icon: const Icon(Icons.open_in_new_rounded),
+                label: Text(l10n.reportOpenGithub),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
+                child: Text(l10n.reportGithubPublicHint,
+                    style: TextStyle(fontSize: 11.5, color: cs.onSurfaceVariant)),
+              ),
+              const SizedBox(height: 8),
+              TextButton.icon(
+                onPressed: () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  final copied = l10n.reportCopiedSnackbar;
+                  await Clipboard.setData(ClipboardData(text: report));
+                  messenger.showSnackBar(SnackBar(content: Text(copied)));
+                },
+                icon: const Icon(Icons.copy_rounded),
+                label: Text(l10n.reportCopy),
+              ),
+              // The report itself below the ways to send it: it grows long
+              // (errors, the open timeline), and the buttons used to end up
+              // a long scroll away.
+              const SizedBox(height: 20),
               Text(
                 l10n.reportPreviewLabel.toUpperCase(),
                 style: TextStyle(
@@ -121,34 +152,6 @@ class _ProblemReportScreenState extends ConsumerState<ProblemReportScreen> {
               const SizedBox(height: 8),
               Text(l10n.reportPreviewHint,
                   style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
-              const SizedBox(height: 20),
-              FilledButton.icon(
-                onPressed: () => _open(emailUrl(subject, report)),
-                icon: const Icon(Icons.email_outlined),
-                label: Text(l10n.reportSendEmail),
-              ),
-              const SizedBox(height: 8),
-              OutlinedButton.icon(
-                onPressed: () => _open(issueUrl(subject, report)),
-                icon: const Icon(Icons.open_in_new_rounded),
-                label: Text(l10n.reportOpenGithub),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
-                child: Text(l10n.reportGithubPublicHint,
-                    style: TextStyle(fontSize: 11.5, color: cs.onSurfaceVariant)),
-              ),
-              const SizedBox(height: 8),
-              TextButton.icon(
-                onPressed: () async {
-                  final messenger = ScaffoldMessenger.of(context);
-                  final copied = l10n.reportCopiedSnackbar;
-                  await Clipboard.setData(ClipboardData(text: report));
-                  messenger.showSnackBar(SnackBar(content: Text(copied)));
-                },
-                icon: const Icon(Icons.copy_rounded),
-                label: Text(l10n.reportCopy),
-              ),
             ],
           );
         },
