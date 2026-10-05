@@ -115,7 +115,11 @@ class DecoderController {
 
   /// Opens [session] with its decoder. Throws the same [KivoFailure]
   /// (KV-501) as [guardedOpen] when the file cannot be opened at all.
-  Future<void> open(VideoSession session, {Duration startAt = Duration.zero}) async {
+  ///
+  /// [play] false loads it paused (see [PlaybackEngine.open]); the caller
+  /// starts it once the video's own settings are in.
+  Future<void> open(VideoSession session,
+      {Duration startAt = Duration.zero, bool play = true}) async {
     _ensureListening();
     _watchdog.disarm();
     _session = session;
@@ -134,11 +138,11 @@ class DecoderController {
     // player and survives loadfile — skipping this when "the mode didn't
     // change" is how the previous video's software mode would leak into this
     // one.
-    await _setHwdec(mode.mpvHwdec);
+    await _setHwdec(mode.mpvHwdec, beforeOpen: true);
 
     if (fallbackAllowed) {
       try {
-        await engine.open(session.playbackPath, startAt: startAt);
+        await engine.open(session.playbackPath, startAt: startAt, play: play);
       } catch (e) {
         // Superseded while failing: another video owns hwdec and the screen
         // now. Retrying would overwrite its decoder and replace it on screen.
@@ -146,7 +150,8 @@ class DecoderController {
         // Hardware could not even open it. One retry in software before this
         // becomes a KV-501; the retry is the one that gets logged if it fails.
         await _setHwdec(DecoderMode.software.mpvHwdec);
-        await guardedOpen(engine, session.playbackPath, log, startAt: startAt);
+        await guardedOpen(engine, session.playbackPath, log,
+            startAt: startAt, play: play);
         if (seq != _openSeq) return;
         await _fallBack(session, 'open failed with hwdec=${mode.mpvHwdec}: $e');
         return;
@@ -154,7 +159,8 @@ class DecoderController {
       if (seq != _openSeq) return;
       _rearm();
     } else {
-      await guardedOpen(engine, session.playbackPath, log, startAt: startAt);
+      await guardedOpen(engine, session.playbackPath, log,
+          startAt: startAt, play: play);
     }
     if (seq == _openSeq) unawaited(refreshStatus());
   }
@@ -289,9 +295,9 @@ class DecoderController {
     }
   }
 
-  Future<void> _setHwdec(String value) async {
+  Future<void> _setHwdec(String value, {bool beforeOpen = false}) async {
     try {
-      await _engine.setHwdec(value);
+      await _engine.setHwdec(value, beforeOpen: beforeOpen);
     } catch (e) {
       // Never let the decoder policy break playback start.
       debugPrint('DecoderController.setHwdec($value) failed: $e');

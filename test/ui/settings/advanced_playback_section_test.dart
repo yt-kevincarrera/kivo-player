@@ -32,6 +32,11 @@ void main() {
   testWidgets('toggling PiP-auto persists pipAutoOnHome', (t) async {
     final c = await _pump(t);
     final before = c.read(settingsProvider).pipAutoOnHome;
+    // Scrolled into view: rows above it move it down as groups grow.
+    await t.scrollUntilVisible(
+        find.text(_l10n.settingsAdvancedPipAutoOnHome), 200,
+        scrollable: find.byType(Scrollable).first);
+    await t.pumpAndSettle();
     final pipRow = find.ancestor(
         of: find.text(_l10n.settingsAdvancedPipAutoOnHome),
         matching: find.byType(Row)).first;

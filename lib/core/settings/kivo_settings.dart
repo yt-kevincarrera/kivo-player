@@ -99,6 +99,10 @@ class KivoSettings {
   /// Watching leaves no trace: no resume position, nothing marked as played.
   final bool incognito;
 
+  /// Quick taps on «Kivo» (the library title) that toggle [incognito];
+  /// 0 = the shortcut is off.
+  final int incognitoTapCount;
+
   const KivoSettings({
     required this.doubleTapSkipLeft,
     required this.doubleTapSkipRight,
@@ -178,6 +182,7 @@ class KivoSettings {
     required this.subtitleRespectAss,
     required this.secondarySubtitleLanguage,
     required this.incognito,
+    required this.incognitoTapCount,
   });
 
   factory KivoSettings.defaults() => const KivoSettings(
@@ -263,6 +268,7 @@ class KivoSettings {
         subtitleRespectAss: true,
         secondarySubtitleLanguage: null,
         incognito: false,
+        incognitoTapCount: 3,
       );
 
   static const Object _unset = Object();
@@ -346,6 +352,7 @@ class KivoSettings {
     bool? subtitleRespectAss,
     Object? secondarySubtitleLanguage = _unset,
     bool? incognito,
+    int? incognitoTapCount,
   }) {
     return KivoSettings(
       doubleTapSkipLeft: doubleTapSkipLeft ?? this.doubleTapSkipLeft,
@@ -438,6 +445,7 @@ class KivoSettings {
           ? this.secondarySubtitleLanguage
           : secondarySubtitleLanguage as String?,
       incognito: incognito ?? this.incognito,
+      incognitoTapCount: incognitoTapCount ?? this.incognitoTapCount,
     );
   }
 
@@ -520,6 +528,7 @@ class KivoSettings {
         'subtitleRespectAss': subtitleRespectAss,
         'secondarySubtitleLanguage': secondarySubtitleLanguage,
         'incognito': incognito,
+        'incognitoTapCount': incognitoTapCount,
       };
 
   factory KivoSettings.fromMap(Map<String, dynamic> m) {
@@ -615,6 +624,7 @@ class KivoSettings {
       secondarySubtitleLanguage:
           m['secondarySubtitleLanguage'] ?? d.secondarySubtitleLanguage,
       incognito: m['incognito'] ?? d.incognito,
+      incognitoTapCount: m['incognitoTapCount'] ?? d.incognitoTapCount,
     );
   }
 }

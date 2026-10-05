@@ -3809,7 +3809,7 @@ abstract class AppLocalizations {
   /// Subtítulo del interruptor del modo incógnito.
   ///
   /// In es, this message translates to:
-  /// **'Mientras esté activo, no se guarda dónde te quedas ni qué has visto. Atajo: toca 5 veces «Kivo» en la biblioteca'**
+  /// **'Mientras esté activo, no se guarda dónde te quedas ni qué has visto'**
   String get settingsAdvancedIncognitoSubtitle;
 
   /// Chip en la barra de la biblioteca mientras el modo incógnito está activo.
@@ -4033,6 +4033,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Modo incógnito activado'**
   String get libraryIncognitoOnSnackbar;
+
+  /// Ajuste: cuántos toques seguidos en el título de la biblioteca activan o desactivan el incógnito.
+  ///
+  /// In es, this message translates to:
+  /// **'Atajo: toques en «Kivo»'**
+  String get settingsAdvancedIncognitoTaps;
+
+  /// Subtítulo del atajo de incógnito.
+  ///
+  /// In es, this message translates to:
+  /// **'Toques seguidos sobre el nombre, arriba en la biblioteca, para activarlo o desactivarlo'**
+  String get settingsAdvancedIncognitoTapsSubtitle;
+
+  /// Opción: sin atajo de toques.
+  ///
+  /// In es, this message translates to:
+  /// **'No'**
+  String get settingsAdvancedIncognitoTapsOff;
 }
 
 class _AppLocalizationsDelegate

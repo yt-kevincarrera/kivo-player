@@ -3455,7 +3455,7 @@
     "description": "Interruptor en Ajustes › Reproducción avanzada › Continuar viendo."
   },
 
-  "settingsAdvancedIncognitoSubtitle": "Mientras esté activo, no se guarda dónde te quedas ni qué has visto. Atajo: toca 5 veces «Kivo» en la biblioteca",
+  "settingsAdvancedIncognitoSubtitle": "Mientras esté activo, no se guarda dónde te quedas ni qué has visto",
   "@settingsAdvancedIncognitoSubtitle": {
     "description": "Subtítulo del interruptor del modo incógnito."
   },
@@ -3712,5 +3712,20 @@
   "libraryIncognitoOnSnackbar": "Modo incógnito activado",
   "@libraryIncognitoOnSnackbar": {
     "description": "Aviso al activar el modo incógnito con 5 toques en el título."
+  },
+
+  "settingsAdvancedIncognitoTaps": "Atajo: toques en «Kivo»",
+  "@settingsAdvancedIncognitoTaps": {
+    "description": "Ajuste: cuántos toques seguidos en el título de la biblioteca activan o desactivan el incógnito."
+  },
+
+  "settingsAdvancedIncognitoTapsSubtitle": "Toques seguidos sobre el nombre, arriba en la biblioteca, para activarlo o desactivarlo",
+  "@settingsAdvancedIncognitoTapsSubtitle": {
+    "description": "Subtítulo del atajo de incógnito."
+  },
+
+  "settingsAdvancedIncognitoTapsOff": "No",
+  "@settingsAdvancedIncognitoTapsOff": {
+    "description": "Opción: sin atajo de toques."
   }
 }

@@ -1,0 +1,1 @@
+Incognito shortcut: 3 taps by default, and configurable. Fixes: videos start cleanly, frame-by-frame resumes where you see, the Vault no longer blinks when selecting.

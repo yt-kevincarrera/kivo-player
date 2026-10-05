@@ -14,7 +14,7 @@ import '../../helpers/pump_app.dart';
 
 final _es = l10nFor(const Locale('es'));
 
-Future<ProviderContainer> _pump(WidgetTester t) async {
+Future<ProviderContainer> _pump(WidgetTester t, {int? taps}) async {
   for (final ch in [
     'receive_sharing_intent/messages',
     'receive_sharing_intent/events-media',
@@ -25,6 +25,7 @@ Future<ProviderContainer> _pump(WidgetTester t) async {
     );
   }
   final s = await SettingsService.load(InMemorySettingsStore());
+  if (taps != null) await s.update(s.current.copyWith(incognitoTapCount: taps));
   final c = ProviderContainer(
     overrides: [
       settingsServiceProvider.overrideWithValue(s),
@@ -53,15 +54,15 @@ Future<void> _tapTitle(WidgetTester t, int times) async {
 
 void main() {
   testWidgets(
-    'five quick taps on «Kivo» turn incognito on, five more turn it off',
+    'three quick taps on «Kivo» (the default) turn incognito on, three more turn it off',
     (t) async {
       final c = await _pump(t);
-      await _tapTitle(t, 5);
+      await _tapTitle(t, 3);
       expect(c.read(settingsProvider).incognito, true);
       expect(find.text(_es.libraryIncognitoOnSnackbar), findsOneWidget);
       expect(find.byKey(const Key('incognito-chip')), findsOneWidget);
 
-      await _tapTitle(t, 5);
+      await _tapTitle(t, 3);
       expect(c.read(settingsProvider).incognito, false);
       await t.pump(
         const Duration(milliseconds: 500),
@@ -71,9 +72,24 @@ void main() {
     },
   );
 
-  testWidgets('four taps do nothing', (t) async {
+  testWidgets('two taps do nothing', (t) async {
     final c = await _pump(t);
-    await _tapTitle(t, 4);
+    await _tapTitle(t, 2);
+    expect(c.read(settingsProvider).incognito, false);
+  });
+
+  testWidgets('the count is a setting', (t) async {
+    final c = await _pump(t, taps: 5);
+    await _tapTitle(t, 3);
+    expect(c.read(settingsProvider).incognito, false);
+    await _tapTitle(t, 2); // 5 in a row now
+    expect(c.read(settingsProvider).incognito, true);
+    await t.pump(const Duration(seconds: 5));
+  });
+
+  testWidgets('off: no number of taps does anything', (t) async {
+    final c = await _pump(t, taps: 0);
+    await _tapTitle(t, 8);
     expect(c.read(settingsProvider).incognito, false);
   });
 }
