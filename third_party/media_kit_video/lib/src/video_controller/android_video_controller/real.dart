@@ -162,12 +162,6 @@ class AndroidVideoController extends PlatformVideoController {
     await setProperty('blend-subtitles', blend);
   }
 
-  /// Sizes the surface before any video, so the first one plays with no
-  /// resize at all.
-  Future<void> _kivoPresize() async {
-    if (!kivoFixedSurface) return;
-    await lock.synchronized(() => _kivoEnsure(0, 0));
-  }
 
   /// How many times the current size has been asked for again.
   int _kivoReasserts = 0;
@@ -366,8 +360,10 @@ class AndroidVideoController extends PlatformVideoController {
         'keepaspect': 'no',
       },
     );
-    // Kivo patch: size the surface to the screen now, before any video.
-    await controller._kivoPresize();
+    // Kivo patch: NO pre-sizing here. Sizing the surface at creation, before
+    // any video, is what both broken releases (1.26.4, 1.26.6) had in common:
+    // the picture came out as one stretched pixel. Sized by the first video
+    // instead (one resize per session), it works (confirmed on a Pixel 6).
 
     // Return the [PlatformVideoController].
     return controller;

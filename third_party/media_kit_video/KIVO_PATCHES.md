@@ -28,6 +28,12 @@ frame into a tiny buffer. `_kivoReassert` now asks for the size again
 whenever a new surface comes back at another size (confirmed working on the
 Pixel 6 in 1.26.5), and the native size of every surface is traced.
 
+**Never size the surface at creation.** 1.26.6 did (`_kivoPresize`, before
+any video) and the stretched-pixel picture came back; sized by the first
+video instead (one resize per session) it works — the user reproduced it:
+first video with the classic surface, then the fixed one, fine. Removed in
+1.26.7.
+
 **Default since Kivo 1.26.6: the fixed surface** (`kivoFixedSurface == true`).
 Kivo's "Dibujo de video clásico" setting turns it off: the surface then
 follows each video's size, as upstream. Common to both: no seek while
@@ -37,7 +43,7 @@ The fixed surface:
 
 - **The surface is not re-sized per video.** It starts at 16:9 of the
   DISPLAY's short side (1920x1080 on a 1080-wide screen, so 16:9 video maps
-  1:1) — sized at creation, before any video — and only grows, never
+  1:1) — sized by the first video, never at creation — and only grows, never
   shrinks, when a video will be shown bigger than it on this display
   (fitted in the orientation that suits it, never beyond its own pixels):
   in practice once, for the first portrait video. The display, not the
