@@ -25,11 +25,26 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _searchController = TextEditingController();
+  final _searchFocus = FocusNode();
 
   @override
   void dispose() {
     _searchController.dispose();
+    _searchFocus.dispose();
     super.dispose();
+  }
+
+  /// With text, the ✕ means "start over": clear it and keep (or give back)
+  /// the field's focus so the keyboard stays up for the next query. Only on
+  /// an empty field does it close the search.
+  void _onClosePressed() {
+    if (_searchController.text.isEmpty) {
+      closeSettingsSearch(ref);
+      return;
+    }
+    _searchController.clear();
+    ref.read(settingsSearchQueryProvider.notifier).state = '';
+    _searchFocus.requestFocus();
   }
 
   Widget _pageFor(SettingsPage page) => switch (page) {
@@ -85,6 +100,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ? TextField(
                   key: const ValueKey('settings-search-field'),
                   controller: _searchController,
+                  focusNode: _searchFocus,
                   autofocus: true,
                   textInputAction: TextInputAction.search,
                   style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
@@ -99,9 +115,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             child: searching
                 ? IconButton(
                     key: const ValueKey('settings-search-close'),
-                    tooltip: l10n.settingsSearchClose,
+                    tooltip: query.isEmpty ? l10n.settingsSearchClose : l10n.settingsSearchClear,
                     icon: const Icon(Icons.close),
-                    onPressed: () => closeSettingsSearch(ref),
+                    onPressed: _onClosePressed,
                   )
                 : IconButton(
                     key: const ValueKey('settings-search-open'),

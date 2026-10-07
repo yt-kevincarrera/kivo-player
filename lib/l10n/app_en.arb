@@ -1847,7 +1847,7 @@
     "description": "Title of the all-files-access row, in Settings → Advanced playback."
   },
 
-  "settingsAdvancedAllFilesAccessGranted": "Granted",
+  "settingsAdvancedAllFilesAccessGranted": "Granted · tap to turn it off",
   "@settingsAdvancedAllFilesAccessGranted": {
     "description": "Subtitle of the all-files-access row once it is already granted."
   },
@@ -3753,6 +3753,11 @@
   "settingsSearchClose": "Close search",
   "@settingsSearchClose": {
     "description": "Tooltip of the button that closes the Settings search."
+  },
+
+  "settingsSearchClear": "Clear text",
+  "@settingsSearchClear": {
+    "description": "Tooltip of the Settings search ✕ while there is text: clears it without closing the search or the keyboard."
   },
 
   "settingsSearchEmpty": "No setting matches “{query}”",

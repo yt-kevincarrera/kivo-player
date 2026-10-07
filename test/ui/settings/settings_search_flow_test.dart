@@ -196,6 +196,29 @@ void main() {
     expect(find.text('Vault'), findsNothing);
   });
 
+  testWidgets('with text, the ✕ only clears it: the field keeps focus, so the keyboard stays up',
+      (t) async {
+    final c = await _container((s) => s);
+    await pumpLocalized(t, const SettingsScreen(), container: c, theme: KivoTheme.dark());
+    await t.pumpAndSettle();
+
+    await _search(t, 'tema');
+    await t.tap(find.byTooltip(_l10n.settingsSearchClear));
+    await t.pumpAndSettle();
+
+    final field = find.byKey(const ValueKey('settings-search-field'));
+    expect(field, findsOneWidget, reason: 'the search stays open');
+    expect(t.widget<TextField>(field).controller!.text, '');
+    expect(c.read(settingsSearchQueryProvider), '');
+    expect(t.widget<TextField>(field).focusNode!.hasFocus, isTrue);
+    expect(t.testTextInput.isVisible, isTrue, reason: 'keyboard still up');
+
+    // Empty now, so the same ✕ closes the search.
+    await t.tap(find.byTooltip(_l10n.settingsSearchClose));
+    await t.pumpAndSettle();
+    expect(c.read(settingsSearchActiveProvider), isFalse);
+  });
+
   testWidgets('closing the search clears it and brings the section list back', (t) async {
     final c = await _container((s) => s);
     await pumpLocalized(t, const SettingsScreen(), container: c, theme: KivoTheme.dark());
@@ -203,6 +226,8 @@ void main() {
 
     await _search(t, 'tema');
     expect(find.text(_l10n.settingsAboutTitle), findsNothing);
+    await t.tap(find.byTooltip(_l10n.settingsSearchClear));
+    await t.pumpAndSettle();
     await t.tap(find.byTooltip(_l10n.settingsSearchClose));
     await t.pumpAndSettle();
 

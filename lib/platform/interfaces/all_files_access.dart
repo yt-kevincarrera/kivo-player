@@ -4,8 +4,9 @@ abstract class AllFilesAccess {
   /// Whether the permission is granted right now.
   Future<bool> isGranted();
 
-  /// Opens the special settings screen to grant it. Resolves (with the
-  /// resulting granted state) when the user returns.
+  /// Opens the special settings screen — also when already granted, so it can
+  /// be revoked there. Resolves (with the resulting granted state) when the
+  /// user returns.
   Future<bool> request();
 }
 

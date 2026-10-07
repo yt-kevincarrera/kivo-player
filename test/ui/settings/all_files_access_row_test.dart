@@ -53,4 +53,30 @@ void main() {
     await tester.pumpAndSettle();
     expect(fake.requestCount, 1);
   });
+
+  // Once granted the row still has a job: taking you to the page where it
+  // can be turned off — and it says so, then reflects what you left it at.
+  testWidgets('tapping the row when granted still opens the page, and shows the result',
+      (tester) async {
+    final s = await SettingsService.load(InMemorySettingsStore());
+    final fake = FakeAllFilesAccess(granted: true, grantOnRequest: false);
+    final c = ProviderContainer(overrides: [
+      settingsServiceProvider.overrideWithValue(s),
+      allFilesAccessProvider.overrideWithValue(fake),
+    ]);
+    addTearDown(c.dispose);
+
+    await pumpLocalized(tester, const AdvancedPlaybackSection(), container: c);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+        find.text(_l10n.settingsAdvancedAllFilesAccess), 200,
+        scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
+    expect(find.text(_l10n.settingsAdvancedAllFilesAccessGranted), findsOneWidget);
+
+    await tester.tap(find.text(_l10n.settingsAdvancedAllFilesAccess));
+    await tester.pumpAndSettle();
+    expect(fake.requestCount, 1);
+    expect(find.text(_l10n.settingsAdvancedAllFilesAccessPrompt), findsOneWidget);
+  });
 }
