@@ -59,6 +59,7 @@ class MainActivity : FlutterFragmentActivity() {
     private var pendingFileOpResult: MethodChannel.Result? = null
     private var pendingRenameUri: android.net.Uri? = null
     private var pendingRenameFinalName: String? = null
+    private var pendingAllFilesResult: MethodChannel.Result? = null
 
     // --- kivo/update ---
     // The download is owned by DownloadManager, not by this Activity: it keeps
@@ -180,6 +181,7 @@ class MainActivity : FlutterFragmentActivity() {
         private const val PIP_EXTRA = "action"
         private const val REQ_DELETE = 4011
         private const val REQ_RENAME = 4012
+        private const val REQ_ALL_FILES = 4013
     }
 
     private val pipReceiver = object : BroadcastReceiver() {
@@ -482,6 +484,33 @@ class MainActivity : FlutterFragmentActivity() {
                             result.success(null)
                         } catch (e: Exception) {
                             result.error("VIEW_FAILED", e.message, null)
+                        }
+                    }
+                    "openAllFilesAccess" -> {
+                        // Always opens the page, granted or not (permission_handler
+                        // skips it when granted, so the Ajustes row did nothing and
+                        // the permission couldn't be revoked). Answers with the
+                        // state the user leaves it in; null below API 30, where the
+                        // page doesn't exist.
+                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                            result.success(null); return@setMethodCallHandler
+                        }
+                        pendingAllFilesResult?.success(Environment.isExternalStorageManager())
+                        pendingAllFilesResult = result
+                        try {
+                            startActivityForResult(
+                                Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                                    Uri.parse("package:$packageName")), REQ_ALL_FILES)
+                        } catch (e: Exception) {
+                            // Some OEM builds lack the per-app page: open the list instead.
+                            try {
+                                startActivityForResult(
+                                    Intent(android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION),
+                                    REQ_ALL_FILES)
+                            } catch (e2: Exception) {
+                                pendingAllFilesResult = null
+                                result.success(Environment.isExternalStorageManager())
+                            }
                         }
                     }
                     "share" -> {
@@ -1089,6 +1118,13 @@ class MainActivity : FlutterFragmentActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
+            REQ_ALL_FILES -> {
+                val r = pendingAllFilesResult
+                pendingAllFilesResult = null
+                // The settings page never returns RESULT_OK; read the real state.
+                r?.success(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+                    Environment.isExternalStorageManager())
+            }
             REQ_DELETE -> {
                 val r = pendingFileOpResult
                 pendingFileOpResult = null

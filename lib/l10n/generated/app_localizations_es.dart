@@ -1199,7 +1199,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsAdvancedAllFilesAccess => 'Acceso a todos los archivos';
 
   @override
-  String get settingsAdvancedAllFilesAccessGranted => 'Concedido';
+  String get settingsAdvancedAllFilesAccessGranted =>
+      'Concedido · toca para quitarlo';
 
   @override
   String get settingsAdvancedAllFilesAccessPrompt =>
@@ -2424,6 +2425,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settingsSearchClose => 'Cerrar búsqueda';
+
+  @override
+  String get settingsSearchClear => 'Borrar texto';
 
   @override
   String settingsSearchEmpty(String query) {

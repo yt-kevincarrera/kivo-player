@@ -2027,7 +2027,7 @@ abstract class AppLocalizations {
   /// Subtítulo de la fila de acceso a todos los archivos cuando ya está concedido.
   ///
   /// In es, this message translates to:
-  /// **'Concedido'**
+  /// **'Concedido · toca para quitarlo'**
   String get settingsAdvancedAllFilesAccessGranted;
 
   /// Subtítulo de la fila de acceso a todos los archivos cuando todavía no está concedido.
@@ -4081,6 +4081,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Cerrar búsqueda'**
   String get settingsSearchClose;
+
+  /// Tooltip de la ✕ de la búsqueda de Ajustes mientras hay texto escrito: lo borra sin cerrar la búsqueda ni el teclado.
+  ///
+  /// In es, this message translates to:
+  /// **'Borrar texto'**
+  String get settingsSearchClear;
 
   /// Estado vacío de la búsqueda de Ajustes; {query} es lo que escribió el usuario.
   ///

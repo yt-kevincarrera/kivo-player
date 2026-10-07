@@ -1846,7 +1846,7 @@
     "description": "Título de la fila de acceso a todos los archivos, en Ajustes → Reproducción avanzada."
   },
 
-  "settingsAdvancedAllFilesAccessGranted": "Concedido",
+  "settingsAdvancedAllFilesAccessGranted": "Concedido · toca para quitarlo",
   "@settingsAdvancedAllFilesAccessGranted": {
     "description": "Subtítulo de la fila de acceso a todos los archivos cuando ya está concedido."
   },
@@ -3752,6 +3752,11 @@
   "settingsSearchClose": "Cerrar búsqueda",
   "@settingsSearchClose": {
     "description": "Tooltip del botón que cierra la búsqueda de Ajustes."
+  },
+
+  "settingsSearchClear": "Borrar texto",
+  "@settingsSearchClear": {
+    "description": "Tooltip de la ✕ de la búsqueda de Ajustes mientras hay texto escrito: lo borra sin cerrar la búsqueda ni el teclado."
   },
 
   "settingsSearchEmpty": "Ningún ajuste coincide con «{query}»",
