@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/l10n.dart';
 import '../mini_player/mini_player_bar.dart';
+import '../settings/search/settings_search_state.dart';
 import '../settings/settings_screen.dart';
 import 'library_screen.dart';
 import 'state/library_selection.dart';
@@ -59,6 +60,10 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         final nav = _activeNav.currentState;
         if (nav != null && nav.canPop()) {
           nav.pop();
+        } else if (_index == 1 && ref.read(settingsSearchActiveProvider)) {
+          // A section opened from a result pops back to the results first
+          // (above); only then does back close the search itself.
+          closeSettingsSearch(ref);
         } else if (_index != 0) {
           setState(
             () => _index = 0,

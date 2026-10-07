@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../l10n/l10n.dart';
+import '../search/settings_search.dart';
+import '../widgets/setting_anchor.dart';
 import '../widgets/setting_tiles.dart';
 import 'hidden_folders_section.dart';
 import '../../widgets/readable_width.dart';
@@ -16,67 +18,85 @@ class GeneralSettingsSection extends ConsumerWidget {
     final l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsGeneralTitle)),
-      body: ListView(
+      body: SettingsScrollBody(
         padding: readablePadding(context, const EdgeInsets.fromLTRB(14, 12, 14, 28)),
         children: [
           _label(context, l10n.settingsGeneralGroupAppearance),
           SettingsCard(children: [
-            SettingSegmented<String>(
-              title: l10n.settingsGeneralTheme,
-              subtitle: l10n.settingsGeneralThemeSubtitle,
-              options: [
-                ('auto', l10n.settingsGeneralThemeAuto),
-                ('dark', l10n.settingsGeneralThemeDark),
-                ('light', l10n.settingsGeneralThemeLight),
-              ],
-              value: s.themeMode,
-              onChanged: (v) => n.set(s.copyWith(themeMode: v)),
+            SettingAnchor(
+              id: SettingIds.theme,
+              child: SettingSegmented<String>(
+                title: l10n.settingsGeneralTheme,
+                subtitle: l10n.settingsGeneralThemeSubtitle,
+                options: [
+                  ('auto', l10n.settingsGeneralThemeAuto),
+                  ('dark', l10n.settingsGeneralThemeDark),
+                  ('light', l10n.settingsGeneralThemeLight),
+                ],
+                value: s.themeMode,
+                onChanged: (v) => n.set(s.copyWith(themeMode: v)),
+              ),
             ),
-            SettingColor(
-              title: l10n.settingsGeneralAccentColor,
-              value: s.accentColor,
-              onChanged: (v) => n.set(s.copyWith(accentColor: v)),
+            SettingAnchor(
+              id: SettingIds.accentColor,
+              child: SettingColor(
+                title: l10n.settingsGeneralAccentColor,
+                value: s.accentColor,
+                onChanged: (v) => n.set(s.copyWith(accentColor: v)),
+              ),
             ),
-            SettingSegmented<String>(
-              title: l10n.settingsGeneralIcons,
-              subtitle: l10n.settingsGeneralIconsSubtitle,
-              options: [
-                ('duotone', l10n.settingsGeneralIconsDuotone),
-                ('flat', l10n.settingsGeneralIconsFlat),
-              ],
-              value: s.iconStyle,
-              onChanged: (v) => n.set(s.copyWith(iconStyle: v)),
+            SettingAnchor(
+              id: SettingIds.iconStyle,
+              child: SettingSegmented<String>(
+                title: l10n.settingsGeneralIcons,
+                subtitle: l10n.settingsGeneralIconsSubtitle,
+                options: [
+                  ('duotone', l10n.settingsGeneralIconsDuotone),
+                  ('flat', l10n.settingsGeneralIconsFlat),
+                ],
+                value: s.iconStyle,
+                onChanged: (v) => n.set(s.copyWith(iconStyle: v)),
+              ),
             ),
-            SettingSegmented<String>(
-              title: l10n.settingsLanguage,
-              options: [
-                ('system', l10n.settingsLanguageSystem),
-                ('es', l10n.settingsLanguageSpanish),
-                ('en', l10n.settingsLanguageEnglish),
-              ],
-              value: s.locale,
-              onChanged: (v) => n.set(s.copyWith(locale: v)),
+            SettingAnchor(
+              id: SettingIds.language,
+              child: SettingSegmented<String>(
+                title: l10n.settingsLanguage,
+                options: [
+                  ('system', l10n.settingsLanguageSystem),
+                  ('es', l10n.settingsLanguageSpanish),
+                  ('en', l10n.settingsLanguageEnglish),
+                ],
+                value: s.locale,
+                onChanged: (v) => n.set(s.copyWith(locale: v)),
+              ),
             ),
           ]),
           const SizedBox(height: 16),
           _label(context, l10n.settingsGeneralGroupInteraction),
           SettingsCard(children: [
-            SettingSwitch(
-              title: l10n.settingsGeneralHaptics,
-              subtitle: l10n.settingsGeneralHapticsSubtitle,
-              value: s.hapticsOnGestures,
-              onChanged: (v) => n.set(s.copyWith(hapticsOnGestures: v)),
+            SettingAnchor(
+              id: SettingIds.haptics,
+              child: SettingSwitch(
+                title: l10n.settingsGeneralHaptics,
+                subtitle: l10n.settingsGeneralHapticsSubtitle,
+                value: s.hapticsOnGestures,
+                onChanged: (v) => n.set(s.copyWith(hapticsOnGestures: v)),
+              ),
             ),
           ]),
           const SizedBox(height: 16),
           _label(context, l10n.settingsGroupLibrary),
           SettingsCard(children: [
-            SettingNavRow(
-              icon: Icons.folder_off_outlined,
-              title: l10n.settingsHiddenFoldersTitle,
-              subtitle: l10n.settingsHiddenFoldersNavSubtitle,
-              onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                  builder: (_) => const HiddenFoldersSection())),
+            SettingAnchor(
+              id: SettingIds.hiddenFolders,
+              child: SettingNavRow(
+                icon: Icons.folder_off_outlined,
+                title: l10n.settingsHiddenFoldersTitle,
+                subtitle: l10n.settingsHiddenFoldersNavSubtitle,
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => const HiddenFoldersSection())),
+              ),
             ),
           ]),
         ],

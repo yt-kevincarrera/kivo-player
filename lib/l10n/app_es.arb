@@ -3737,5 +3737,100 @@
   "settingsAdvancedClassicSurfaceSubtitle": "Actívalo solo si ves un color plano en lugar del video. Los videos tardan un poco más en empezar y pueden dar un tirón al cambiar de resolución",
   "@settingsAdvancedClassicSurfaceSubtitle": {
     "description": "Subtítulo del dibujo clásico."
+  },
+
+  "settingsSearchTooltip": "Buscar en ajustes",
+  "@settingsSearchTooltip": {
+    "description": "Tooltip de la lupa en la barra de Ajustes."
+  },
+
+  "settingsSearchHint": "Buscar un ajuste",
+  "@settingsSearchHint": {
+    "description": "Texto de ayuda del campo de búsqueda de Ajustes."
+  },
+
+  "settingsSearchClose": "Cerrar búsqueda",
+  "@settingsSearchClose": {
+    "description": "Tooltip del botón que cierra la búsqueda de Ajustes."
+  },
+
+  "settingsSearchEmpty": "Ningún ajuste coincide con «{query}»",
+  "@settingsSearchEmpty": {
+    "description": "Estado vacío de la búsqueda de Ajustes; {query} es lo que escribió el usuario.",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+
+  "settingsSearchKwTheme": "modo oscuro, modo claro, dark",
+  "@settingsSearchKwTheme": {
+    "description": "Sinónimos (separados por comas, nunca se muestran) con los que la búsqueda de Ajustes encuentra «Tema»."
+  },
+
+  "settingsSearchKwAccent": "paleta, dorado, personalizar",
+  "@settingsSearchKwAccent": {
+    "description": "Sinónimos de búsqueda para «Color de acento»."
+  },
+
+  "settingsSearchKwLanguage": "language, english, español, inglés",
+  "@settingsSearchKwLanguage": {
+    "description": "Sinónimos de búsqueda para «Idioma»; incluyen el otro idioma a propósito, para encontrarlo aunque la app esté en uno que no entiendes."
+  },
+
+  "settingsSearchKwIncognito": "privado, historial, privacidad",
+  "@settingsSearchKwIncognito": {
+    "description": "Sinónimos de búsqueda para «Modo incógnito»."
+  },
+
+  "settingsSearchKwPip": "imagen en imagen, ventana flotante",
+  "@settingsSearchKwPip": {
+    "description": "Sinónimos de búsqueda para la miniatura flotante (PiP)."
+  },
+
+  "settingsSearchKwBackground": "segundo plano, fondo",
+  "@settingsSearchKwBackground": {
+    "description": "Sinónimos de búsqueda para «Seguir reproduciendo al minimizar»."
+  },
+
+  "settingsSearchKwDecoder": "hardware, software, aceleración, hwdec",
+  "@settingsSearchKwDecoder": {
+    "description": "Sinónimos de búsqueda para «Decodificador por defecto»."
+  },
+
+  "settingsSearchKwVolumeBoost": "amplificar, subir volumen",
+  "@settingsSearchKwVolumeBoost": {
+    "description": "Sinónimos de búsqueda para «Boost máximo de volumen»."
+  },
+
+  "settingsSearchKwSpeedPresets": "rápido, lento",
+  "@settingsSearchKwSpeedPresets": {
+    "description": "Sinónimos de búsqueda para los presets de velocidad."
+  },
+
+  "settingsSearchKwColumns": "cuadrícula, lista",
+  "@settingsSearchKwColumns": {
+    "description": "Sinónimos de búsqueda para «Columnas por defecto»."
+  },
+
+  "settingsSearchKwEqualizer": "eq, graves, agudos, bajos, sonido",
+  "@settingsSearchKwEqualizer": {
+    "description": "Sinónimos de búsqueda para la sección Ecualizador."
+  },
+
+  "settingsSearchKwBackup": "exportar, importar, restaurar, respaldo",
+  "@settingsSearchKwBackup": {
+    "description": "Sinónimos de búsqueda para la sección Copia de seguridad."
+  },
+
+  "settingsSearchKwUpdates": "versión, actualizar",
+  "@settingsSearchKwUpdates": {
+    "description": "Sinónimos de búsqueda para «Buscar actualizaciones»."
+  },
+
+  "settingsSearchKwVault": "bóveda, ocultos, privado",
+  "@settingsSearchKwVault": {
+    "description": "Sinónimos de búsqueda para el Vault (solo se busca mientras su entrada está visible)."
   }
 }

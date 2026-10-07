@@ -2400,4 +2400,61 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsAdvancedClassicSurfaceSubtitle =>
       'Turn it on only if you see a flat colour instead of the video. Videos take a little longer to start and may hitch on a resolution change';
+
+  @override
+  String get settingsSearchTooltip => 'Search settings';
+
+  @override
+  String get settingsSearchHint => 'Search for a setting';
+
+  @override
+  String get settingsSearchClose => 'Close search';
+
+  @override
+  String settingsSearchEmpty(String query) {
+    return 'No setting matches “$query”';
+  }
+
+  @override
+  String get settingsSearchKwTheme => 'dark mode, light mode';
+
+  @override
+  String get settingsSearchKwAccent => 'palette, gold, customise, color';
+
+  @override
+  String get settingsSearchKwLanguage => 'idioma, spanish, español, english';
+
+  @override
+  String get settingsSearchKwIncognito => 'private, history, privacy';
+
+  @override
+  String get settingsSearchKwPip => 'picture in picture, floating window';
+
+  @override
+  String get settingsSearchKwBackground => 'background';
+
+  @override
+  String get settingsSearchKwDecoder =>
+      'hardware, software, acceleration, hwdec';
+
+  @override
+  String get settingsSearchKwVolumeBoost => 'amplify, louder';
+
+  @override
+  String get settingsSearchKwSpeedPresets => 'fast, slow';
+
+  @override
+  String get settingsSearchKwColumns => 'grid, list';
+
+  @override
+  String get settingsSearchKwEqualizer => 'eq, bass, treble, sound';
+
+  @override
+  String get settingsSearchKwBackup => 'export, import, restore';
+
+  @override
+  String get settingsSearchKwUpdates => 'version, update';
+
+  @override
+  String get settingsSearchKwVault => 'hidden, private, safe';
 }

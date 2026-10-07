@@ -4063,6 +4063,114 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Actívalo solo si ves un color plano en lugar del video. Los videos tardan un poco más en empezar y pueden dar un tirón al cambiar de resolución'**
   String get settingsAdvancedClassicSurfaceSubtitle;
+
+  /// Tooltip de la lupa en la barra de Ajustes.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar en ajustes'**
+  String get settingsSearchTooltip;
+
+  /// Texto de ayuda del campo de búsqueda de Ajustes.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar un ajuste'**
+  String get settingsSearchHint;
+
+  /// Tooltip del botón que cierra la búsqueda de Ajustes.
+  ///
+  /// In es, this message translates to:
+  /// **'Cerrar búsqueda'**
+  String get settingsSearchClose;
+
+  /// Estado vacío de la búsqueda de Ajustes; {query} es lo que escribió el usuario.
+  ///
+  /// In es, this message translates to:
+  /// **'Ningún ajuste coincide con «{query}»'**
+  String settingsSearchEmpty(String query);
+
+  /// Sinónimos (separados por comas, nunca se muestran) con los que la búsqueda de Ajustes encuentra «Tema».
+  ///
+  /// In es, this message translates to:
+  /// **'modo oscuro, modo claro, dark'**
+  String get settingsSearchKwTheme;
+
+  /// Sinónimos de búsqueda para «Color de acento».
+  ///
+  /// In es, this message translates to:
+  /// **'paleta, dorado, personalizar'**
+  String get settingsSearchKwAccent;
+
+  /// Sinónimos de búsqueda para «Idioma»; incluyen el otro idioma a propósito, para encontrarlo aunque la app esté en uno que no entiendes.
+  ///
+  /// In es, this message translates to:
+  /// **'language, english, español, inglés'**
+  String get settingsSearchKwLanguage;
+
+  /// Sinónimos de búsqueda para «Modo incógnito».
+  ///
+  /// In es, this message translates to:
+  /// **'privado, historial, privacidad'**
+  String get settingsSearchKwIncognito;
+
+  /// Sinónimos de búsqueda para la miniatura flotante (PiP).
+  ///
+  /// In es, this message translates to:
+  /// **'imagen en imagen, ventana flotante'**
+  String get settingsSearchKwPip;
+
+  /// Sinónimos de búsqueda para «Seguir reproduciendo al minimizar».
+  ///
+  /// In es, this message translates to:
+  /// **'segundo plano, fondo'**
+  String get settingsSearchKwBackground;
+
+  /// Sinónimos de búsqueda para «Decodificador por defecto».
+  ///
+  /// In es, this message translates to:
+  /// **'hardware, software, aceleración, hwdec'**
+  String get settingsSearchKwDecoder;
+
+  /// Sinónimos de búsqueda para «Boost máximo de volumen».
+  ///
+  /// In es, this message translates to:
+  /// **'amplificar, subir volumen'**
+  String get settingsSearchKwVolumeBoost;
+
+  /// Sinónimos de búsqueda para los presets de velocidad.
+  ///
+  /// In es, this message translates to:
+  /// **'rápido, lento'**
+  String get settingsSearchKwSpeedPresets;
+
+  /// Sinónimos de búsqueda para «Columnas por defecto».
+  ///
+  /// In es, this message translates to:
+  /// **'cuadrícula, lista'**
+  String get settingsSearchKwColumns;
+
+  /// Sinónimos de búsqueda para la sección Ecualizador.
+  ///
+  /// In es, this message translates to:
+  /// **'eq, graves, agudos, bajos, sonido'**
+  String get settingsSearchKwEqualizer;
+
+  /// Sinónimos de búsqueda para la sección Copia de seguridad.
+  ///
+  /// In es, this message translates to:
+  /// **'exportar, importar, restaurar, respaldo'**
+  String get settingsSearchKwBackup;
+
+  /// Sinónimos de búsqueda para «Buscar actualizaciones».
+  ///
+  /// In es, this message translates to:
+  /// **'versión, actualizar'**
+  String get settingsSearchKwUpdates;
+
+  /// Sinónimos de búsqueda para el Vault (solo se busca mientras su entrada está visible).
+  ///
+  /// In es, this message translates to:
+  /// **'bóveda, ocultos, privado'**
+  String get settingsSearchKwVault;
 }
 
 class _AppLocalizationsDelegate
