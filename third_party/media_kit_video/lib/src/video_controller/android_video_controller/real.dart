@@ -91,8 +91,12 @@ class AndroidVideoController extends PlatformVideoController {
   /// what this video is shown at on this screen (fitted, in the orientation
   /// that suits it, never more than its own pixels), never less than now.
   _KivoSize _kivoTarget(int w, int h) {
-    // Default: the surface is exactly the video, as upstream does.
-    if (!kivoFixedSurface) {
+    // Default: the surface is exactly the video, as upstream does. And
+    // ALWAYS so for the session's first surface, fixed mode too: a first
+    // surface at the fixed size showed one stretched pixel instead of the
+    // video until the app was restarted (Pixel 6, 1.26.4–1.26.7), while a
+    // first surface at the video's size, then the fixed rule, works.
+    if (!kivoFixedSurface || _surfaceW == 0 || _surfaceH == 0) {
       return w > 0 && h > 0 ? _KivoSize(w, h) : _KivoSize(_surfaceW, _surfaceH);
     }
     final d = _display();
