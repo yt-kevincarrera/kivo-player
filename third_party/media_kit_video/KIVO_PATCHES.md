@@ -28,6 +28,13 @@ frame into a tiny buffer. `_kivoReassert` now asks for the size again
 whenever a new surface comes back at another size (confirmed working on the
 Pixel 6 in 1.26.5), and the native size of every surface is traced.
 
+**The session's FIRST surface is always the video's exact size**, fixed mode
+too (1.26.8). The user's repro on a Pixel 6: a first surface at the fixed
+size shows one stretched pixel until the app restarts — whether made at
+creation (1.26.4/1.26.6) or by the first video (1.26.7) — while a first
+surface at the video's size (the classic rule) and the fixed rule after it
+work. Why the first one differs is not known; this mimics the working flow.
+
 **Never size the surface at creation.** 1.26.6 did (`_kivoPresize`, before
 any video) and the stretched-pixel picture came back; sized by the first
 video instead (one resize per session) it works — the user reproduced it:

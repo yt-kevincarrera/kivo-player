@@ -1,0 +1,1 @@
+Fixed: with fast start, the first video of a session could show as a flat colour.

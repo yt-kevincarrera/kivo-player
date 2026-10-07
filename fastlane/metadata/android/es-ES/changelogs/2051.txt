@@ -1,0 +1,1 @@
+Arreglado: con el arranque rápido, el primer video de la sesión podía verse como un color plano.
