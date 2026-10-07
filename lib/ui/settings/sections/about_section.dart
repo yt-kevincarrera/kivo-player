@@ -8,6 +8,8 @@ import '../../../l10n/l10n.dart';
 import '../../../platform/app_installer_provider.dart';
 import '../../update/update_dialog.dart';
 import '../../widgets/failure_snack_bar.dart';
+import '../search/settings_search.dart';
+import '../widgets/setting_anchor.dart';
 import '../widgets/setting_tiles.dart';
 import 'error_log_section.dart';
 import 'privacy_section.dart';
@@ -112,6 +114,14 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
   }
 
   Widget _checkTile(BuildContext context, ColorScheme cs) {
+    return SettingAnchor(
+      id: SettingIds.checkUpdates,
+      borderRadius: BorderRadius.circular(13),
+      child: _checkListTile(context, cs),
+    );
+  }
+
+  Widget _checkListTile(BuildContext context, ColorScheme cs) {
     return ListTile(
       leading: _checking
           ? SizedBox(
@@ -135,7 +145,7 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
     final auto = ref.watch(settingsProvider.select((s) => s.autoCheckUpdates));
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsAboutTitle)),
-      body: ListView(
+      body: SettingsScrollBody(
         padding: readablePadding(context, const EdgeInsets.fromLTRB(14, 20, 14, 28)),
         children: [
           Center(
@@ -181,31 +191,41 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
           ),
           const SizedBox(height: 28),
           ..._updateTiles(context, cs),
-          SettingSwitch(
-            title: l10n.settingsAboutAutoCheck,
-            subtitle: l10n.settingsAboutAutoCheckSubtitle,
-            value: auto,
-            onChanged: (v) => ref
-                .read(settingsProvider.notifier)
-                .set(ref.read(settingsProvider).copyWith(autoCheckUpdates: v)),
+          SettingAnchor(
+            id: SettingIds.autoCheckUpdates,
+            borderRadius: BorderRadius.circular(13),
+            child: SettingSwitch(
+              title: l10n.settingsAboutAutoCheck,
+              subtitle: l10n.settingsAboutAutoCheckSubtitle,
+              value: auto,
+              onChanged: (v) => ref
+                  .read(settingsProvider.notifier)
+                  .set(ref.read(settingsProvider).copyWith(autoCheckUpdates: v)),
+            ),
           ),
           const SizedBox(height: 20),
           SettingsCard(
             children: [
-              SettingNavRow(
-                icon: Icons.support_agent_outlined,
-                title: l10n.settingsAboutReportProblem,
-                subtitle: l10n.settingsAboutReportProblemSubtitle,
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const ProblemReportScreen()),
+              SettingAnchor(
+                id: SettingIds.reportProblem,
+                child: SettingNavRow(
+                  icon: Icons.support_agent_outlined,
+                  title: l10n.settingsAboutReportProblem,
+                  subtitle: l10n.settingsAboutReportProblemSubtitle,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const ProblemReportScreen()),
+                  ),
                 ),
               ),
-              SettingNavRow(
-                icon: Icons.bug_report_outlined,
-                title: l10n.settingsAboutErrorLogTitle,
-                subtitle: l10n.settingsAboutErrorLogSubtitle,
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const ErrorLogSection()),
+              SettingAnchor(
+                id: SettingIds.errorLog,
+                child: SettingNavRow(
+                  icon: Icons.bug_report_outlined,
+                  title: l10n.settingsAboutErrorLogTitle,
+                  subtitle: l10n.settingsAboutErrorLogSubtitle,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const ErrorLogSection()),
+                  ),
                 ),
               ),
             ],
@@ -213,26 +233,32 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
           const SizedBox(height: 16),
           SettingsCard(
             children: [
-              SettingNavRow(
-                icon: Icons.privacy_tip_outlined,
-                title: l10n.settingsAboutPrivacy,
-                subtitle: l10n.settingsAboutPrivacySubtitle,
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const PrivacySection()),
+              SettingAnchor(
+                id: SettingIds.privacy,
+                child: SettingNavRow(
+                  icon: Icons.privacy_tip_outlined,
+                  title: l10n.settingsAboutPrivacy,
+                  subtitle: l10n.settingsAboutPrivacySubtitle,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const PrivacySection()),
+                  ),
                 ),
               ),
-              SettingNavRow(
-                icon: Icons.description_outlined,
-                title: l10n.settingsAboutLicenses,
-                subtitle: l10n.settingsAboutLicensesSubtitle,
-                onTap: () async {
-                  final version = await _versionFuture;
-                  if (!context.mounted) return;
-                  showLicensePage(
-                      context: context,
-                      applicationName: 'Kivo',
-                      applicationVersion: version);
-                },
+              SettingAnchor(
+                id: SettingIds.licenses,
+                child: SettingNavRow(
+                  icon: Icons.description_outlined,
+                  title: l10n.settingsAboutLicenses,
+                  subtitle: l10n.settingsAboutLicensesSubtitle,
+                  onTap: () async {
+                    final version = await _versionFuture;
+                    if (!context.mounted) return;
+                    showLicensePage(
+                        context: context,
+                        applicationName: 'Kivo',
+                        applicationVersion: version);
+                  },
+                ),
               ),
             ],
           ),

@@ -7,6 +7,8 @@ import '../../../l10n/l10n.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../player/audio/equalizer.dart';
 import '../../../player/audio/equalizer_controller.dart';
+import '../search/settings_search.dart';
+import '../widgets/setting_anchor.dart';
 import '../widgets/setting_tiles.dart';
 import '../../widgets/readable_width.dart';
 import '../../widgets/kivo_focusable.dart';
@@ -57,7 +59,7 @@ class _EqualizerSectionState extends ConsumerState<EqualizerSection> {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsEqualizerTitle)),
-      body: ListView(
+      body: SettingsScrollBody(
         padding: readablePadding(context, const EdgeInsets.fromLTRB(14, 12, 14, 28)),
         children: [
           SettingsCard(children: [
@@ -70,52 +72,62 @@ class _EqualizerSectionState extends ConsumerState<EqualizerSection> {
           ]),
           const SizedBox(height: 16),
           _label(context, l10n.settingsEqGroupPresets),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final p in EqPreset.values.where((p) => p != EqPreset.custom))
-                _PresetChip(
-                  label: eqPresetLabel(l10n, p),
-                  selected: preset == p,
-                  accent: accent,
-                  onTap: () => notifier.applyPreset(p.name),
-                ),
-            ],
+          SettingAnchor(
+            id: SettingIds.eqPresets,
+            borderRadius: BorderRadius.circular(20),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final p in EqPreset.values.where((p) => p != EqPreset.custom))
+                  _PresetChip(
+                    label: eqPresetLabel(l10n, p),
+                    selected: preset == p,
+                    accent: accent,
+                    onTap: () => notifier.applyPreset(p.name),
+                  ),
+              ],
+            ),
           ),
           const SizedBox(height: 16),
           _label(context, l10n.settingsEqGroupBands),
           SettingsCard(children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 16, 4, 6),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  for (var i = 0; i < equalizerBandsHz.length; i++)
-                    Expanded(
-                      child: _BandSlider(
-                        hz: equalizerBandsHz[i],
-                        db: eq.gainsDb[i],
-                        accent: accent,
-                        onChanged: (v) => notifier.setBand(i, v),
+            SettingAnchor(
+              id: SettingIds.eqBands,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(4, 16, 4, 6),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    for (var i = 0; i < equalizerBandsHz.length; i++)
+                      Expanded(
+                        child: _BandSlider(
+                          hz: equalizerBandsHz[i],
+                          db: eq.gainsDb[i],
+                          accent: accent,
+                          onChanged: (v) => notifier.setBand(i, v),
+                        ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
           ]),
           const SizedBox(height: 16),
           _label(context, l10n.settingsEqGroupPreamp),
           SettingsCard(children: [
-            SettingSlider(
-              title: l10n.settingsEqPreampGain,
-              value: eq.preampDb,
-              min: equalizerMinDb,
-              max: equalizerMaxDb,
-              divisions:
-                  ((equalizerMaxDb - equalizerMinDb) / equalizerStepDb).round(),
-              label: (v) => '${v > 0 ? '+' : ''}${v.toStringAsFixed(1)} dB',
-              onChanged: notifier.setPreamp,
+            SettingAnchor(
+              id: SettingIds.eqPreamp,
+              child: SettingSlider(
+                title: l10n.settingsEqPreampGain,
+                value: eq.preampDb,
+                min: equalizerMinDb,
+                max: equalizerMaxDb,
+                divisions:
+                    ((equalizerMaxDb - equalizerMinDb) / equalizerStepDb).round(),
+                label: (v) => '${v > 0 ? '+' : ''}${v.toStringAsFixed(1)} dB',
+                onChanged: notifier.setPreamp,
+              ),
             ),
           ]),
           const SizedBox(height: 18),

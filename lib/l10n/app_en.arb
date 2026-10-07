@@ -3738,5 +3738,100 @@
   "settingsAdvancedClassicSurfaceSubtitle": "Turn it on only if you see a flat colour instead of the video. Videos take a little longer to start and may hitch on a resolution change",
   "@settingsAdvancedClassicSurfaceSubtitle": {
     "description": "Subtitle of classic rendering."
+  },
+
+  "settingsSearchTooltip": "Search settings",
+  "@settingsSearchTooltip": {
+    "description": "Tooltip of the search icon in the Settings app bar."
+  },
+
+  "settingsSearchHint": "Search for a setting",
+  "@settingsSearchHint": {
+    "description": "Hint text of the Settings search field."
+  },
+
+  "settingsSearchClose": "Close search",
+  "@settingsSearchClose": {
+    "description": "Tooltip of the button that closes the Settings search."
+  },
+
+  "settingsSearchEmpty": "No setting matches “{query}”",
+  "@settingsSearchEmpty": {
+    "description": "Empty state of the Settings search; {query} is what the user typed.",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+
+  "settingsSearchKwTheme": "dark mode, light mode",
+  "@settingsSearchKwTheme": {
+    "description": "Synonyms (comma-separated, never shown) the Settings search matches to Theme."
+  },
+
+  "settingsSearchKwAccent": "palette, gold, customise, color",
+  "@settingsSearchKwAccent": {
+    "description": "Search synonyms for Accent colour."
+  },
+
+  "settingsSearchKwLanguage": "idioma, spanish, español, english",
+  "@settingsSearchKwLanguage": {
+    "description": "Search synonyms for Language; they include the other language on purpose, so it can be found from an app set to one you don't read."
+  },
+
+  "settingsSearchKwIncognito": "private, history, privacy",
+  "@settingsSearchKwIncognito": {
+    "description": "Search synonyms for Incognito mode."
+  },
+
+  "settingsSearchKwPip": "picture in picture, floating window",
+  "@settingsSearchKwPip": {
+    "description": "Search synonyms for the floating PiP window."
+  },
+
+  "settingsSearchKwBackground": "background",
+  "@settingsSearchKwBackground": {
+    "description": "Search synonyms for Keep playing when minimised."
+  },
+
+  "settingsSearchKwDecoder": "hardware, software, acceleration, hwdec",
+  "@settingsSearchKwDecoder": {
+    "description": "Search synonyms for Default decoder."
+  },
+
+  "settingsSearchKwVolumeBoost": "amplify, louder",
+  "@settingsSearchKwVolumeBoost": {
+    "description": "Search synonyms for Maximum volume boost."
+  },
+
+  "settingsSearchKwSpeedPresets": "fast, slow",
+  "@settingsSearchKwSpeedPresets": {
+    "description": "Search synonyms for the speed presets."
+  },
+
+  "settingsSearchKwColumns": "grid, list",
+  "@settingsSearchKwColumns": {
+    "description": "Search synonyms for Default columns."
+  },
+
+  "settingsSearchKwEqualizer": "eq, bass, treble, sound",
+  "@settingsSearchKwEqualizer": {
+    "description": "Search synonyms for the Equalizer section."
+  },
+
+  "settingsSearchKwBackup": "export, import, restore",
+  "@settingsSearchKwBackup": {
+    "description": "Search synonyms for the Backup section."
+  },
+
+  "settingsSearchKwUpdates": "version, update",
+  "@settingsSearchKwUpdates": {
+    "description": "Search synonyms for Check for updates."
+  },
+
+  "settingsSearchKwVault": "hidden, private, safe",
+  "@settingsSearchKwVault": {
+    "description": "Search synonyms for the Vault (only searched while its entrance is visible)."
   }
 }

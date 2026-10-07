@@ -10,6 +10,8 @@ import '../../../core/backup/backup_file.dart';
 import '../../../core/backup/backup_merge.dart';
 import '../../../core/backup/backup_service.dart';
 import '../../../l10n/l10n.dart';
+import '../search/settings_search.dart';
+import '../widgets/setting_anchor.dart';
 import '../widgets/setting_tiles.dart';
 import '../../widgets/readable_width.dart';
 
@@ -21,21 +23,27 @@ class BackupSection extends ConsumerWidget {
     final l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsBackupTitle)),
-      body: ListView(
+      body: SettingsScrollBody(
         padding: readablePadding(context, const EdgeInsets.fromLTRB(14, 12, 14, 28)),
         children: [
           SettingsCard(children: [
-            SettingNavRow(
-              icon: Icons.upload_outlined,
-              title: l10n.settingsBackupExport,
-              subtitle: l10n.settingsBackupExportSubtitle,
-              onTap: () => _export(context, ref),
+            SettingAnchor(
+              id: SettingIds.backupExport,
+              child: SettingNavRow(
+                icon: Icons.upload_outlined,
+                title: l10n.settingsBackupExport,
+                subtitle: l10n.settingsBackupExportSubtitle,
+                onTap: () => _export(context, ref),
+              ),
             ),
-            SettingNavRow(
-              icon: Icons.download_outlined,
-              title: l10n.settingsBackupRestoreTitle,
-              subtitle: l10n.settingsBackupRestoreSubtitle,
-              onTap: () => _restore(context, ref),
+            SettingAnchor(
+              id: SettingIds.backupRestore,
+              child: SettingNavRow(
+                icon: Icons.download_outlined,
+                title: l10n.settingsBackupRestoreTitle,
+                subtitle: l10n.settingsBackupRestoreSubtitle,
+                onTap: () => _restore(context, ref),
+              ),
             ),
           ]),
         ],

@@ -3,6 +3,22 @@ import 'package:flutter/material.dart';
 import 'color_picker_sheet.dart';
 import '../../widgets/kivo_focusable.dart';
 
+/// The scrolling body of a settings section. Builds every row up front (a
+/// section is a couple dozen rows at most) rather than lazily like a
+/// ListView: a search result has to scroll to a row far below the fold, and
+/// a row that was never built has no position to scroll to.
+class SettingsScrollBody extends StatelessWidget {
+  final EdgeInsetsGeometry padding;
+  final List<Widget> children;
+  const SettingsScrollBody({super.key, required this.padding, required this.children});
+
+  @override
+  Widget build(BuildContext context) => SingleChildScrollView(
+        padding: padding,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children),
+      );
+}
+
 /// Rounded card that groups setting rows with hairline dividers between them.
 class SettingsCard extends StatelessWidget {
   final List<Widget> children;

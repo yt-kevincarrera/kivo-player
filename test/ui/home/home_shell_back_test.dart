@@ -15,6 +15,9 @@ import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/ui/home/home_shell.dart';
 import 'package:kivo_player/ui/home/library_screen.dart';
+import 'package:kivo_player/ui/settings/search/settings_search.dart';
+import 'package:kivo_player/ui/settings/search/settings_search_state.dart';
+import 'package:kivo_player/ui/settings/sections/general_section.dart';
 import '../../fakes/fakes.dart';
 import '../../helpers/pump_app.dart';
 
@@ -86,5 +89,42 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(c.read(librarySubTabProvider), 0);
+  });
+
+  Future<void> openSettingsSearch(WidgetTester tester, String query) async {
+    await tester.tap(find.byIcon(Icons.settings_outlined));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip(l10nFor(const Locale('es')).settingsSearchTooltip));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('settings-search-field')), query);
+    await tester.pump();
+  }
+
+  testWidgets('system back closes the Ajustes search before leaving the tab', (tester) async {
+    final c = await _mount(tester);
+    await openSettingsSearch(tester, 'tema');
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(c.read(settingsSearchActiveProvider), isFalse);
+    expect(c.read(settingsSearchQueryProvider), '');
+    expect(find.byType(LibraryScreen).hitTestable(), findsNothing,
+        reason: 'still on Ajustes: closing the search used up this back');
+  });
+
+  testWidgets('system back from a section opened by a result returns to the results', (tester) async {
+    final c = await _mount(tester);
+    await openSettingsSearch(tester, 'haptica');
+    await tester.tap(find.byKey(const ValueKey('settings-hit-${SettingIds.haptics}')));
+    await tester.pumpAndSettle();
+    expect(find.byType(GeneralSettingsSection), findsOneWidget);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(GeneralSettingsSection), findsNothing);
+    expect(c.read(settingsSearchActiveProvider), isTrue);
+    expect(find.byKey(const ValueKey('settings-hit-${SettingIds.haptics}')), findsOneWidget);
   });
 }
