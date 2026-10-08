@@ -12,6 +12,7 @@ import '../../widgets/segmented_progress.dart';
 import '../state/controls_visibility.dart';
 import '../state/queue_strip_state.dart';
 import 'queue_card_menu.dart';
+import 'queue_info_line.dart';
 
 /// Horizontal, always-with-controls strip of the current queue's thumbnails.
 /// Sizes itself to the orientation (smaller in portrait). Tap a card to jump;
@@ -153,104 +154,119 @@ class _QueueStripState extends ConsumerState<QueueStrip> {
     final index = session.index;
     final currentPos = order.indexOf(index);
     final cardExtent = cardW + _gap;
-    final at = currentPos;
 
-    return SizedBox(
-      height: stripH,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          // Center on the current card only when the index changes — measured
-          // against the REAL viewport width (the Expanded slot in landscape is
-          // not a fixed fraction of the screen), so it never fights manual
-          // scrolling and lands the active card in the middle. First appearance
-          // jumps instantly; later changes (tap-jump, autoplay) glide.
-          if (_centered != index) {
-            final firstShow = _centered == null;
-            _centered = index;
-            final viewportW = constraints.maxWidth;
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              _centerOn(currentPos, cardExtent, viewportW, animate: !firstShow);
-            });
-          }
-          return ReorderableListView.builder(
-            scrollController: _scroll,
-            scrollDirection: Axis.horizontal,
-            buildDefaultDragHandles: false,
-            padding: const EdgeInsets.symmetric(horizontal: 2),
-            itemCount: order.length,
-            onReorderStart: (pos) => _onLift(order, pos),
-            onReorder: _onReorder,
-            onReorderEnd: (_) => _onDrop(),
-            proxyDecorator: _lifted,
-            itemBuilder: (context, pos) {
-              final i = order[pos];
-              final active = i == index;
-              final id = i < session.queueIds.length ? session.queueIds[i] : '';
-              final name = i < session.queueNames.length
-                  ? session.queueNames[i]
-                  : '';
-              final durationMs = i < session.queueDurationsMs.length
-                  ? session.queueDurationsMs[i]
-                  : 0;
-              final seconds = active
-                  ? null
-                  : resume.positionFor(name)?.inSeconds;
-              double? progress;
-              if (seconds != null && durationMs > 0) {
-                final f = seconds * 1000 / durationMs;
-                if (f > 0 && f < 0.97) progress = f;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const QueueInfoLine(),
+        SizedBox(
+          height: stripH,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // Center on the current card only when the index changes — measured
+              // against the REAL viewport width (the Expanded slot in landscape is
+              // not a fixed fraction of the screen), so it never fights manual
+              // scrolling and lands the active card in the middle. First appearance
+              // jumps instantly; later changes (tap-jump, autoplay) glide.
+              if (_centered != index) {
+                final firstShow = _centered == null;
+                _centered = index;
+                final viewportW = constraints.maxWidth;
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _centerOn(
+                    currentPos,
+                    cardExtent,
+                    viewportW,
+                    animate: !firstShow,
+                  );
+                });
               }
-              final watched =
-                  !active && seconds == null && played.isPlayed(name);
-              final isNext = at >= 0 && pos == at + 1;
-              final l10n = context.l10n;
-              return Padding(
-                // Keyed by uri AND queue index: unique even when a playlist
-                // holds the same video twice (the reorderable list requires
-                // it), and never recycles a card element across a different
-                // video — otherwise the thumbnail AnimatedSwitcher can
-                // cross-fade a neighbour's frame onto a card.
-                key: ValueKey('${session.queue[i]}#$i'),
-                padding: const EdgeInsets.symmetric(horizontal: _gap / 2),
-                child: ReorderableDelayedDragStartListener(
-                  index: pos,
-                  child: _QueueCard(
-                    key: _cardKeys.putIfAbsent(i, GlobalKey.new),
-                    width: cardW,
-                    thumbH: thumbH,
-                    id: id,
-                    name: name,
-                    active: active,
-                    accent: accent,
-                    progress: progress,
-                    watched: watched,
-                    hint: l10n.playerQueueCardHint,
-                    actions: active
-                        ? const {}
-                        : {
-                            if (!isNext)
-                              CustomSemanticsAction(
-                                label: l10n.playerQueuePlayNext,
-                              ): () =>
-                                  _apply(QueueCardAction.playNext, i),
-                            CustomSemanticsAction(
-                              label: l10n.playerQueueRemove,
-                            ): () =>
-                                _apply(QueueCardAction.remove, i),
-                          },
-                    onTap: active
-                        ? null
-                        : () {
-                            ref.read(queueJumpProvider.notifier).state = i;
-                            ref.read(controlsVisibleProvider.notifier).show();
-                          },
-                  ),
-                ),
+              return ReorderableListView.builder(
+                scrollController: _scroll,
+                scrollDirection: Axis.horizontal,
+                buildDefaultDragHandles: false,
+                padding: const EdgeInsets.symmetric(horizontal: 2),
+                itemCount: order.length,
+                onReorderStart: (pos) => _onLift(order, pos),
+                onReorder: _onReorder,
+                onReorderEnd: (_) => _onDrop(),
+                proxyDecorator: _lifted,
+                itemBuilder: (context, pos) {
+                  final i = order[pos];
+                  final active = i == index;
+                  final id = i < session.queueIds.length
+                      ? session.queueIds[i]
+                      : '';
+                  final name = i < session.queueNames.length
+                      ? session.queueNames[i]
+                      : '';
+                  final durationMs = i < session.queueDurationsMs.length
+                      ? session.queueDurationsMs[i]
+                      : 0;
+                  final seconds = active
+                      ? null
+                      : resume.positionFor(name)?.inSeconds;
+                  double? progress;
+                  if (seconds != null && durationMs > 0) {
+                    final f = seconds * 1000 / durationMs;
+                    if (f > 0 && f < 0.97) progress = f;
+                  }
+                  final watched =
+                      !active && seconds == null && played.isPlayed(name);
+                  final isNext = currentPos >= 0 && pos == currentPos + 1;
+                  final l10n = context.l10n;
+                  return Padding(
+                    // Keyed by uri AND queue index: unique even when a playlist
+                    // holds the same video twice (the reorderable list requires
+                    // it), and never recycles a card element across a different
+                    // video — otherwise the thumbnail AnimatedSwitcher can
+                    // cross-fade a neighbour's frame onto a card.
+                    key: ValueKey('${session.queue[i]}#$i'),
+                    padding: const EdgeInsets.symmetric(horizontal: _gap / 2),
+                    child: ReorderableDelayedDragStartListener(
+                      index: pos,
+                      child: _QueueCard(
+                        key: _cardKeys.putIfAbsent(i, GlobalKey.new),
+                        width: cardW,
+                        thumbH: thumbH,
+                        id: id,
+                        name: name,
+                        active: active,
+                        accent: accent,
+                        progress: progress,
+                        watched: watched,
+                        hint: l10n.playerQueueCardHint,
+                        actions: active
+                            ? const {}
+                            : {
+                                if (!isNext)
+                                  CustomSemanticsAction(
+                                    label: l10n.playerQueuePlayNext,
+                                  ): () =>
+                                      _apply(QueueCardAction.playNext, i),
+                                CustomSemanticsAction(
+                                  label: l10n.playerQueueRemove,
+                                ): () =>
+                                    _apply(QueueCardAction.remove, i),
+                              },
+                        onTap: active
+                            ? null
+                            : () {
+                                ref.read(queueJumpProvider.notifier).state = i;
+                                ref
+                                    .read(controlsVisibleProvider.notifier)
+                                    .show();
+                              },
+                      ),
+                    ),
+                  );
+                },
               );
             },
-          );
-        },
-      ),
+          ),
+        ),
+      ],
     );
   }
 
