@@ -5,7 +5,9 @@ import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/core/theme/kivo_theme.dart';
 import 'package:kivo_player/platform/media_indexer_provider.dart';
+import 'package:kivo_player/player/library/played.dart';
 import 'package:kivo_player/player/open/video_source.dart';
+import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/ui/player/queue/queue_strip.dart';
 import '../../fakes/fakes.dart';
 import '../../helpers/pump_app.dart';
@@ -25,6 +27,8 @@ void main() {
     final c = ProviderContainer(overrides: [
       settingsServiceProvider.overrideWithValue(s),
       mediaIndexerProvider.overrideWithValue(FakeMediaIndexer()),
+      resumeServiceProvider.overrideWithValue(ResumeService(InMemoryResumeStore())),
+      playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
     ]);
     addTearDown(c.dispose);
     c.read(currentVideoProvider.notifier).open(_session);

@@ -1025,6 +1025,92 @@
   "@playerQueueNowBadge": {
     "description": "Badge over the current video's thumbnail, in the queue strip."
   },
+  "playerQueuePlayNext": "Play next",
+  "@playerQueuePlayNext": {
+    "description": "Queue strip card menu option: that video becomes the next one."
+  },
+  "playerQueueRemove": "Remove from queue",
+  "@playerQueueRemove": {
+    "description": "Queue strip card menu option: that video leaves this session's queue."
+  },
+  "playerQueueCardHint": "Press and hold to move it or see options",
+  "@playerQueueCardHint": {
+    "description": "Screen reader hint on each queue strip card."
+  },
+  "playerQueueWatched": "Watched",
+  "@playerQueueWatched": {
+    "description": "Screen reader label for the already-watched mark in the queue strip."
+  },
+  "playerQueueMovedToast": "Moved in the queue",
+  "@playerQueueMovedToast": {
+    "description": "Short toast after dragging a queue card somewhere else. Carries the Undo action."
+  },
+  "playerQueuePlayNextToast": "Will play next",
+  "@playerQueuePlayNextToast": {
+    "description": "Short toast after choosing Play next. Carries the Undo action."
+  },
+  "playerQueueRemovedToast": "Removed from the queue",
+  "@playerQueueRemovedToast": {
+    "description": "Short toast after removing a video from the queue. Carries the Undo action."
+  },
+  "playerQueueShuffleResetToast": "Queue order reset",
+  "@playerQueueShuffleResetToast": {
+    "description": "Short toast when toggling shuffle discards the order the user had edited. Carries the Undo action."
+  },
+  "playerQueuePosition": "{position} / {total}",
+  "@playerQueuePosition": {
+    "description": "Position of the current video in the queue, above the strip.",
+    "placeholders": {
+      "position": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "playerQueueTimeLeft": "{time} left",
+  "@playerQueueTimeLeft": {
+    "description": "Time until the queue runs out, above the strip. {time} is e.g. “2 h 10 min”.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "playerQueueEndsAt": "{hour, plural, =1{ends at {clock}} other{ends at {clock}}}",
+  "@playerQueueEndsAt": {
+    "description": "Time of day the queue ends. {clock} is the formatted time; {hour} is the hour as shown, only needed by languages that inflect it.",
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      },
+      "clock": {
+        "type": "String"
+      }
+    }
+  },
+  "playerQueueHoursMinutes": "{hours} h {minutes} min",
+  "@playerQueueHoursMinutes": {
+    "description": "A duration in hours and minutes, for the queue's time left.",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "playerQueueMinutes": "{minutes} min",
+  "@playerQueueMinutes": {
+    "description": "A duration in minutes, for the queue's time left.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
 
   "playerSleepPanelTitle": "Sleep timer",
   "@playerSleepPanelTitle": {
