@@ -85,4 +85,28 @@ void main() {
 
     expect(c.read(autoplayConfirmProvider), true);
   });
+
+  testWidgets('editing the queue during the countdown re-targets it', (tester) async {
+    final c = await pumpOverlay(tester);
+    final n = c.read(currentVideoProvider.notifier);
+    n.open(const VideoSession(
+      playbackPath: '/v/ep1.mkv', displayName: 'ep1.mkv',
+      queue: ['/v/ep1.mkv', '/v/ep2.mkv', '/v/ep3.mkv'],
+      queueNames: ['ep1.mkv', 'ep2.mkv', 'ep3.mkv'],
+      index: 0,
+    ));
+    c.read(autoplayPendingProvider.notifier).state = n.peekNext();
+    await tester.pump();
+    expect(find.text('ep2.mkv'), findsOneWidget);
+
+    n.remove(1);
+    await tester.pump();
+    expect(c.read(autoplayPendingProvider)!.index, 2);
+    expect(find.text('ep3.mkv'), findsOneWidget);
+
+    n.remove(2); // nothing left after the current one
+    await tester.pump();
+    expect(c.read(autoplayPendingProvider), isNull);
+    await tester.pump(const Duration(seconds: 6));
+  });
 }

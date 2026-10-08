@@ -208,9 +208,14 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
   /// meant to be drawn once per session, not re-rolled on every step.
   void advanceTo(VideoSession next) {
     OpenTrace.instance.begin('the queue (strip / next / autoplay)');
+    final s = state;
     // Repeat-one re-opens the same video: its undo still applies.
-    if (next.index != state?.index) _dropUndo();
-    state = next;
+    if (next.index != s?.index) _dropUndo();
+    // [next] may have been built before the latest strip edit (the autoplay
+    // countdown holds one for seconds): the play order is the live one.
+    state = s != null && identical(next.queue, s.queue)
+        ? next.withOrder(s.order, edited: s.orderEdited)
+        : next;
   }
 
   // ── Queue strip edits ──────────────────────────────────────────────────────

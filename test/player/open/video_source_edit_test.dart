@@ -131,4 +131,16 @@ void main() {
     await n.setShuffle(true);
     expect(c.read(queueUndoProvider), isNull);
   });
+
+  test('advancing with a session built before an edit keeps the edit', () async {
+    // The autoplay countdown holds a session peeked before the user edited.
+    final (c, n) = await opened();
+    final stale = n.peekNext()!;
+    n.remove(3);
+    n.advanceTo(stale);
+    final s = c.read(currentVideoProvider)!;
+    expect(s.index, 1);
+    expect(s.playOrder, [0, 1, 2]);
+    expect(s.orderEdited, isTrue);
+  });
 }

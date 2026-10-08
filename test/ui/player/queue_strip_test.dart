@@ -12,6 +12,7 @@ import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/ui/widgets/segmented_progress.dart';
 import 'package:kivo_player/ui/player/queue/queue_strip.dart';
+import 'package:kivo_player/ui/player/state/controls_visibility.dart';
 import 'package:kivo_player/ui/player/state/queue_strip_state.dart';
 import '../../fakes/fakes.dart';
 import '../../helpers/pump_app.dart';
@@ -139,6 +140,8 @@ void main() {
       final xb = tester.getTopLeft(find.text('b.mkv')).dx;
       final xa = tester.getTopLeft(find.text('a.mkv')).dx;
       expect(xa > xb, isTrue);
+      // A real move is not a menu request.
+      expect(find.text(_l10n.playerQueueRemove), findsNothing);
       await settleControls(tester);
     });
 
@@ -161,6 +164,9 @@ void main() {
       await holdAndDrop(tester, find.text('c.mkv'));
       expect(find.text(_l10n.playerQueuePlayNext), findsNothing);
       expect(find.text(_l10n.playerQueueRemove), findsOneWidget);
+      await tester.tapAt(const Offset(5, 5));
+      await tester.pumpAndSettle();
+      await settleControls(tester);
     });
 
     testWidgets('"Quitar de la cola" takes the card out of the strip',
@@ -237,5 +243,64 @@ void main() {
     ));
     expect(find.byType(SegmentedProgress), findsOneWidget);
     expect(find.byIcon(Icons.check_rounded), findsOneWidget);
+  });
+
+  group('holding the controls', () {
+    testWidgets('a drag cancelled by the system lets the controls hide again',
+        (tester) async {
+      final c = await _pump(tester);
+      final g = await tester.startGesture(tester.getCenter(find.text('a.mkv')));
+      await tester.pump(kLongPressTimeout + const Duration(milliseconds: 100));
+      await g.moveBy(const Offset(30, 0));
+      await tester.pump(const Duration(milliseconds: 16));
+      expect(c.read(controlsVisibleProvider), isTrue);
+      await g.cancel();
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 4));
+      expect(c.read(controlsVisibleProvider), isFalse);
+    });
+
+    testWidgets('the strip going away mid-drag lets the controls hide again',
+        (tester) async {
+      final c = await _pump(tester);
+      final g = await tester.startGesture(tester.getCenter(find.text('a.mkv')));
+      await tester.pump(kLongPressTimeout + const Duration(milliseconds: 100));
+      await g.moveBy(const Offset(30, 0));
+      await tester.pump(const Duration(milliseconds: 16));
+      // e.g. a rotation remounting the bottom bar
+      await pumpLocalized(tester, const Scaffold(body: SizedBox()), container: c);
+      await g.cancel();
+      await tester.pump(const Duration(seconds: 4));
+      expect(c.read(controlsVisibleProvider), isFalse);
+    });
+
+    testWidgets('a menu choice still applies if the strip went away meanwhile',
+        (tester) async {
+      final show = ValueNotifier(true);
+      final c = await _pump(tester);
+      await pumpLocalized(
+        tester,
+        Scaffold(
+          body: ValueListenableBuilder<bool>(
+            valueListenable: show,
+            builder: (_, on, _) => on
+                ? const Align(alignment: Alignment.bottomCenter, child: QueueStrip())
+                : const SizedBox(),
+          ),
+        ),
+        container: c,
+        theme: KivoTheme.dark(),
+      );
+      await tester.pump();
+      await holdAndDrop(tester, find.text('a.mkv'));
+      show.value = false;
+      await tester.pump();
+      await tester.tap(find.text(_l10n.playerQueueRemove));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(c.read(currentVideoProvider)!.playOrder, [1, 2]);
+      await tester.pump(const Duration(seconds: 4));
+      expect(c.read(controlsVisibleProvider), isFalse);
+    });
   });
 }
