@@ -78,4 +78,37 @@ void main() {
     expect(controlsShouldRender(visible: false, syncPanelOpen: true), false);
   });
 
+  test('hold keeps the controls up past the auto-hide; the last release restarts it',
+      () async {
+    final s = await SettingsService.load(InMemorySettingsStore());
+
+    fakeAsync((async) {
+      final c = ProviderContainer(
+        overrides: [settingsServiceProvider.overrideWithValue(s)],
+      );
+      addTearDown(c.dispose);
+      final n = c.read(controlsVisibleProvider.notifier);
+
+      n.show();
+      n.hold();
+      n.hold(); // a drag and the menu can overlap
+      async.elapse(const Duration(milliseconds: 6000));
+      expect(c.read(controlsVisibleProvider), true);
+
+      n.release();
+      async.elapse(const Duration(milliseconds: 6000));
+      expect(c.read(controlsVisibleProvider), true, reason: 'one hold left');
+
+      n.release();
+      async.elapse(const Duration(milliseconds: 2000));
+      expect(c.read(controlsVisibleProvider), true, reason: 'timer restarted');
+      async.elapse(const Duration(milliseconds: 1500));
+      expect(c.read(controlsVisibleProvider), false);
+
+      n.release(); // an extra release never goes negative
+      n.show();
+      async.elapse(const Duration(milliseconds: 3500));
+      expect(c.read(controlsVisibleProvider), false);
+    });
+  });
 }

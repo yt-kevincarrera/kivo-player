@@ -25,6 +25,25 @@ class ControlsVisibilityNotifier extends Notifier<bool> {
 
   void toggle() => state ? hide() : show();
 
+  int _holds = 0;
+
+  /// Something is under the user's finger (a queue card being dragged, its
+  /// menu): show the controls and keep them up until every [hold] has been
+  /// [release]d — fading the strip out mid-drag would drop the card.
+  void hold() {
+    _holds++;
+    state = true;
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  /// Ends one [hold]; the last one restarts the auto-hide countdown.
+  void release() {
+    if (_holds == 0) return;
+    _holds--;
+    if (_holds == 0 && state) _restartTimer();
+  }
+
   /// A screen reader (TalkBack) is on. Its user moves through the controls
   /// one by one, with no way to know they are about to fade: they stay up
   /// until hidden on purpose, and come up as soon as it turns on.
@@ -48,7 +67,7 @@ class ControlsVisibilityNotifier extends Notifier<bool> {
   void _restartTimer() {
     _timer?.cancel();
     _timer = null;
-    if (_assistive) return;
+    if (_assistive || _holds > 0) return;
     final ms = ref.read(settingsProvider).controlsAutoHideMs;
     _timer = Timer(Duration(milliseconds: ms), () => state = false);
   }
