@@ -57,3 +57,58 @@ int? previousIndex({
   if (isFirst) return mode == RepeatMode.list ? order.last : null;
   return order[position - 1];
 }
+
+// ── Queue editing ────────────────────────────────────────────────────────────
+// Every edit the user makes to the queue strip rewrites the PLAY ORDER only —
+// a permutation of a subset of the queue's indices. The queue itself never
+// changes, so a removed video is just an index missing from the order and
+// undoing a removal is putting it back.
+
+/// [order] with the entry at position [from] moved to position [to] (its
+/// final position once moved). Always a fresh list.
+List<int> moveInOrder(List<int> order, int from, int to) {
+  final out = [...order];
+  if (from < 0 || from >= out.length) return out;
+  final v = out.removeAt(from);
+  out.insert(to.clamp(0, out.length), v);
+  return out;
+}
+
+/// [order] with [item] placed right after [current] — taken from wherever it
+/// was, or re-inserted if it had been removed. A no-op for [current] itself.
+List<int> playNextInOrder(List<int> order, int current, int item) {
+  if (item == current) return [...order];
+  final out = [...order]..remove(item);
+  out.insert(out.indexOf(current) + 1, item);
+  return out;
+}
+
+/// [order] without [item]. The video being watched ([current]) can never be
+/// removed — the order must always contain it, or "next" has nowhere to
+/// start from.
+List<int> removeFromOrder(List<int> order, int current, int item) =>
+    item == current ? [...order] : ([...order]..remove(item));
+
+/// How long until the queue runs out: what is left of the current video plus
+/// every video after it in [order], at playback speed [rate]. Null when it
+/// cannot be known — the current duration has not arrived yet, or any later
+/// video's duration is missing (a 0 in, or past the end of, [durationsMs]).
+Duration? queueTimeLeft({
+  required List<int> order,
+  required int current,
+  required List<int> durationsMs,
+  required Duration currentDuration,
+  required Duration position,
+  required double rate,
+}) {
+  final at = order.indexOf(current);
+  if (at < 0 || currentDuration <= Duration.zero) return null;
+  var ms = (currentDuration - position).inMilliseconds;
+  if (ms < 0) ms = 0;
+  for (final i in order.skip(at + 1)) {
+    final d = i < durationsMs.length ? durationsMs[i] : 0;
+    if (d <= 0) return null;
+    ms += d;
+  }
+  return Duration(milliseconds: (ms / (rate > 0 ? rate : 1)).round());
+}
