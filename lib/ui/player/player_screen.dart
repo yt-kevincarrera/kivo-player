@@ -34,6 +34,7 @@ import 'controls/controls_overlay.dart';
 import 'controls/flash_overlay.dart';
 import 'controls/info_overlay.dart';
 import 'controls/resume_prompt.dart';
+import 'queue/queue_undo_toast.dart';
 import 'gestures/player_gestures.dart';
 import 'gestures/ripple_overlay.dart';
 import 'hud/hud_overlay.dart';
@@ -703,6 +704,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                         const Positioned.fill(child: GestureSeekPreview()),
                         const Positioned.fill(child: SpeedLadderOverlay()),
                         const Positioned.fill(child: ResumePrompt()),
+                        const Positioned.fill(child: QueueUndoToast()),
                         const Positioned.fill(child: SleepWarningToast()),
                         const Positioned.fill(child: AutoplayOverlay()),
                         const Positioned.fill(child: TrackSyncHud()),
