@@ -7,6 +7,7 @@ import '../../../l10n/l10n.dart';
 import '../../../l10n/spoken.dart';
 import '../../../platform/interfaces/media_indexer.dart';
 import '../../widgets/press_bounce.dart';
+import '../../widgets/segmented_progress.dart';
 import 'thumbnail_image.dart';
 import '../../widgets/kivo_focusable.dart';
 
@@ -154,10 +155,10 @@ class _VideoTileState extends ConsumerState<VideoTile> {
                                 left: 0,
                                 right: 0,
                                 bottom: 0,
-                                child: _SegmentedProgress(
+                                child: SegmentedProgress(
                                   widget.progress!,
-                                  accent,
-                                  cs,
+                                  accent: accent,
+                                  unlit: cs.onSurface.withValues(alpha: 0.18),
                                 ),
                               ),
                             if (widget.selected)
@@ -313,7 +314,11 @@ class _VideoTileState extends ConsumerState<VideoTile> {
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        child: _SegmentedProgress(widget.progress!, accent, cs),
+                        child: SegmentedProgress(
+                          widget.progress!,
+                          accent: accent,
+                          unlit: cs.onSurface.withValues(alpha: 0.18),
+                        ),
                       ),
                     if (widget.selected)
                       Positioned.fill(
@@ -383,29 +388,4 @@ class _VideoTileState extends ConsumerState<VideoTile> {
       ),
     ),
   );
-}
-
-class _SegmentedProgress extends StatelessWidget {
-  final double fraction;
-  final Color accent;
-  final ColorScheme cs;
-  const _SegmentedProgress(this.fraction, this.accent, this.cs);
-
-  @override
-  Widget build(BuildContext context) {
-    const n = 16;
-    final lit = (fraction * n).round();
-    return Row(
-      children: [
-        for (var i = 0; i < n; i++)
-          Expanded(
-            child: Container(
-              height: 4,
-              margin: const EdgeInsets.symmetric(horizontal: 0.5),
-              color: i < lit ? accent : cs.onSurface.withValues(alpha: 0.18),
-            ),
-          ),
-      ],
-    );
-  }
 }

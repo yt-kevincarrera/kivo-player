@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
 import '../../../l10n/l10n.dart';
+import '../../../player/open/video_source.dart';
 import '../state/autoplay_state.dart';
 
 /// Bottom-right "Próximo" corner card shown for 3s (foreground fullscreen
@@ -45,6 +46,13 @@ class _AutoplayOverlayState extends ConsumerState<AutoplayOverlay>
 
   @override
   Widget build(BuildContext context) {
+    // The queue was edited during the countdown (the strip stays usable):
+    // count down to whatever is next NOW — or stop if nothing is left.
+    ref.listen(currentVideoProvider.select((s) => s?.order), (_, _) {
+      if (ref.read(autoplayPendingProvider) == null) return;
+      ref.read(autoplayPendingProvider.notifier).state =
+          ref.read(currentVideoProvider.notifier).peekNext();
+    });
     ref.listen(autoplayPendingProvider, (previous, next) {
       if (previous == null && next != null) {
         _ring.forward(from: 0);

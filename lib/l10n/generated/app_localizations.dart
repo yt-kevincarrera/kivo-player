@@ -1136,6 +1136,84 @@ abstract class AppLocalizations {
   /// **'AHORA'**
   String get playerQueueNowBadge;
 
+  /// Opción del menú de una tarjeta de la tira de la cola: ese video pasa a ser el siguiente.
+  ///
+  /// In es, this message translates to:
+  /// **'Reproducir a continuación'**
+  String get playerQueuePlayNext;
+
+  /// Opción del menú de una tarjeta de la tira de la cola: ese video deja de estar en la cola de esta sesión.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar de la cola'**
+  String get playerQueueRemove;
+
+  /// Pista del lector de pantalla en cada tarjeta de la tira de la cola.
+  ///
+  /// In es, this message translates to:
+  /// **'Mantén pulsado para moverlo o ver opciones'**
+  String get playerQueueCardHint;
+
+  /// Etiqueta del lector de pantalla para la marca de video ya visto en la tira de la cola.
+  ///
+  /// In es, this message translates to:
+  /// **'Visto'**
+  String get playerQueueWatched;
+
+  /// Aviso breve tras arrastrar una tarjeta de la cola a otro sitio. Lleva la acción Deshacer.
+  ///
+  /// In es, this message translates to:
+  /// **'Movido en la cola'**
+  String get playerQueueMovedToast;
+
+  /// Aviso breve tras elegir Reproducir a continuación. Lleva la acción Deshacer.
+  ///
+  /// In es, this message translates to:
+  /// **'Se reproducirá a continuación'**
+  String get playerQueuePlayNextToast;
+
+  /// Aviso breve tras quitar un video de la cola. Lleva la acción Deshacer.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitado de la cola'**
+  String get playerQueueRemovedToast;
+
+  /// Aviso breve cuando activar o desactivar el aleatorio descarta el orden que el usuario había editado. Lleva la acción Deshacer.
+  ///
+  /// In es, this message translates to:
+  /// **'Orden de la cola restablecido'**
+  String get playerQueueShuffleResetToast;
+
+  /// Posición del video actual en la cola, encima de la tira.
+  ///
+  /// In es, this message translates to:
+  /// **'{position} / {total}'**
+  String playerQueuePosition(int position, int total);
+
+  /// Tiempo que falta para que se acabe la cola, encima de la tira. {time} es p. ej. «2 h 10 min».
+  ///
+  /// In es, this message translates to:
+  /// **'quedan {time}'**
+  String playerQueueTimeLeft(String time);
+
+  /// Hora a la que se acaba la cola. {clock} es la hora ya formateada; {hour} es la hora tal como se muestra, solo para «a la 1» / «a las 2».
+  ///
+  /// In es, this message translates to:
+  /// **'{hour, plural, =1{acaba a la {clock}} other{acaba a las {clock}}}'**
+  String playerQueueEndsAt(int hour, String clock);
+
+  /// Duración en horas y minutos, para el tiempo restante de la cola.
+  ///
+  /// In es, this message translates to:
+  /// **'{hours} h {minutes} min'**
+  String playerQueueHoursMinutes(int hours, int minutes);
+
+  /// Duración en minutos, para el tiempo restante de la cola.
+  ///
+  /// In es, this message translates to:
+  /// **'{minutes} min'**
+  String playerQueueMinutes(int minutes);
+
   /// Título del panel del temporizador de apagado.
   ///
   /// In es, this message translates to:

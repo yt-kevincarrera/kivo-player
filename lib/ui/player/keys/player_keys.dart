@@ -293,7 +293,7 @@ class _PlayerKeysState extends ConsumerState<PlayerKeys> {
 /// does not hold it on the same video — a "next" key means another video.
 int? queueStep(VideoSession? s, {required bool forward, required bool wrap}) {
   if (s == null || s.queue.isEmpty) return null;
-  final order = s.order ?? List<int>.generate(s.queue.length, (i) => i);
+  final order = s.playOrder;
   final at = order.indexOf(s.index);
   if (at < 0) return null;
   final to = at + (forward ? 1 : -1);

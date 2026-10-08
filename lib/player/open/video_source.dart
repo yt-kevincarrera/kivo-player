@@ -8,6 +8,7 @@ import '../resume/resume_service.dart';
 import '../queue/file_system_lister.dart';
 import '../queue/folder_queue_scanner.dart';
 import '../queue/queue_order.dart';
+import '../queue/queue_undo.dart';
 import '../../core/diagnostics/open_trace.dart';
 
 /// An immutable snapshot of the currently-opened video and its folder queue.
@@ -22,13 +23,21 @@ class VideoSession {
   final List<String> queueIds; // MediaStore ids, parallel to queue — for thumbnails
   final int index;
   final String? folder; // set only when opened from the library — enables external-subtitle discovery
-  /// The effective play order — a permutation of indices into [queue], with
-  /// the video that started the session first. Null means natural order
-  /// (`0..queue.length-1`, i.e. shuffle is off). Generated once per session
-  /// (see [CurrentVideoNotifier.openFromList] and [CurrentVideoNotifier.setShuffle])
-  /// and carried forward unchanged by every other session-building method —
-  /// re-drawing it on each advance would let shuffle repeat a video back-to-back.
+  /// The effective play order — indices into [queue], in the order they will
+  /// play. Null means natural order (`0..queue.length-1`). Shuffle draws it
+  /// once per session (see [CurrentVideoNotifier.open] and
+  /// [CurrentVideoNotifier.setShuffle]); the queue strip's edits rewrite it
+  /// and may leave videos out of it (a removed video is simply absent). Every
+  /// other session-building method carries it forward unchanged — re-drawing
+  /// it on each advance would let shuffle repeat a video back-to-back.
   final List<int>? order;
+
+  /// True once the user has reordered, inserted or removed in the strip.
+  final bool orderEdited;
+
+  /// Durations in ms, parallel to [queue] — 0 or missing when unknown (the
+  /// queue's time left is only shown when every later one is known).
+  final List<int> queueDurationsMs;
   const VideoSession({
     required this.playbackPath,
     required this.displayName,
@@ -38,8 +47,29 @@ class VideoSession {
     required this.index,
     this.folder,
     this.order,
+    this.orderEdited = false,
+    this.queueDurationsMs = const [],
   });
   String get resumeKey => displayName;
+
+  /// [order], or the natural order when there is none.
+  List<int> get playOrder =>
+      order ?? List<int>.generate(queue.length, (i) => i);
+
+  /// This session with a different play order.
+  VideoSession withOrder(List<int>? order, {required bool edited}) =>
+      VideoSession(
+        playbackPath: playbackPath,
+        displayName: displayName,
+        queue: queue,
+        queueNames: queueNames,
+        queueIds: queueIds,
+        index: index,
+        folder: folder,
+        order: order,
+        orderEdited: edited,
+        queueDurationsMs: queueDurationsMs,
+      );
 }
 
 final resumeServiceProvider = Provider<ResumeService>((ref) {
@@ -74,6 +104,7 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
   /// concerns) never requires a settings override.
   void open(VideoSession session) {
     OpenTrace.instance.begin('a file');
+    _dropUndo();
     if (session.order != null || session.queue.length <= 1) {
       state = session;
       return;
@@ -83,20 +114,15 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
       state = session;
       return;
     }
-    state = VideoSession(
-      playbackPath: session.playbackPath,
-      displayName: session.displayName,
-      queue: session.queue,
-      queueNames: session.queueNames,
-      queueIds: session.queueIds,
-      index: session.index,
-      folder: session.folder,
-      order: shuffledOrder(session.queue.length, session.index, ref.read(queueRandomProvider)),
+    state = session.withOrder(
+      shuffledOrder(session.queue.length, session.index, ref.read(queueRandomProvider)),
+      edited: false,
     );
   }
 
   /// File-picker open: single-item queue (the picker gives a cache copy, no folder).
   void openPath(String path) {
+    _dropUndo();
     final name = basenameOf(path);
     state = VideoSession(
         playbackPath: path, displayName: name, queue: [path], index: 0);
@@ -130,6 +156,7 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
       queue: list.map((v) => v.uri).toList(),
       queueNames: list.map((v) => v.name).toList(),
       queueIds: list.map((v) => v.id).toList(),
+      queueDurationsMs: list.map((v) => v.durationMs).toList(),
       index: idx,
       folder: current.folder, // still the tapped video's folder — for subtitle discovery
     ));
@@ -151,6 +178,8 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
       index: index,
       folder: s.folder,
       order: s.order,
+      orderEdited: s.orderEdited,
+      queueDurationsMs: s.queueDurationsMs,
     );
   }
 
@@ -165,7 +194,7 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
     final s = state;
     if (s == null) return null;
     final mode = repeatModeFor(ref.read(settingsProvider).repeatMode);
-    final order = s.order ?? List<int>.generate(s.queue.length, (i) => i);
+    final order = s.playOrder;
     final position = order.indexOf(s.index);
     final next = nextIndex(order: order, position: position, mode: mode);
     return next == null ? null : sessionAt(next);
@@ -179,8 +208,69 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
   /// meant to be drawn once per session, not re-rolled on every step.
   void advanceTo(VideoSession next) {
     OpenTrace.instance.begin('the queue (strip / next / autoplay)');
-    state = next;
+    final s = state;
+    // Repeat-one re-opens the same video: its undo still applies.
+    if (next.index != s?.index) _dropUndo();
+    // [next] may have been built before the latest strip edit (the autoplay
+    // countdown holds one for seconds): the play order is the live one.
+    state = s != null && identical(next.queue, s.queue)
+        ? next.withOrder(s.order, edited: s.orderEdited)
+        : next;
   }
+
+  // ── Queue strip edits ──────────────────────────────────────────────────────
+  // Each rewrites only the play order and leaves one level of undo behind.
+
+  /// Moves the card at play-order position [fromPos] to [toPos].
+  void reorder(int fromPos, int toPos) {
+    final s = state;
+    if (s == null || fromPos == toPos) return;
+    _edit(s, QueueEditKind.moved, moveInOrder(s.playOrder, fromPos, toPos));
+  }
+
+  /// Queue index [item] plays right after the current video.
+  void playNext(int item) {
+    final s = state;
+    if (s == null || item == s.index) return;
+    _edit(s, QueueEditKind.playNext, playNextInOrder(s.playOrder, s.index, item));
+  }
+
+  /// Takes queue index [item] out of the play order. Never the current video.
+  void remove(int item) {
+    final s = state;
+    if (s == null || item == s.index) return;
+    _edit(s, QueueEditKind.removed, removeFromOrder(s.playOrder, s.index, item));
+  }
+
+  void _edit(VideoSession s, QueueEditKind kind, List<int> order) {
+    ref.read(queueUndoProvider.notifier).state = QueueUndo(
+      kind: kind,
+      index: s.index,
+      order: s.order,
+      edited: s.orderEdited,
+    );
+    state = s.withOrder(order, edited: true);
+  }
+
+  /// Puts back the play order (and, after a shuffle reset, the shuffle
+  /// setting) from before the last edit. A no-op once another video plays.
+  Future<void> undoQueueEdit() async {
+    final undo = ref.read(queueUndoProvider);
+    final s = state;
+    _dropUndo();
+    if (undo == null || s == null || undo.index != s.index) return;
+    if (undo.shuffle != null) {
+      final settings = ref.read(settingsProvider);
+      await ref
+          .read(settingsProvider.notifier)
+          .set(settings.copyWith(shuffle: undo.shuffle));
+    }
+    final now = state;
+    if (now == null || now.index != undo.index) return;
+    state = now.withOrder(undo.order, edited: undo.edited);
+  }
+
+  void _dropUndo() => ref.read(queueUndoProvider.notifier).state = null;
 
   /// Toggles shuffle: persists the setting AND updates the active session's
   /// play order to match, so the two never drift apart. This notifier is the
@@ -189,20 +279,28 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
   /// the menu) is what keeps that true. Turning shuffle off drops the order
   /// (natural order resumes, current index unchanged); turning it on draws a
   /// fresh permutation with the current video first.
+  ///
+  /// Either way it starts from the whole queue, so an order the user edited
+  /// in the strip is lost — that leaves a "shuffleReset" undo behind, which
+  /// puts back both the setting and the edited order.
   Future<void> setShuffle(bool value) async {
     final settings = ref.read(settingsProvider);
+    final before = state;
     await ref.read(settingsProvider.notifier).set(settings.copyWith(shuffle: value));
     final s = state;
     if (s == null) return;
-    state = VideoSession(
-      playbackPath: s.playbackPath,
-      displayName: s.displayName,
-      queue: s.queue,
-      queueNames: s.queueNames,
-      queueIds: s.queueIds,
-      index: s.index,
-      folder: s.folder,
-      order: value ? shuffledOrder(s.queue.length, s.index, ref.read(queueRandomProvider)) : null,
+    if (before != null && before.orderEdited && before.index == s.index) {
+      ref.read(queueUndoProvider.notifier).state = QueueUndo(
+        kind: QueueEditKind.shuffleReset,
+        index: s.index,
+        order: before.order,
+        edited: true,
+        shuffle: !value,
+      );
+    }
+    state = s.withOrder(
+      value ? shuffledOrder(s.queue.length, s.index, ref.read(queueRandomProvider)) : null,
+      edited: false,
     );
   }
 }

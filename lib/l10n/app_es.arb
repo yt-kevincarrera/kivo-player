@@ -1025,6 +1025,92 @@
   "@playerQueueNowBadge": {
     "description": "Insignia sobre la miniatura del video actual, en la tira de la cola."
   },
+  "playerQueuePlayNext": "Reproducir a continuación",
+  "@playerQueuePlayNext": {
+    "description": "Opción del menú de una tarjeta de la tira de la cola: ese video pasa a ser el siguiente."
+  },
+  "playerQueueRemove": "Quitar de la cola",
+  "@playerQueueRemove": {
+    "description": "Opción del menú de una tarjeta de la tira de la cola: ese video deja de estar en la cola de esta sesión."
+  },
+  "playerQueueCardHint": "Mantén pulsado para moverlo o ver opciones",
+  "@playerQueueCardHint": {
+    "description": "Pista del lector de pantalla en cada tarjeta de la tira de la cola."
+  },
+  "playerQueueWatched": "Visto",
+  "@playerQueueWatched": {
+    "description": "Etiqueta del lector de pantalla para la marca de video ya visto en la tira de la cola."
+  },
+  "playerQueueMovedToast": "Movido en la cola",
+  "@playerQueueMovedToast": {
+    "description": "Aviso breve tras arrastrar una tarjeta de la cola a otro sitio. Lleva la acción Deshacer."
+  },
+  "playerQueuePlayNextToast": "Se reproducirá a continuación",
+  "@playerQueuePlayNextToast": {
+    "description": "Aviso breve tras elegir Reproducir a continuación. Lleva la acción Deshacer."
+  },
+  "playerQueueRemovedToast": "Quitado de la cola",
+  "@playerQueueRemovedToast": {
+    "description": "Aviso breve tras quitar un video de la cola. Lleva la acción Deshacer."
+  },
+  "playerQueueShuffleResetToast": "Orden de la cola restablecido",
+  "@playerQueueShuffleResetToast": {
+    "description": "Aviso breve cuando activar o desactivar el aleatorio descarta el orden que el usuario había editado. Lleva la acción Deshacer."
+  },
+  "playerQueuePosition": "{position} / {total}",
+  "@playerQueuePosition": {
+    "description": "Posición del video actual en la cola, encima de la tira.",
+    "placeholders": {
+      "position": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "playerQueueTimeLeft": "quedan {time}",
+  "@playerQueueTimeLeft": {
+    "description": "Tiempo que falta para que se acabe la cola, encima de la tira. {time} es p. ej. «2 h 10 min».",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "playerQueueEndsAt": "{hour, plural, =1{acaba a la {clock}} other{acaba a las {clock}}}",
+  "@playerQueueEndsAt": {
+    "description": "Hora a la que se acaba la cola. {clock} es la hora ya formateada; {hour} es la hora tal como se muestra, solo para «a la 1» / «a las 2».",
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      },
+      "clock": {
+        "type": "String"
+      }
+    }
+  },
+  "playerQueueHoursMinutes": "{hours} h {minutes} min",
+  "@playerQueueHoursMinutes": {
+    "description": "Duración en horas y minutos, para el tiempo restante de la cola.",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "playerQueueMinutes": "{minutes} min",
+  "@playerQueueMinutes": {
+    "description": "Duración en minutos, para el tiempo restante de la cola.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
 
   "playerSleepPanelTitle": "Temporizador de apagado",
   "@playerSleepPanelTitle": {

@@ -683,6 +683,61 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerQueueNowBadge => 'NOW';
 
   @override
+  String get playerQueuePlayNext => 'Play next';
+
+  @override
+  String get playerQueueRemove => 'Remove from queue';
+
+  @override
+  String get playerQueueCardHint => 'Press and hold to move it or see options';
+
+  @override
+  String get playerQueueWatched => 'Watched';
+
+  @override
+  String get playerQueueMovedToast => 'Moved in the queue';
+
+  @override
+  String get playerQueuePlayNextToast => 'Will play next';
+
+  @override
+  String get playerQueueRemovedToast => 'Removed from the queue';
+
+  @override
+  String get playerQueueShuffleResetToast => 'Queue order reset';
+
+  @override
+  String playerQueuePosition(int position, int total) {
+    return '$position / $total';
+  }
+
+  @override
+  String playerQueueTimeLeft(String time) {
+    return '$time left';
+  }
+
+  @override
+  String playerQueueEndsAt(int hour, String clock) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hour,
+      locale: localeName,
+      other: 'ends at $clock',
+      one: 'ends at $clock',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String playerQueueHoursMinutes(int hours, int minutes) {
+    return '$hours h $minutes min';
+  }
+
+  @override
+  String playerQueueMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
   String get playerSleepPanelTitle => 'Sleep timer';
 
   @override
