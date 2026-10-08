@@ -22,7 +22,8 @@ class BottomBar extends ConsumerWidget {
     final accent = Color(ref.watch(settingsProvider).accentColor);
     final rate = ref.watch(rateProvider);
     final mode = ref.watch(aspectModeProvider);
-    final hasQueue = (ref.watch(currentVideoProvider)?.queue.length ?? 0) > 1;
+    final hasQueue =
+        (ref.watch(currentVideoProvider)?.playOrder.length ?? 0) > 1;
     final landscape =
         MediaQuery.orientationOf(context) == Orientation.landscape;
 
