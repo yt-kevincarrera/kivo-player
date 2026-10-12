@@ -13,7 +13,6 @@ import '../../widgets/segmented_progress.dart';
 import '../state/controls_visibility.dart';
 import '../state/queue_strip_state.dart';
 import 'queue_card_menu.dart';
-import 'queue_info_line.dart';
 
 /// Horizontal, always-with-controls strip of the current queue's thumbnails.
 /// Sizes itself to the orientation (smaller in portrait). Tap a card to jump;
@@ -192,7 +191,6 @@ class _QueueStripState extends ConsumerState<QueueStrip> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const QueueInfoLine(),
         SizedBox(
           height: stripH,
           child: LayoutBuilder(

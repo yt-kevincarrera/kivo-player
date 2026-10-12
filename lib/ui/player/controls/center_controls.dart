@@ -133,23 +133,41 @@ class CenterControls extends ConsumerWidget {
         const _SkipButton(forward: true),
       ],
     );
+    final capsule = IgnorePointer(
+      ignoring: playing,
+      child: AnimatedOpacity(
+        opacity: playing ? 0 : 1,
+        duration: const Duration(milliseconds: 160),
+        child: const _FrameStepCapsule(),
+      ),
+    );
     // The capsule always takes its room (invisible and untouchable while
-    // playing), with the same room reserved above: pausing must not make the
-    // play button jump.
+    // playing), with the same room reserved on the opposite side: pausing must
+    // not make the play button jump. In landscape there is no height for it
+    // under the row — it lands on the seek bar — so it goes beside it; a
+    // narrow screen scales the whole row down rather than overflowing.
+    const gap = _FrameStepCapsule.gap;
+    if (MediaQuery.orientationOf(context) == Orientation.landscape) {
+      return FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(width: _FrameStepCapsule.width + gap),
+            row,
+            const SizedBox(width: gap),
+            capsule,
+          ],
+        ),
+      );
+    }
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const SizedBox(height: _FrameStepCapsule.height + _FrameStepCapsule.gap),
+        const SizedBox(height: _FrameStepCapsule.height + gap),
         row,
-        const SizedBox(height: _FrameStepCapsule.gap),
-        IgnorePointer(
-          ignoring: playing,
-          child: AnimatedOpacity(
-            opacity: playing ? 0 : 1,
-            duration: const Duration(milliseconds: 160),
-            child: const _FrameStepCapsule(),
-          ),
-        ),
+        const SizedBox(height: gap),
+        capsule,
       ],
     );
   }
@@ -161,6 +179,7 @@ class _FrameStepCapsule extends ConsumerStatefulWidget {
   const _FrameStepCapsule();
 
   static const double height = 48; // the minimum touch target
+  static const double width = 168; // fixed, so landscape can mirror it
   static const double gap = 14;
 
   @override
@@ -227,6 +246,7 @@ class _FrameStepCapsuleState extends ConsumerState<_FrameStepCapsule> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Container(
+      width: _FrameStepCapsule.width,
       height: _FrameStepCapsule.height,
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.5),
@@ -236,11 +256,17 @@ class _FrameStepCapsuleState extends ConsumerState<_FrameStepCapsule> {
         mainAxisSize: MainAxisSize.min,
         children: [
           _button(false, l10n.playerFramePrevTooltip),
-          ExcludeSemantics(
-            child: Text(
-              l10n.playerFrameLabel,
-              style: const TextStyle(
-                  color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+          Expanded(
+            child: ExcludeSemantics(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  l10n.playerFrameLabel,
+                  maxLines: 1,
+                  style: const TextStyle(
+                      color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+                ),
+              ),
             ),
           ),
           _button(true, l10n.playerFrameNextTooltip),
