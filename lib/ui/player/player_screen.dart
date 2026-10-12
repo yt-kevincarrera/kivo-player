@@ -15,11 +15,12 @@ import '../../player/control/player_controller.dart';
 import '../../platform/frame_extractor_provider.dart';
 import '../../platform/interfaces/frame_extractor.dart';
 import '../../platform/subtitle_finder_provider.dart';
-import '../../player/autoplay/autoplay_logic.dart';
+import '../../player/end_actions/end_flow.dart';
+import '../../player/end_actions/trash_queue.dart';
+import '../../player/library/media_index.dart';
 import '../../player/engine/playback_engine.dart';
 import '../../player/engine/playback_provider.dart';
 import '../../player/library/played.dart';
-import '../../player/loop/ab_loop.dart';
 import '../../player/decoder/decoder_controller.dart';
 import '../../player/open/video_source.dart';
 import '../../player/resume/resume_plan.dart';
@@ -35,6 +36,7 @@ import 'controls/flash_overlay.dart';
 import 'controls/info_overlay.dart';
 import 'controls/resume_prompt.dart';
 import 'queue/queue_undo_toast.dart';
+import 'end_actions/trash_undo_toast.dart';
 import 'gestures/player_gestures.dart';
 import 'gestures/ripple_overlay.dart';
 import 'hud/hud_overlay.dart';
@@ -44,6 +46,7 @@ import 'sleep/sleep_warning_toast.dart';
 import 'speed/speed_ladder_overlay.dart';
 import 'tracks/track_sync_hud.dart';
 import 'state/aspect_state.dart';
+import 'state/controls_visibility.dart';
 import 'state/autoplay_state.dart';
 import 'state/dismiss_state.dart';
 import 'state/external_open_state.dart';
@@ -99,6 +102,11 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   // Mirrored on every build: _saveProgress runs from dispose(), where ref
   // cannot be read.
   bool _incognito = false;
+  // The play-through whose ending already ran (sleep stop vs a late
+  // `completed`); cleared when playback starts again.
+  VideoSession? _endHandledFor;
+  // Brightness before «Apagar la pantalla» dimmed it; null when not dimmed.
+  double? _dimmedFrom;
 
   @override
   void initState() {
@@ -222,6 +230,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     ref.read(autoplayPendingProvider.notifier).state = null;
     ref.read(autoplayConfirmProvider.notifier).state = false;
     ref.read(queueJumpProvider.notifier).state = null;
+    ref.read(endTrashProvider.notifier).state = null;
+    ref.read(afterPendingProvider.notifier).state = null;
+    ref.read(afterConfirmProvider.notifier).state = false;
     await _openSession(session, expandingFromMini: expandingFromMini);
     _deviceControls.currentVolume().then((v) {
       if (mounted) ref.read(volumePercentProvider.notifier).state = (v * 100).clamp(0, 100);
@@ -309,7 +320,13 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _armPip();
   }
 
-  void _onCompleted() {
+  void _onCompleted() => _handleEnd();
+
+  /// A video ended — naturally, by the sleep timer's episode mode
+  /// ([sleepStopped]), or on «Terminar ya» ([immediate]: no countdown, the
+  /// user asked for it). Decides through [decideEnd]: advance, stop, trash,
+  /// or a «Después» action.
+  void _handleEnd({bool sleepStopped = false, bool immediate = false}) {
     // Once minimized, the app-level AutoplayCoordinator owns completion. This
     // guard makes the two mutually exclusive even during the minimize→dispose
     // window (playerMinimized flips true a few frames before this listener is
@@ -319,32 +336,49 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     // an advance-in-flight (or a pending countdown) must not be reprocessed —
     // otherwise a stray second event would peekNext() off the ALREADY-advanced
     // index and skip a video.
-    if (_advancing || ref.read(autoplayPendingProvider) != null) return;
-    final loopActive = ref.read(abLoopProvider)?.phase == AbLoopPhase.active;
-    final sleepStop = sleepStopsHere(ref.read(sleepTimerProvider));
-    final next = ref.read(currentVideoProvider.notifier).peekNext();
-    final go = shouldAutoplay(
-      enabled: ref.read(settingsProvider).autoplayNext,
-      hasNext: next != null,
-      loopActive: loopActive,
-      sleepStopsHere: sleepStop,
-    );
-    if (!go) {
-      // Sleep timer's N-episodes / episode mode reaching its stop: pause + end
-      // the timer so the video rests at its end (matches the timer's intent).
-      if (sleepStop && next != null && ref.read(settingsProvider).autoplayNext && !loopActive) {
-        _engine.pause();
-        ref.read(sleepTimerProvider.notifier).cancel();
-      }
+    if (_advancing ||
+        ref.read(autoplayPendingProvider) != null ||
+        ref.read(afterPendingProvider) != null) {
       return;
     }
+    final session = ref.read(currentVideoProvider);
+    if (session == null) return;
+    // The sleep timer stops a video ~300 ms early; a late `completed` for the
+    // same play-through must not run the ending twice. Cleared on play.
+    if (!immediate && identical(_endHandledFor, session)) return;
+    _endHandledFor = session;
+    final d = decideEnd(ref.read, session: session, sleepStopped: sleepStopped);
+    final next = d.next;
+    ref.read(endTrashProvider.notifier).state = d.trash;
     // Overlay only when the player is actually on-screen (resumed AND not in
     // the tiny PiP window, where the overlay is suppressed — pinning it there
     // would leave autoplay stuck with an invisible countdown). Otherwise
     // advance immediately.
-    final onScreen = WidgetsBinding.instance.lifecycleState ==
-            AppLifecycleState.resumed &&
+    final onScreen = !immediate &&
+        WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed &&
         !ref.read(pipModeProvider);
+    final after = d.plan.after;
+    if (after != null) {
+      _engine.pause();
+      if (onScreen) {
+        ref.read(afterPendingProvider.notifier).state = after;
+      } else {
+        _runAfter(after);
+      }
+      return;
+    }
+    if (!d.plan.advance) {
+      // Sleep timer's N-episodes / episode mode reaching its stop: pause + end
+      // the timer so the video rests at its end (matches the timer's intent).
+      if (d.sleepStop && next != null && d.autoplayEnabled && !d.loopActive) {
+        _engine.pause();
+        ref.read(sleepTimerProvider.notifier).cancel();
+      }
+      if (immediate) _engine.pause();
+      // Nothing to count down to: the undo toast is the safety net.
+      _stageEndTrash();
+      return;
+    }
     // Repeat-video: peekNext() returns the SAME session (same index) as the
     // one that just finished — a "next in 5 s" countdown to watch the same
     // video again is absurd, so skip the overlay and restart directly no
@@ -363,12 +397,117 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _advancing = true;
     ref.read(autoplayPendingProvider.notifier).state = null;
     ref.read(autoplayConfirmProvider.notifier).state = false;
+    // Whatever brought another video (the strip, a shortcut, a remote's
+    // next) also ends a «Después» countdown — it was for the video before.
+    ref.read(afterPendingProvider.notifier).state = null;
+    ref.read(afterConfirmProvider.notifier).state = false;
     if (countAsAutoplay) ref.read(sleepTimerProvider.notifier).onAutoplayAdvance();
     ref.read(currentVideoProvider.notifier).advanceTo(next);
+    // After advanceTo: the ended video is no longer current, so it can leave
+    // the play order.
+    _stageEndTrash(unlessPlaying: next.playbackPath);
     try {
       await _openSession(next, expandingFromMini: false);
     } finally {
       _advancing = false;
+    }
+  }
+
+  /// Sends the video that ended to the trash queue (undo window first) —
+  /// never the one about to play ([unlessPlaying]): the same file opened
+  /// again from a shortcut, or a duplicate further down a playlist.
+  void _stageEndTrash({String? unlessPlaying}) {
+    final t = ref.read(endTrashProvider);
+    if (t == null) return;
+    ref.read(endTrashProvider.notifier).state = null;
+    if (t.item.uri == unlessPlaying) return;
+    unawaited(ref.read(trashQueueProvider.notifier).stage(t.item, ended: t.session));
+  }
+
+  /// Runs a «Después» action (countdown done, «Ahora», or off-screen).
+  Future<void> _runAfter(AfterEnd after) async {
+    ref.read(afterPendingProvider.notifier).state = null;
+    ref.read(afterConfirmProvider.notifier).state = false;
+    _stageEndTrash();
+    if (ref.read(sleepTimerProvider) != null) {
+      ref.read(sleepTimerProvider.notifier).cancel();
+    }
+    // In PiP there is no full-screen player to close or screen to dim: the
+    // floating window stays, paused (Kivo itself can still close).
+    final inPip = ref.read(pipModeProvider);
+    switch (after) {
+      case AfterEnd.keepGoing:
+        return;
+      case AfterEnd.closePlayer when inPip:
+      case AfterEnd.screenOff when inPip:
+        _engine.pause();
+      case AfterEnd.closePlayer:
+        _closeFully();
+      case AfterEnd.closeApp:
+        // Captured now: this screen is gone by the time Kivo actually leaves.
+        final videos = ref.read(currentVideoProvider.notifier);
+        final exit = ref.read(appExitProvider);
+        ref.read(suppressTrashFlushProvider.notifier).state = true;
+        _closeFully();
+        // Let the route finish leaving before the session (which its
+        // widgets still read) goes away.
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+        videos.clear();
+        exit();
+      case AfterEnd.screenOff:
+        _engine.pause();
+        final from = await _deviceControls.currentBrightness();
+        // Left the player meanwhile: its dispose already put things back.
+        if (!mounted) return;
+        _dimmedFrom ??= from;
+        // Controls down, so the very next tap (which shows them) undims.
+        ref.read(controlsVisibleProvider.notifier).hide();
+        await _deviceControls.setBrightness(0);
+        await _deviceControls.keepAwake(false);
+    }
+  }
+
+  /// Leaves the player for the library — a real close, not a minimize: no
+  /// mini-bar left behind.
+  void _closeFully() {
+    // Already on its way out (a swipe-to-minimize finishing): one pop only.
+    if (_dismissing) return;
+    _engine.pause();
+    _keepPlayingOnMinimize = false;
+    ref.read(playerMinimizedProvider.notifier).state = false;
+    if (!mounted) return;
+    final route = ModalRoute.of(context);
+    final nav = Navigator.of(context);
+    // A sheet opened over the player (the «Más» menu) goes first.
+    if (route != null) nav.popUntil((r) => r == route);
+    nav.pop();
+  }
+
+  /// Undoes «Apagar la pantalla» once the user is back.
+  void _undim() {
+    final from = _dimmedFrom;
+    if (from == null) return;
+    _dimmedFrom = null;
+    _deviceControls.setBrightness(from);
+    _deviceControls.keepAwake(true);
+  }
+
+  /// «Papelera y siguiente»: one-off, the mode stays as it is.
+  void _trashAndNext() {
+    final session = ref.read(currentVideoProvider);
+    if (session == null || _advancing) return;
+    final item = libraryItemIn(ref.read(mediaIndexProvider).valueOrNull, session);
+    if (item == null) return;
+    _endHandledFor = session;
+    ref.read(autoplayPendingProvider.notifier).state = null;
+    ref.read(afterPendingProvider.notifier).state = null;
+    ref.read(endTrashProvider.notifier).state = EndTrash(session, item);
+    final next = ref.read(currentVideoProvider.notifier).peekNext();
+    if (next != null && next.index != session.index) {
+      _advance(next, countAsAutoplay: false);
+    } else {
+      _engine.pause();
+      _stageEndTrash();
     }
   }
 
@@ -515,6 +654,26 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     });
     ref.listen(completedProvider, (_, next) {
       if (next.value == true) _onCompleted();
+    });
+    // The sleep timer's episode mode stops just short of the end, where
+    // `completed` never comes: that stop is this video's ending.
+    ref.listen<int>(sleepEpisodeEndProvider, (_, _) {
+      _handleEnd(sleepStopped: true);
+    });
+    ref.listen<int>(finishNowProvider, (_, _) => _handleEnd(immediate: true));
+    ref.listen<int>(trashAndNextProvider, (_, _) => _trashAndNext());
+    ref.listen<bool>(afterConfirmProvider, (_, next) {
+      final pending = ref.read(afterPendingProvider);
+      if (next && pending != null) _runAfter(pending);
+    });
+    ref.listen(playingProvider, (_, next) {
+      if (next.value != true) return;
+      // Watching again: a new play-through, and the user is clearly awake.
+      _endHandledFor = null;
+      _undim();
+    });
+    ref.listen<bool>(controlsVisibleProvider, (_, visible) {
+      if (visible) _undim();
     });
     ref.listen(queueJumpProvider, (_, index) {
       if (index == null) return;
@@ -705,6 +864,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                         const Positioned.fill(child: SpeedLadderOverlay()),
                         const Positioned.fill(child: ResumePrompt()),
                         const Positioned.fill(child: QueueUndoToast()),
+                        const Positioned.fill(child: TrashUndoToast()),
                         const Positioned.fill(child: SleepWarningToast()),
                         const Positioned.fill(child: AutoplayOverlay()),
                         const Positioned.fill(child: TrackSyncHud()),

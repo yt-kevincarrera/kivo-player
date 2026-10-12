@@ -10,6 +10,7 @@ import 'package:kivo_player/ui/player/player_screen.dart';
 import '../player/player_screen_controls_test.dart' show NoopControls;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kivo_player/player/end_actions/pending_trash.dart';
 import 'package:kivo_player/player/bookmarks/bookmark_store.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
@@ -67,6 +68,7 @@ void main() {
     final c = ProviderContainer(
       overrides: [
         settingsServiceProvider.overrideWithValue(s),
+        pendingTrashStoreProvider.overrideWithValue(InMemoryPendingTrashStore()),
         mediaPermissionImplProvider.overrideWithValue(_Granted()),
         mediaIndexerProvider.overrideWithValue(
           FakeMediaIndexer([
@@ -110,6 +112,7 @@ void main() {
     final c = ProviderContainer(
       overrides: [
         settingsServiceProvider.overrideWithValue(s),
+        pendingTrashStoreProvider.overrideWithValue(InMemoryPendingTrashStore()),
         playbackEngineProvider.overrideWithValue(engine),
         deviceControlsProvider.overrideWithValue(NoopControls()),
         resumeServiceProvider.overrideWithValue(

@@ -5,7 +5,11 @@ import '../../l10n/l10n.dart';
 import '../mini_player/mini_player_bar.dart';
 import '../settings/search/settings_search_state.dart';
 import '../settings/settings_screen.dart';
+import '../../player/end_actions/end_flow.dart';
+import '../../player/end_actions/trash_queue.dart';
+import '../player/state/player_dismiss_state.dart';
 import 'library_screen.dart';
+import 'pending_trash.dart';
 import 'state/library_selection.dart';
 import 'widgets/selection_bottom_bar.dart';
 
@@ -26,6 +30,34 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
   GlobalKey<NavigatorState> get _activeNav => _navKeys[_index];
 
+  late final AppLifecycleListener _lifecycle;
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle = AppLifecycleListener(onResume: () {
+      // Back in Kivo after it closed itself: asking is welcome again.
+      ref.read(suppressTrashFlushProvider.notifier).state = false;
+      _askAboutPendingTrash();
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _askAboutPendingTrash());
+  }
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    super.dispose();
+  }
+
+  /// «Al terminar» deletions left over (Kivo closed, or killed, before they
+  /// were confirmed). Only while the library itself is what's on screen.
+  void _askAboutPendingTrash() {
+    if (!mounted) return;
+    if (ModalRoute.of(context)?.isCurrent == false) return;
+    if (ref.read(trashQueueProvider).isEmpty) return;
+    askAboutPendingTrash(context, ref);
+  }
+
   void _select(int i) {
     if (i == _index) {
       // Re-tapping the active tab pops it to its root (common tab convention).
@@ -43,6 +75,14 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   @override
   Widget build(BuildContext context) {
     final selecting = ref.watch(librarySelectionProvider).isNotEmpty;
+    // Leaving the full-screen player (its dismiss API goes away with it), or
+    // closing the mini-bar: confirm the batched deletions now.
+    ref.listen(playerDismissProvider, (prev, next) {
+      if (prev != null && next == null) flushPendingTrash(context, ref);
+    });
+    ref.listen<int>(trashFlushRequestProvider, (_, _) {
+      flushPendingTrash(context, ref);
+    });
     return PopScope(
       // Back should first unwind the active tab's own stack; only when it can't
       // do we let the system handle it (leave the app).

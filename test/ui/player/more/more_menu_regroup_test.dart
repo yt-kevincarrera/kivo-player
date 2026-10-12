@@ -132,9 +132,12 @@ void main() {
     // plus its own 14 (top) + 24 (bottom) padding, so this is the true
     // budget the content has to fit inside without scrolling.
     final budget = maxHeight - 14 - 24;
-    // Landscape is the case the two-column layout exists for: it has to FIT.
+    // Landscape is the case the two-column layout exists for: it has to FIT
+    // on today's phones (412 dp tall in landscape, Pixel-class). Since «Al
+    // terminar» joined the menu the content no longer fits two columns
+    // at 360 dp tall — there it may scroll a little, but must not overflow.
     // Portrait at 360x640 is allowed to scroll (that was always its deal).
-    if (width > height) {
+    if (width > height && height >= 400) {
       expect(
         contentSize.height,
         lessThanOrEqualTo(budget),
@@ -161,6 +164,12 @@ void main() {
     await measure(tester, 800, 360);
     expect(find.text(_l10n.playerMenuSync), findsOneWidget);
     expect(find.text(_l10n.playerMenuGroupAudio), findsOneWidget);
+  });
+
+  testWidgets('the menu fits a 915x412 landscape viewport (Pixel-class phone)',
+      (tester) async {
+    await measure(tester, 915, 412);
+    expect(find.text(_l10n.endActionsTitle), findsOneWidget);
   });
 
   testWidgets('the menu still renders as a single column at 360x640 portrait',

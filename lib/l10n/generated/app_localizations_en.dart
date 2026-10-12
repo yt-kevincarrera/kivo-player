@@ -2518,4 +2518,134 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsSearchKwVault => 'hidden, private, safe';
+
+  @override
+  String get endActionsTitle => 'When it ends';
+
+  @override
+  String get endActionsSummaryNone => 'Nothing';
+
+  @override
+  String get endActionsSummaryTrash => 'Trash';
+
+  @override
+  String get endActionsSummaryDelete => 'Delete';
+
+  @override
+  String endActionsSummaryBoth(String trash, String after) {
+    return '$trash · $after';
+  }
+
+  @override
+  String get endActionsTrashTitle => 'Move to trash';
+
+  @override
+  String get endActionsDeleteTitle => 'Delete the file';
+
+  @override
+  String get endActionsTrashSubtitle =>
+      'Every video in the queue, when it ends';
+
+  @override
+  String get endActionsTrashNotLibrary => 'This video is not in your library';
+
+  @override
+  String get endActionsTrashRepeatVideo => 'Not available with Repeat: video';
+
+  @override
+  String get endActionsAfterTitle => 'Then';
+
+  @override
+  String get endActionsAfterKeepGoing => 'Carry on as usual';
+
+  @override
+  String get endActionsAfterClosePlayer => 'Close the player';
+
+  @override
+  String get endActionsAfterCloseApp => 'Close Kivo';
+
+  @override
+  String get endActionsAfterScreenOff => 'Let the screen sleep';
+
+  @override
+  String get endActionsAfterScreenOffHint =>
+      'Dims it and lets the phone turn it off';
+
+  @override
+  String get endActionsFinishNow => 'Finish now';
+
+  @override
+  String get endActionsTrashAndNext => 'Trash and next';
+
+  @override
+  String get endActionsDeleteAndNext => 'Delete and next';
+
+  @override
+  String get endActionsChipOffTooltip => 'Turn off «When it ends»';
+
+  @override
+  String get endActionsCardTrashLine => 'This video will go to the trash';
+
+  @override
+  String get endActionsCardDeleteLine => 'This video will be deleted';
+
+  @override
+  String get endActionsKeep => 'Keep';
+
+  @override
+  String get endActionsCountdownClosePlayer => 'CLOSING PLAYER';
+
+  @override
+  String get endActionsCountdownCloseApp => 'CLOSING KIVO';
+
+  @override
+  String get endActionsCountdownScreenOff => 'SCREEN OFF';
+
+  @override
+  String get endActionsNow => 'Now';
+
+  @override
+  String get trashUndoMoved => 'Moved to the trash';
+
+  @override
+  String get trashUndoOnExit => 'Goes to the trash when you leave';
+
+  @override
+  String get trashUndoDeleteOnExit => 'Will be deleted when you leave';
+
+  @override
+  String pendingTrashTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count videos waiting to go to the trash',
+      one: '1 video waiting to go to the trash',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pendingTrashDeleteTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count videos waiting to be deleted',
+      one: '1 video waiting to be deleted',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pendingTrashBody =>
+      'They ended with «When it ends» on. Android will ask you to confirm.';
+
+  @override
+  String pendingTrashMore(int count) {
+    return '+$count more';
+  }
+
+  @override
+  String endActionsChipSemantics(String summary) {
+    return 'When it ends: $summary';
+  }
 }

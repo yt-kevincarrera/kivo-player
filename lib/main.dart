@@ -23,6 +23,7 @@ import 'player/tracks/track_prefs_store.dart';
 import 'player/library/played.dart';
 import 'player/open/video_source.dart';
 import 'platform/all_files_access_provider.dart';
+import 'player/end_actions/pending_trash.dart';
 import 'platform/android/android_all_files_access.dart';
 import 'platform/android/android_app_installer.dart';
 import 'platform/android/android_frame_extractor.dart';
@@ -75,6 +76,7 @@ Future<void> main() async {
   final trackPrefsBox = await Hive.openBox('subtitlePrefs');
   final playlistsBox = await Hive.openBox('playlists');
   final bookmarksBox = await Hive.openBox('bookmarks');
+  final pendingTrashBox = await Hive.openBox('pendingTrash');
 
   // The app version and API level are captured once and stamped on every
   // recorded failure: a reported code is only useful with the device it came
@@ -107,6 +109,8 @@ Future<void> main() async {
       playedStoreProvider.overrideWithValue(HivePlayedStore(playedBox)),
       playlistStoreProvider.overrideWithValue(HivePlaylistStore(playlistsBox)),
       bookmarkStoreProvider.overrideWithValue(HiveBookmarkStore(bookmarksBox)),
+      pendingTrashStoreProvider
+          .overrideWithValue(HivePendingTrashStore(pendingTrashBox)),
       frameExtractorProvider.overrideWithValue(AndroidFrameExtractor()),
       mediaIndexerProvider.overrideWithValue(AndroidMediaIndexer(errorLog)),
       mediaFileOpsProvider.overrideWithValue(AndroidMediaFileOps(errorLog)),

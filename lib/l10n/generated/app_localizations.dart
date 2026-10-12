@@ -4249,6 +4249,216 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'bóveda, ocultos, privado'**
   String get settingsSearchKwVault;
+
+  /// Título del panel y de la fila del menú ⋮ que eligen qué pasa cuando un video termina.
+  ///
+  /// In es, this message translates to:
+  /// **'Al terminar'**
+  String get endActionsTitle;
+
+  /// Subtítulo de la fila «Al terminar» cuando no hay nada activado.
+  ///
+  /// In es, this message translates to:
+  /// **'Nada'**
+  String get endActionsSummaryNone;
+
+  /// Resumen corto (fila del menú y chip) cuando los videos van a la papelera al terminar.
+  ///
+  /// In es, this message translates to:
+  /// **'Papelera'**
+  String get endActionsSummaryTrash;
+
+  /// Resumen corto (fila del menú y chip) cuando los videos se borran al terminar (Android sin papelera).
+  ///
+  /// In es, this message translates to:
+  /// **'Borrar'**
+  String get endActionsSummaryDelete;
+
+  /// Resumen con las dos cosas activas: papelera/borrar y la acción de después.
+  ///
+  /// In es, this message translates to:
+  /// **'{trash} · {after}'**
+  String endActionsSummaryBoth(String trash, String after);
+
+  /// Fila del panel «Al terminar» que activa mandar cada video a la papelera.
+  ///
+  /// In es, this message translates to:
+  /// **'Mover a la papelera'**
+  String get endActionsTrashTitle;
+
+  /// Fila del panel «Al terminar» en Android sin papelera: el borrado es definitivo.
+  ///
+  /// In es, this message translates to:
+  /// **'Borrar el archivo'**
+  String get endActionsDeleteTitle;
+
+  /// Subtítulo de la fila de papelera: aplica a todos los videos de la cola.
+  ///
+  /// In es, this message translates to:
+  /// **'Cada video de la cola, al acabar'**
+  String get endActionsTrashSubtitle;
+
+  /// Motivo por el que la papelera está desactivada: el video no viene de la biblioteca (bóveda, otra app, selector de archivos).
+  ///
+  /// In es, this message translates to:
+  /// **'Este video no está en tu biblioteca'**
+  String get endActionsTrashNotLibrary;
+
+  /// Motivo por el que la papelera está desactivada: el modo repetir video volvería a abrir el archivo borrado.
+  ///
+  /// In es, this message translates to:
+  /// **'No disponible con Repetir: video'**
+  String get endActionsTrashRepeatVideo;
+
+  /// Encabezado del grupo de acciones que se ejecutan después de que un video termine.
+  ///
+  /// In es, this message translates to:
+  /// **'Después'**
+  String get endActionsAfterTitle;
+
+  /// Opción de «Después»: lo de siempre (siguiente automático, repetir…).
+  ///
+  /// In es, this message translates to:
+  /// **'Seguir normal'**
+  String get endActionsAfterKeepGoing;
+
+  /// Opción de «Después»: volver a la biblioteca.
+  ///
+  /// In es, this message translates to:
+  /// **'Cerrar el reproductor'**
+  String get endActionsAfterClosePlayer;
+
+  /// Opción de «Después»: cerrar la app.
+  ///
+  /// In es, this message translates to:
+  /// **'Cerrar Kivo'**
+  String get endActionsAfterCloseApp;
+
+  /// Opción de «Después»: bajar el brillo y dejar que la pantalla se apague sola.
+  ///
+  /// In es, this message translates to:
+  /// **'Apagar la pantalla'**
+  String get endActionsAfterScreenOff;
+
+  /// Aclaración bajo «Apagar la pantalla»: no la apaga a la fuerza.
+  ///
+  /// In es, this message translates to:
+  /// **'Baja el brillo y deja que el móvil la apague'**
+  String get endActionsAfterScreenOffHint;
+
+  /// Botón que aplica ahora las acciones de «Al terminar», como si el video hubiera acabado (p. ej. en los créditos).
+  ///
+  /// In es, this message translates to:
+  /// **'Terminar ya'**
+  String get endActionsFinishNow;
+
+  /// Botón puntual: manda este video a la papelera y pasa al siguiente, sin activar el modo.
+  ///
+  /// In es, this message translates to:
+  /// **'Papelera y siguiente'**
+  String get endActionsTrashAndNext;
+
+  /// Igual que «Papelera y siguiente» en Android sin papelera.
+  ///
+  /// In es, this message translates to:
+  /// **'Borrar y siguiente'**
+  String get endActionsDeleteAndNext;
+
+  /// Ayuda de la ✕ del chip «Al terminar» en los controles del reproductor.
+  ///
+  /// In es, this message translates to:
+  /// **'Desactivar «Al terminar»'**
+  String get endActionsChipOffTooltip;
+
+  /// Línea en la tarjeta de cuenta atrás: el video que acaba de terminar irá a la papelera.
+  ///
+  /// In es, this message translates to:
+  /// **'Este video irá a la papelera'**
+  String get endActionsCardTrashLine;
+
+  /// Línea en la tarjeta de cuenta atrás en Android sin papelera.
+  ///
+  /// In es, this message translates to:
+  /// **'Este video se borrará'**
+  String get endActionsCardDeleteLine;
+
+  /// Acción para no mandar este video a la papelera.
+  ///
+  /// In es, this message translates to:
+  /// **'Conservar'**
+  String get endActionsKeep;
+
+  /// Etiqueta corta, en mayúsculas, de la tarjeta de cuenta atrás antes de cerrar el reproductor.
+  ///
+  /// In es, this message translates to:
+  /// **'CERRAR REPRODUCTOR'**
+  String get endActionsCountdownClosePlayer;
+
+  /// Etiqueta corta, en mayúsculas, de la tarjeta de cuenta atrás antes de cerrar la app.
+  ///
+  /// In es, this message translates to:
+  /// **'CERRAR KIVO'**
+  String get endActionsCountdownCloseApp;
+
+  /// Etiqueta corta, en mayúsculas, de la tarjeta de cuenta atrás antes de bajar el brillo.
+  ///
+  /// In es, this message translates to:
+  /// **'APAGAR PANTALLA'**
+  String get endActionsCountdownScreenOff;
+
+  /// Botón de la tarjeta de cuenta atrás: hacerlo ya sin esperar.
+  ///
+  /// In es, this message translates to:
+  /// **'Ahora'**
+  String get endActionsNow;
+
+  /// Aviso tras mandar a la papelera el video que terminó. Lleva Deshacer.
+  ///
+  /// In es, this message translates to:
+  /// **'Movido a la papelera'**
+  String get trashUndoMoved;
+
+  /// Aviso: el video irá a la papelera al salir del reproductor (Android pedirá confirmación). Lleva Deshacer.
+  ///
+  /// In es, this message translates to:
+  /// **'Irá a la papelera al salir'**
+  String get trashUndoOnExit;
+
+  /// Aviso en Android sin papelera: el video se borrará al salir del reproductor. Lleva Deshacer.
+  ///
+  /// In es, this message translates to:
+  /// **'Se borrará al salir'**
+  String get trashUndoDeleteOnExit;
+
+  /// Título de la hoja que pregunta por los videos que terminaron con la papelera activa y aún no se movieron.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 video pendiente de ir a la papelera} other{{count} videos pendientes de ir a la papelera}}'**
+  String pendingTrashTitle(int count);
+
+  /// Igual que pendingTrashTitle en Android sin papelera.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 video pendiente de borrar} other{{count} videos pendientes de borrar}}'**
+  String pendingTrashDeleteTitle(int count);
+
+  /// Explicación de la hoja de videos pendientes.
+  ///
+  /// In es, this message translates to:
+  /// **'Terminaron con «Al terminar» activo. Android te pedirá confirmarlo.'**
+  String get pendingTrashBody;
+
+  /// Cuántos videos más hay pendientes además de los que se listan en la hoja.
+  ///
+  /// In es, this message translates to:
+  /// **'+{count} más'**
+  String pendingTrashMore(int count);
+
+  /// Etiqueta para lectores de pantalla del chip «Al terminar» con el resumen de lo activo.
+  ///
+  /// In es, this message translates to:
+  /// **'Al terminar: {summary}'**
+  String endActionsChipSemantics(String summary);
 }
 
 class _AppLocalizationsDelegate

@@ -2535,4 +2535,133 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settingsSearchKwVault => 'bóveda, ocultos, privado';
+
+  @override
+  String get endActionsTitle => 'Al terminar';
+
+  @override
+  String get endActionsSummaryNone => 'Nada';
+
+  @override
+  String get endActionsSummaryTrash => 'Papelera';
+
+  @override
+  String get endActionsSummaryDelete => 'Borrar';
+
+  @override
+  String endActionsSummaryBoth(String trash, String after) {
+    return '$trash · $after';
+  }
+
+  @override
+  String get endActionsTrashTitle => 'Mover a la papelera';
+
+  @override
+  String get endActionsDeleteTitle => 'Borrar el archivo';
+
+  @override
+  String get endActionsTrashSubtitle => 'Cada video de la cola, al acabar';
+
+  @override
+  String get endActionsTrashNotLibrary => 'Este video no está en tu biblioteca';
+
+  @override
+  String get endActionsTrashRepeatVideo => 'No disponible con Repetir: video';
+
+  @override
+  String get endActionsAfterTitle => 'Después';
+
+  @override
+  String get endActionsAfterKeepGoing => 'Seguir normal';
+
+  @override
+  String get endActionsAfterClosePlayer => 'Cerrar el reproductor';
+
+  @override
+  String get endActionsAfterCloseApp => 'Cerrar Kivo';
+
+  @override
+  String get endActionsAfterScreenOff => 'Apagar la pantalla';
+
+  @override
+  String get endActionsAfterScreenOffHint =>
+      'Baja el brillo y deja que el móvil la apague';
+
+  @override
+  String get endActionsFinishNow => 'Terminar ya';
+
+  @override
+  String get endActionsTrashAndNext => 'Papelera y siguiente';
+
+  @override
+  String get endActionsDeleteAndNext => 'Borrar y siguiente';
+
+  @override
+  String get endActionsChipOffTooltip => 'Desactivar «Al terminar»';
+
+  @override
+  String get endActionsCardTrashLine => 'Este video irá a la papelera';
+
+  @override
+  String get endActionsCardDeleteLine => 'Este video se borrará';
+
+  @override
+  String get endActionsKeep => 'Conservar';
+
+  @override
+  String get endActionsCountdownClosePlayer => 'CERRAR REPRODUCTOR';
+
+  @override
+  String get endActionsCountdownCloseApp => 'CERRAR KIVO';
+
+  @override
+  String get endActionsCountdownScreenOff => 'APAGAR PANTALLA';
+
+  @override
+  String get endActionsNow => 'Ahora';
+
+  @override
+  String get trashUndoMoved => 'Movido a la papelera';
+
+  @override
+  String get trashUndoOnExit => 'Irá a la papelera al salir';
+
+  @override
+  String get trashUndoDeleteOnExit => 'Se borrará al salir';
+
+  @override
+  String pendingTrashTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count videos pendientes de ir a la papelera',
+      one: '1 video pendiente de ir a la papelera',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pendingTrashDeleteTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count videos pendientes de borrar',
+      one: '1 video pendiente de borrar',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pendingTrashBody =>
+      'Terminaron con «Al terminar» activo. Android te pedirá confirmarlo.';
+
+  @override
+  String pendingTrashMore(int count) {
+    return '+$count más';
+  }
+
+  @override
+  String endActionsChipSemantics(String summary) {
+    return 'Al terminar: $summary';
+  }
 }

@@ -3915,5 +3915,162 @@
   "settingsSearchKwVault": "bóveda, ocultos, privado",
   "@settingsSearchKwVault": {
     "description": "Sinónimos de búsqueda para el Vault (solo se busca mientras su entrada está visible)."
+  },
+
+  "endActionsTitle": "Al terminar",
+  "@endActionsTitle": {
+    "description": "Título del panel y de la fila del menú ⋮ que eligen qué pasa cuando un video termina."
+  },
+  "endActionsSummaryNone": "Nada",
+  "@endActionsSummaryNone": {
+    "description": "Subtítulo de la fila «Al terminar» cuando no hay nada activado."
+  },
+  "endActionsSummaryTrash": "Papelera",
+  "@endActionsSummaryTrash": {
+    "description": "Resumen corto (fila del menú y chip) cuando los videos van a la papelera al terminar."
+  },
+  "endActionsSummaryDelete": "Borrar",
+  "@endActionsSummaryDelete": {
+    "description": "Resumen corto (fila del menú y chip) cuando los videos se borran al terminar (Android sin papelera)."
+  },
+  "endActionsSummaryBoth": "{trash} · {after}",
+  "@endActionsSummaryBoth": {
+    "description": "Resumen con las dos cosas activas: papelera/borrar y la acción de después.",
+    "placeholders": {
+      "trash": {"type": "String"},
+      "after": {"type": "String"}
+    }
+  },
+  "endActionsTrashTitle": "Mover a la papelera",
+  "@endActionsTrashTitle": {
+    "description": "Fila del panel «Al terminar» que activa mandar cada video a la papelera."
+  },
+  "endActionsDeleteTitle": "Borrar el archivo",
+  "@endActionsDeleteTitle": {
+    "description": "Fila del panel «Al terminar» en Android sin papelera: el borrado es definitivo."
+  },
+  "endActionsTrashSubtitle": "Cada video de la cola, al acabar",
+  "@endActionsTrashSubtitle": {
+    "description": "Subtítulo de la fila de papelera: aplica a todos los videos de la cola."
+  },
+  "endActionsTrashNotLibrary": "Este video no está en tu biblioteca",
+  "@endActionsTrashNotLibrary": {
+    "description": "Motivo por el que la papelera está desactivada: el video no viene de la biblioteca (bóveda, otra app, selector de archivos)."
+  },
+  "endActionsTrashRepeatVideo": "No disponible con Repetir: video",
+  "@endActionsTrashRepeatVideo": {
+    "description": "Motivo por el que la papelera está desactivada: el modo repetir video volvería a abrir el archivo borrado."
+  },
+  "endActionsAfterTitle": "Después",
+  "@endActionsAfterTitle": {
+    "description": "Encabezado del grupo de acciones que se ejecutan después de que un video termine."
+  },
+  "endActionsAfterKeepGoing": "Seguir normal",
+  "@endActionsAfterKeepGoing": {
+    "description": "Opción de «Después»: lo de siempre (siguiente automático, repetir…)."
+  },
+  "endActionsAfterClosePlayer": "Cerrar el reproductor",
+  "@endActionsAfterClosePlayer": {
+    "description": "Opción de «Después»: volver a la biblioteca."
+  },
+  "endActionsAfterCloseApp": "Cerrar Kivo",
+  "@endActionsAfterCloseApp": {
+    "description": "Opción de «Después»: cerrar la app."
+  },
+  "endActionsAfterScreenOff": "Apagar la pantalla",
+  "@endActionsAfterScreenOff": {
+    "description": "Opción de «Después»: bajar el brillo y dejar que la pantalla se apague sola."
+  },
+  "endActionsAfterScreenOffHint": "Baja el brillo y deja que el móvil la apague",
+  "@endActionsAfterScreenOffHint": {
+    "description": "Aclaración bajo «Apagar la pantalla»: no la apaga a la fuerza."
+  },
+  "endActionsFinishNow": "Terminar ya",
+  "@endActionsFinishNow": {
+    "description": "Botón que aplica ahora las acciones de «Al terminar», como si el video hubiera acabado (p. ej. en los créditos)."
+  },
+  "endActionsTrashAndNext": "Papelera y siguiente",
+  "@endActionsTrashAndNext": {
+    "description": "Botón puntual: manda este video a la papelera y pasa al siguiente, sin activar el modo."
+  },
+  "endActionsDeleteAndNext": "Borrar y siguiente",
+  "@endActionsDeleteAndNext": {
+    "description": "Igual que «Papelera y siguiente» en Android sin papelera."
+  },
+  "endActionsChipOffTooltip": "Desactivar «Al terminar»",
+  "@endActionsChipOffTooltip": {
+    "description": "Ayuda de la ✕ del chip «Al terminar» en los controles del reproductor."
+  },
+  "endActionsCardTrashLine": "Este video irá a la papelera",
+  "@endActionsCardTrashLine": {
+    "description": "Línea en la tarjeta de cuenta atrás: el video que acaba de terminar irá a la papelera."
+  },
+  "endActionsCardDeleteLine": "Este video se borrará",
+  "@endActionsCardDeleteLine": {
+    "description": "Línea en la tarjeta de cuenta atrás en Android sin papelera."
+  },
+  "endActionsKeep": "Conservar",
+  "@endActionsKeep": {
+    "description": "Acción para no mandar este video a la papelera."
+  },
+  "endActionsCountdownClosePlayer": "CERRAR REPRODUCTOR",
+  "@endActionsCountdownClosePlayer": {
+    "description": "Etiqueta corta, en mayúsculas, de la tarjeta de cuenta atrás antes de cerrar el reproductor."
+  },
+  "endActionsCountdownCloseApp": "CERRAR KIVO",
+  "@endActionsCountdownCloseApp": {
+    "description": "Etiqueta corta, en mayúsculas, de la tarjeta de cuenta atrás antes de cerrar la app."
+  },
+  "endActionsCountdownScreenOff": "APAGAR PANTALLA",
+  "@endActionsCountdownScreenOff": {
+    "description": "Etiqueta corta, en mayúsculas, de la tarjeta de cuenta atrás antes de bajar el brillo."
+  },
+  "endActionsNow": "Ahora",
+  "@endActionsNow": {
+    "description": "Botón de la tarjeta de cuenta atrás: hacerlo ya sin esperar."
+  },
+  "trashUndoMoved": "Movido a la papelera",
+  "@trashUndoMoved": {
+    "description": "Aviso tras mandar a la papelera el video que terminó. Lleva Deshacer."
+  },
+  "trashUndoOnExit": "Irá a la papelera al salir",
+  "@trashUndoOnExit": {
+    "description": "Aviso: el video irá a la papelera al salir del reproductor (Android pedirá confirmación). Lleva Deshacer."
+  },
+  "trashUndoDeleteOnExit": "Se borrará al salir",
+  "@trashUndoDeleteOnExit": {
+    "description": "Aviso en Android sin papelera: el video se borrará al salir del reproductor. Lleva Deshacer."
+  },
+  "pendingTrashTitle": "{count, plural, =1{1 video pendiente de ir a la papelera} other{{count} videos pendientes de ir a la papelera}}",
+  "@pendingTrashTitle": {
+    "description": "Título de la hoja que pregunta por los videos que terminaron con la papelera activa y aún no se movieron.",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "pendingTrashDeleteTitle": "{count, plural, =1{1 video pendiente de borrar} other{{count} videos pendientes de borrar}}",
+  "@pendingTrashDeleteTitle": {
+    "description": "Igual que pendingTrashTitle en Android sin papelera.",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "pendingTrashBody": "Terminaron con «Al terminar» activo. Android te pedirá confirmarlo.",
+  "@pendingTrashBody": {
+    "description": "Explicación de la hoja de videos pendientes."
+  },
+  "pendingTrashMore": "+{count} más",
+  "@pendingTrashMore": {
+    "description": "Cuántos videos más hay pendientes además de los que se listan en la hoja.",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "endActionsChipSemantics": "Al terminar: {summary}",
+  "@endActionsChipSemantics": {
+    "description": "Etiqueta para lectores de pantalla del chip «Al terminar» con el resumen de lo activo.",
+    "placeholders": {
+      "summary": {"type": "String"}
+    }
   }
 }

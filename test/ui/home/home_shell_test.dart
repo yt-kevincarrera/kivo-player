@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kivo_player/player/end_actions/pending_trash.dart';
 import 'package:kivo_player/player/bookmarks/bookmark_store.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
@@ -16,6 +17,7 @@ Future<void> _pump(WidgetTester t) async {
   final s = await SettingsService.load(InMemorySettingsStore());
   final container = ProviderContainer(overrides: [
     settingsServiceProvider.overrideWithValue(s),
+    pendingTrashStoreProvider.overrideWithValue(InMemoryPendingTrashStore()),
     mediaIndexerProvider.overrideWithValue(FakeMediaIndexer()),
     playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
     bookmarkStoreProvider.overrideWithValue(InMemoryBookmarkStore()),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kivo_player/player/end_actions/pending_trash.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/core/theme/kivo_theme.dart';
@@ -29,6 +30,7 @@ Future<ProviderContainer> _pump(WidgetTester t, {int? taps}) async {
   final c = ProviderContainer(
     overrides: [
       settingsServiceProvider.overrideWithValue(s),
+      pendingTrashStoreProvider.overrideWithValue(InMemoryPendingTrashStore()),
       mediaIndexerProvider.overrideWithValue(FakeMediaIndexer()),
       playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
       bookmarkStoreProvider.overrideWithValue(InMemoryBookmarkStore()),

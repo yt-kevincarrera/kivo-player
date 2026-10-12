@@ -105,6 +105,7 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
   void open(VideoSession session) {
     OpenTrace.instance.begin('a file');
     _dropUndo();
+    _trashed.clear();
     if (session.order != null || session.queue.length <= 1) {
       state = session;
       return;
@@ -123,6 +124,7 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
   /// File-picker open: single-item queue (the picker gives a cache copy, no folder).
   void openPath(String path) {
     _dropUndo();
+    _trashed.clear();
     final name = basenameOf(path);
     state = VideoSession(
         playbackPath: path, displayName: name, queue: [path], index: 0);
@@ -272,6 +274,67 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
 
   void _dropUndo() => ref.read(queueUndoProvider.notifier).state = null;
 
+  // ── End-of-video trash ─────────────────────────────────────────────────────
+  // No queue undo here: the trash has its own «Deshacer», which calls
+  // [restoreTrashed].
+
+  /// Queue indices sent to the trash this session: a re-drawn order (shuffle)
+  /// must not bring them back.
+  final Set<int> _trashed = {};
+
+  /// Every queue index holding the same file as [item] (a playlist may list a
+  /// video twice) — they all go, or come back, together.
+  List<int> _sameFile(VideoSession s, int item) => [
+        for (var i = 0; i < s.queue.length; i++)
+          if (s.queue[i] == s.queue[item]) i,
+      ];
+
+  /// Takes a video that was just sent to the trash out of the play order, so
+  /// repeat-list or the strip never offer a file that is gone.
+  void dropTrashed(int item) {
+    final s = state;
+    if (s == null || item == s.index) return;
+    var order = s.playOrder;
+    for (final i in _sameFile(s, item)) {
+      if (i == s.index) continue;
+      _trashed.add(i);
+      order = removeFromOrder(order, s.index, i);
+    }
+    state = s.withOrder(order, edited: true);
+  }
+
+  /// Undoes [dropTrashed]: [previousOrder]/[previousEdited] are the session's
+  /// order before the drop. Edits made since are kept — only [item] comes back,
+  /// where it was. A no-op once a different queue is open.
+  void restoreTrashed({
+    required List<String> queue,
+    required int item,
+    required List<int>? previousOrder,
+    required bool previousEdited,
+  }) {
+    final s = state;
+    if (s == null || !identical(s.queue, queue)) return;
+    final same = _sameFile(s, item).toSet();
+    _trashed.removeAll(same);
+    final now = s.playOrder;
+    if (same.every(now.contains)) return;
+    final before = previousOrder ?? List<int>.generate(s.queue.length, (i) => i);
+    final restored =
+        before.where((i) => same.contains(i) || now.contains(i)).toList();
+    final unchanged = restored.length == before.length;
+    state = unchanged
+        ? s.withOrder(previousOrder, edited: previousEdited)
+        : s.withOrder(restored, edited: true);
+  }
+
+  /// Ends the session altogether (closing Kivo from «Al terminar»): nothing
+  /// left for the mini-bar or the media notification to show.
+  void clear() {
+    _dropUndo();
+    _trashed.clear();
+    state = null;
+  }
+
   /// Toggles shuffle: persists the setting AND updates the active session's
   /// play order to match, so the two never drift apart. This notifier is the
   /// only thing that reads/produces [VideoSession.order], so routing the
@@ -298,10 +361,18 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
         shuffle: !value,
       );
     }
-    state = s.withOrder(
-      value ? shuffledOrder(s.queue.length, s.index, ref.read(queueRandomProvider)) : null,
-      edited: false,
-    );
+    final order = value
+        ? shuffledOrder(s.queue.length, s.index, ref.read(queueRandomProvider))
+        : null;
+    // Re-drawn from the whole queue — minus what «Al terminar» trashed.
+    state = _trashed.isEmpty
+        ? s.withOrder(order, edited: false)
+        : s.withOrder(
+            (order ?? List<int>.generate(s.queue.length, (i) => i))
+                .where((i) => !_trashed.contains(i))
+                .toList(),
+            edited: true,
+          );
   }
 }
 

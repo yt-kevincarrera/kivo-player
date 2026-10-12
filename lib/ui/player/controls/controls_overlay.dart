@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../loop/ab_loop_chip.dart';
+import '../end_actions/end_actions_chip.dart';
 import '../state/controls_visibility.dart';
 import '../state/controls_insets.dart';
 import '../state/lock_state.dart';
@@ -144,6 +145,12 @@ class ControlsOverlay extends ConsumerWidget {
                             right: 14,
                             bottom: 116, // clear of the seek bar + button row
                             child: AbLoopChip(),
+                          ),
+                          // Mirrors the A-B chip on the left.
+                          const Positioned(
+                            left: 14,
+                            bottom: 116,
+                            child: EndActionsChip(),
                           ),
                         ],
                       ),
