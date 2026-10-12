@@ -12,8 +12,7 @@ import '../chapters/chapter_marks_layer.dart';
 import '../loop/ab_range_layer.dart';
 import '../seek/seek_preview.dart';
 import '../state/controls_visibility.dart';
-
-final showRemainingProvider = StateProvider<bool>((ref) => false);
+import 'time_label.dart';
 
 class _GrowingThumbShape extends SliderComponentShape {
   final Animation<double> anim; // 0 = rest, 1 = scrubbing
@@ -104,10 +103,6 @@ class _SeekBarState extends ConsumerState<SeekBar>
       }
     });
     final l10n = context.l10n;
-    final remaining = total - shownPos < Duration.zero
-        ? Duration.zero
-        : total - shownPos;
-    final showRemaining = ref.watch(showRemainingProvider);
     String spokenAt(Duration d) => l10n.playerSeekBarValue(
       spokenDuration(l10n, d, withSeconds: true),
       spokenDuration(l10n, total),
@@ -214,25 +209,7 @@ class _SeekBarState extends ConsumerState<SeekBar>
             ],
           ),
         ),
-        Semantics(
-          button: true,
-          label: showRemaining
-              ? l10n.playerRemainingTimeLabel(spokenDuration(l10n, remaining))
-              : l10n.playerTotalTimeLabel(spokenDuration(l10n, total)),
-          onTapHint: l10n.playerTimeToggleHint,
-          onTap: () =>
-              ref.read(showRemainingProvider.notifier).update((s) => !s),
-          excludeSemantics: true,
-          child: GestureDetector(
-            onTap: () =>
-                ref.read(showRemainingProvider.notifier).update((s) => !s),
-            behavior: HitTestBehavior.opaque,
-            child: Text(
-              showRemaining ? '-${fmtDuration(remaining)}' : fmtDuration(total),
-              style: const TextStyle(color: Colors.white, fontSize: 12),
-            ),
-          ),
-        ),
+        TimeLabel(total: total, position: shownPos),
       ],
     );
   }

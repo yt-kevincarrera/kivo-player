@@ -3613,9 +3613,55 @@
     }
   },
 
-  "playerTimeToggleHint": "cambiar entre duración y tiempo restante",
+  "playerTimeToggleHint": "cambiar entre duración, tiempo restante y hora de fin",
   "@playerTimeToggleHint": {
     "description": "Lector de pantalla: qué hace tocar el tiempo de la derecha."
+  },
+
+  "playerEndsAtShort": "fin {clock}",
+  "@playerEndsAtShort": {
+    "description": "Hora a la que acaba el video, a la derecha de la barra (tercer toque sobre el tiempo). {clock} es la hora ya formateada. Corto: comparte sitio con la duración.",
+    "placeholders": {
+      "clock": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerQueueEndsAtShort": "fin cola {clock}",
+  "@playerQueueEndsAtShort": {
+    "description": "Hora a la que acaba toda la cola, a la derecha de la barra. {clock} es la hora ya formateada. Corto: comparte sitio con la duración.",
+    "placeholders": {
+      "clock": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerEndsAtLabel": "{hour, plural, =1{Acaba a la {clock}} other{Acaba a las {clock}}}",
+  "@playerEndsAtLabel": {
+    "description": "Lector de pantalla: la hora a la que acaba el video. {clock} es la hora ya formateada; {hour} es la hora tal como se muestra, solo para «a la 1» / «a las 2».",
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      },
+      "clock": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerQueueEndsAtLabel": "{hour, plural, =1{La cola acaba a la {clock}} other{La cola acaba a las {clock}}}",
+  "@playerQueueEndsAtLabel": {
+    "description": "Lector de pantalla: la hora a la que acaba toda la cola. {clock} es la hora ya formateada; {hour} es la hora tal como se muestra, solo para «a la 1» / «a las 2».",
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      },
+      "clock": {
+        "type": "String"
+      }
+    }
   },
 
   "playerUnlockAction": "Desbloquear pantalla",

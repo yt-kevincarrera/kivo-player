@@ -3953,8 +3953,32 @@ abstract class AppLocalizations {
   /// Lector de pantalla: qué hace tocar el tiempo de la derecha.
   ///
   /// In es, this message translates to:
-  /// **'cambiar entre duración y tiempo restante'**
+  /// **'cambiar entre duración, tiempo restante y hora de fin'**
   String get playerTimeToggleHint;
+
+  /// Hora a la que acaba el video, a la derecha de la barra (tercer toque sobre el tiempo). {clock} es la hora ya formateada. Corto: comparte sitio con la duración.
+  ///
+  /// In es, this message translates to:
+  /// **'fin {clock}'**
+  String playerEndsAtShort(String clock);
+
+  /// Hora a la que acaba toda la cola, a la derecha de la barra. {clock} es la hora ya formateada. Corto: comparte sitio con la duración.
+  ///
+  /// In es, this message translates to:
+  /// **'fin cola {clock}'**
+  String playerQueueEndsAtShort(String clock);
+
+  /// Lector de pantalla: la hora a la que acaba el video. {clock} es la hora ya formateada; {hour} es la hora tal como se muestra, solo para «a la 1» / «a las 2».
+  ///
+  /// In es, this message translates to:
+  /// **'{hour, plural, =1{Acaba a la {clock}} other{Acaba a las {clock}}}'**
+  String playerEndsAtLabel(int hour, String clock);
+
+  /// Lector de pantalla: la hora a la que acaba toda la cola. {clock} es la hora ya formateada; {hour} es la hora tal como se muestra, solo para «a la 1» / «a las 2».
+  ///
+  /// In es, this message translates to:
+  /// **'{hour, plural, =1{La cola acaba a la {clock}} other{La cola acaba a las {clock}}}'**
+  String playerQueueEndsAtLabel(int hour, String clock);
 
   /// Lector de pantalla: el botón de desbloqueo con la pantalla bloqueada.
   ///

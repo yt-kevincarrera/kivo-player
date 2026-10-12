@@ -3614,9 +3614,55 @@
     }
   },
 
-  "playerTimeToggleHint": "switch between length and time left",
+  "playerTimeToggleHint": "switch between length, time left and end time",
   "@playerTimeToggleHint": {
     "description": "Screen reader: what tapping the right-hand time does."
+  },
+
+  "playerEndsAtShort": "ends {clock}",
+  "@playerEndsAtShort": {
+    "description": "Time the video ends, right of the bar (third tap on the time). {clock} is the already formatted time. Short: it shares the length's room.",
+    "placeholders": {
+      "clock": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerQueueEndsAtShort": "queue ends {clock}",
+  "@playerQueueEndsAtShort": {
+    "description": "Time the whole queue ends, right of the bar. {clock} is the already formatted time. Short: it shares the length's room.",
+    "placeholders": {
+      "clock": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerEndsAtLabel": "{hour, plural, =1{Ends at {clock}} other{Ends at {clock}}}",
+  "@playerEndsAtLabel": {
+    "description": "Screen reader: the time the video ends. {clock} is the already formatted time; {hour} is the hour as shown, only needed by languages whose wording depends on it.",
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      },
+      "clock": {
+        "type": "String"
+      }
+    }
+  },
+
+  "playerQueueEndsAtLabel": "{hour, plural, =1{Queue ends at {clock}} other{Queue ends at {clock}}}",
+  "@playerQueueEndsAtLabel": {
+    "description": "Screen reader: the time the whole queue ends. {clock} is the already formatted time; {hour} is the hour as shown, only needed by languages whose wording depends on it.",
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      },
+      "clock": {
+        "type": "String"
+      }
+    }
   },
 
   "playerUnlockAction": "Unlock screen",

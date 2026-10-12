@@ -139,4 +139,72 @@ void main() {
     });
   });
 
+  group('queueTimeLeft', () {
+    test('rest of the current video plus the following ones, scaled by speed', () {
+      expect(
+        queueTimeLeft(
+          order: [2, 0, 1],
+          current: 0,
+          durationsMs: [60000, 30000, 10000],
+          currentDuration: const Duration(seconds: 60),
+          position: const Duration(seconds: 20),
+          rate: 2,
+        ),
+        const Duration(seconds: 35), // (40 + 30) / 2
+      );
+    });
+
+    test('null when a following duration is unknown', () {
+      expect(
+        queueTimeLeft(
+          order: [0, 1],
+          current: 0,
+          durationsMs: [1000, 0],
+          currentDuration: const Duration(seconds: 1),
+          position: Duration.zero,
+          rate: 1,
+        ),
+        isNull,
+      );
+      expect(
+        queueTimeLeft(
+          order: [0, 1],
+          current: 0,
+          durationsMs: const [],
+          currentDuration: const Duration(seconds: 1),
+          position: Duration.zero,
+          rate: 1,
+        ),
+        isNull,
+      );
+    });
+
+    test('on the last video it is just what is left of it', () {
+      expect(
+        queueTimeLeft(
+          order: [0, 1],
+          current: 1,
+          durationsMs: const [],
+          currentDuration: const Duration(seconds: 10),
+          position: const Duration(seconds: 4),
+          rate: 1,
+        ),
+        const Duration(seconds: 6),
+      );
+    });
+
+    test('null while the current duration is not known yet', () {
+      expect(
+        queueTimeLeft(
+          order: [0],
+          current: 0,
+          durationsMs: const [],
+          currentDuration: Duration.zero,
+          position: Duration.zero,
+          rate: 1,
+        ),
+        isNull,
+      );
+    });
+  });
 }
