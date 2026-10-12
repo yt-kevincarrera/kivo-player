@@ -80,6 +80,8 @@ void main() {
       expect(engine.lastPlayingCommand, false); // paused
       expect(engine.volume, 100); // restored to the user's mapped level
       expect(container.read(sleepTimerProvider), isNull); // one-shot
+      // A mid-video pause is not an ending: no end-of-video actions.
+      expect(container.read(sleepEpisodeEndProvider), 0);
     });
   });
 

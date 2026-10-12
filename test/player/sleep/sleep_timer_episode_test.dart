@@ -115,6 +115,17 @@ void main() {
     expect(cycleAfter, isNot(cycleBefore));
   });
 
+  test('episode mode reaching the end signals it once', () async {
+    await setUpContainer();
+    container.read(sleepTimerProvider.notifier).startEpisode();
+    engine.emitDuration(const Duration(minutes: 10));
+    engine.emitPosition(const Duration(minutes: 10));
+    await pumpStreams();
+    engine.emitPosition(const Duration(minutes: 10));
+    await pumpStreams();
+    expect(container.read(sleepEpisodeEndProvider), 1);
+  });
+
   test('extend in episode mode cancels the timer', () async {
     await setUpContainer();
     container.read(sleepTimerProvider.notifier).startEpisode();

@@ -53,6 +53,12 @@ bool sleepStopsHere(SleepTimerState? s) {
   return false;
 }
 
+/// Bumped when episode mode stops a video at its natural end. That stop lands
+/// ~300 ms before the real end, so `completed` never arrives — the end-of-video
+/// actions (trash, close…) listen to this instead. The fixed timer pausing
+/// mid-video never touches it.
+final sleepEpisodeEndProvider = StateProvider<int>((_) => 0);
+
 /// Injectable clock so tests can control wall-time.
 final sleepClockProvider = Provider<DateTime Function()>((_) => DateTime.now);
 
@@ -258,6 +264,7 @@ class SleepTimerNotifier extends Notifier<SleepTimerState?> {
       // Video reached its natural end. pause() is a safety belt — with no
       // autoplay the engine stops on the last frame anyway.
       _fire();
+      ref.read(sleepEpisodeEndProvider.notifier).state++;
       return;
     }
     _episodeBaseline ??= remaining;
