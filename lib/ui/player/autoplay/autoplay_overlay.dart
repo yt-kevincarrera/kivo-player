@@ -3,15 +3,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
 import '../../../l10n/l10n.dart';
+import '../../../platform/media_file_ops_provider.dart';
+import '../../../player/end_actions/end_actions.dart';
+import '../../../player/end_actions/end_flow.dart';
 import '../../../player/open/video_source.dart';
 import '../state/autoplay_state.dart';
 
-/// Bottom-right "Próximo" corner card shown for 3s (foreground fullscreen
-/// only — PlayerScreen keeps this out of the tree in PiP) when autoplay has
-/// a pending next session. The gold ring drains over 3s; on completion (or
-/// "Reproducir") it flips [autoplayConfirmProvider] true, which PlayerScreen
-/// listens to and uses to advance. "Cancelar" clears the pending session
-/// instead.
+/// Bottom-right corner card shown for 3s (foreground fullscreen only —
+/// PlayerScreen keeps this out of the tree in PiP) when a video ended and
+/// something is about to happen: autoplay's "Próximo" ([autoplayPendingProvider])
+/// or a «Después» action ([afterPendingProvider]). The ring drains over 3s; on
+/// completion (or the primary button) it flips the matching confirm provider,
+/// which PlayerScreen listens to. "Cancelar" clears it — and the planned
+/// trash too: cancelling means nothing happens.
+///
+/// When the video that ended is going to the trash ([endTrashProvider]) the
+/// card says so, with «Conservar» — the moment someone who forgot the mode
+/// was on gets to save the file.
 class AutoplayOverlay extends ConsumerStatefulWidget {
   const AutoplayOverlay({super.key});
   @override
@@ -32,9 +40,23 @@ class _AutoplayOverlayState extends ConsumerState<AutoplayOverlay>
   }
 
   void _onRingStatus(AnimationStatus status) {
-    if (status == AnimationStatus.completed) {
+    if (status != AnimationStatus.completed) return;
+    _confirm();
+  }
+
+  void _confirm() {
+    if (ref.read(autoplayPendingProvider) != null) {
       ref.read(autoplayConfirmProvider.notifier).state = true;
+    } else if (ref.read(afterPendingProvider) != null) {
+      ref.read(afterConfirmProvider.notifier).state = true;
     }
+  }
+
+  void _cancel() {
+    _ring.stop();
+    ref.read(autoplayPendingProvider.notifier).state = null;
+    ref.read(afterPendingProvider.notifier).state = null;
+    ref.read(endTrashProvider.notifier).state = null;
   }
 
   @override
@@ -53,20 +75,51 @@ class _AutoplayOverlayState extends ConsumerState<AutoplayOverlay>
       ref.read(autoplayPendingProvider.notifier).state =
           ref.read(currentVideoProvider.notifier).peekNext();
     });
-    ref.listen(autoplayPendingProvider, (previous, next) {
-      if (previous == null && next != null) {
+    void onPending(bool before, bool now) {
+      if (!before && now) {
         _ring.forward(from: 0);
-      } else if (next == null) {
+      } else if (!now) {
         _ring.stop();
       }
+    }
+
+    ref.listen(autoplayPendingProvider, (previous, next) {
+      if (ref.read(afterPendingProvider) != null) return;
+      onPending(previous != null, next != null);
+    });
+    ref.listen(afterPendingProvider, (previous, next) {
+      if (ref.read(autoplayPendingProvider) != null) return;
+      onPending(previous != null, next != null);
     });
 
     final pending = ref.watch(autoplayPendingProvider);
-    if (pending == null) {
+    final after = ref.watch(afterPendingProvider);
+    if (pending == null && after == null) {
       if (_ring.status != AnimationStatus.dismissed) _ring.reset();
       return const SizedBox.shrink();
     }
     final accent = Color(ref.watch(settingsProvider).accentColor);
+    final trash = ref.watch(endTrashProvider);
+    final l10n = context.l10n;
+    final label = pending != null
+        ? l10n.playerAutoplayNextLabel
+        : switch (after!) {
+            AfterEnd.closePlayer => l10n.endActionsCountdownClosePlayer,
+            AfterEnd.closeApp => l10n.endActionsCountdownCloseApp,
+            AfterEnd.screenOff => l10n.endActionsCountdownScreenOff,
+            AfterEnd.keepGoing => '',
+          };
+    final icon = pending != null
+        ? Icons.play_arrow_rounded
+        : switch (after!) {
+            AfterEnd.closePlayer => Icons.close_fullscreen_rounded,
+            AfterEnd.closeApp => Icons.power_settings_new_rounded,
+            AfterEnd.screenOff => Icons.brightness_low_rounded,
+            AfterEnd.keepGoing => Icons.play_arrow_rounded,
+          };
+    final title = pending?.displayName ??
+        ref.watch(currentVideoProvider)?.displayName ??
+        '';
 
     return Align(
       alignment: Alignment.bottomRight,
@@ -94,7 +147,7 @@ class _AutoplayOverlayState extends ConsumerState<AutoplayOverlay>
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: accent.withValues(alpha: 0.5)),
                     ),
-                    child: Icon(Icons.play_arrow_rounded, color: accent, size: 22),
+                    child: Icon(icon, color: accent, size: 22),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -102,7 +155,7 @@ class _AutoplayOverlayState extends ConsumerState<AutoplayOverlay>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          context.l10n.playerAutoplayNextLabel,
+                          label,
                           style: TextStyle(
                             color: accent,
                             fontSize: 10.5,
@@ -112,7 +165,7 @@ class _AutoplayOverlayState extends ConsumerState<AutoplayOverlay>
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          pending.displayName,
+                          title,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -160,6 +213,18 @@ class _AutoplayOverlayState extends ConsumerState<AutoplayOverlay>
                   ),
                 ],
               ),
+              if (trash != null) ...[
+                const SizedBox(height: 10),
+                _TrashLine(
+                  key: const Key('end-trash-line'),
+                  accent: accent,
+                  text: ref.watch(mediaFileOpsProvider).movesToTrash
+                      ? l10n.endActionsCardTrashLine
+                      : l10n.endActionsCardDeleteLine,
+                  keepLabel: l10n.endActionsKeep,
+                  onKeep: () => ref.read(endTrashProvider.notifier).state = null,
+                ),
+              ],
               const SizedBox(height: 12),
               Row(
                 children: [
@@ -171,11 +236,8 @@ class _AutoplayOverlayState extends ConsumerState<AutoplayOverlay>
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
-                      onPressed: () {
-                        _ring.stop();
-                        ref.read(autoplayPendingProvider.notifier).state = null;
-                      },
-                      child: Text(context.l10n.commonCancel,
+                      onPressed: _cancel,
+                      child: Text(l10n.commonCancel,
                           style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
                     ),
                   ),
@@ -189,10 +251,11 @@ class _AutoplayOverlayState extends ConsumerState<AutoplayOverlay>
                         elevation: 0,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
-                      onPressed: () {
-                        ref.read(autoplayConfirmProvider.notifier).state = true;
-                      },
-                      child: Text(context.l10n.playerAutoplayPlayAction,
+                      onPressed: _confirm,
+                      child: Text(
+                          pending != null
+                              ? l10n.playerAutoplayPlayAction
+                              : l10n.endActionsNow,
                           style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
                     ),
                   ),
@@ -201,6 +264,52 @@ class _AutoplayOverlayState extends ConsumerState<AutoplayOverlay>
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _TrashLine extends StatelessWidget {
+  final Color accent;
+  final String text;
+  final String keepLabel;
+  final VoidCallback onKeep;
+  const _TrashLine({
+    super.key,
+    required this.accent,
+    required this.text,
+    required this.keepLabel,
+    required this.onKeep,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 2, 2, 2),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.delete_outline_rounded, size: 16, color: accent),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(color: Colors.white, fontSize: 12.5),
+            ),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: accent,
+              visualDensity: VisualDensity.compact,
+            ),
+            onPressed: onKeep,
+            child: Text(keepLabel,
+                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5)),
+          ),
+        ],
       ),
     );
   }

@@ -25,6 +25,9 @@ import '../../../player/sleep/sleep_timer.dart';
 import '../bookmarks/bookmarks_sheet.dart';
 import '../chapters/chapters_sheet.dart';
 import '../sleep/sleep_timer_panel.dart';
+import '../end_actions/end_actions_panel.dart';
+import '../../../platform/media_file_ops_provider.dart';
+import '../../../player/end_actions/end_actions.dart';
 import '../state/controls_visibility.dart';
 import '../../settings/sections/equalizer_section.dart';
 import '../../widgets/failure_snack_bar.dart';
@@ -120,6 +123,7 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                     chapters.length,
                   );
                   final sleepState = sheetRef.watch(sleepTimerProvider);
+                  final endActions = sheetRef.watch(endActionsProvider);
                   final sleepBadge = switch (sleepState?.mode) {
                     null => null,
                     SleepTimerMode.fixed => fmtDuration(sleepState!.remaining),
@@ -133,6 +137,29 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                   // Built once each, then placed either in a single column
                   // (portrait) or split across two (landscape) — see isWide
                   // above. Neither layout duplicates a widget tree.
+                  // «Al terminar» belongs with Reproducción, but in landscape
+                  // that column is the tall one: there it goes at the foot of
+                  // the right column (the Audio card), which has the room.
+                  final endActionsRow = _MenuRow(
+                    key: const Key('menu-end-actions'),
+                    icon: Icons.last_page_rounded,
+                    iconColor: endActions.isActive ? accent : Colors.white70,
+                    title: l10n.endActionsTitle,
+                    subtitle: endActionsSummary(
+                      l10n,
+                      endActions,
+                      toTrash: endActions.trash &&
+                          sheetRef.read(mediaFileOpsProvider).movesToTrash,
+                    ),
+                    onTap: () {
+                      Navigator.of(sheetContext).pop();
+                      showEndActionsPanel(
+                        context,
+                        onBack: () => showMoreMenu(context, ref),
+                      );
+                    },
+                  );
+
                   final tilesRow = Row(
                     // Four one-shot actions: no state to show (Temporizador
                     // is the one exception — it carries its own active badge
@@ -284,6 +311,7 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                               }
                             },
                           ),
+                          if (!isWide) endActionsRow,
                           if (decoder != null)
                             _MenuRow(
                               icon: Icons.memory_rounded,
@@ -395,6 +423,7 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                               );
                             },
                           ),
+                          if (isWide) endActionsRow,
                         ],
                       ),
                     ],
@@ -731,6 +760,7 @@ class _MenuRow extends StatelessWidget {
   final Widget? trailing;
 
   const _MenuRow({
+    super.key,
     required this.icon,
     this.iconColor,
     required this.title,

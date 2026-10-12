@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kivo_player/player/end_actions/pending_trash.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/core/theme/kivo_theme.dart';
@@ -41,6 +42,7 @@ Future<ProviderContainer> _mount(WidgetTester tester) async {
   final s = await SettingsService.load(InMemorySettingsStore());
   final c = ProviderContainer(overrides: [
     settingsServiceProvider.overrideWithValue(s),
+    pendingTrashStoreProvider.overrideWithValue(InMemoryPendingTrashStore()),
     mediaFileOpsProvider.overrideWithValue(FakeMediaFileOps()),
     mediaIndexerProvider.overrideWithValue(FakeMediaIndexer([_a])),
     mediaPermissionImplProvider.overrideWithValue(_Perm()),

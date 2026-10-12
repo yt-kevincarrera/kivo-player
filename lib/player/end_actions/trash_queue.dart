@@ -188,6 +188,11 @@ class TrashQueue extends Notifier<List<PendingTrash>> {
     if (due.isNotEmpty) await _delete(due);
   }
 
+  /// Pending and past their undo window — what the pending sheet asks about.
+  List<PendingTrash> due({String? loadedUri}) => state
+      .where((e) => e.uri != loadedUri && !_windows.containsKey(e.uri))
+      .toList();
+
   /// «Conservar» on the pending sheet: forget them all, files untouched.
   Future<void> keepAll() async {
     final store = ref.read(pendingTrashStoreProvider);

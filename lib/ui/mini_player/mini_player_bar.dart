@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../player/end_actions/trash_queue.dart';
 import '../../core/navigation.dart';
 import '../../core/settings/settings_provider.dart';
 import '../../player/control/player_controller.dart';
@@ -121,6 +122,7 @@ class _MiniPlayerBarState extends ConsumerState<MiniPlayerBar> {
             onDismissed: (_) {
               ref.read(playbackEngineProvider).pause();
               ref.read(playerMinimizedProvider.notifier).state = false;
+              ref.read(trashFlushRequestProvider.notifier).state++;
             },
             child: _MiniPlayerContent(session: session, onExpand: _expand),
           ),
@@ -200,6 +202,7 @@ class _MiniPlayerContent extends ConsumerWidget {
                     onPressed: () {
                       ref.read(playbackEngineProvider).pause();
                       ref.read(playerMinimizedProvider.notifier).state = false;
+                      ref.read(trashFlushRequestProvider.notifier).state++;
                     },
                   ),
                 ],

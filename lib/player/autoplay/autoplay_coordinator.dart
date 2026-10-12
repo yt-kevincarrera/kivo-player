@@ -5,8 +5,10 @@ import '../../platform/frame_extractor_provider.dart';
 import '../../platform/subtitle_finder_provider.dart';
 import '../../ui/player/state/mini_player_state.dart';
 import '../engine/playback_provider.dart';
+import '../end_actions/end_actions.dart';
+import '../end_actions/end_flow.dart';
+import '../end_actions/trash_queue.dart';
 import '../library/played.dart';
-import '../loop/ab_loop.dart';
 import '../decoder/decoder_controller.dart';
 import '../open/video_source.dart';
 import '../resume/resume_plan.dart';
@@ -15,7 +17,6 @@ import '../tracks/apply_default_tracks.dart';
 import '../tracks/subtitle_loader.dart';
 import '../audio/audio_pipeline_controller.dart';
 import '../tracks/track_prefs_store.dart';
-import 'autoplay_logic.dart';
 
 /// App-level coordinator that advances the queue when a video ends WHILE
 /// MINIMIZED to the mini-player. When the player is expanded, PlayerScreen owns
@@ -33,43 +34,85 @@ class AutoplayCoordinator {
   AutoplayCoordinator(this._ref);
   bool _advancing = false;
 
+  // See PlayerScreen._endHandledFor: one ending per play-through.
+  VideoSession? _endHandledFor;
+
   void init() {
     _ref.listen(completedProvider, (_, next) {
       if (next.value == true) _onCompleted();
     });
+    _ref.listen<int>(sleepEpisodeEndProvider, (_, _) {
+      _onCompleted(sleepStopped: true);
+    });
+    _ref.listen(playingProvider, (_, next) {
+      if (next.value == true) _endHandledFor = null;
+    });
   }
 
-  void _onCompleted() {
+  void _onCompleted({bool sleepStopped = false}) {
     if (_advancing) return;
     // Expanded → PlayerScreen handles it (with the overlay). Only act minimized.
     if (!_ref.read(playerMinimizedProvider)) return;
-    final settings = _ref.read(settingsProvider);
-    final loopActive = _ref.read(abLoopProvider)?.phase == AbLoopPhase.active;
-    final sleepStop = sleepStopsHere(_ref.read(sleepTimerProvider));
-    final next = _ref.read(currentVideoProvider.notifier).peekNext();
-    final go = shouldAutoplay(
-      enabled: settings.autoplayNext,
-      hasNext: next != null,
-      loopActive: loopActive,
-      sleepStopsHere: sleepStop,
-    );
-    if (!go) {
-      if (sleepStop && next != null && settings.autoplayNext && !loopActive) {
+    final session = _ref.read(currentVideoProvider);
+    if (session == null || identical(_endHandledFor, session)) return;
+    _endHandledFor = session;
+    final d = decideEnd(_ref.read, session: session, sleepStopped: sleepStopped);
+    final next = d.next;
+    // No cards down here: whatever was planned happens now.
+    final after = d.plan.after;
+    if (after != null) {
+      _ref.read(playbackEngineProvider).pause();
+      if (_ref.read(sleepTimerProvider) != null) {
+        _ref.read(sleepTimerProvider.notifier).cancel();
+      }
+      _stage(d.trash);
+      _runAfter(after);
+      return;
+    }
+    if (!d.plan.advance) {
+      if (d.sleepStop && next != null && d.autoplayEnabled && !d.loopActive) {
         _ref.read(playbackEngineProvider).pause();
         _ref.read(sleepTimerProvider.notifier).cancel();
       }
+      _stage(d.trash);
       return;
     }
-    _advance(next!);
+    _advance(next!, trash: d.trash);
   }
 
-  Future<void> _advance(VideoSession next) async {
+  void _stage(EndTrash? t) {
+    if (t == null) return;
+    unawaited(_ref.read(trashQueueProvider.notifier).stage(t.item, ended: t.session));
+  }
+
+  /// The minimized flavour of «Después»: there is no full-screen player to
+  /// close or screen to keep awake here.
+  void _runAfter(AfterEnd after) {
+    switch (after) {
+      case AfterEnd.keepGoing:
+      case AfterEnd.screenOff:
+        return; // already paused
+      case AfterEnd.closePlayer:
+        // Same as the mini-bar's ✕ — and that is a moment to confirm the
+        // batched deletions.
+        _ref.read(playerMinimizedProvider.notifier).state = false;
+        _ref.read(trashFlushRequestProvider.notifier).state++;
+      case AfterEnd.closeApp:
+        _ref.read(suppressTrashFlushProvider.notifier).state = true;
+        _ref.read(playerMinimizedProvider.notifier).state = false;
+        _ref.read(currentVideoProvider.notifier).clear();
+        _ref.read(appExitProvider)();
+    }
+  }
+
+  Future<void> _advance(VideoSession next, {EndTrash? trash}) async {
     _advancing = true;
     final engine = _ref.read(playbackEngineProvider);
     final settings = _ref.read(settingsProvider);
     try {
       _ref.read(sleepTimerProvider.notifier).onAutoplayAdvance();
       _ref.read(currentVideoProvider.notifier).advanceTo(next);
+      _stage(trash);
       if (!settings.incognito) {
         _ref.read(playedStoreProvider).markPlayed(next.resumeKey);
       }
