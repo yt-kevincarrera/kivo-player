@@ -2348,7 +2348,40 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get playerTimeToggleHint => 'cambiar entre duración y tiempo restante';
+  String get playerTimeToggleHint =>
+      'cambiar entre duración, tiempo restante y hora de fin';
+
+  @override
+  String playerEndsAtShort(String clock) {
+    return 'fin $clock';
+  }
+
+  @override
+  String playerQueueEndsAtShort(String clock) {
+    return 'fin cola $clock';
+  }
+
+  @override
+  String playerEndsAtLabel(int hour, String clock) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hour,
+      locale: localeName,
+      other: 'Acaba a las $clock',
+      one: 'Acaba a la $clock',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String playerQueueEndsAtLabel(int hour, String clock) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hour,
+      locale: localeName,
+      other: 'La cola acaba a las $clock',
+      one: 'La cola acaba a la $clock',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get playerUnlockAction => 'Desbloquear pantalla';
