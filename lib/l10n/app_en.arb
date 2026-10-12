@@ -3916,5 +3916,148 @@
   "settingsSearchKwVault": "hidden, private, safe",
   "@settingsSearchKwVault": {
     "description": "Search synonyms for the Vault (only searched while its entrance is visible)."
+  },
+
+  "endActionsTitle": "When it ends",
+  "@endActionsTitle": {
+    "description": "Title of the panel and ⋮ menu row choosing what happens when a video ends."
+  },
+  "endActionsSummaryNone": "Nothing",
+  "@endActionsSummaryNone": {
+    "description": "Subtitle of the «When it ends» row when nothing is on."
+  },
+  "endActionsSummaryTrash": "Trash",
+  "@endActionsSummaryTrash": {
+    "description": "Short summary (menu row and chip) when videos go to the trash when they end."
+  },
+  "endActionsSummaryDelete": "Delete",
+  "@endActionsSummaryDelete": {
+    "description": "Short summary (menu row and chip) when videos are deleted when they end (Android without a trash)."
+  },
+  "endActionsSummaryBoth": "{trash} · {after}",
+  "@endActionsSummaryBoth": {
+    "description": "Summary with both on: trash/delete and the action afterwards.",
+    "placeholders": {
+      "trash": {"type": "String"},
+      "after": {"type": "String"}
+    }
+  },
+  "endActionsTrashTitle": "Move to trash",
+  "@endActionsTrashTitle": {
+    "description": "Row of the «When it ends» panel that sends each video to the trash."
+  },
+  "endActionsDeleteTitle": "Delete the file",
+  "@endActionsDeleteTitle": {
+    "description": "Row of the «When it ends» panel on Android without a trash: deleting is permanent."
+  },
+  "endActionsTrashSubtitle": "Every video in the queue, when it ends",
+  "@endActionsTrashSubtitle": {
+    "description": "Subtitle of the trash row: applies to every video in the queue."
+  },
+  "endActionsTrashNotLibrary": "This video is not in your library",
+  "@endActionsTrashNotLibrary": {
+    "description": "Why trash is unavailable: the video does not come from the library (vault, another app, file picker)."
+  },
+  "endActionsTrashRepeatVideo": "Not available with Repeat: video",
+  "@endActionsTrashRepeatVideo": {
+    "description": "Why trash is unavailable: repeat-video would reopen the deleted file."
+  },
+  "endActionsAfterTitle": "Then",
+  "@endActionsAfterTitle": {
+    "description": "Header of the group of actions run after a video ends."
+  },
+  "endActionsAfterKeepGoing": "Carry on as usual",
+  "@endActionsAfterKeepGoing": {
+    "description": "«Then» option: the usual (autoplay next, repeat…)."
+  },
+  "endActionsAfterClosePlayer": "Close the player",
+  "@endActionsAfterClosePlayer": {
+    "description": "«Then» option: back to the library."
+  },
+  "endActionsAfterCloseApp": "Close Kivo",
+  "@endActionsAfterCloseApp": {
+    "description": "«Then» option: close the app."
+  },
+  "endActionsAfterScreenOff": "Let the screen sleep",
+  "@endActionsAfterScreenOff": {
+    "description": "«Then» option: dim the screen and let it turn off on its own."
+  },
+  "endActionsAfterScreenOffHint": "Dims it and lets the phone turn it off",
+  "@endActionsAfterScreenOffHint": {
+    "description": "Note under «Let the screen sleep»: it is not forced off."
+  },
+  "endActionsFinishNow": "Finish now",
+  "@endActionsFinishNow": {
+    "description": "Button applying the «When it ends» actions now, as if the video had ended (e.g. during the credits)."
+  },
+  "endActionsTrashAndNext": "Trash and next",
+  "@endActionsTrashAndNext": {
+    "description": "One-off button: send this video to the trash and go to the next one, without turning the mode on."
+  },
+  "endActionsDeleteAndNext": "Delete and next",
+  "@endActionsDeleteAndNext": {
+    "description": "Same as «Trash and next» on Android without a trash."
+  },
+  "endActionsChipOffTooltip": "Turn off «When it ends»",
+  "@endActionsChipOffTooltip": {
+    "description": "Tooltip of the ✕ on the «When it ends» chip in the player controls."
+  },
+  "endActionsCardTrashLine": "This video will go to the trash",
+  "@endActionsCardTrashLine": {
+    "description": "Line on the countdown card: the video that just ended will go to the trash."
+  },
+  "endActionsCardDeleteLine": "This video will be deleted",
+  "@endActionsCardDeleteLine": {
+    "description": "Line on the countdown card on Android without a trash."
+  },
+  "endActionsKeep": "Keep",
+  "@endActionsKeep": {
+    "description": "Action to not send this video to the trash."
+  },
+  "endActionsCountdownClosePlayer": "CLOSING PLAYER",
+  "@endActionsCountdownClosePlayer": {
+    "description": "Short upper-case label of the countdown card before closing the player."
+  },
+  "endActionsCountdownCloseApp": "CLOSING KIVO",
+  "@endActionsCountdownCloseApp": {
+    "description": "Short upper-case label of the countdown card before closing the app."
+  },
+  "endActionsCountdownScreenOff": "SCREEN OFF",
+  "@endActionsCountdownScreenOff": {
+    "description": "Short upper-case label of the countdown card before dimming the screen."
+  },
+  "endActionsNow": "Now",
+  "@endActionsNow": {
+    "description": "Countdown card button: do it now without waiting."
+  },
+  "trashUndoMoved": "Moved to the trash",
+  "@trashUndoMoved": {
+    "description": "Toast after sending the video that ended to the trash. Has Undo."
+  },
+  "trashUndoOnExit": "Goes to the trash when you leave",
+  "@trashUndoOnExit": {
+    "description": "Toast: the video goes to the trash when leaving the player (Android will ask to confirm). Has Undo."
+  },
+  "trashUndoDeleteOnExit": "Will be deleted when you leave",
+  "@trashUndoDeleteOnExit": {
+    "description": "Toast on Android without a trash: the video is deleted when leaving the player. Has Undo."
+  },
+  "pendingTrashTitle": "{count, plural, =1{1 video waiting to go to the trash} other{{count} videos waiting to go to the trash}}",
+  "@pendingTrashTitle": {
+    "description": "Title of the sheet asking about videos that ended with trash on and were not moved yet.",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "pendingTrashDeleteTitle": "{count, plural, =1{1 video waiting to be deleted} other{{count} videos waiting to be deleted}}",
+  "@pendingTrashDeleteTitle": {
+    "description": "Same as pendingTrashTitle on Android without a trash.",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "pendingTrashBody": "They ended with «When it ends» on. Android will ask you to confirm.",
+  "@pendingTrashBody": {
+    "description": "Explanation on the pending videos sheet."
   }
 }
