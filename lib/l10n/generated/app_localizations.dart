@@ -1184,36 +1184,6 @@ abstract class AppLocalizations {
   /// **'Orden de la cola restablecido'**
   String get playerQueueShuffleResetToast;
 
-  /// Posición del video actual en la cola, encima de la tira.
-  ///
-  /// In es, this message translates to:
-  /// **'{position} / {total}'**
-  String playerQueuePosition(int position, int total);
-
-  /// Tiempo que falta para que se acabe la cola, encima de la tira. {time} es p. ej. «2 h 10 min».
-  ///
-  /// In es, this message translates to:
-  /// **'quedan {time}'**
-  String playerQueueTimeLeft(String time);
-
-  /// Hora a la que se acaba la cola. {clock} es la hora ya formateada; {hour} es la hora tal como se muestra, solo para «a la 1» / «a las 2».
-  ///
-  /// In es, this message translates to:
-  /// **'{hour, plural, =1{acaba a la {clock}} other{acaba a las {clock}}}'**
-  String playerQueueEndsAt(int hour, String clock);
-
-  /// Duración en horas y minutos, para el tiempo restante de la cola.
-  ///
-  /// In es, this message translates to:
-  /// **'{hours} h {minutes} min'**
-  String playerQueueHoursMinutes(int hours, int minutes);
-
-  /// Duración en minutos, para el tiempo restante de la cola.
-  ///
-  /// In es, this message translates to:
-  /// **'{minutes} min'**
-  String playerQueueMinutes(int minutes);
-
   /// Título del panel del temporizador de apagado.
   ///
   /// In es, this message translates to:

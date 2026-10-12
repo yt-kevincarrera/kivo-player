@@ -89,26 +89,3 @@ List<int> playNextInOrder(List<int> order, int current, int item) {
 List<int> removeFromOrder(List<int> order, int current, int item) =>
     item == current ? [...order] : ([...order]..remove(item));
 
-/// How long until the queue runs out: what is left of the current video plus
-/// every video after it in [order], at playback speed [rate]. Null when it
-/// cannot be known — the current duration has not arrived yet, or any later
-/// video's duration is missing (a 0 in, or past the end of, [durationsMs]).
-Duration? queueTimeLeft({
-  required List<int> order,
-  required int current,
-  required List<int> durationsMs,
-  required Duration currentDuration,
-  required Duration position,
-  required double rate,
-}) {
-  final at = order.indexOf(current);
-  if (at < 0 || currentDuration <= Duration.zero) return null;
-  var ms = (currentDuration - position).inMilliseconds;
-  if (ms < 0) ms = 0;
-  for (final i in order.skip(at + 1)) {
-    final d = i < durationsMs.length ? durationsMs[i] : 0;
-    if (d <= 0) return null;
-    ms += d;
-  }
-  return Duration(milliseconds: (ms / (rate > 0 ? rate : 1)).round());
-}

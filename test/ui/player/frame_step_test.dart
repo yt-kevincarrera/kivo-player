@@ -9,7 +9,13 @@ import 'package:kivo_player/ui/player/controls/center_controls.dart';
 import '../../fakes/fakes.dart';
 import '../../helpers/pump_app.dart';
 
-Future<FakePlaybackEngine> _pump(WidgetTester t, {required bool playing}) async {
+Future<FakePlaybackEngine> _pump(WidgetTester t,
+    {required bool playing, Size? size}) async {
+  if (size != null) {
+    t.view.physicalSize = size;
+    t.view.devicePixelRatio = 1;
+    addTearDown(t.view.reset);
+  }
   final engine = FakePlaybackEngine();
   addTearDown(engine.dispose);
   final s = await SettingsService.load(InMemorySettingsStore());
@@ -73,5 +79,25 @@ void main() {
     });
     await t.pumpAndSettle();
     expect(t.getCenter(find.byKey(const Key('kivo_play_pause'))), before);
+  });
+
+  testWidgets('portrait: the capsule sits under the play button', (t) async {
+    await _pump(t, playing: false, size: const Size(400, 800));
+    final play = t.getRect(find.byKey(const Key('kivo_play_pause')));
+    final next = t.getRect(find.byKey(const Key('frame-next')));
+    expect(next.top, greaterThan(play.bottom));
+    expect(play.center.dx, 200);
+  });
+
+  testWidgets('landscape: the capsule sits beside the row, not under it',
+      (t) async {
+    // Under the row it would land on the seek bar; beside it, the play
+    // button stays centred and the capsule stays level with it.
+    await _pump(t, playing: false, size: const Size(900, 400));
+    final play = t.getRect(find.byKey(const Key('kivo_play_pause')));
+    final prev = t.getRect(find.byKey(const Key('frame-prev')));
+    expect(prev.left, greaterThan(play.right));
+    expect(prev.center.dy, closeTo(play.center.dy, 0.5));
+    expect(play.center.dx, closeTo(450, 0.5));
   });
 }

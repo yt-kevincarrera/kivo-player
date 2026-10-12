@@ -706,37 +706,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get playerQueueShuffleResetToast => 'Orden de la cola restablecido';
 
   @override
-  String playerQueuePosition(int position, int total) {
-    return '$position / $total';
-  }
-
-  @override
-  String playerQueueTimeLeft(String time) {
-    return 'quedan $time';
-  }
-
-  @override
-  String playerQueueEndsAt(int hour, String clock) {
-    String _temp0 = intl.Intl.pluralLogic(
-      hour,
-      locale: localeName,
-      other: 'acaba a las $clock',
-      one: 'acaba a la $clock',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String playerQueueHoursMinutes(int hours, int minutes) {
-    return '$hours h $minutes min';
-  }
-
-  @override
-  String playerQueueMinutes(int minutes) {
-    return '$minutes min';
-  }
-
-  @override
   String get playerSleepPanelTitle => 'Temporizador de apagado';
 
   @override

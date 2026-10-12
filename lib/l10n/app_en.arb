@@ -1057,60 +1057,6 @@
   "@playerQueueShuffleResetToast": {
     "description": "Short toast when toggling shuffle discards the order the user had edited. Carries the Undo action."
   },
-  "playerQueuePosition": "{position} / {total}",
-  "@playerQueuePosition": {
-    "description": "Position of the current video in the queue, above the strip.",
-    "placeholders": {
-      "position": {
-        "type": "int"
-      },
-      "total": {
-        "type": "int"
-      }
-    }
-  },
-  "playerQueueTimeLeft": "{time} left",
-  "@playerQueueTimeLeft": {
-    "description": "Time until the queue runs out, above the strip. {time} is e.g. “2 h 10 min”.",
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
-  },
-  "playerQueueEndsAt": "{hour, plural, =1{ends at {clock}} other{ends at {clock}}}",
-  "@playerQueueEndsAt": {
-    "description": "Time of day the queue ends. {clock} is the formatted time; {hour} is the hour as shown, only needed by languages that inflect it.",
-    "placeholders": {
-      "hour": {
-        "type": "int"
-      },
-      "clock": {
-        "type": "String"
-      }
-    }
-  },
-  "playerQueueHoursMinutes": "{hours} h {minutes} min",
-  "@playerQueueHoursMinutes": {
-    "description": "A duration in hours and minutes, for the queue's time left.",
-    "placeholders": {
-      "hours": {
-        "type": "int"
-      },
-      "minutes": {
-        "type": "int"
-      }
-    }
-  },
-  "playerQueueMinutes": "{minutes} min",
-  "@playerQueueMinutes": {
-    "description": "A duration in minutes, for the queue's time left.",
-    "placeholders": {
-      "minutes": {
-        "type": "int"
-      }
-    }
-  },
 
   "playerSleepPanelTitle": "Sleep timer",
   "@playerSleepPanelTitle": {
