@@ -1,7 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/settings/settings_provider.dart';
-import '../../platform/interfaces/media_indexer.dart';
 import '../autoplay/autoplay_logic.dart';
 import '../library/media_index.dart';
 import '../loop/ab_loop.dart';
@@ -11,23 +10,8 @@ import '../sleep/sleep_timer.dart';
 import 'end_actions.dart';
 import 'trash_queue.dart';
 
-/// The video that just ended and goes to the trash once it is left.
-class EndTrash {
-  final VideoSession session;
-  final VideoItem item;
-  const EndTrash(this.session, this.item);
-}
-
-/// Set when a video ends with trash planned; staged when the player moves on
-/// (or runs its action). «Conservar» on the countdown card clears it, and so
-/// does «Cancelar» — cancelling means nothing happens at all.
-final endTrashProvider = StateProvider<EndTrash?>((ref) => null);
-
-/// A «Después» action counting down on the card (fullscreen only).
-final afterPendingProvider = StateProvider<AfterEnd?>((ref) => null);
-
-/// Flipped by the card when its ring completes or on «Ahora».
-final afterConfirmProvider = StateProvider<bool>((ref) => false);
+// The countdown state lives with the choice it depends on.
+export 'end_actions.dart';
 
 /// Bumped by «Terminar ya»: run the ending now, without a countdown.
 final finishNowProvider = StateProvider<int>((ref) => 0);
@@ -82,7 +66,10 @@ EndDecision decideEnd(
   final plan = planEnd(
     actions: read(endActionsProvider),
     eligible: item != null,
-    repeatVideo: repeatModeFor(settings.repeatMode) == RepeatMode.video,
+    // Repeat-list wrapping onto this same video (a one-video queue, or one
+    // the trash already emptied) replays it just like repeat-video does.
+    repeatVideo: repeatModeFor(settings.repeatMode) == RepeatMode.video ||
+        next?.index == session.index,
     loopActive: loopActive,
     autoplayGo: go,
   );

@@ -2638,4 +2638,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get pendingTrashBody =>
       'They ended with «When it ends» on. Android will ask you to confirm.';
+
+  @override
+  String pendingTrashMore(int count) {
+    return '+$count more';
+  }
+
+  @override
+  String endActionsChipSemantics(String summary) {
+    return 'When it ends: $summary';
+  }
 }

@@ -11,7 +11,6 @@ import 'package:kivo_player/platform/media_indexer_provider.dart';
 import 'package:kivo_player/platform/media_permission_provider.dart';
 import 'package:kivo_player/platform/subtitle_finder_provider.dart';
 import 'package:kivo_player/player/autoplay/autoplay_coordinator.dart';
-import 'package:kivo_player/player/end_actions/end_actions.dart';
 import 'package:kivo_player/player/end_actions/end_flow.dart';
 import 'package:kivo_player/player/end_actions/pending_trash.dart';
 import 'package:kivo_player/player/end_actions/trash_queue.dart';
@@ -101,10 +100,16 @@ void main() {
   testWidgets('minimized «Cerrar el reproductor»: closes the mini-bar and asks to flush',
       (t) async {
     final (c, engine) = await setup(t, after: AfterEnd.closePlayer);
+    // The flush runs as soon as it is asked for: the trash must already be in.
+    int? queuedAtFlush;
+    c.listen<int>(trashFlushRequestProvider, (_, _) {
+      queuedAtFlush = c.read(trashQueueProvider).length;
+    });
     engine.emitCompleted(true);
     await settle(t, engine);
     expect(c.read(playerMinimizedProvider), isFalse);
     expect(c.read(trashFlushRequestProvider), 1);
+    expect(queuedAtFlush, 1);
     expect(c.read(currentVideoProvider)!.index, 0); // did not advance
     expect(engine.lastPlayingCommand, false);
   });

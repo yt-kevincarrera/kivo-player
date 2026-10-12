@@ -6,7 +6,6 @@ import '../../../core/theme/kivo_theme.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../l10n/l10n.dart';
 import '../../../platform/media_file_ops_provider.dart';
-import '../../../player/end_actions/end_actions.dart';
 import '../../../player/end_actions/end_flow.dart';
 import '../../../player/end_actions/trash_queue.dart';
 import '../../../player/library/media_index.dart';

@@ -4,15 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../l10n/l10n.dart';
 import '../../../platform/media_file_ops_provider.dart';
-import '../../../player/end_actions/end_actions.dart';
+import '../../../player/end_actions/end_flow.dart';
 import '../state/zoom_state.dart';
 import 'end_actions_panel.dart';
 
 /// «🗑 Papelera ✕» floating over the bottom-left of the controls while
 /// «Al terminar» is armed, so a mode that deletes files never runs unseen.
 /// Lives with the controls (shown and hidden with them): it must not sit on
-/// the video while watching. The ✕ turns everything off at once; the body
-/// opens the panel.
+/// the video while watching. The body opens the panel, ⏭ is «Terminar ya»
+/// and ✕ turns everything off at once.
 class EndActionsChip extends ConsumerWidget {
   const EndActionsChip({super.key});
 
@@ -45,8 +45,8 @@ class EndActionsChip extends ConsumerWidget {
           children: [
             Semantics(
               button: true,
-              label: '${l10n.endActionsTitle}: '
-                  '${endActionsSummary(l10n, actions, toTrash: toTrash)}',
+              label: l10n.endActionsChipSemantics(
+                  endActionsSummary(l10n, actions, toTrash: toTrash)),
               excludeSemantics: true,
               child: InkWell(
                 borderRadius: const BorderRadius.horizontal(left: Radius.circular(100)),
@@ -68,6 +68,18 @@ class EndActionsChip extends ConsumerWidget {
                       ),
                     ],
                   ),
+                ),
+              ),
+            ),
+            // «Terminar ya» right here, for the credits: no menu to dig in.
+            Tooltip(
+              message: l10n.endActionsFinishNow,
+              child: InkWell(
+                key: const Key('end-actions-chip-finish'),
+                onTap: () => ref.read(finishNowProvider.notifier).state++,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
+                  child: Icon(Icons.skip_next_rounded, size: 15, color: accent),
                 ),
               ),
             ),

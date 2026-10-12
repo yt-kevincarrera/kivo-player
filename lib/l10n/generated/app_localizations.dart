@@ -4447,6 +4447,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Terminaron con «Al terminar» activo. Android te pedirá confirmarlo.'**
   String get pendingTrashBody;
+
+  /// Cuántos videos más hay pendientes además de los que se listan en la hoja.
+  ///
+  /// In es, this message translates to:
+  /// **'+{count} más'**
+  String pendingTrashMore(int count);
+
+  /// Etiqueta para lectores de pantalla del chip «Al terminar» con el resumen de lo activo.
+  ///
+  /// In es, this message translates to:
+  /// **'Al terminar: {summary}'**
+  String endActionsChipSemantics(String summary);
 }
 
 class _AppLocalizationsDelegate

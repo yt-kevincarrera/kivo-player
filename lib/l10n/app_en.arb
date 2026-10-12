@@ -4059,5 +4059,19 @@
   "pendingTrashBody": "They ended with «When it ends» on. Android will ask you to confirm.",
   "@pendingTrashBody": {
     "description": "Explanation on the pending videos sheet."
+  },
+  "pendingTrashMore": "+{count} more",
+  "@pendingTrashMore": {
+    "description": "How many more videos are pending besides the ones listed on the sheet.",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "endActionsChipSemantics": "When it ends: {summary}",
+  "@endActionsChipSemantics": {
+    "description": "Screen reader label of the «When it ends» chip with a summary of what is on.",
+    "placeholders": {
+      "summary": {"type": "String"}
+    }
   }
 }

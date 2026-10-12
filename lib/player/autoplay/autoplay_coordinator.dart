@@ -5,7 +5,6 @@ import '../../platform/frame_extractor_provider.dart';
 import '../../platform/subtitle_finder_provider.dart';
 import '../../ui/player/state/mini_player_state.dart';
 import '../engine/playback_provider.dart';
-import '../end_actions/end_actions.dart';
 import '../end_actions/end_flow.dart';
 import '../end_actions/trash_queue.dart';
 import '../library/played.dart';
@@ -65,8 +64,7 @@ class AutoplayCoordinator {
       if (_ref.read(sleepTimerProvider) != null) {
         _ref.read(sleepTimerProvider.notifier).cancel();
       }
-      _stage(d.trash);
-      _runAfter(after);
+      unawaited(_runAfter(after, d.trash));
       return;
     }
     if (!d.plan.advance) {
@@ -74,20 +72,22 @@ class AutoplayCoordinator {
         _ref.read(playbackEngineProvider).pause();
         _ref.read(sleepTimerProvider.notifier).cancel();
       }
-      _stage(d.trash);
+      unawaited(_stage(d.trash));
       return;
     }
     _advance(next!, trash: d.trash);
   }
 
-  void _stage(EndTrash? t) {
-    if (t == null) return;
-    unawaited(_ref.read(trashQueueProvider.notifier).stage(t.item, ended: t.session));
+  Future<void> _stage(EndTrash? t, {String? unlessPlaying}) async {
+    if (t == null || t.item.uri == unlessPlaying) return;
+    await _ref.read(trashQueueProvider.notifier).stage(t.item, ended: t.session);
   }
 
   /// The minimized flavour of «Después»: there is no full-screen player to
   /// close or screen to keep awake here.
-  void _runAfter(AfterEnd after) {
+  Future<void> _runAfter(AfterEnd after, EndTrash? trash) async {
+    // Staged first: closing below may flush the queue right away.
+    await _stage(trash);
     switch (after) {
       case AfterEnd.keepGoing:
       case AfterEnd.screenOff:
@@ -112,7 +112,7 @@ class AutoplayCoordinator {
     try {
       _ref.read(sleepTimerProvider.notifier).onAutoplayAdvance();
       _ref.read(currentVideoProvider.notifier).advanceTo(next);
-      _stage(trash);
+      unawaited(_stage(trash, unlessPlaying: next.playbackPath));
       if (!settings.incognito) {
         _ref.read(playedStoreProvider).markPlayed(next.resumeKey);
       }

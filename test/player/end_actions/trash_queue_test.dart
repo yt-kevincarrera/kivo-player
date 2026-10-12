@@ -10,6 +10,7 @@ import 'package:kivo_player/platform/media_file_ops_provider.dart';
 import 'package:kivo_player/platform/media_indexer_provider.dart';
 import 'package:kivo_player/platform/media_permission_provider.dart';
 import 'package:kivo_player/player/bookmarks/bookmark_store.dart';
+import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/player/end_actions/pending_trash.dart';
 import 'package:kivo_player/player/end_actions/trash_queue.dart';
 import 'package:kivo_player/player/library/played.dart';
@@ -38,15 +39,19 @@ void main() {
   late FakeMediaFileOps ops;
   late FakeAllFilesAccess access;
   late InMemoryPendingTrashStore store;
+  late FakePlaybackEngine engine;
   final items = [_item('a'), _item('b'), _item('c')];
 
   Future<ProviderContainer> make({bool granted = false}) async {
     ops = FakeMediaFileOps()..movesToTrash = true;
     access = FakeAllFilesAccess(granted: granted);
     store = InMemoryPendingTrashStore();
+    engine = FakePlaybackEngine();
+    addTearDown(engine.dispose);
     final s = await SettingsService.load(InMemorySettingsStore());
     final c = ProviderContainer(overrides: [
       settingsServiceProvider.overrideWithValue(s),
+      playbackEngineProvider.overrideWithValue(engine),
       mediaFileOpsProvider.overrideWithValue(ops),
       allFilesAccessProvider.overrideWithValue(access),
       pendingTrashStoreProvider.overrideWithValue(store),
@@ -185,12 +190,69 @@ void main() {
     ]);
   });
 
-  test('keepAll forgets everything without deleting', () async {
+  test('keep forgets the given ones without deleting', () async {
     final c = await make();
     await c.read(trashQueueProvider.notifier).stage(items[0]);
-    await c.read(trashQueueProvider.notifier).keepAll();
+    await c.read(trashQueueProvider.notifier).keep({'content://v/a'});
     expect(store.all(), isEmpty);
     await afterWindow();
     expect(ops.deletedManyUris, isEmpty);
+  });
+
+  test('playing it again (still loaded) takes it off the list', () async {
+    final c = await make();
+    await c.read(trashQueueProvider.notifier).stage(items[0]); // current video
+    engine.emitPlaying(true);
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
+    expect(c.read(trashQueueProvider), isEmpty);
+    expect(c.read(trashUndoProvider), isNull);
+  });
+
+  test('a failed silent commit stays pending, to be asked about later', () async {
+    final c = await make(granted: true);
+    ops.deleteManyResult = FileOpStatus.error;
+    await c.read(trashQueueProvider.notifier).stage(items[0]);
+    await afterWindow();
+    expect(c.read(trashQueueProvider).map((e) => e.uri), ['content://v/a']);
+  });
+
+  test('flushInteractive(only:) leaves the rest alone', () async {
+    final c = await make();
+    await c.read(trashQueueProvider.notifier).stage(items[0]);
+    await c.read(trashQueueProvider.notifier).stage(items[1]);
+    await c
+        .read(trashQueueProvider.notifier)
+        .flushInteractive(only: {'content://v/b'});
+    expect(ops.deletedManyUris, [
+      ['content://v/b']
+    ]);
+    expect(c.read(trashQueueProvider).map((e) => e.uri), ['content://v/a']);
+  });
+
+  test('shuffle never brings a trashed video back into the order', () async {
+    final c = await make();
+    final ended = c.read(currentVideoProvider)!;
+    c.read(currentVideoProvider.notifier)
+        .advanceTo(c.read(currentVideoProvider.notifier).sessionAt(1)!);
+    await c.read(trashQueueProvider.notifier).stage(items[0], ended: ended);
+    await c.read(currentVideoProvider.notifier).setShuffle(true);
+    expect(c.read(currentVideoProvider)!.playOrder, isNot(contains(0)));
+    await c.read(currentVideoProvider.notifier).setShuffle(false);
+    expect(c.read(currentVideoProvider)!.playOrder, [1, 2]);
+  });
+
+  test('a video listed twice leaves the order entirely, and comes back on undo',
+      () async {
+    final c = await make();
+    final dup = [items[0], items[1], items[0]];
+    c.read(currentVideoProvider.notifier).openFromList(items[0], dup, at: 0);
+    final ended = c.read(currentVideoProvider)!;
+    c.read(currentVideoProvider.notifier)
+        .advanceTo(c.read(currentVideoProvider.notifier).sessionAt(1)!);
+    await c.read(trashQueueProvider.notifier).stage(items[0], ended: ended);
+    expect(c.read(currentVideoProvider)!.playOrder, [1]);
+    await c.read(trashQueueProvider.notifier).undo('content://v/a');
+    expect(c.read(currentVideoProvider)!.playOrder, [0, 1, 2]);
   });
 }

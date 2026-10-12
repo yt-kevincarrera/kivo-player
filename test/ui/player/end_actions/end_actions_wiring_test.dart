@@ -16,7 +16,6 @@ import 'package:kivo_player/platform/media_permission_provider.dart';
 import 'package:kivo_player/platform/pip_controller_provider.dart';
 import 'package:kivo_player/platform/subtitle_finder_provider.dart';
 import 'package:kivo_player/player/bookmarks/bookmark_store.dart';
-import 'package:kivo_player/player/end_actions/end_actions.dart';
 import 'package:kivo_player/player/end_actions/end_flow.dart';
 import 'package:kivo_player/player/end_actions/pending_trash.dart';
 import 'package:kivo_player/player/end_actions/trash_queue.dart';
@@ -28,6 +27,8 @@ import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/player/sleep/sleep_timer.dart';
 import 'package:kivo_player/ui/player/player_screen.dart';
 import 'package:kivo_player/ui/player/state/autoplay_state.dart';
+import 'package:kivo_player/ui/player/state/controls_visibility.dart';
+import 'package:kivo_player/ui/player/state/queue_strip_state.dart';
 import 'package:kivo_player/ui/player/state/mini_player_state.dart';
 import '../../../fakes/fakes.dart';
 
@@ -75,7 +76,10 @@ void main() {
     bool trash = true,
     AfterEnd after = AfterEnd.keepGoing,
     bool autoplayNext = true,
+    List<VideoItem>? queue,
+    String? repeatMode,
   }) async {
+    final shown = queue ?? items;
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     engine = FakePlaybackEngine();
     addTearDown(engine.dispose);
@@ -87,6 +91,7 @@ void main() {
     await s.update(s.current.copyWith(
       gestureMapShown: true,
       autoplayNext: autoplayNext,
+      repeatMode: repeatMode,
     ));
     final c = ProviderContainer(overrides: [
       settingsServiceProvider.overrideWithValue(s),
@@ -101,14 +106,14 @@ void main() {
       mediaFileOpsProvider.overrideWithValue(ops),
       allFilesAccessProvider.overrideWithValue(FakeAllFilesAccess()),
       pendingTrashStoreProvider.overrideWithValue(InMemoryPendingTrashStore()),
-      mediaIndexerProvider.overrideWithValue(FakeMediaIndexer(items)),
+      mediaIndexerProvider.overrideWithValue(FakeMediaIndexer(shown)),
       mediaPermissionImplProvider.overrideWithValue(_Perm()),
       trashUndoWindowProvider.overrideWithValue(const Duration(seconds: 1)),
       appExitProvider.overrideWithValue(() => exits++),
     ]);
     addTearDown(c.dispose);
     await c.read(mediaIndexProvider.future);
-    c.read(currentVideoProvider.notifier).openFromList(items[0], items);
+    c.read(currentVideoProvider.notifier).openFromList(shown[0], shown);
     c.read(endActionsProvider.notifier)
       ..setTrash(trash)
       ..setAfter(after);
@@ -314,6 +319,44 @@ void main() {
     expect(c.read(currentVideoProvider)!.index, 1);
     expect(c.read(trashQueueProvider).map((e) => e.uri), ['content://media/1']);
     expect(c.read(endActionsProvider).trash, isFalse);
+    await drain(tester);
+  });
+
+  testWidgets('another video during a «Después» countdown cancels it', (tester) async {
+    final c = await pumpPlayer(tester, trash: false, after: AfterEnd.closeApp);
+    engine.emitCompleted(true);
+    await tester.pump();
+    expect(c.read(afterPendingProvider), AfterEnd.closeApp);
+    c.read(queueJumpProvider.notifier).state = 2; // a card in the strip
+    await tester.pump();
+    await tester.pump();
+    expect(c.read(afterPendingProvider), isNull);
+    await tester.pump(const Duration(seconds: 4));
+    expect(exits, 0);
+    expect(find.byType(PlayerScreen), findsOneWidget);
+    await drain(tester);
+  });
+
+  testWidgets('repeat-list on a one-video queue replays it: never trashed',
+      (tester) async {
+    final c = await pumpPlayer(tester, queue: [items[0]], repeatMode: 'list');
+    engine.emitCompleted(true);
+    await tester.pump();
+    await tester.pump();
+    expect(c.read(endTrashProvider), isNull);
+    expect(c.read(trashQueueProvider), isEmpty);
+    await drain(tester);
+  });
+
+  testWidgets('the chip\'s ⏭ is «Terminar ya»', (tester) async {
+    final c = await pumpPlayer(tester);
+    c.read(controlsVisibleProvider.notifier).show();
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('end-actions-chip-finish')));
+    await tester.pump();
+    await tester.pump();
+    expect(c.read(currentVideoProvider)!.index, 1);
+    expect(c.read(trashQueueProvider).map((e) => e.uri), ['content://media/1']);
     await drain(tester);
   });
 }

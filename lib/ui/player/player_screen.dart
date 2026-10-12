@@ -15,7 +15,6 @@ import '../../player/control/player_controller.dart';
 import '../../platform/frame_extractor_provider.dart';
 import '../../platform/interfaces/frame_extractor.dart';
 import '../../platform/subtitle_finder_provider.dart';
-import '../../player/end_actions/end_actions.dart';
 import '../../player/end_actions/end_flow.dart';
 import '../../player/end_actions/trash_queue.dart';
 import '../../player/library/media_index.dart';
@@ -398,11 +397,15 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _advancing = true;
     ref.read(autoplayPendingProvider.notifier).state = null;
     ref.read(autoplayConfirmProvider.notifier).state = false;
+    // Whatever brought another video (the strip, a shortcut, a remote's
+    // next) also ends a «Después» countdown — it was for the video before.
+    ref.read(afterPendingProvider.notifier).state = null;
+    ref.read(afterConfirmProvider.notifier).state = false;
     if (countAsAutoplay) ref.read(sleepTimerProvider.notifier).onAutoplayAdvance();
     ref.read(currentVideoProvider.notifier).advanceTo(next);
     // After advanceTo: the ended video is no longer current, so it can leave
     // the play order.
-    _stageEndTrash();
+    _stageEndTrash(unlessPlaying: next.playbackPath);
     try {
       await _openSession(next, expandingFromMini: false);
     } finally {
@@ -410,11 +413,14 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     }
   }
 
-  /// Sends the video that ended to the trash queue (undo window first).
-  void _stageEndTrash() {
+  /// Sends the video that ended to the trash queue (undo window first) —
+  /// never the one about to play ([unlessPlaying]): the same file opened
+  /// again from a shortcut, or a duplicate further down a playlist.
+  void _stageEndTrash({String? unlessPlaying}) {
     final t = ref.read(endTrashProvider);
     if (t == null) return;
     ref.read(endTrashProvider.notifier).state = null;
+    if (t.item.uri == unlessPlaying) return;
     unawaited(ref.read(trashQueueProvider.notifier).stage(t.item, ended: t.session));
   }
 
@@ -426,9 +432,15 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     if (ref.read(sleepTimerProvider) != null) {
       ref.read(sleepTimerProvider.notifier).cancel();
     }
+    // In PiP there is no full-screen player to close or screen to dim: the
+    // floating window stays, paused (Kivo itself can still close).
+    final inPip = ref.read(pipModeProvider);
     switch (after) {
       case AfterEnd.keepGoing:
         return;
+      case AfterEnd.closePlayer when inPip:
+      case AfterEnd.screenOff when inPip:
+        _engine.pause();
       case AfterEnd.closePlayer:
         _closeFully();
       case AfterEnd.closeApp:
@@ -444,7 +456,12 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
         exit();
       case AfterEnd.screenOff:
         _engine.pause();
-        _dimmedFrom ??= await _deviceControls.currentBrightness();
+        final from = await _deviceControls.currentBrightness();
+        // Left the player meanwhile: its dispose already put things back.
+        if (!mounted) return;
+        _dimmedFrom ??= from;
+        // Controls down, so the very next tap (which shows them) undims.
+        ref.read(controlsVisibleProvider.notifier).hide();
         await _deviceControls.setBrightness(0);
         await _deviceControls.keepAwake(false);
     }
@@ -453,6 +470,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   /// Leaves the player for the library — a real close, not a minimize: no
   /// mini-bar left behind.
   void _closeFully() {
+    // Already on its way out (a swipe-to-minimize finishing): one pop only.
+    if (_dismissing) return;
     _engine.pause();
     _keepPlayingOnMinimize = false;
     ref.read(playerMinimizedProvider.notifier).state = false;

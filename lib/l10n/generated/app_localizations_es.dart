@@ -2654,4 +2654,14 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get pendingTrashBody =>
       'Terminaron con «Al terminar» activo. Android te pedirá confirmarlo.';
+
+  @override
+  String pendingTrashMore(int count) {
+    return '+$count más';
+  }
+
+  @override
+  String endActionsChipSemantics(String summary) {
+    return 'Al terminar: $summary';
+  }
 }

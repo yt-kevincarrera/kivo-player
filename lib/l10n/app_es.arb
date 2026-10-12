@@ -4058,5 +4058,19 @@
   "pendingTrashBody": "Terminaron con «Al terminar» activo. Android te pedirá confirmarlo.",
   "@pendingTrashBody": {
     "description": "Explicación de la hoja de videos pendientes."
+  },
+  "pendingTrashMore": "+{count} más",
+  "@pendingTrashMore": {
+    "description": "Cuántos videos más hay pendientes además de los que se listan en la hoja.",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "endActionsChipSemantics": "Al terminar: {summary}",
+  "@endActionsChipSemantics": {
+    "description": "Etiqueta para lectores de pantalla del chip «Al terminar» con el resumen de lo activo.",
+    "placeholders": {
+      "summary": {"type": "String"}
+    }
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../platform/interfaces/media_indexer.dart';
 import '../open/video_source.dart';
 
 /// What happens after a video ends, besides (optionally) trashing it.
@@ -36,10 +37,44 @@ class EndActionsNotifier extends Notifier<EndActions> {
     return const EndActions();
   }
 
-  void setTrash(bool on) => state = state.copyWith(trash: on);
-  void setAfter(AfterEnd after) => state = state.copyWith(after: after);
-  void clear() => state = const EndActions();
+  // Changing the choice while a card is counting down applies to THAT
+  // ending too: turning the trash off must save the file on screen, and a
+  // different «Después» cancels the one that was about to run.
+
+  void setTrash(bool on) {
+    state = state.copyWith(trash: on);
+    if (!on) ref.read(endTrashProvider.notifier).state = null;
+  }
+
+  void setAfter(AfterEnd after) {
+    state = state.copyWith(after: after);
+    ref.read(afterPendingProvider.notifier).state = null;
+  }
+
+  void clear() {
+    state = const EndActions();
+    ref.read(endTrashProvider.notifier).state = null;
+    ref.read(afterPendingProvider.notifier).state = null;
+  }
 }
+
+/// The video that just ended and goes to the trash once it is left.
+class EndTrash {
+  final VideoSession session;
+  final VideoItem item;
+  const EndTrash(this.session, this.item);
+}
+
+/// Set when a video ends with trash planned; staged when the player moves on
+/// (or runs its action). «Conservar» on the countdown card clears it, and so
+/// does «Cancelar» — cancelling means nothing happens at all.
+final endTrashProvider = StateProvider<EndTrash?>((ref) => null);
+
+/// A «Después» action counting down on the card (fullscreen only).
+final afterPendingProvider = StateProvider<AfterEnd?>((ref) => null);
+
+/// Flipped by the card when its ring completes or on «Ahora».
+final afterConfirmProvider = StateProvider<bool>((ref) => false);
 
 /// What an ending does, decided once and consumed by both completion paths
 /// (fullscreen and minimized).

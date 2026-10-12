@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
+import 'package:kivo_player/platform/interfaces/media_indexer.dart';
 import 'package:kivo_player/player/end_actions/end_actions.dart';
 import 'package:kivo_player/player/open/video_source.dart';
 import '../../fakes/fakes.dart';
@@ -108,6 +109,28 @@ void main() {
       c.read(endActionsProvider.notifier).setTrash(true);
       c.read(currentVideoProvider.notifier).open(session(['x.mp4', 'y.mp4'], 0));
       expect(c.read(endActionsProvider).isActive, isFalse);
+    });
+
+    test('changing the choice mid-countdown applies to that ending', () async {
+      final c = await make();
+      final s = session(['a.mp4', 'b.mp4'], 0);
+      c.read(currentVideoProvider.notifier).open(s);
+      const item = VideoItem(
+          id: '1', uri: 'a.mp4', name: 'a.mp4', folder: '',
+          durationMs: 0, sizeBytes: 0, dateAddedMs: 0);
+      c.read(endTrashProvider.notifier).state = EndTrash(s, item);
+      c.read(afterPendingProvider.notifier).state = AfterEnd.closeApp;
+
+      c.read(endActionsProvider.notifier).setTrash(false);
+      expect(c.read(endTrashProvider), isNull);
+      c.read(endActionsProvider.notifier).setAfter(AfterEnd.screenOff);
+      expect(c.read(afterPendingProvider), isNull);
+
+      c.read(endTrashProvider.notifier).state = EndTrash(s, item);
+      c.read(afterPendingProvider.notifier).state = AfterEnd.closeApp;
+      c.read(endActionsProvider.notifier).clear(); // the chip's ✕
+      expect(c.read(endTrashProvider), isNull);
+      expect(c.read(afterPendingProvider), isNull);
     });
   });
 }

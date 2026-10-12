@@ -4,6 +4,7 @@ import '../../platform/all_files_access_provider.dart';
 import '../../platform/interfaces/media_file_ops.dart';
 import '../../platform/interfaces/media_indexer.dart';
 import '../../platform/media_file_ops_provider.dart';
+import '../engine/playback_provider.dart';
 import '../library/video_actions.dart';
 import '../open/video_source.dart';
 import 'pending_trash.dart';
@@ -73,6 +74,13 @@ class TrashQueue extends Notifier<List<PendingTrash>> {
 
   @override
   List<PendingTrash> build() {
+    // Watching it again (seeked back after it ended, still loaded): the user
+    // clearly wants it — take it off the list.
+    ref.listen(playingProvider, (_, next) {
+      if (next.value != true) return;
+      final now = ref.read(currentVideoProvider)?.playbackPath;
+      if (now != null && state.any((e) => e.uri == now)) undo(now);
+    });
     ref.onDispose(() {
       for (final t in _windows.values) {
         t.cancel();
@@ -138,7 +146,7 @@ class TrashQueue extends Notifier<List<PendingTrash>> {
     }
     if (!state.any((e) => e.uri == entry.uri)) return; // undone meanwhile
     if (_busy || !await isSilent()) return;
-    await _delete([entry]);
+    await _delete([entry], keepOnError: true);
   }
 
   /// Keeps the file: out of the queue, and back in the play order.
@@ -164,9 +172,16 @@ class TrashQueue extends Notifier<List<PendingTrash>> {
   /// Kivo lacks all-files access. The batch leaves the queue whatever the
   /// answer (declining the dialog = keeping the files). Null when there was
   /// nothing to do.
-  Future<FileOpStatus?> flushInteractive({String? loadedUri}) async {
+  ///
+  /// [only] narrows it to those uris (what the pending sheet listed).
+  Future<FileOpStatus?> flushInteractive({
+    String? loadedUri,
+    Set<String>? only,
+  }) async {
     if (_busy) return null;
-    final batch = state.where((e) => e.uri != loadedUri).toList();
+    final batch = state
+        .where((e) => e.uri != loadedUri && (only == null || only.contains(e.uri)))
+        .toList();
     if (batch.isEmpty) return null;
     for (final e in batch) {
       _windows.remove(e.uri)?.cancel();
@@ -185,7 +200,7 @@ class TrashQueue extends Notifier<List<PendingTrash>> {
     final due = state
         .where((e) => e.uri != loadedUri && !_windows.containsKey(e.uri))
         .toList();
-    if (due.isNotEmpty) await _delete(due);
+    if (due.isNotEmpty) await _delete(due, keepOnError: true);
   }
 
   /// Pending and past their undo window — what the pending sheet asks about.
@@ -193,17 +208,22 @@ class TrashQueue extends Notifier<List<PendingTrash>> {
       .where((e) => e.uri != loadedUri && !_windows.containsKey(e.uri))
       .toList();
 
-  /// «Conservar» on the pending sheet: forget them all, files untouched.
-  Future<void> keepAll() async {
+  /// «Conservar» on the pending sheet: forget [uris], files untouched.
+  Future<void> keep(Set<String> uris) async {
     final store = ref.read(pendingTrashStoreProvider);
-    for (final e in state) {
-      _windows.remove(e.uri)?.cancel();
-      await store.remove(e.uri);
+    for (final uri in uris) {
+      _windows.remove(uri)?.cancel();
+      await store.remove(uri);
     }
-    state = const [];
+    state = state.where((e) => !uris.contains(e.uri)).toList();
   }
 
-  Future<FileOpStatus> _delete(List<PendingTrash> batch) async {
+  /// [keepOnError]: a silent commit that failed stays pending, so it is asked
+  /// about later instead of quietly dropped after «Movido a la papelera».
+  Future<FileOpStatus> _delete(
+    List<PendingTrash> batch, {
+    bool keepOnError = false,
+  }) async {
     _busy = true;
     try {
       final items = [
@@ -219,6 +239,7 @@ class TrashQueue extends Notifier<List<PendingTrash>> {
           ),
       ];
       final status = await ref.read(videoActionsProvider).deleteMany(items);
+      if (keepOnError && status == FileOpStatus.error) return status;
       final store = ref.read(pendingTrashStoreProvider);
       for (final e in batch) {
         await store.remove(e.uri);

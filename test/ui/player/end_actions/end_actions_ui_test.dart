@@ -9,7 +9,6 @@ import 'package:kivo_player/platform/interfaces/media_permission.dart';
 import 'package:kivo_player/platform/media_file_ops_provider.dart';
 import 'package:kivo_player/platform/media_indexer_provider.dart';
 import 'package:kivo_player/platform/media_permission_provider.dart';
-import 'package:kivo_player/player/end_actions/end_actions.dart';
 import 'package:kivo_player/player/end_actions/end_flow.dart';
 import 'package:kivo_player/player/end_actions/pending_trash.dart';
 import 'package:kivo_player/player/end_actions/trash_queue.dart';

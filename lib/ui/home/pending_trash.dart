@@ -71,11 +71,14 @@ Future<void> askAboutPendingTrash(BuildContext context, WidgetRef ref) async {
     builder: (_) => PendingTrashSheet(entries: due),
   );
   if (move == null || !context.mounted) return;
+  // Only what the sheet listed: entries still in their undo window (or the
+  // video in the mini-bar) were not asked about.
+  final listed = due.map((e) => e.uri).toSet();
   if (!move) {
-    await queue.keepAll();
+    await queue.keep(listed);
     return;
   }
-  final status = await queue.flushInteractive(loadedUri: loaded);
+  final status = await queue.flushInteractive(loadedUri: loaded, only: listed);
   if (status != null && context.mounted) _report(context, ref, status, due.length);
 }
 
@@ -126,7 +129,7 @@ class PendingTrashSheet extends ConsumerWidget {
                     style: const TextStyle(color: Colors.white, fontSize: 13)),
               ),
             if (entries.length > _shown)
-              Text('+${entries.length - _shown}',
+              Text(l10n.pendingTrashMore(entries.length - _shown),
                   style: const TextStyle(color: Colors.white54, fontSize: 13)),
             const SizedBox(height: 16),
             Row(
