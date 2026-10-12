@@ -272,6 +272,47 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
 
   void _dropUndo() => ref.read(queueUndoProvider.notifier).state = null;
 
+  // ── End-of-video trash ─────────────────────────────────────────────────────
+  // No queue undo here: the trash has its own «Deshacer», which calls
+  // [restoreTrashed].
+
+  /// Takes a video that was just sent to the trash out of the play order, so
+  /// repeat-list or the strip never offer a file that is gone.
+  void dropTrashed(int item) {
+    final s = state;
+    if (s == null || item == s.index) return;
+    state = s.withOrder(removeFromOrder(s.playOrder, s.index, item), edited: true);
+  }
+
+  /// Undoes [dropTrashed]: [previousOrder]/[previousEdited] are the session's
+  /// order before the drop. Edits made since are kept — only [item] comes back,
+  /// where it was. A no-op once a different queue is open.
+  void restoreTrashed({
+    required List<String> queue,
+    required int item,
+    required List<int>? previousOrder,
+    required bool previousEdited,
+  }) {
+    final s = state;
+    if (s == null || !identical(s.queue, queue)) return;
+    final now = s.playOrder;
+    if (now.contains(item)) return;
+    final before = previousOrder ?? List<int>.generate(s.queue.length, (i) => i);
+    final restored =
+        before.where((i) => i == item || now.contains(i)).toList();
+    final unchanged = restored.length == before.length;
+    state = unchanged
+        ? s.withOrder(previousOrder, edited: previousEdited)
+        : s.withOrder(restored, edited: true);
+  }
+
+  /// Ends the session altogether (closing Kivo from «Al terminar»): nothing
+  /// left for the mini-bar or the media notification to show.
+  void clear() {
+    _dropUndo();
+    state = null;
+  }
+
   /// Toggles shuffle: persists the setting AND updates the active session's
   /// play order to match, so the two never drift apart. This notifier is the
   /// only thing that reads/produces [VideoSession.order], so routing the
