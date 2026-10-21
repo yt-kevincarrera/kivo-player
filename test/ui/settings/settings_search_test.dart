@@ -25,6 +25,15 @@ void main() {
   });
 
   group('searchSettings', () {
+    test('finds global end actions through delete and restart in both languages', () {
+      for (final query in ['al terminar', 'borrar', 'volver a empezar']) {
+        expect(_ids(searchSettings(query, _es, _d)), contains(SettingIds.endActions));
+      }
+      for (final query in ['when it ends', 'delete', 'start again']) {
+        expect(_ids(searchSettings(query, _en, _d)), contains(SettingIds.endActions));
+      }
+    });
+
     test('an empty or blank query returns nothing', () {
       expect(searchSettings('', _es, _d), isEmpty);
       expect(searchSettings('   ', _es, _d), isEmpty);

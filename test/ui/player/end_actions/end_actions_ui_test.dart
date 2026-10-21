@@ -98,6 +98,45 @@ void main() {
   });
 
   group('panel', () {
+    testWidgets('global toggle saves choices and switches the mode off', (tester) async {
+      final c = await pump(tester, const EndActionsPanel());
+      await tester.tap(find.byKey(const Key('end-trash-switch')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('end-global-switch')));
+      await tester.pump();
+      expect(c.read(settingsProvider).endActionsGlobal, isTrue);
+      expect(c.read(settingsProvider).endActionsTrash, isTrue);
+      await tester.tap(find.byKey(const Key('end-global-switch')));
+      await tester.pump();
+      expect(c.read(endActionsProvider).isActive, isFalse);
+      expect(c.read(settingsProvider).endActionsTrash, isTrue);
+    });
+
+    testWidgets('global editor configures trash without an eligible video', (tester) async {
+      final c = await pump(tester,
+          const EndActionsPanel(globalSettings: true), inLibrary: false);
+      await tester.tap(find.byKey(const Key('end-trash-switch')));
+      await tester.pump();
+      expect(c.read(settingsProvider).endActionsTrash, isTrue);
+      expect(c.read(endActionsProvider).isActive, isFalse);
+      expect(find.byKey(const Key('end-finish-now')), findsNothing);
+      expect(find.byKey(const Key('end-trash-and-next')), findsNothing);
+    });
+
+    testWidgets('restart is selectable and explains why trash is blocked', (tester) async {
+      final c = await pump(tester, const EndActionsPanel());
+      await c.read(endActionsProvider.notifier).setTrash(true);
+      await tester.pump();
+      final restart = find.byKey(const Key('end-after-restart'));
+      await tester.ensureVisible(restart);
+      await tester.tap(restart);
+      await tester.pump();
+      expect(c.read(endActionsProvider).after, AfterEnd.restart);
+      expect(c.read(endActionsProvider).trash, isFalse);
+      expect(find.text(_l10n.endActionsTrashRestart), findsOneWidget);
+      expect(tester.widget<Switch>(find.byKey(const Key('end-trash-switch'))).onChanged, isNull);
+    });
+
     testWidgets('turns trash on and picks the action', (tester) async {
       final c = await pump(tester, const EndActionsPanel());
       await tester.tap(find.byKey(const Key('end-trash-switch')));
@@ -153,6 +192,7 @@ void main() {
       );
       await tester.tap(find.text('go'));
       await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const Key('end-trash-and-next')));
       await tester.tap(find.byKey(const Key('end-trash-and-next')));
       await tester.pumpAndSettle();
       expect(c.read(trashAndNextProvider), 1);

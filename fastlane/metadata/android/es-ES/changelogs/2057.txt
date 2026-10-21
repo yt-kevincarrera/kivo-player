@@ -1,0 +1,1 @@
+Las opciones de «Al terminar» pueden guardarse para todos los videos, incluso al cerrar Kivo, con un interruptor en el reproductor y en Ajustes. Nueva opción «Volver a empezar», sin borrar el archivo. La cápsula ya no se superpone a la barra de progreso en vertical; la cola también se adapta al texto grande.

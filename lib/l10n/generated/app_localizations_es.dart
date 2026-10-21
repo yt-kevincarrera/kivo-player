@@ -2537,6 +2537,35 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsSearchKwVault => 'bóveda, ocultos, privado';
 
   @override
+  String get endActionsGlobal => 'Aplicar a todos los videos';
+
+  @override
+  String get endActionsGlobalHint =>
+      'Conserva estas opciones al cambiar de video y cerrar Kivo. Los cambios aquí también serán globales.';
+
+  @override
+  String get endActionsSessionHint =>
+      'Desactivado: los cambios del reproductor solo afectan a la cola actual.';
+
+  @override
+  String get endActionsSavedHint =>
+      'Guarda tus opciones aquí y activa el interruptor cuando quieras aplicarlas a todos los videos.';
+
+  @override
+  String get endActionsSettingsHint =>
+      'Configura y activa las acciones al terminar para todos los videos.';
+
+  @override
+  String get endActionsRestart => 'Volver a empezar';
+
+  @override
+  String get endActionsRestartHint =>
+      'Reproduce este video desde cero. No se borrará al terminar.';
+
+  @override
+  String get endActionsTrashRestart => 'No disponible con Volver a empezar';
+
+  @override
   String get endActionsTitle => 'Al terminar';
 
   @override

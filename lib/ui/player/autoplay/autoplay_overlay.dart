@@ -72,8 +72,9 @@ class _AutoplayOverlayState extends ConsumerState<AutoplayOverlay>
     // count down to whatever is next NOW — or stop if nothing is left.
     ref.listen(currentVideoProvider.select((s) => s?.order), (_, _) {
       if (ref.read(autoplayPendingProvider) == null) return;
-      ref.read(autoplayPendingProvider.notifier).state =
-          ref.read(currentVideoProvider.notifier).peekNext();
+      ref.read(autoplayPendingProvider.notifier).state = ref
+          .read(currentVideoProvider.notifier)
+          .peekNext();
     });
     void onPending(bool before, bool now) {
       if (!before && now) {
@@ -107,6 +108,7 @@ class _AutoplayOverlayState extends ConsumerState<AutoplayOverlay>
             AfterEnd.closePlayer => l10n.endActionsCountdownClosePlayer,
             AfterEnd.closeApp => l10n.endActionsCountdownCloseApp,
             AfterEnd.screenOff => l10n.endActionsCountdownScreenOff,
+            AfterEnd.restart => l10n.endActionsRestart,
             AfterEnd.keepGoing => '',
           };
     final icon = pending != null
@@ -115,9 +117,11 @@ class _AutoplayOverlayState extends ConsumerState<AutoplayOverlay>
             AfterEnd.closePlayer => Icons.close_fullscreen_rounded,
             AfterEnd.closeApp => Icons.power_settings_new_rounded,
             AfterEnd.screenOff => Icons.brightness_low_rounded,
+            AfterEnd.restart => Icons.replay_rounded,
             AfterEnd.keepGoing => Icons.play_arrow_rounded,
           };
-    final title = pending?.displayName ??
+    final title =
+        pending?.displayName ??
         ref.watch(currentVideoProvider)?.displayName ??
         '';
 
@@ -194,7 +198,9 @@ class _AutoplayOverlayState extends ConsumerState<AutoplayOverlay>
                               child: CircularProgressIndicator(
                                 value: 1 - _ring.value,
                                 strokeWidth: 3,
-                                backgroundColor: Colors.white.withValues(alpha: 0.14),
+                                backgroundColor: Colors.white.withValues(
+                                  alpha: 0.14,
+                                ),
                                 valueColor: AlwaysStoppedAnimation(accent),
                               ),
                             ),
@@ -222,7 +228,8 @@ class _AutoplayOverlayState extends ConsumerState<AutoplayOverlay>
                       ? l10n.endActionsCardTrashLine
                       : l10n.endActionsCardDeleteLine,
                   keepLabel: l10n.endActionsKeep,
-                  onKeep: () => ref.read(endTrashProvider.notifier).state = null,
+                  onKeep: () =>
+                      ref.read(endTrashProvider.notifier).state = null,
                 ),
               ],
               const SizedBox(height: 12),
@@ -231,14 +238,23 @@ class _AutoplayOverlayState extends ConsumerState<AutoplayOverlay>
                   Expanded(
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.white.withValues(alpha: 0.18)),
+                        side: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.18),
+                        ),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 10),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                       onPressed: _cancel,
-                      child: Text(l10n.commonCancel,
-                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                      child: Text(
+                        l10n.commonCancel,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -249,14 +265,20 @@ class _AutoplayOverlayState extends ConsumerState<AutoplayOverlay>
                         foregroundColor: onAccent(accent),
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                       onPressed: _confirm,
                       child: Text(
-                          pending != null
-                              ? l10n.playerAutoplayPlayAction
-                              : l10n.endActionsNow,
-                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+                        pending != null
+                            ? l10n.playerAutoplayPlayAction
+                            : l10n.endActionsNow,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 13,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -306,8 +328,13 @@ class _TrashLine extends StatelessWidget {
               visualDensity: VisualDensity.compact,
             ),
             onPressed: onKeep,
-            child: Text(keepLabel,
-                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5)),
+            child: Text(
+              keepLabel,
+              style: const TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 12.5,
+              ),
+            ),
           ),
         ],
       ),

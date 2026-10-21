@@ -55,8 +55,19 @@ class AutoplayCoordinator {
     final session = _ref.read(currentVideoProvider);
     if (session == null || identical(_endHandledFor, session)) return;
     _endHandledFor = session;
-    final d = decideEnd(_ref.read, session: session, sleepStopped: sleepStopped);
+    final d = decideEnd(
+      _ref.read,
+      session: session,
+      sleepStopped: sleepStopped,
+    );
     final next = d.next;
+    if (d.plan.restart) {
+      _advance(
+        _ref.read(currentVideoProvider.notifier).sessionAt(session.index)!,
+        fromBeginning: true,
+      );
+      return;
+    }
     // No cards down here: whatever was planned happens now.
     final after = d.plan.after;
     if (after != null) {
@@ -80,7 +91,9 @@ class AutoplayCoordinator {
 
   Future<void> _stage(EndTrash? t, {String? unlessPlaying}) async {
     if (t == null || t.item.uri == unlessPlaying) return;
-    await _ref.read(trashQueueProvider.notifier).stage(t.item, ended: t.session);
+    await _ref
+        .read(trashQueueProvider.notifier)
+        .stage(t.item, ended: t.session);
   }
 
   /// The minimized flavour of «Después»: there is no full-screen player to
@@ -90,6 +103,7 @@ class AutoplayCoordinator {
     await _stage(trash);
     switch (after) {
       case AfterEnd.keepGoing:
+      case AfterEnd.restart:
       case AfterEnd.screenOff:
         return; // already paused
       case AfterEnd.closePlayer:
@@ -105,7 +119,11 @@ class AutoplayCoordinator {
     }
   }
 
-  Future<void> _advance(VideoSession next, {EndTrash? trash}) async {
+  Future<void> _advance(
+    VideoSession next, {
+    EndTrash? trash,
+    bool fromBeginning = false,
+  }) async {
     _advancing = true;
     final engine = _ref.read(playbackEngineProvider);
     final settings = _ref.read(settingsProvider);
@@ -115,20 +133,31 @@ class AutoplayCoordinator {
       unawaited(_stage(trash, unlessPlaying: next.playbackPath));
       if (!settings.incognito) {
         _ref.read(playedStoreProvider).markPlayed(next.resumeKey);
+        if (fromBeginning) {
+          await _ref.read(resumeServiceProvider).clear(next.resumeKey);
+        }
       }
       final plan = planResume(
-        _ref.read(resumeServiceProvider).positionFor(next.resumeKey),
-        settings.resumeBehavior);
+        fromBeginning
+            ? null
+            : _ref.read(resumeServiceProvider).positionFor(next.resumeKey),
+        settings.resumeBehavior,
+      );
       await _ref
           .read(decoderControllerProvider)
           .open(next, startAt: plan.startAt);
       await engine.play();
-      unawaited(applyDefaultTracks(
-        engine: engine, settings: settings, session: next,
-        subtitleFinder: _ref.read(subtitleFinderProvider),
-        subtitlePrefs: _ref.read(trackPrefsStoreProvider),
-        subtitleLoader: _ref.read(subtitleLoaderProvider),
-        applyAudio: _ref.read(audioPipelineProvider).onOpen));
+      unawaited(
+        applyDefaultTracks(
+          engine: engine,
+          settings: settings,
+          session: next,
+          subtitleFinder: _ref.read(subtitleFinderProvider),
+          subtitlePrefs: _ref.read(trackPrefsStoreProvider),
+          subtitleLoader: _ref.read(subtitleLoaderProvider),
+          applyAudio: _ref.read(audioPipelineProvider).onOpen,
+        ),
+      );
       _refreshMiniThumb(next.playbackPath);
     } finally {
       _advancing = false;

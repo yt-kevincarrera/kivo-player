@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
-import '../loop/ab_loop_chip.dart';
-import '../end_actions/end_actions_chip.dart';
 import '../state/controls_visibility.dart';
 import '../state/controls_insets.dart';
 import '../state/lock_state.dart';
@@ -25,8 +23,14 @@ class ControlsOverlay extends ConsumerWidget {
     );
     final locked = ref.watch(lockProvider);
     final key = ref.watch(currentVideoProvider)?.resumeKey;
-    final castingHere = key != null &&
-        ref.watch(castControllerProvider.select((c) => c.active ? c.resumeKey : null)) == key;
+    final castingHere =
+        key != null &&
+        ref.watch(
+              castControllerProvider.select(
+                (c) => c.active ? c.resumeKey : null,
+              ),
+            ) ==
+            key;
     final accent = Color(ref.watch(settingsProvider).accentColor);
     return AnimatedOpacity(
       opacity: visible ? 1 : 0,
@@ -140,17 +144,6 @@ class ControlsOverlay extends ConsumerWidget {
                                 ),
                               ),
                             ),
-                          ),
-                          const Positioned(
-                            right: 14,
-                            bottom: 116, // clear of the seek bar + button row
-                            child: AbLoopChip(),
-                          ),
-                          // Mirrors the A-B chip on the left.
-                          const Positioned(
-                            left: 14,
-                            bottom: 116,
-                            child: EndActionsChip(),
                           ),
                         ],
                       ),

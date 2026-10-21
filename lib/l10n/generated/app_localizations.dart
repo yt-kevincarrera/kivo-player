@@ -4250,6 +4250,54 @@ abstract class AppLocalizations {
   /// **'bóveda, ocultos, privado'**
   String get settingsSearchKwVault;
 
+  /// No description provided for @endActionsGlobal.
+  ///
+  /// In es, this message translates to:
+  /// **'Aplicar a todos los videos'**
+  String get endActionsGlobal;
+
+  /// No description provided for @endActionsGlobalHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Conserva estas opciones al cambiar de video y cerrar Kivo. Los cambios aquí también serán globales.'**
+  String get endActionsGlobalHint;
+
+  /// No description provided for @endActionsSessionHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Desactivado: los cambios del reproductor solo afectan a la cola actual.'**
+  String get endActionsSessionHint;
+
+  /// No description provided for @endActionsSavedHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Guarda tus opciones aquí y activa el interruptor cuando quieras aplicarlas a todos los videos.'**
+  String get endActionsSavedHint;
+
+  /// No description provided for @endActionsSettingsHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Configura y activa las acciones al terminar para todos los videos.'**
+  String get endActionsSettingsHint;
+
+  /// No description provided for @endActionsRestart.
+  ///
+  /// In es, this message translates to:
+  /// **'Volver a empezar'**
+  String get endActionsRestart;
+
+  /// No description provided for @endActionsRestartHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Reproduce este video desde cero. No se borrará al terminar.'**
+  String get endActionsRestartHint;
+
+  /// No description provided for @endActionsTrashRestart.
+  ///
+  /// In es, this message translates to:
+  /// **'No disponible con Volver a empezar'**
+  String get endActionsTrashRestart;
+
   /// Título del panel y de la fila del menú ⋮ que eligen qué pasa cuando un video termina.
   ///
   /// In es, this message translates to:

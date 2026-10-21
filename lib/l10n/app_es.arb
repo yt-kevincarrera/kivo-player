@@ -3917,6 +3917,14 @@
     "description": "Sinónimos de búsqueda para el Vault (solo se busca mientras su entrada está visible)."
   },
 
+  "endActionsGlobal": "Aplicar a todos los videos",
+  "endActionsGlobalHint": "Conserva estas opciones al cambiar de video y cerrar Kivo. Los cambios aquí también serán globales.",
+  "endActionsSessionHint": "Desactivado: los cambios del reproductor solo afectan a la cola actual.",
+  "endActionsSavedHint": "Guarda tus opciones aquí y activa el interruptor cuando quieras aplicarlas a todos los videos.",
+  "endActionsSettingsHint": "Configura y activa las acciones al terminar para todos los videos.",
+  "endActionsRestart": "Volver a empezar",
+  "endActionsRestartHint": "Reproduce este video desde cero. No se borrará al terminar.",
+  "endActionsTrashRestart": "No disponible con Volver a empezar",
   "endActionsTitle": "Al terminar",
   "@endActionsTitle": {
     "description": "Título del panel y de la fila del menú ⋮ que eligen qué pasa cuando un video termina."

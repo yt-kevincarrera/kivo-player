@@ -182,7 +182,17 @@ class _QueueStripState extends ConsumerState<QueueStrip> {
         MediaQuery.orientationOf(context) == Orientation.landscape;
     final cardW = landscape ? 104.0 : 84.0;
     final thumbH = landscape ? 58.0 : 48.0;
-    final stripH = thumbH + 20; // room for a 1-line name below
+    // A fixed 20 px clips names at accessibility text sizes. Measure the
+    // actual one-line style so the bottom controls reserve the full height.
+    final nameMetrics = TextPainter(
+      text: TextSpan(text: 'Ag', style: DefaultTextStyle.of(context).style.merge(
+          const TextStyle(fontSize: 10, fontWeight: FontWeight.w700))),
+      textScaler: MediaQuery.textScalerOf(context),
+      textDirection: Directionality.of(context),
+      maxLines: 1,
+    )..layout();
+    final stripH = thumbH + (nameMetrics.height + 3).clamp(20.0, double.infinity);
+    nameMetrics.dispose();
     final index = session.index;
     final currentPos = order.indexOf(index);
     final cardExtent = cardW + _gap;

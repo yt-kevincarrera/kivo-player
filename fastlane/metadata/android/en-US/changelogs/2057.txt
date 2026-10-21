@@ -1,0 +1,1 @@
+Save «When it ends» options for all videos, even after closing Kivo, with a switch in the player and Settings. New «Start again» option replays the video without deleting it. The capsule no longer overlaps the progress bar in portrait, and the queue adapts to large text.

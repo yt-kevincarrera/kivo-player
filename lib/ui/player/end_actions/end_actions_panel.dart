@@ -13,24 +13,33 @@ import '../../../player/open/video_source.dart';
 import '../../../player/queue/queue_order.dart';
 
 String afterEndLabel(AppLocalizations l10n, AfterEnd a) => switch (a) {
-      AfterEnd.keepGoing => l10n.endActionsAfterKeepGoing,
-      AfterEnd.closePlayer => l10n.endActionsAfterClosePlayer,
-      AfterEnd.closeApp => l10n.endActionsAfterCloseApp,
-      AfterEnd.screenOff => l10n.endActionsAfterScreenOff,
-    };
+  AfterEnd.keepGoing => l10n.endActionsAfterKeepGoing,
+  AfterEnd.restart => l10n.endActionsRestart,
+  AfterEnd.closePlayer => l10n.endActionsAfterClosePlayer,
+  AfterEnd.closeApp => l10n.endActionsAfterCloseApp,
+  AfterEnd.screenOff => l10n.endActionsAfterScreenOff,
+};
 
 IconData afterEndIcon(AfterEnd a) => switch (a) {
-      AfterEnd.keepGoing => Icons.playlist_play_rounded,
-      AfterEnd.closePlayer => Icons.close_fullscreen_rounded,
-      AfterEnd.closeApp => Icons.power_settings_new_rounded,
-      AfterEnd.screenOff => Icons.brightness_low_rounded,
-    };
+  AfterEnd.keepGoing => Icons.playlist_play_rounded,
+  AfterEnd.restart => Icons.replay_rounded,
+  AfterEnd.closePlayer => Icons.close_fullscreen_rounded,
+  AfterEnd.closeApp => Icons.power_settings_new_rounded,
+  AfterEnd.screenOff => Icons.brightness_low_rounded,
+};
 
 /// «Papelera · Cerrar Kivo», «Papelera», «Cerrar Kivo» or «Nada» — the menu
 /// row's subtitle and the chip's text.
-String endActionsSummary(AppLocalizations l10n, EndActions a, {required bool toTrash}) {
-  final trash = toTrash ? l10n.endActionsSummaryTrash : l10n.endActionsSummaryDelete;
+String endActionsSummary(
+  AppLocalizations l10n,
+  EndActions a, {
+  required bool toTrash,
+}) {
+  final trash = toTrash
+      ? l10n.endActionsSummaryTrash
+      : l10n.endActionsSummaryDelete;
   final hasAfter = a.after != AfterEnd.keepGoing;
+  if (a.after == AfterEnd.restart) return afterEndLabel(l10n, a.after);
   if (a.trash && hasAfter) {
     return l10n.endActionsSummaryBoth(trash, afterEndLabel(l10n, a.after));
   }
@@ -40,7 +49,11 @@ String endActionsSummary(AppLocalizations l10n, EndActions a, {required bool toT
 }
 
 /// [onBack] reopens the «Más» menu, as the sleep timer panel does.
-Future<void> showEndActionsPanel(BuildContext context, {VoidCallback? onBack}) {
+Future<void> showEndActionsPanel(
+  BuildContext context, {
+  VoidCallback? onBack,
+  bool globalSettings = false,
+}) {
   return showModalBottomSheet(
     context: context,
     backgroundColor: KivoColors.panel,
@@ -48,31 +61,42 @@ Future<void> showEndActionsPanel(BuildContext context, {VoidCallback? onBack}) {
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
     isScrollControlled: true,
-    builder: (_) => EndActionsPanel(onBack: onBack),
+    builder: (_) =>
+        EndActionsPanel(onBack: onBack, globalSettings: globalSettings),
   );
 }
 
 class EndActionsPanel extends ConsumerWidget {
   final VoidCallback? onBack;
-  const EndActionsPanel({super.key, this.onBack});
+  final bool globalSettings;
+  const EndActionsPanel({super.key, this.onBack, this.globalSettings = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final accent = Color(ref.watch(settingsProvider).accentColor);
-    final actions = ref.watch(endActionsProvider);
+    final settings = ref.watch(settingsProvider);
+    final currentActions = ref.watch(endActionsProvider);
+    final actions = globalSettings
+        ? EndActions.saved(settings)
+        : currentActions;
     final notifier = ref.read(endActionsProvider.notifier);
     final toTrash = ref.watch(mediaFileOpsProvider).movesToTrash;
     final session = ref.watch(currentVideoProvider);
-    final inLibrary = session != null &&
-        libraryItemIn(ref.watch(mediaIndexProvider).valueOrNull, session) != null;
+    final inLibrary =
+        session != null &&
+        libraryItemIn(ref.watch(mediaIndexProvider).valueOrNull, session) !=
+            null;
     final repeatVideo =
-        repeatModeFor(ref.watch(settingsProvider).repeatMode) == RepeatMode.video;
-    final trashBlockedReason = !inLibrary
+        repeatModeFor(ref.watch(settingsProvider).repeatMode) ==
+        RepeatMode.video;
+    final trashBlockedReason = actions.after == AfterEnd.restart
+        ? l10n.endActionsTrashRestart
+        : !globalSettings && !inLibrary
         ? l10n.endActionsTrashNotLibrary
-        : repeatVideo
-            ? l10n.endActionsTrashRepeatVideo
-            : null;
+        : !globalSettings && repeatVideo
+        ? l10n.endActionsTrashRepeatVideo
+        : null;
     final trashUsable = trashBlockedReason == null;
 
     void close() => Navigator.of(context).pop();
@@ -111,11 +135,45 @@ class EndActionsPanel extends ConsumerWidget {
                     ),
                     const SizedBox(width: 10),
                   ],
-                  Text(l10n.endActionsTitle,
+                  Expanded(
+                    child: Text(
+                      l10n.endActionsTitle,
                       style: const TextStyle(
-                          color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800)),
-                  const Spacer(),
-                  _SquareButton(icon: Icons.close_rounded, onTap: close),
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  _SquareButton(
+                    icon: Icons.close_rounded,
+                    label: MaterialLocalizations.of(context).closeButtonTooltip,
+                    onTap: close,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              _Card(
+                children: [
+                  _Row(
+                    icon: Icons.public_rounded,
+                    iconColor: settings.endActionsGlobal
+                        ? accent
+                        : Colors.white70,
+                    title: l10n.endActionsGlobal,
+                    subtitle: settings.endActionsGlobal
+                        ? l10n.endActionsGlobalHint
+                        : globalSettings
+                        ? l10n.endActionsSavedHint
+                        : l10n.endActionsSessionHint,
+                    trailing: Switch(
+                      key: const Key('end-global-switch'),
+                      value: settings.endActionsGlobal,
+                      activeThumbColor: accent,
+                      onChanged: (on) =>
+                          notifier.setGlobal(on, useCurrent: !globalSettings),
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 14),
@@ -124,15 +182,24 @@ class EndActionsPanel extends ConsumerWidget {
                   _Row(
                     key: const Key('end-trash-row'),
                     icon: Icons.delete_outline_rounded,
-                    iconColor: actions.trash && trashUsable ? accent : Colors.white70,
-                    title: toTrash ? l10n.endActionsTrashTitle : l10n.endActionsDeleteTitle,
-                    subtitle: trashBlockedReason ?? l10n.endActionsTrashSubtitle,
+                    iconColor: actions.trash && trashUsable
+                        ? accent
+                        : Colors.white70,
+                    title: toTrash
+                        ? l10n.endActionsTrashTitle
+                        : l10n.endActionsDeleteTitle,
+                    subtitle:
+                        trashBlockedReason ?? l10n.endActionsTrashSubtitle,
                     enabled: trashUsable,
                     trailing: Switch(
                       key: const Key('end-trash-switch'),
                       value: actions.trash && trashUsable,
                       activeThumbColor: accent,
-                      onChanged: trashUsable ? notifier.setTrash : null,
+                      onChanged: trashUsable
+                          ? (globalSettings
+                                ? notifier.setSavedTrash
+                                : notifier.setTrash)
+                          : null,
                     ),
                   ),
                 ],
@@ -159,65 +226,80 @@ class EndActionsPanel extends ConsumerWidget {
                       title: afterEndLabel(l10n, a),
                       subtitle: a == AfterEnd.screenOff
                           ? l10n.endActionsAfterScreenOffHint
+                          : a == AfterEnd.restart
+                          ? l10n.endActionsRestartHint
                           : null,
                       selected: actions.after == a,
                       accent: accent,
-                      onTap: () => notifier.setAfter(a),
+                      onTap: () => globalSettings
+                          ? notifier.setSavedAfter(a)
+                          : notifier.setAfter(a),
                       trailing: actions.after == a
                           ? Icon(Icons.check_rounded, color: accent, size: 20)
                           : null,
                     ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  if (!actions.trash && trashUsable) ...[
+              if (!globalSettings) ...[
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    if (!actions.trash && trashUsable) ...[
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          key: const Key('end-trash-and-next'),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.18),
+                            ),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          icon: const Icon(
+                            Icons.delete_sweep_outlined,
+                            size: 18,
+                          ),
+                          onPressed: () {
+                            close();
+                            ref.read(trashAndNextProvider.notifier).state++;
+                          },
+                          label: Text(
+                            toTrash
+                                ? l10n.endActionsTrashAndNext
+                                : l10n.endActionsDeleteAndNext,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                    ],
                     Expanded(
-                      child: OutlinedButton.icon(
-                        key: const Key('end-trash-and-next'),
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: Colors.white.withValues(alpha: 0.18)),
-                          foregroundColor: Colors.white,
+                      child: ElevatedButton.icon(
+                        key: const Key('end-finish-now'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: accent,
+                          foregroundColor: onAccent(accent),
+                          elevation: 0,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
-                        icon: const Icon(Icons.delete_sweep_outlined, size: 18),
-                        onPressed: () {
-                          close();
-                          ref.read(trashAndNextProvider.notifier).state++;
-                        },
-                        label: Text(toTrash
-                            ? l10n.endActionsTrashAndNext
-                            : l10n.endActionsDeleteAndNext),
+                        icon: const Icon(Icons.skip_next_rounded, size: 18),
+                        onPressed: actions.isActive
+                            ? () {
+                                close();
+                                ref.read(finishNowProvider.notifier).state++;
+                              }
+                            : null,
+                        label: Text(l10n.endActionsFinishNow),
                       ),
                     ),
-                    const SizedBox(width: 10),
                   ],
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      key: const Key('end-finish-now'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: accent,
-                        foregroundColor: onAccent(accent),
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
-                      ),
-                      icon: const Icon(Icons.skip_next_rounded, size: 18),
-                      onPressed: actions.isActive
-                          ? () {
-                              close();
-                              ref.read(finishNowProvider.notifier).state++;
-                            }
-                          : null,
-                      label: Text(l10n.endActionsFinishNow),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ],
           ),
         ),
@@ -228,23 +310,16 @@ class EndActionsPanel extends ConsumerWidget {
 
 class _SquareButton extends StatelessWidget {
   final IconData icon;
+  final String? label;
   final VoidCallback onTap;
-  const _SquareButton({required this.icon, required this.onTap});
+  const _SquareButton({required this.icon, required this.onTap, this.label});
 
   @override
-  Widget build(BuildContext context) => InkWell(
-        borderRadius: BorderRadius.circular(8),
-        onTap: onTap,
-        child: Container(
-          width: 26,
-          height: 26,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.06),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, size: 15, color: Colors.white70),
-        ),
-      );
+  Widget build(BuildContext context) => IconButton(
+    tooltip: label ?? MaterialLocalizations.of(context).backButtonTooltip,
+    onPressed: onTap,
+    icon: Icon(icon, size: 22, color: Colors.white70),
+  );
 }
 
 class _Card extends StatelessWidget {
@@ -253,13 +328,13 @@ class _Card extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.04),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(children: children),
-      );
+    decoration: BoxDecoration(
+      color: Colors.white.withValues(alpha: 0.04),
+      borderRadius: BorderRadius.circular(14),
+    ),
+    clipBehavior: Clip.antiAlias,
+    child: Column(children: children),
+  );
 }
 
 class _Row extends StatelessWidget {
@@ -303,15 +378,24 @@ class _Row extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title,
-                          style: TextStyle(
-                            color: selected && accent != null ? accent : Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          )),
+                      Text(
+                        title,
+                        style: TextStyle(
+                          color: selected && accent != null
+                              ? accent
+                              : Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       if (subtitle != null)
-                        Text(subtitle!,
-                            style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                        Text(
+                          subtitle!,
+                          style: const TextStyle(
+                            color: Colors.white54,
+                            fontSize: 12,
+                          ),
+                        ),
                     ],
                   ),
                 ),

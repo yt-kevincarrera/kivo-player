@@ -26,6 +26,7 @@ import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/player/sleep/sleep_timer.dart';
 import 'package:kivo_player/ui/player/player_screen.dart';
+import 'package:kivo_player/ui/player/controls/seek_bar.dart';
 import 'package:kivo_player/ui/player/state/autoplay_state.dart';
 import 'package:kivo_player/ui/player/state/controls_visibility.dart';
 import 'package:kivo_player/ui/player/state/queue_strip_state.dart';
@@ -78,6 +79,7 @@ void main() {
     bool autoplayNext = true,
     List<VideoItem>? queue,
     String? repeatMode,
+    double textScale = 1,
   }) async {
     final shown = queue ?? items;
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
@@ -124,6 +126,10 @@ void main() {
     await tester.pumpWidget(UncontrolledProviderScope(
       container: c,
       child: MaterialApp(
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(textScale)),
+          child: child!,
+        ),
         locale: const Locale('es'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
@@ -154,6 +160,84 @@ void main() {
     engine.emitSubtitleTracks(const []);
     await tester.pump(const Duration(seconds: 5));
   }
+
+  testWidgets('portrait end-actions chip stays clear of the seek bar with a queue',
+      (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final c = await pumpPlayer(tester);
+    c.read(controlsVisibleProvider.notifier).show();
+    await tester.pump(const Duration(milliseconds: 250));
+    final chip = tester.getRect(find.byKey(const Key('end-actions-chip')));
+    final seek = tester.getRect(find.byType(SeekBar));
+    expect(chip.bottom, lessThanOrEqualTo(seek.top - 8));
+    await drain(tester);
+  });
+
+  for (final layout in [
+    (size: const Size(320, 640), scale: 1.0, inset: 24.0, queue: true),
+    (size: const Size(390, 844), scale: 2.0, inset: 34.0, queue: true),
+    (size: const Size(390, 844), scale: 1.0, inset: 34.0, queue: false),
+    (size: const Size(844, 390), scale: 1.0, inset: 24.0, queue: true),
+  ]) {
+    testWidgets('end-actions clears seek at ${layout.size}, text ${layout.scale}, queue ${layout.queue}',
+        (tester) async {
+      tester.view.physicalSize = layout.size;
+      tester.view.devicePixelRatio = 1;
+      tester.view.padding = FakeViewPadding(bottom: layout.inset);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPadding);
+      final c = await pumpPlayer(tester, queue: layout.queue ? null : [items.first],
+          textScale: layout.scale, after: AfterEnd.closePlayer);
+      c.read(controlsVisibleProvider.notifier).show();
+      await tester.pump(const Duration(milliseconds: 250));
+      final chip = tester.getRect(find.byKey(const Key('end-actions-chip')));
+      final seek = tester.getRect(find.byType(SeekBar));
+      expect(chip.bottom, lessThanOrEqualTo(seek.top - 8));
+      expect(chip.left, greaterThanOrEqualTo(0));
+      expect(chip.right, lessThanOrEqualTo(layout.size.width));
+      expect(tester.takeException(), isNull);
+      await drain(tester);
+    });
+  }
+
+  testWidgets('restart reopens the current video at zero without trash or a countdown',
+      (tester) async {
+    final c = await pumpPlayer(tester, after: AfterEnd.restart, autoplayNext: false);
+    final session = c.read(currentVideoProvider)!;
+    await c.read(resumeServiceProvider).record(session.resumeKey,
+        const Duration(seconds: 30), const Duration(minutes: 5), 0);
+    final before = engine.openCount;
+    engine.emitCompleted(true);
+    await tester.pump();
+    await tester.pump();
+    expect(engine.openCount, before + 1);
+    expect(engine.openedPath, session.playbackPath);
+    expect(engine.openedAt, Duration.zero);
+    expect(c.read(resumeServiceProvider).positionFor(session.resumeKey), isNull);
+    expect(engine.openedPlaying, isTrue);
+    expect(c.read(currentVideoProvider)!.index, 0);
+    expect(c.read(endTrashProvider), isNull);
+    expect(c.read(trashQueueProvider), isEmpty);
+    expect(c.read(autoplayPendingProvider), isNull);
+    expect(c.read(afterPendingProvider), isNull);
+    await drain(tester);
+  });
+
+  testWidgets('sleep episode stop takes priority over restart', (tester) async {
+    final c = await pumpPlayer(tester, after: AfterEnd.restart);
+    final before = engine.openCount;
+    c.read(sleepEpisodeEndProvider.notifier).state++;
+    await tester.pump();
+    engine.emitCompleted(true);
+    await tester.pump();
+    expect(engine.openCount, before);
+    expect(c.read(trashQueueProvider), isEmpty);
+    await drain(tester);
+  });
 
   testWidgets('trash on: the card warns, and moving on trashes the ended video',
       (tester) async {

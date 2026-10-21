@@ -14,6 +14,10 @@ import 'seek_bar.dart';
 import '../seek/seek_preview_bubble.dart';
 import '../queue/queue_strip.dart';
 import '../../../player/open/video_source.dart';
+import '../../../player/end_actions/end_actions.dart';
+import '../../../player/loop/ab_loop.dart';
+import '../end_actions/end_actions_chip.dart';
+import '../loop/ab_loop_chip.dart';
 
 class BottomBar extends ConsumerWidget {
   const BottomBar({super.key});
@@ -120,7 +124,24 @@ class BottomBar extends ConsumerWidget {
 
     return Column(
       mainAxisSize: MainAxisSize.min,
-      children: [seek, controlsArea],
+      children: [
+        if (ref.watch(endActionsProvider).isActive ||
+            ref.watch(abLoopProvider) != null) ...[
+          const SizedBox(
+            width: double.infinity,
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
+              children: [EndActionsChip(), AbLoopChip()],
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+        seek,
+        controlsArea,
+      ],
     );
   }
 }

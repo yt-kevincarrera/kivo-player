@@ -1,9 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/settings/kivo_settings.dart';
+import '../../core/settings/settings_provider.dart';
 import '../../platform/interfaces/media_indexer.dart';
 import '../open/video_source.dart';
 
 /// What happens after a video ends, besides (optionally) trashing it.
-enum AfterEnd { keepGoing, closePlayer, closeApp, screenOff }
+enum AfterEnd { keepGoing, restart, closePlayer, closeApp, screenOff }
 
 /// The «Al terminar» choice for the current queue session.
 class EndActions {
@@ -17,44 +19,121 @@ class EndActions {
 
   EndActions copyWith({bool? trash, AfterEnd? after}) =>
       EndActions(trash: trash ?? this.trash, after: after ?? this.after);
+
+  factory EndActions.saved(KivoSettings settings) => EndActions(
+    trash: settings.endActionsTrash,
+    after: AfterEnd.values.firstWhere(
+      (a) => a.name == settings.endActionsAfter,
+      orElse: () => AfterEnd.keepGoing,
+    ),
+  );
 }
 
-/// Session-scoped: armed from the player, forgotten as soon as a different
-/// queue is opened (library, playlist, file picker, vault, shortcuts). Moving
-/// along the same queue keeps it — `advanceTo` carries the queue list over
-/// unchanged, which is what the `identical` check relies on.
-final endActionsProvider =
-    NotifierProvider<EndActionsNotifier, EndActions>(EndActionsNotifier.new);
+/// Session choices reset on a new queue; an enabled global profile is restored
+/// instead. Queue advances preserve session choices. Only profile changes
+/// (not unrelated settings) replace the current choice.
+final endActionsProvider = NotifierProvider<EndActionsNotifier, EndActions>(
+  EndActionsNotifier.new,
+);
 
 class EndActionsNotifier extends Notifier<EndActions> {
   @override
   EndActions build() {
+    ref.listen(
+      settingsProvider.select(
+        (s) => (s.endActionsGlobal, s.endActionsTrash, s.endActionsAfter),
+      ),
+      (previous, next) {
+        if (next.$1 || previous?.$1 == true) _apply(_defaults());
+      },
+    );
     ref.listen<VideoSession?>(currentVideoProvider, (prev, next) {
       if (next == null || prev == null || !identical(prev.queue, next.queue)) {
-        state = const EndActions();
+        state = _defaults();
       }
     });
-    return const EndActions();
+    return _defaults();
   }
+
+  EndActions _defaults() {
+    final settings = ref.read(settingsProvider);
+    return settings.endActionsGlobal
+        ? EndActions.saved(settings)
+        : const EndActions();
+  }
+
+  void _apply(EndActions next) {
+    if (!next.trash || next.after == AfterEnd.restart) {
+      ref.read(endTrashProvider.notifier).state = null;
+    }
+    if (next.after != state.after) {
+      ref.read(afterPendingProvider.notifier).state = null;
+    }
+    state = next;
+  }
+
+  Future<void> _save(EndActions actions) {
+    final settings = ref.read(settingsProvider);
+    return ref
+        .read(settingsProvider.notifier)
+        .set(
+          settings.copyWith(
+            endActionsTrash: actions.trash,
+            endActionsAfter: actions.after.name,
+          ),
+        );
+  }
+
+  Future<void> setGlobal(bool on, {bool useCurrent = true}) {
+    final settings = ref.read(settingsProvider);
+    final actions = on && useCurrent && state.isActive
+        ? state
+        : EndActions.saved(settings);
+    return ref
+        .read(settingsProvider.notifier)
+        .set(
+          settings.copyWith(
+            endActionsGlobal: on,
+            endActionsTrash: actions.trash,
+            endActionsAfter: actions.after.name,
+          ),
+        );
+  }
+
+  Future<void> setSavedTrash(bool on) =>
+      _save(EndActions.saved(ref.read(settingsProvider)).copyWith(trash: on));
+
+  Future<void> setSavedAfter(AfterEnd after) => _save(
+    EndActions.saved(
+      ref.read(settingsProvider),
+    ).copyWith(after: after, trash: after == AfterEnd.restart ? false : null),
+  );
 
   // Changing the choice while a card is counting down applies to THAT
   // ending too: turning the trash off must save the file on screen, and a
   // different «Después» cancels the one that was about to run.
 
-  void setTrash(bool on) {
-    state = state.copyWith(trash: on);
-    if (!on) ref.read(endTrashProvider.notifier).state = null;
+  Future<void> setTrash(bool on) async {
+    _apply(state.copyWith(trash: on));
+    if (ref.read(settingsProvider).endActionsGlobal) await _save(state);
   }
 
-  void setAfter(AfterEnd after) {
-    state = state.copyWith(after: after);
+  Future<void> setAfter(AfterEnd after) async {
+    _apply(
+      state.copyWith(
+        after: after,
+        trash: after == AfterEnd.restart ? false : null,
+      ),
+    );
     ref.read(afterPendingProvider.notifier).state = null;
+    if (ref.read(settingsProvider).endActionsGlobal) await _save(state);
   }
 
-  void clear() {
+  Future<void> clear() async {
     state = const EndActions();
     ref.read(endTrashProvider.notifier).state = null;
     ref.read(afterPendingProvider.notifier).state = null;
+    if (ref.read(settingsProvider).endActionsGlobal) await setGlobal(false);
   }
 }
 
@@ -87,8 +166,14 @@ class EndPlan {
 
   /// The action to run instead of advancing; null = today's behaviour.
   final AfterEnd? after;
+  final bool restart;
 
-  const EndPlan({required this.trash, required this.advance, this.after});
+  const EndPlan({
+    required this.trash,
+    required this.advance,
+    this.after,
+    this.restart = false,
+  });
 
   static const nothing = EndPlan(trash: false, advance: false);
 }
@@ -101,9 +186,13 @@ EndPlan planEnd({
   required bool repeatVideo,
   required bool loopActive,
   required bool autoplayGo,
+  bool sleepStop = false,
 }) {
   // An A-B loop never "ends" — leave today's flow alone.
   if (loopActive) return EndPlan.nothing;
+  if (actions.after == AfterEnd.restart) {
+    return EndPlan(trash: false, advance: false, restart: !sleepStop);
+  }
   // Repeat-video would reopen a file that was just trashed.
   final trash = actions.trash && eligible && !repeatVideo;
   if (actions.after == AfterEnd.keepGoing) {

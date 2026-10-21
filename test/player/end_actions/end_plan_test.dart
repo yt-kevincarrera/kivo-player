@@ -36,6 +36,21 @@ void main() {
       expect(plan(repeatVideo: true).trash, isFalse);
     });
 
+    test('restart never deletes or advances, even with autoplay off', () {
+      final p = plan(after: AfterEnd.restart, autoplayGo: false);
+      expect(p.restart, isTrue);
+      expect(p.trash, isFalse);
+      expect(p.advance, isFalse);
+      expect(p.after, isNull);
+    });
+
+    test('sleep and A-B loop suppress restart', () {
+      expect(plan(after: AfterEnd.restart, loopActive: true).restart, isFalse);
+      expect(planEnd(actions: const EndActions(after: AfterEnd.restart),
+        eligible: true, repeatVideo: false, loopActive: false,
+        autoplayGo: false, sleepStop: true).restart, isFalse);
+    });
+
     test('a video outside the library is never trashed', () {
       expect(plan(eligible: false).trash, isFalse);
     });
