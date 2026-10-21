@@ -3918,6 +3918,14 @@
     "description": "Search synonyms for the Vault (only searched while its entrance is visible)."
   },
 
+  "endActionsGlobal": "Apply to all videos",
+  "endActionsGlobalHint": "Keeps these options when you change videos or close Kivo. Changes here will also apply globally.",
+  "endActionsSessionHint": "Off: player changes only affect the current queue.",
+  "endActionsSavedHint": "Save your options here and turn on the switch whenever you want them to apply to all videos.",
+  "endActionsSettingsHint": "Configure and enable end actions for all videos.",
+  "endActionsRestart": "Start again",
+  "endActionsRestartHint": "Plays this video again from the beginning. It will not be deleted when it ends.",
+  "endActionsTrashRestart": "Not available with Start again",
   "endActionsTitle": "When it ends",
   "@endActionsTitle": {
     "description": "Title of the panel and ⋮ menu row choosing what happens when a video ends."

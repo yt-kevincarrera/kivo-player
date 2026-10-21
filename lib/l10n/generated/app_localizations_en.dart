@@ -2520,6 +2520,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSearchKwVault => 'hidden, private, safe';
 
   @override
+  String get endActionsGlobal => 'Apply to all videos';
+
+  @override
+  String get endActionsGlobalHint =>
+      'Keeps these options when you change videos or close Kivo. Changes here will also apply globally.';
+
+  @override
+  String get endActionsSessionHint =>
+      'Off: player changes only affect the current queue.';
+
+  @override
+  String get endActionsSavedHint =>
+      'Save your options here and turn on the switch whenever you want them to apply to all videos.';
+
+  @override
+  String get endActionsSettingsHint =>
+      'Configure and enable end actions for all videos.';
+
+  @override
+  String get endActionsRestart => 'Start again';
+
+  @override
+  String get endActionsRestartHint =>
+      'Plays this video again from the beginning. It will not be deleted when it ends.';
+
+  @override
+  String get endActionsTrashRestart => 'Not available with Start again';
+
+  @override
   String get endActionsTitle => 'When it ends';
 
   @override

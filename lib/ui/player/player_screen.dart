@@ -264,7 +264,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _engine.play();
   }
 
-  Future<void> _openSession(VideoSession session, {required bool expandingFromMini}) async {
+  Future<void> _openSession(VideoSession session, {required bool expandingFromMini,
+    bool fromBeginning = false}) async {
     final trace = OpenTrace.instance;
     trace.mark(expandingFromMini
         ? 'player: open session (expand from mini)'
@@ -287,7 +288,13 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     }
     if (!expandingFromMini) {
       final plan = planResume(
-          _resume.positionFor(_resumeKey!), ref.read(settingsProvider).resumeBehavior);
+          fromBeginning ? null : _resume.positionFor(_resumeKey!),
+          ref.read(settingsProvider).resumeBehavior);
+      if (fromBeginning) {
+        _lastPosition = Duration.zero;
+        ref.read(resumePromptProvider.notifier).state = null;
+        if (!ref.read(settingsProvider).incognito) await _resume.clear(_resumeKey!);
+      }
       try {
         await ref
             .read(decoderControllerProvider)
@@ -350,6 +357,11 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     final d = decideEnd(ref.read, session: session, sleepStopped: sleepStopped);
     final next = d.next;
     ref.read(endTrashProvider.notifier).state = d.trash;
+    if (d.plan.restart) {
+      _advance(ref.read(currentVideoProvider.notifier).sessionAt(session.index)!,
+          fromBeginning: true);
+      return;
+    }
     // Overlay only when the player is actually on-screen (resumed AND not in
     // the tiny PiP window, where the overlay is suppressed — pinning it there
     // would leave autoplay stuck with an invisible countdown). Otherwise
@@ -393,7 +405,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     }
   }
 
-  Future<void> _advance(VideoSession next, {bool countAsAutoplay = true}) async {
+  Future<void> _advance(VideoSession next, {bool countAsAutoplay = true,
+    bool fromBeginning = false}) async {
     _advancing = true;
     ref.read(autoplayPendingProvider.notifier).state = null;
     ref.read(autoplayConfirmProvider.notifier).state = false;
@@ -407,7 +420,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     // the play order.
     _stageEndTrash(unlessPlaying: next.playbackPath);
     try {
-      await _openSession(next, expandingFromMini: false);
+      await _openSession(next, expandingFromMini: false, fromBeginning: fromBeginning);
     } finally {
       _advancing = false;
     }
@@ -437,6 +450,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     final inPip = ref.read(pipModeProvider);
     switch (after) {
       case AfterEnd.keepGoing:
+      case AfterEnd.restart: // Restarts run directly, without a countdown.
         return;
       case AfterEnd.closePlayer when inPip:
       case AfterEnd.screenOff when inPip:

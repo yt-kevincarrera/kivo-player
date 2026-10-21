@@ -25,7 +25,9 @@ final suppressTrashFlushProvider = StateProvider<bool>((ref) => false);
 
 /// How Kivo leaves when «Cerrar Kivo» runs. Overridable in tests.
 final appExitProvider = Provider<void Function()>(
-    (ref) => () => SystemNavigator.pop());
+  (ref) =>
+      () => SystemNavigator.pop(),
+);
 
 /// Everything both completion paths need to know about an ending.
 class EndDecision {
@@ -68,10 +70,12 @@ EndDecision decideEnd(
     eligible: item != null,
     // Repeat-list wrapping onto this same video (a one-video queue, or one
     // the trash already emptied) replays it just like repeat-video does.
-    repeatVideo: repeatModeFor(settings.repeatMode) == RepeatMode.video ||
+    repeatVideo:
+        repeatModeFor(settings.repeatMode) == RepeatMode.video ||
         next?.index == session.index,
     loopActive: loopActive,
     autoplayGo: go,
+    sleepStop: sleepStop,
   );
   return EndDecision(
     plan: plan,

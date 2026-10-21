@@ -54,6 +54,7 @@ abstract final class SettingIds {
   static const incognitoTaps = 'advanced.incognitoTaps';
   static const classicSurface = 'advanced.classicSurface';
   static const autoplayNext = 'advanced.autoplayNext';
+  static const endActions = 'advanced.endActions';
   static const pipAutoOnHome = 'advanced.pipAutoOnHome';
   static const minimizeKeepsPlaying = 'advanced.minimizeKeepsPlaying';
   static const decoderMode = 'advanced.decoderMode';
@@ -285,6 +286,12 @@ final List<SettingsSearchEntry> settingsSearchEntries = [
       group: (l) => l.settingsAdvancedGroupContinueWatching),
   SettingsSearchEntry(SettingIds.autoplayNext, SettingsPage.advanced,
       title: (l) => l.settingsAdvancedAutoplayNext, group: (l) => l.settingsAdvancedGroupPlayback),
+  SettingsSearchEntry(SettingIds.endActions, SettingsPage.advanced,
+      title: (l) => l.endActionsTitle,
+      subtitle: (l) => l.endActionsSettingsHint,
+      keywords: (l) => '${l.endActionsGlobal} ${l.endActionsDeleteTitle} '
+          '${l.endActionsTrashTitle} ${l.endActionsRestart}',
+      group: (l) => l.settingsAdvancedGroupPlayback),
   SettingsSearchEntry(SettingIds.pipAutoOnHome, SettingsPage.advanced,
       title: (l) => l.settingsAdvancedPipAutoOnHome,
       group: (l) => l.settingsAdvancedGroupPlayback,

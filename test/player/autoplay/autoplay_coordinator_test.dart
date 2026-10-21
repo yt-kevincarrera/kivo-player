@@ -5,6 +5,7 @@ import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/platform/frame_extractor_provider.dart';
 import 'package:kivo_player/platform/subtitle_finder_provider.dart';
 import 'package:kivo_player/player/autoplay/autoplay_coordinator.dart';
+import 'package:kivo_player/player/end_actions/end_actions.dart';
 import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/player/library/played.dart';
 import 'package:kivo_player/player/open/video_source.dart';
@@ -52,6 +53,24 @@ Future<void> _pump(WidgetTester t) async {
 }
 
 void main() {
+  testWidgets('minimized end action restarts at zero with autoplay off', (t) async {
+    final (c, engine) = await _setup(t, autoplay: false);
+    await c.read(endActionsProvider.notifier).setAfter(AfterEnd.restart);
+    await c.read(resumeServiceProvider).record(_twoItem.resumeKey,
+        const Duration(seconds: 30), const Duration(minutes: 5), 0);
+    engine.emitCompleted(true);
+    await t.pump();
+    engine.emitAudioTracks(const []);
+    await t.pump();
+    engine.emitSubtitleTracks(const []);
+    await _pump(t);
+    expect(engine.openedPath, _twoItem.playbackPath);
+    expect(engine.openedAt, Duration.zero);
+    expect(c.read(resumeServiceProvider).positionFor(_twoItem.resumeKey), isNull);
+    expect(engine.lastPlayingCommand, isTrue);
+    expect(c.read(currentVideoProvider)!.index, 0);
+  });
+
   testWidgets('minimized + autoplay on → completing advances to the next video', (t) async {
     final (c, engine) = await _setup(t);
     engine.emitCompleted(true);

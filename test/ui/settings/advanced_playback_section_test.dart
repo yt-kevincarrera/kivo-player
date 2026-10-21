@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/core/theme/kivo_theme.dart';
+import 'package:kivo_player/platform/media_file_ops_provider.dart';
+import 'package:kivo_player/player/end_actions/end_actions.dart';
 import 'package:kivo_player/ui/settings/sections/advanced_playback_section.dart';
 import 'package:kivo_player/ui/settings/widgets/setting_choice.dart';
 import '../../fakes/fakes.dart';
@@ -14,7 +16,10 @@ final _l10n = l10nFor(const Locale('es'));
 Future<ProviderContainer> _pump(WidgetTester t, {String? subLang}) async {
   final s = await SettingsService.load(InMemorySettingsStore());
   if (subLang != null) await s.update(s.current.copyWith(preferredSubtitleLanguage: subLang));
-  final c = ProviderContainer(overrides: [settingsServiceProvider.overrideWithValue(s)]);
+  final c = ProviderContainer(overrides: [
+    settingsServiceProvider.overrideWithValue(s),
+    mediaFileOpsProvider.overrideWithValue(FakeMediaFileOps()..movesToTrash = true),
+  ]);
   addTearDown(c.dispose);
   await pumpLocalized(t, const AdvancedPlaybackSection(), container: c, theme: KivoTheme.dark());
   await t.pump();
@@ -22,6 +27,34 @@ Future<ProviderContainer> _pump(WidgetTester t, {String? subLang}) async {
 }
 
 void main() {
+  testWidgets('global end actions can be enabled, configured and disabled from settings', (t) async {
+    final c = await _pump(t);
+    await c.read(endActionsProvider.notifier).setSavedTrash(true);
+    await t.pump();
+    await t.ensureVisible(find.text(_l10n.endActionsGlobal));
+    final row = find.ancestor(of: find.text(_l10n.endActionsGlobal),
+        matching: find.byType(Row)).first;
+    await t.tap(find.descendant(of: row, matching: find.byType(Switch)));
+    await t.pump();
+    expect(c.read(endActionsProvider).trash, isTrue);
+    await t.ensureVisible(find.text(_l10n.endActionsTitle));
+    await t.tap(find.text(_l10n.endActionsTitle));
+    await t.pumpAndSettle();
+    final restart = find.byKey(const Key('end-after-restart'));
+    await t.ensureVisible(restart);
+    await t.tap(restart);
+    await t.pump();
+    expect(c.read(settingsProvider).endActionsAfter, 'restart');
+    expect(c.read(endActionsProvider).after, AfterEnd.restart);
+    final global = find.byKey(const Key('end-global-switch'));
+    await t.ensureVisible(global);
+    await t.tap(global);
+    await t.pump();
+    expect(c.read(settingsProvider).endActionsGlobal, isFalse);
+    expect(c.read(endActionsProvider).isActive, isFalse);
+    expect(c.read(settingsProvider).endActionsAfter, 'restart');
+  });
+
   testWidgets('resume behavior choice persists', (t) async {
     final c = await _pump(t);
     await t.tap(find.text(_l10n.settingsAdvancedResumeOff));

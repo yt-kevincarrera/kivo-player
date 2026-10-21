@@ -35,6 +35,9 @@ class KivoSettings {
   final String playlistSort; // PlaylistSort enum name — see lib/player/playlists/playlist_filter.dart
   final bool subtitlesEnabledByDefault;
   final bool autoplayNext;
+  final bool endActionsGlobal;
+  final bool endActionsTrash;
+  final String endActionsAfter;
   final String repeatMode; // RepeatMode enum name — see lib/player/queue/queue_order.dart
   final bool shuffle;
   final String? preferredSubtitleLanguage;
@@ -144,6 +147,9 @@ class KivoSettings {
     required this.playlistSort,
     required this.subtitlesEnabledByDefault,
     required this.autoplayNext,
+    this.endActionsGlobal = false,
+    this.endActionsTrash = false,
+    this.endActionsAfter = 'keepGoing',
     required this.repeatMode,
     required this.shuffle,
     required this.preferredSubtitleLanguage,
@@ -316,6 +322,9 @@ class KivoSettings {
     String? playlistSort,
     bool? subtitlesEnabledByDefault,
     bool? autoplayNext,
+    bool? endActionsGlobal,
+    bool? endActionsTrash,
+    String? endActionsAfter,
     String? repeatMode,
     bool? shuffle,
     Object? preferredSubtitleLanguage = _unset,
@@ -398,6 +407,9 @@ class KivoSettings {
       playlistSort: playlistSort ?? this.playlistSort,
       subtitlesEnabledByDefault: subtitlesEnabledByDefault ?? this.subtitlesEnabledByDefault,
       autoplayNext: autoplayNext ?? this.autoplayNext,
+      endActionsGlobal: endActionsGlobal ?? this.endActionsGlobal,
+      endActionsTrash: endActionsTrash ?? this.endActionsTrash,
+      endActionsAfter: endActionsAfter ?? this.endActionsAfter,
       repeatMode: repeatMode ?? this.repeatMode,
       shuffle: shuffle ?? this.shuffle,
       preferredSubtitleLanguage: identical(preferredSubtitleLanguage, _unset)
@@ -494,6 +506,9 @@ class KivoSettings {
         'playlistSort': playlistSort,
         'subtitlesEnabledByDefault': subtitlesEnabledByDefault,
         'autoplayNext': autoplayNext,
+        'endActionsGlobal': endActionsGlobal,
+        'endActionsTrash': endActionsTrash,
+        'endActionsAfter': endActionsAfter,
         'repeatMode': repeatMode,
         'shuffle': shuffle,
         'preferredSubtitleLanguage': preferredSubtitleLanguage,
@@ -579,6 +594,12 @@ class KivoSettings {
       playlistSort: m['playlistSort'] ?? d.playlistSort,
       subtitlesEnabledByDefault: m['subtitlesEnabledByDefault'] ?? d.subtitlesEnabledByDefault,
       autoplayNext: m['autoplayNext'] ?? d.autoplayNext,
+      endActionsGlobal: m['endActionsGlobal'] == true,
+      endActionsTrash: m['endActionsTrash'] == true,
+      endActionsAfter: const ['keepGoing', 'restart', 'closePlayer', 'closeApp', 'screenOff']
+              .contains(m['endActionsAfter'])
+          ? m['endActionsAfter'] as String
+          : d.endActionsAfter,
       repeatMode: m['repeatMode'] ?? d.repeatMode,
       shuffle: m['shuffle'] ?? d.shuffle,
       preferredSubtitleLanguage: m['preferredSubtitleLanguage'] ?? d.preferredSubtitleLanguage,

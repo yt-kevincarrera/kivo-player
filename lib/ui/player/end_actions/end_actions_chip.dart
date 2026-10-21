@@ -5,10 +5,9 @@ import '../../../core/settings/settings_provider.dart';
 import '../../../l10n/l10n.dart';
 import '../../../platform/media_file_ops_provider.dart';
 import '../../../player/end_actions/end_flow.dart';
-import '../state/zoom_state.dart';
 import 'end_actions_panel.dart';
 
-/// «🗑 Papelera ✕» floating over the bottom-left of the controls while
+/// «🗑 Papelera ✕» in the bottom controls above the seek bar while
 /// «Al terminar» is armed, so a mode that deletes files never runs unseen.
 /// Lives with the controls (shown and hidden with them): it must not sit on
 /// the video while watching. The body opens the panel, ⏭ is «Terminar ya»
@@ -24,46 +23,51 @@ class EndActionsChip extends ConsumerWidget {
     final accent = Color(ref.watch(settingsProvider).accentColor);
     final l10n = context.l10n;
     final toTrash = ref.watch(mediaFileOpsProvider).movesToTrash;
-    // The zoom chip owns this corner while zoomed; sit just above it.
-    final zoomed = ref.watch(zoomProvider.select((z) => z.active));
-    final icon = actions.trash
+    final icon = actions.trash && actions.after != AfterEnd.restart
         ? Icons.delete_outline_rounded
         : afterEndIcon(actions.after);
     final haptics = ref.watch(settingsProvider).hapticsOnGestures;
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: zoomed ? 40 : 0),
-      child: Container(
-        key: const Key('end-actions-chip'),
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.55),
-          borderRadius: BorderRadius.circular(100),
-          border: Border.all(color: accent.withValues(alpha: 0.5)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Semantics(
+    return Container(
+      key: const Key('end-actions-chip'),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(100),
+        border: Border.all(color: accent.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: Semantics(
               button: true,
               label: l10n.endActionsChipSemantics(
-                  endActionsSummary(l10n, actions, toTrash: toTrash)),
+                endActionsSummary(l10n, actions, toTrash: toTrash),
+              ),
               excludeSemantics: true,
+              onTap: () => showEndActionsPanel(context),
               child: InkWell(
-                borderRadius: const BorderRadius.horizontal(left: Radius.circular(100)),
+                borderRadius: const BorderRadius.horizontal(
+                  left: Radius.circular(100),
+                ),
                 onTap: () => showEndActionsPanel(context),
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 7, 6, 7),
+                  padding: const EdgeInsets.fromLTRB(12, 14, 6, 14),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(icon, size: 14, color: accent),
                       const SizedBox(width: 6),
-                      Text(
-                        endActionsSummary(l10n, actions, toTrash: toTrash),
-                        style: TextStyle(
-                          color: accent,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
+                      Flexible(
+                        child: Text(
+                          endActionsSummary(l10n, actions, toTrash: toTrash),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: accent,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ),
                     ],
@@ -71,39 +75,28 @@ class EndActionsChip extends ConsumerWidget {
                 ),
               ),
             ),
-            // «Terminar ya» right here, for the credits: no menu to dig in.
-            Tooltip(
-              message: l10n.endActionsFinishNow,
-              child: InkWell(
-                key: const Key('end-actions-chip-finish'),
-                onTap: () => ref.read(finishNowProvider.notifier).state++,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
-                  child: Icon(Icons.skip_next_rounded, size: 15, color: accent),
-                ),
-              ),
+          ),
+          // «Terminar ya» right here, for the credits: no menu to dig in.
+          IconButton(
+            key: const Key('end-actions-chip-finish'),
+            tooltip: l10n.endActionsFinishNow,
+            onPressed: () => ref.read(finishNowProvider.notifier).state++,
+            icon: Icon(Icons.skip_next_rounded, size: 20, color: accent),
+          ),
+          IconButton(
+            key: const Key('end-actions-chip-off'),
+            tooltip: l10n.endActionsChipOffTooltip,
+            onPressed: () {
+              ref.read(endActionsProvider.notifier).clear();
+              if (haptics) HapticFeedback.lightImpact();
+            },
+            icon: const Icon(
+              Icons.close_rounded,
+              size: 20,
+              color: Colors.white70,
             ),
-            Tooltip(
-              message: l10n.endActionsChipOffTooltip,
-              child: InkWell(
-                key: const Key('end-actions-chip-off'),
-                borderRadius: const BorderRadius.horizontal(right: Radius.circular(100)),
-                onTap: () {
-                  ref.read(endActionsProvider.notifier).clear();
-                  if (haptics) HapticFeedback.lightImpact();
-                },
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(4, 7, 10, 7),
-                  child: Icon(
-                    Icons.close_rounded,
-                    size: 14,
-                    color: Colors.white.withValues(alpha: 0.6),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
