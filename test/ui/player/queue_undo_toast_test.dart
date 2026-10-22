@@ -37,7 +37,32 @@ void main() {
     expect(find.text(_l10n.commonUndo), findsNothing);
   });
 
-  testWidgets('each edit says what happened', (tester) async {
+  testWidgets('removal and shuffle reset keep undo feedback', (tester) async {
+    final c = await pump(tester);
+    final n = c.read(currentVideoProvider.notifier);
+    n.remove(2);
+    await tester.pump();
+    expect(find.text(_l10n.playerQueueRemovedToast), findsOneWidget);
+    await n.setShuffle(true);
+    await tester.pump();
+    expect(find.text(_l10n.playerQueueShuffleResetToast), findsOneWidget);
+    await tester.pump(const Duration(seconds: 5));
+  });
+
+  testWidgets('moving cards and play next keep the undo toast hidden', (tester) async {
+    final c = await pump(tester);
+    final n = c.read(currentVideoProvider.notifier);
+    n.reorder(1, 2);
+    await tester.pump();
+    expect(find.text(_l10n.commonUndo), findsNothing);
+    expect(find.text(_l10n.playerQueueMovedToast), findsNothing);
+    n.playNext(1);
+    await tester.pump();
+    expect(find.text(_l10n.commonUndo), findsNothing);
+    expect(find.text(_l10n.playerQueuePlayNextToast), findsNothing);
+  });
+
+  testWidgets('silent moves dismiss older undo feedback', (tester) async {
     final c = await pump(tester);
     final n = c.read(currentVideoProvider.notifier);
     n.remove(2);
@@ -45,14 +70,13 @@ void main() {
     expect(find.text(_l10n.playerQueueRemovedToast), findsOneWidget);
     n.playNext(2);
     await tester.pump();
-    expect(find.text(_l10n.playerQueuePlayNextToast), findsOneWidget);
-    n.reorder(1, 2);
+    expect(find.text(_l10n.commonUndo), findsNothing);
+    n.remove(1);
     await tester.pump();
-    expect(find.text(_l10n.playerQueueMovedToast), findsOneWidget);
-    await n.setShuffle(true);
+    expect(find.text(_l10n.playerQueueRemovedToast), findsOneWidget);
+    n.reorder(0, 1);
     await tester.pump();
-    expect(find.text(_l10n.playerQueueShuffleResetToast), findsOneWidget);
-    await tester.pump(const Duration(seconds: 5));
+    expect(find.text(_l10n.commonUndo), findsNothing);
   });
 
   testWidgets('Deshacer puts the order back and closes the toast', (tester) async {

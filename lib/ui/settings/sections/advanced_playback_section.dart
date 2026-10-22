@@ -9,6 +9,7 @@ import '../../../player/decoder/decoder_controller.dart';
 import '../../../player/decoder/decoder_mode.dart';
 import '../../../player/end_actions/end_actions.dart';
 import '../../player/end_actions/end_actions_panel.dart';
+import 'end_actions_settings_screen.dart';
 import '../search/settings_search.dart';
 import '../widgets/setting_anchor.dart';
 import '../widgets/setting_tiles.dart';
@@ -94,23 +95,18 @@ class AdvancedPlaybackSection extends ConsumerWidget {
           SettingsCard(children: [
             SettingAnchor(
               id: SettingIds.endActions,
-              child: Column(children: [
-                SettingSwitch(
-                  title: l10n.endActionsGlobal,
-                  subtitle: l10n.endActionsSettingsHint,
-                  value: s.endActionsGlobal,
-                  onChanged: (on) => ref.read(endActionsProvider.notifier)
-                      .setGlobal(on, useCurrent: false),
-                ),
-                SettingNavRow(
-                  icon: Icons.task_alt_rounded,
-                  title: l10n.endActionsTitle,
-                  subtitle: endActionsSummary(l10n, EndActions.saved(s),
-                      toTrash: !s.endActionsTrash ||
-                          ref.watch(mediaFileOpsProvider).movesToTrash),
-                  onTap: () => showEndActionsPanel(context, globalSettings: true),
-                ),
-              ]),
+              child: SettingNavRow(
+                icon: Icons.task_alt_rounded,
+                title: l10n.endActionsTitle,
+                subtitle: s.endActionsGlobal
+                    ? endActionsSummary(l10n, EndActions.defaults(s),
+                        toTrash: !s.endActionsTrash ||
+                            ref.watch(mediaFileOpsProvider).movesToTrash)
+                    : l10n.endActionsAfterKeepGoing,
+                onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+                  builder: (_) => const EndActionsSettingsScreen(),
+                )),
+              ),
             ),
             SettingAnchor(
               id: SettingIds.autoplayNext,

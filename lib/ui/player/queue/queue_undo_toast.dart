@@ -7,8 +7,8 @@ import '../../../player/queue/queue_undo.dart';
 import '../../widgets/swipe_dismiss_toast.dart';
 import '../controls/resume_prompt.dart';
 
-/// "Quitado de la cola · Deshacer" and friends, after each edit in the queue
-/// strip. Same shell as the resume toast; sits just above it when both are up.
+/// Undo feedback for removals and shuffle resets. Same shell as the resume
+/// toast; sits just above it when both are up.
 class QueueUndoToast extends ConsumerWidget {
   const QueueUndoToast({super.key});
 
@@ -20,8 +20,6 @@ class QueueUndoToast extends ConsumerWidget {
     final accent = Color(ref.watch(settingsProvider).accentColor);
     final l10n = context.l10n;
     final message = switch (undo.kind) {
-      QueueEditKind.moved => l10n.playerQueueMovedToast,
-      QueueEditKind.playNext => l10n.playerQueuePlayNextToast,
       QueueEditKind.removed => l10n.playerQueueRemovedToast,
       QueueEditKind.shuffleReset => l10n.playerQueueShuffleResetToast,
     };

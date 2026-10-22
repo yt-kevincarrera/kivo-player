@@ -1,0 +1,1 @@
+Reordenar la cola o elegir «Reproducir a continuación» ya no muestra avisos con Deshacer. «Al terminar» tiene una pantalla propia en Ajustes: los cambios se guardan y se aplican al instante para todos los videos, sin un interruptor de activación adicional.

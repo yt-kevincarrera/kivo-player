@@ -48,22 +48,49 @@ void main() {
     expect(s.orderEdited, isFalse);
   });
 
-  test('reorder moves a card in the play order and records a "moved" undo', () async {
+  test('reorder moves a card without offering undo', () async {
     final (c, n) = await opened();
     n.reorder(1, 3);
     final s = c.read(currentVideoProvider)!;
     expect(s.playOrder, [0, 2, 3, 1]);
     expect(s.orderEdited, isTrue);
-    expect(c.read(queueUndoProvider)!.kind, QueueEditKind.moved);
+    expect(c.read(queueUndoProvider), isNull);
     expect(n.peekNext()!.index, 2);
   });
 
-  test('playNext puts the video right after the current one', () async {
+  test('playNext puts the video right after the current one without undo', () async {
     final (c, n) = await opened();
     n.playNext(3);
     expect(c.read(currentVideoProvider)!.playOrder, [0, 3, 1, 2]);
     expect(n.peekNext()!.index, 3);
-    expect(c.read(queueUndoProvider)!.kind, QueueEditKind.playNext);
+    expect(c.read(queueUndoProvider), isNull);
+  });
+
+  for (final playNext in [false, true]) {
+    test('${playNext ? 'playNext' : 'reorder'} clears older removal undo', () async {
+      final (c, n) = await opened();
+      n.remove(1);
+      expect(c.read(queueUndoProvider), isNotNull);
+      if (playNext) {
+        n.playNext(3);
+      } else {
+        n.reorder(1, 2);
+      }
+      expect(c.read(queueUndoProvider), isNull);
+      await n.undoQueueEdit();
+      expect(c.read(currentVideoProvider)!.playOrder, [0, 3, 2]);
+    });
+  }
+
+  test('removal after a move can be undone without losing the move', () async {
+    final (c, n) = await opened();
+    n.reorder(1, 3);
+    n.remove(2);
+    expect(c.read(currentVideoProvider)!.playOrder, [0, 3, 1]);
+    await n.undoQueueEdit();
+    final s = c.read(currentVideoProvider)!;
+    expect(s.playOrder, [0, 2, 3, 1]);
+    expect(s.orderEdited, isTrue);
   });
 
   test('remove drops a video from the order and next skips it', () async {

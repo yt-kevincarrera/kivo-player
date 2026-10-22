@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// What the last queue edit was — picks the undo toast's message.
-enum QueueEditKind { moved, playNext, removed, shuffleReset }
+enum QueueEditKind { removed, shuffleReset }
 
 /// One level of undo for the queue strip: the play order as it was before
 /// the last edit. Only valid while the same video is playing ([index]) — the

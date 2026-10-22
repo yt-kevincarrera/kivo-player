@@ -221,36 +221,42 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
   }
 
   // ── Queue strip edits ──────────────────────────────────────────────────────
-  // Each rewrites only the play order and leaves one level of undo behind.
+  // Each rewrites only the play order. Removing a video offers undo;
+  // moving one is reflected directly in the strip without a toast.
 
   /// Moves the card at play-order position [fromPos] to [toPos].
   void reorder(int fromPos, int toPos) {
     final s = state;
     if (s == null || fromPos == toPos) return;
-    _edit(s, QueueEditKind.moved, moveInOrder(s.playOrder, fromPos, toPos));
+    _edit(s, moveInOrder(s.playOrder, fromPos, toPos));
   }
 
   /// Queue index [item] plays right after the current video.
   void playNext(int item) {
     final s = state;
     if (s == null || item == s.index) return;
-    _edit(s, QueueEditKind.playNext, playNextInOrder(s.playOrder, s.index, item));
+    _edit(s, playNextInOrder(s.playOrder, s.index, item));
   }
 
   /// Takes queue index [item] out of the play order. Never the current video.
   void remove(int item) {
     final s = state;
     if (s == null || item == s.index) return;
-    _edit(s, QueueEditKind.removed, removeFromOrder(s.playOrder, s.index, item));
+    _edit(s, removeFromOrder(s.playOrder, s.index, item),
+        undoKind: QueueEditKind.removed);
   }
 
-  void _edit(VideoSession s, QueueEditKind kind, List<int> order) {
-    ref.read(queueUndoProvider.notifier).state = QueueUndo(
-      kind: kind,
-      index: s.index,
-      order: s.order,
-      edited: s.orderEdited,
-    );
+  void _edit(VideoSession s, List<int> order, {QueueEditKind? undoKind}) {
+    // An older undo restores a complete snapshot, so keeping it after a
+    // silent move would also discard the move when undoing a removal.
+    ref.read(queueUndoProvider.notifier).state = undoKind == null
+        ? null
+        : QueueUndo(
+            kind: undoKind,
+            index: s.index,
+            order: s.order,
+            edited: s.orderEdited,
+          );
     state = s.withOrder(order, edited: true);
   }
 

@@ -4277,8 +4277,26 @@ abstract class AppLocalizations {
   /// No description provided for @endActionsSettingsHint.
   ///
   /// In es, this message translates to:
-  /// **'Configura y activa las acciones al terminar para todos los videos.'**
+  /// **'Elige qué hacer al terminar cada video, para todos los videos.'**
   String get endActionsSettingsHint;
+
+  /// No description provided for @endActionsDefaultsHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige qué hacer al terminar cada video. Se aplica a todos los videos y se guarda al instante.'**
+  String get endActionsDefaultsHint;
+
+  /// No description provided for @endActionsDefaultTrashHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Solo para videos de la biblioteca. No se aplica al repetir un video.'**
+  String get endActionsDefaultTrashHint;
+
+  /// No description provided for @endActionsDefaultRestartHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Reproduce cada video desde cero, sin borrarlo ni pasar al siguiente.'**
+  String get endActionsDefaultRestartHint;
 
   /// No description provided for @endActionsRestart.
   ///

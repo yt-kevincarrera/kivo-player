@@ -7,6 +7,7 @@ import 'package:kivo_player/core/theme/kivo_theme.dart';
 import 'package:kivo_player/platform/media_file_ops_provider.dart';
 import 'package:kivo_player/player/end_actions/end_actions.dart';
 import 'package:kivo_player/ui/settings/sections/advanced_playback_section.dart';
+import 'package:kivo_player/ui/settings/sections/end_actions_settings_screen.dart';
 import 'package:kivo_player/ui/settings/widgets/setting_choice.dart';
 import '../../fakes/fakes.dart';
 import '../../helpers/pump_app.dart';
@@ -27,32 +28,39 @@ Future<ProviderContainer> _pump(WidgetTester t, {String? subLang}) async {
 }
 
 void main() {
-  testWidgets('global end actions can be enabled, configured and disabled from settings', (t) async {
+  testWidgets('end actions settings apply choices without a global activation switch', (t) async {
     final c = await _pump(t);
+    // Previously saved but disabled destructive actions must not appear active.
     await c.read(endActionsProvider.notifier).setSavedTrash(true);
     await t.pump();
-    await t.ensureVisible(find.text(_l10n.endActionsGlobal));
-    final row = find.ancestor(of: find.text(_l10n.endActionsGlobal),
-        matching: find.byType(Row)).first;
-    await t.tap(find.descendant(of: row, matching: find.byType(Switch)));
-    await t.pump();
-    expect(c.read(endActionsProvider).trash, isTrue);
+    expect(find.text(_l10n.endActionsGlobal), findsNothing);
     await t.ensureVisible(find.text(_l10n.endActionsTitle));
     await t.tap(find.text(_l10n.endActionsTitle));
     await t.pumpAndSettle();
-    final restart = find.byKey(const Key('end-after-restart'));
+    expect(find.byType(EndActionsSettingsScreen), findsOneWidget);
+    expect(find.byKey(const Key('end-global-switch')), findsNothing);
+    expect(find.byKey(const Key('end-finish-now')), findsNothing);
+    expect(find.byKey(const Key('end-trash-and-next')), findsNothing);
+    expect(c.read(settingsProvider).endActionsGlobal, isFalse);
+    expect(t.widget<SwitchListTile>(find.byKey(const Key('end-default-trash'))).value, isFalse);
+    final restart = find.byKey(const Key('end-default-after-restart'));
     await t.ensureVisible(restart);
     await t.tap(restart);
     await t.pump();
+    expect(c.read(settingsProvider).endActionsGlobal, isTrue);
     expect(c.read(settingsProvider).endActionsAfter, 'restart');
     expect(c.read(endActionsProvider).after, AfterEnd.restart);
-    final global = find.byKey(const Key('end-global-switch'));
-    await t.ensureVisible(global);
-    await t.tap(global);
+    expect(c.read(settingsProvider).endActionsTrash, isFalse);
+    final normal = find.byKey(const Key('end-default-after-keepGoing'));
+    await t.ensureVisible(normal);
+    await t.tap(normal);
     await t.pump();
     expect(c.read(settingsProvider).endActionsGlobal, isFalse);
     expect(c.read(endActionsProvider).isActive, isFalse);
-    expect(c.read(settingsProvider).endActionsAfter, 'restart');
+    expect(c.read(settingsProvider).endActionsAfter, 'keepGoing');
+    await t.tap(find.byType(BackButton));
+    await t.pumpAndSettle();
+    expect(find.text(_l10n.endActionsAfterKeepGoing), findsOneWidget);
   });
 
   testWidgets('resume behavior choice persists', (t) async {

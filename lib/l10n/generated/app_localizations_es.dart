@@ -2553,7 +2553,19 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get endActionsSettingsHint =>
-      'Configura y activa las acciones al terminar para todos los videos.';
+      'Elige qué hacer al terminar cada video, para todos los videos.';
+
+  @override
+  String get endActionsDefaultsHint =>
+      'Elige qué hacer al terminar cada video. Se aplica a todos los videos y se guarda al instante.';
+
+  @override
+  String get endActionsDefaultTrashHint =>
+      'Solo para videos de la biblioteca. No se aplica al repetir un video.';
+
+  @override
+  String get endActionsDefaultRestartHint =>
+      'Reproduce cada video desde cero, sin borrarlo ni pasar al siguiente.';
 
   @override
   String get endActionsRestart => 'Volver a empezar';

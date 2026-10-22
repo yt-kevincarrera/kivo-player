@@ -27,6 +27,12 @@ class EndActions {
       orElse: () => AfterEnd.keepGoing,
     ),
   );
+
+  /// The effective app-wide behavior; a disabled saved profile is dormant.
+  factory EndActions.defaults(KivoSettings settings) =>
+      settings.endActionsGlobal
+      ? EndActions.saved(settings)
+      : const EndActions();
 }
 
 /// Session choices reset on a new queue; an enabled global profile is restored
@@ -55,12 +61,7 @@ class EndActionsNotifier extends Notifier<EndActions> {
     return _defaults();
   }
 
-  EndActions _defaults() {
-    final settings = ref.read(settingsProvider);
-    return settings.endActionsGlobal
-        ? EndActions.saved(settings)
-        : const EndActions();
-  }
+  EndActions _defaults() => EndActions.defaults(ref.read(settingsProvider));
 
   void _apply(EndActions next) {
     if (!next.trash || next.after == AfterEnd.restart) {
@@ -108,6 +109,28 @@ class EndActionsNotifier extends Notifier<EndActions> {
       ref.read(settingsProvider),
     ).copyWith(after: after, trash: after == AfterEnd.restart ? false : null),
   );
+
+  /// Settings edits take effect immediately. Start from the effective defaults
+  /// so changing an action never revives a dormant trash setting or a temporary
+  /// player choice. Save the profile and its enabled flag in a single update.
+  Future<void> setDefaults({bool? trash, AfterEnd? after}) {
+    final settings = ref.read(settingsProvider);
+    var actions = EndActions.defaults(
+      settings,
+    ).copyWith(trash: trash, after: after);
+    if (actions.after == AfterEnd.restart) {
+      actions = actions.copyWith(trash: false);
+    }
+    return ref
+        .read(settingsProvider.notifier)
+        .set(
+          settings.copyWith(
+            endActionsGlobal: actions.isActive,
+            endActionsTrash: actions.trash,
+            endActionsAfter: actions.after.name,
+          ),
+        );
+  }
 
   // Changing the choice while a card is counting down applies to THAT
   // ending too: turning the trash off must save the file on screen, and a

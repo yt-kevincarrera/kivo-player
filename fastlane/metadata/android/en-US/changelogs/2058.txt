@@ -1,0 +1,1 @@
+Reordering the queue or choosing «Play next» no longer shows an Undo message. «When it ends» now has its own Settings screen: changes are saved and applied immediately to all videos, without an extra activation switch.

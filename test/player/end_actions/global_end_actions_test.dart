@@ -119,4 +119,77 @@ void main() {
       expect(c.read(endActionsProvider).after, AfterEnd.closeApp);
     },
   );
+
+  test(
+    'settings defaults apply immediately and survive app recreation',
+    () async {
+      final store = InMemorySettingsStore();
+      final c = await load(store);
+      final n = c.read(endActionsProvider.notifier);
+      await n.setDefaults(trash: true);
+      await n.setDefaults(after: AfterEnd.closePlayer);
+      expect(c.read(settingsProvider).endActionsGlobal, isTrue);
+      expect(c.read(endActionsProvider).trash, isTrue);
+      expect(c.read(endActionsProvider).after, AfterEnd.closePlayer);
+
+      final restarted = await load(store);
+      open(restarted, 'next');
+      expect(restarted.read(endActionsProvider).trash, isTrue);
+      expect(restarted.read(endActionsProvider).after, AfterEnd.closePlayer);
+
+      await restarted
+          .read(endActionsProvider.notifier)
+          .setDefaults(trash: false);
+      expect(restarted.read(endActionsProvider).after, AfterEnd.closePlayer);
+      await restarted
+          .read(endActionsProvider.notifier)
+          .setDefaults(after: AfterEnd.keepGoing);
+      expect(restarted.read(settingsProvider).endActionsGlobal, isFalse);
+      expect(restarted.read(endActionsProvider).isActive, isFalse);
+      final disabled = await load(store);
+      open(disabled, 'another');
+      expect(disabled.read(endActionsProvider).isActive, isFalse);
+    },
+  );
+
+  test(
+    'settings never revive dormant trash or save a temporary player choice',
+    () async {
+      final c = await load(InMemorySettingsStore());
+      final n = c.read(endActionsProvider.notifier);
+      await n.setSavedTrash(true);
+      await n.setSavedAfter(AfterEnd.closeApp);
+      open(c, 'current');
+      await n.setTrash(true);
+      await n.setAfter(AfterEnd.screenOff);
+      final applied = <EndActions>[];
+      c.listen(endActionsProvider, (_, next) => applied.add(next));
+
+      await n.setDefaults(after: AfterEnd.closePlayer);
+      expect(c.read(settingsProvider).endActionsGlobal, isTrue);
+      expect(c.read(settingsProvider).endActionsTrash, isFalse);
+      expect(c.read(endActionsProvider).trash, isFalse);
+      expect(c.read(endActionsProvider).after, AfterEnd.closePlayer);
+      expect(applied, hasLength(1));
+      expect(applied.single.trash, isFalse);
+    },
+  );
+
+  test(
+    'settings restart clears trash without restoring it on the next choice',
+    () async {
+      final c = await load(InMemorySettingsStore());
+      final n = c.read(endActionsProvider.notifier);
+      await n.setDefaults(trash: true, after: AfterEnd.closePlayer);
+      c.read(afterPendingProvider.notifier).state = AfterEnd.closePlayer;
+
+      await n.setDefaults(after: AfterEnd.restart);
+      expect(c.read(afterPendingProvider), isNull);
+      expect(c.read(settingsProvider).endActionsTrash, isFalse);
+      expect(c.read(endActionsProvider).trash, isFalse);
+      await n.setDefaults(after: AfterEnd.closeApp);
+      expect(c.read(endActionsProvider).trash, isFalse);
+      expect(c.read(endActionsProvider).after, AfterEnd.closeApp);
+    },
+  );
 }

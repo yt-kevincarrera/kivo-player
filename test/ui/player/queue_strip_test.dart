@@ -9,6 +9,7 @@ import 'package:kivo_player/platform/media_indexer_provider.dart';
 import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/player/library/played.dart';
 import 'package:kivo_player/player/open/video_source.dart';
+import 'package:kivo_player/player/queue/queue_undo.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/ui/widgets/segmented_progress.dart';
 import 'package:kivo_player/ui/player/queue/queue_strip.dart';
@@ -137,6 +138,7 @@ void main() {
       // a (index 0) past b and c — the strip is in landscape in tests (112 px per card).
       await holdAndDrop(tester, find.text('a.mkv'), by: const Offset(260, 0));
       expect(c.read(currentVideoProvider)!.playOrder, [1, 2, 0]);
+      expect(c.read(queueUndoProvider), isNull);
       final xb = tester.getTopLeft(find.text('b.mkv')).dx;
       final xa = tester.getTopLeft(find.text('a.mkv')).dx;
       expect(xa > xb, isTrue);
@@ -154,6 +156,7 @@ void main() {
       await tester.tap(find.text(_l10n.playerQueuePlayNext));
       await tester.pumpAndSettle();
       expect(c.read(currentVideoProvider)!.playOrder, [1, 0, 2]);
+      expect(c.read(queueUndoProvider), isNull);
       expect(find.text(_l10n.playerQueuePlayNext), findsNothing);
       await settleControls(tester);
     });
