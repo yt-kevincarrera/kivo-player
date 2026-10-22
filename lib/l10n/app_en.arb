@@ -2525,6 +2525,10 @@
     "description": "Snackbar shown when the install-apps permission is missing."
   },
 
+  "updateStatusPreparing": "Preparing update…",
+  "updatePreparingHint": "You can hide this message. Installation will be available when preparation finishes.",
+  "updatePartialDownloadHint": "Only changes are being downloaded. You can leave Kivo.",
+  "updateFullDownloadFallbackHint": "This update needs the full download. You can leave Kivo.",
   "updateStatusQueued": "Queued…",
   "@updateStatusQueued": {
     "description": "Download status text while it is queued."

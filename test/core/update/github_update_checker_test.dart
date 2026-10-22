@@ -13,6 +13,7 @@ class _FakeGithub {
   bool pageRedirects = true;
   int apiHits = 0;
   int pageHits = 0;
+  bool hasManifest = false;
 
   Uri get api => Uri.parse('http://127.0.0.1:${server.port}/api/latest');
   Uri get page =>
@@ -36,6 +37,10 @@ class _FakeGithub {
             'html_url': 'https://example/release',
             'body': '## Novedades',
             'assets': [
+              if (hasManifest) {
+                'name': 'kivo-update-v1.json',
+                'browser_download_url': 'https://example/kivo-update-v1.json',
+              },
               {
                 'name': 'kivo-$latestTag-arm64-v8a.apk',
                 'browser_download_url': 'https://example/arm64.apk',
@@ -83,8 +88,15 @@ void main() {
     expect(info!.version, '9.9.9');
     expect(info.notes, '## Novedades');
     expect(info.apkUrl, 'https://example/arm64.apk');
+    expect(info.manifestUrl, isNull);
     expect(gh.pageHits, 0);
     expect(log.entries(), isEmpty);
+  });
+
+  test('the optional release manifest is passed to the native updater', () async {
+    gh.hasManifest = true;
+    final info = await checker().fetchLatest();
+    expect(info!.manifestUrl, 'https://example/kivo-update-v1.json');
   });
 
   // The reported KV-601: the API's per-IP limit (60/h) is shared by every
@@ -97,6 +109,7 @@ void main() {
     expect(info.version, '9.9.9');
     expect(info.apkUrl, endsWith('/o/r/releases/download/v9.9.9/kivo-v9.9.9-arm64-v8a.apk'));
     expect(info.notes, '');
+    expect(info.manifestUrl, endsWith('/o/r/releases/download/v9.9.9/kivo-update-v1.json'));
     expect(log.entries(), isEmpty, reason: 'recovered: nothing to report');
   });
 

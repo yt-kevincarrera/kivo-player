@@ -37,13 +37,12 @@ class UpdateDownloadState {
     DownloadProgress? progress,
     String? version,
     int? downloadId,
-  }) =>
-      UpdateDownloadState(
-        phase: phase ?? this.phase,
-        progress: progress ?? this.progress,
-        version: version ?? this.version,
-        downloadId: downloadId ?? this.downloadId,
-      );
+  }) => UpdateDownloadState(
+    phase: phase ?? this.phase,
+    progress: progress ?? this.progress,
+    version: version ?? this.version,
+    downloadId: downloadId ?? this.downloadId,
+  );
 
   @override
   bool operator ==(Object other) =>
@@ -66,6 +65,11 @@ class UpdateDownloadState {
 class UpdateDownloadNotifier extends Notifier<UpdateDownloadState> {
   Timer? _timer;
   int _watchers = 0;
+  int _generation = 0;
+  bool _disposed = false;
+  bool _refreshing = false;
+
+  bool _current(int generation) => !_disposed && generation == _generation;
 
   AppInstaller get _installer => ref.read(appInstallerProvider);
 
@@ -78,13 +82,21 @@ class UpdateDownloadNotifier extends Notifier<UpdateDownloadState> {
 
   @override
   UpdateDownloadState build() {
-    ref.onDispose(_stopTimer);
+    ref.onDispose(() {
+      _disposed = true;
+      _generation++;
+      _stopTimer();
+    });
     final s = ref.read(settingsProvider);
-    if (s.pendingUpdateDownloadId < 0) return const UpdateDownloadState();
+    final generation = _generation;
+    if (s.pendingUpdateDownloadId < 0) {
+      scheduleMicrotask(() => _recoverNative(generation));
+      return const UpdateDownloadState();
+    }
     // A download from a previous run is still out there. Show it as in flight
     // until the first refresh says otherwise — a pending download rendered as
     // "idle" would invite the user to queue a second copy of the same APK.
-    scheduleMicrotask(_reattach);
+    scheduleMicrotask(() => _reattach(generation));
     return UpdateDownloadState(
       phase: DownloadPhase.downloading,
       version: s.pendingUpdateVersion,
@@ -101,10 +113,29 @@ class UpdateDownloadNotifier extends Notifier<UpdateDownloadState> {
   /// the package and kills us. So the completion signal is our own version on
   /// the next launch — if the pending APK is not newer than what is running,
   /// it is not an update any more.
-  Future<void> _reattach() async {
+  Future<void> _recoverNative(int generation) async {
+    if (!_current(generation)) return;
+    final pending = await _installer.pendingUpdate();
+    if (!_current(generation) ||
+        pending == null ||
+        state.phase != DownloadPhase.idle) {
+      return;
+    }
+    state = UpdateDownloadState(
+      phase: DownloadPhase.downloading,
+      version: pending.version,
+      downloadId: pending.id,
+    );
+    await _persist(pending.id, pending.version);
+    if (_current(generation)) await _reattach(generation);
+  }
+
+  Future<void> _reattach(int generation) async {
+    if (!_current(generation)) return;
     final pending = state.version;
-    if (pending != null &&
-        !isNewer(pending, await _installer.appVersion())) {
+    final installed = await _installer.appVersion();
+    if (!_current(generation)) return;
+    if (pending != null && !isNewer(pending, installed)) {
       // cancel() also removes the APK: a stale 30 MB is not ours to keep.
       await cancel();
       return;
@@ -131,9 +162,34 @@ class UpdateDownloadNotifier extends Notifier<UpdateDownloadState> {
   Future<void> start(UpdateInfo info) async {
     final url = info.apkUrl;
     if (url == null) return;
-    // Drop anything queued earlier so a superseded APK can't be installed.
-    await _forget();
-    final id = await _installer.enqueueUpdate(url, 'kivo-${info.version}.apk');
+    // Enqueue may hash the installed APK and read the small manifest. Make the
+    // operation visible and cancellable before waiting, and reject double taps.
+    if (state.isBusy && state.downloadId < 0) return;
+    final installer = _installer;
+    final generation = ++_generation;
+    final previousId = state.downloadId;
+    _stopTimer();
+    state = UpdateDownloadState(
+      phase: DownloadPhase.downloading,
+      version: info.version,
+      progress: DownloadProgress(
+        info.manifestUrl == null
+            ? DownloadStage.pending
+            : DownloadStage.preparing,
+      ),
+    );
+    await _persist(-1, null);
+    if (previousId >= 0) await installer.cancelDownload(previousId);
+    if (!_current(generation)) return;
+    final id = await installer.enqueueUpdate(
+      url,
+      'kivo-${info.version}.apk',
+      manifestUrl: info.manifestUrl,
+    );
+    if (!_current(generation)) {
+      if (id >= 0) await installer.cancelDownload(id);
+      return;
+    }
     if (id < 0) {
       _fail(StateError('enqueue returned $id'));
       return;
@@ -149,31 +205,42 @@ class UpdateDownloadNotifier extends Notifier<UpdateDownloadState> {
 
   Future<void> refresh() async {
     final id = state.downloadId;
-    if (id < 0) return;
-    final p = await _installer.downloadStatus(id);
-    // A user can cancel or clear the download from the system UI at any point;
-    // treat that as "never happened" rather than as an error to report.
-    if (p.stage == DownloadStage.gone) {
-      await _forget();
-      return;
+    if (id < 0 || _refreshing) return;
+    final generation = _generation;
+    _refreshing = true;
+    try {
+      final p = await _installer.downloadStatus(id);
+      if (!_current(generation) || state.downloadId != id) return;
+      // A user can cancel or clear the download from the system UI at any point;
+      // treat that as "never happened" rather than as an error to report.
+      if (p.stage == DownloadStage.gone) {
+        await _forget();
+        return;
+      }
+      if (p.stage == DownloadStage.failed) {
+        await _installer.cancelDownload(id);
+        if (!_current(generation)) return;
+        _fail(StateError('download failed'), progress: p);
+        return;
+      }
+      final done = p.stage == DownloadStage.done;
+      state = state.copyWith(
+        phase: done ? DownloadPhase.ready : DownloadPhase.downloading,
+        progress: p,
+      );
+      if (done) _stopTimer();
+    } finally {
+      _refreshing = false;
     }
-    if (p.stage == DownloadStage.failed) {
-      _fail(StateError('download failed'), progress: p);
-      return;
-    }
-    final done = p.stage == DownloadStage.done;
-    state = state.copyWith(
-      phase: done ? DownloadPhase.ready : DownloadPhase.downloading,
-      progress: p,
-    );
-    if (done) _stopTimer();
   }
 
   /// Hands the finished APK to the system installer. Returns the outcome so
   /// the dialog can explain a missing "install unknown apps" permission.
   Future<InstallOutcome> install() async {
     if (state.phase != DownloadPhase.ready) return InstallOutcome.failed;
+    final generation = _generation;
     final outcome = await _installer.installDownload(state.downloadId);
+    if (!_current(generation)) return outcome;
     // The APK on disk is still good, so keep the id: retrying must not mean
     // downloading the same 30 MB again.
     if (outcome == InstallOutcome.failed) {
@@ -184,8 +251,9 @@ class UpdateDownloadNotifier extends Notifier<UpdateDownloadState> {
 
   Future<void> cancel() async {
     final id = state.downloadId;
-    if (id >= 0) await _installer.cancelDownload(id);
+    final installer = _installer;
     await _forget();
+    if (id >= 0) await installer.cancelDownload(id);
   }
 
   /// Recovers from [DownloadPhase.failed]: re-installs the APK when one is
@@ -196,17 +264,21 @@ class UpdateDownloadNotifier extends Notifier<UpdateDownloadState> {
       state = state.copyWith(phase: DownloadPhase.ready);
       return install();
     }
-    await _forget();
     // Reached from the pending-download entry point there is no release to
     // re-download from; clearing the dead download is all that is on offer.
-    if (info != null) await start(info);
+    if (info != null) {
+      await start(info);
+    } else {
+      await cancel();
+    }
     return null;
   }
 
   /// Leaves the failed state so the dialog can offer the download again.
-  Future<void> reset() => _forget();
+  Future<void> reset() => cancel();
 
   Future<void> _forget() async {
+    _generation++;
     _stopTimer();
     state = const UpdateDownloadState();
     await _persist(-1, null);
@@ -228,8 +300,14 @@ class UpdateDownloadNotifier extends Notifier<UpdateDownloadState> {
     if (s.pendingUpdateDownloadId == id && s.pendingUpdateVersion == version) {
       return;
     }
-    await ref.read(settingsProvider.notifier).set(
-        s.copyWith(pendingUpdateDownloadId: id, pendingUpdateVersion: version));
+    await ref
+        .read(settingsProvider.notifier)
+        .set(
+          s.copyWith(
+            pendingUpdateDownloadId: id,
+            pendingUpdateVersion: version,
+          ),
+        );
   }
 
   void _syncTimer() {
@@ -245,4 +323,5 @@ class UpdateDownloadNotifier extends Notifier<UpdateDownloadState> {
 
 final updateDownloadProvider =
     NotifierProvider<UpdateDownloadNotifier, UpdateDownloadState>(
-        UpdateDownloadNotifier.new);
+      UpdateDownloadNotifier.new,
+    );

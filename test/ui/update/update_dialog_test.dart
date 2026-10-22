@@ -268,6 +268,65 @@ void main() {
     await close();
   });
 
+  testWidgets('preparing explains verification and cannot install until native completion',
+      (tester) async {
+    final installer = FakeAppInstaller(nextDownloadId: 42)
+      ..status = const DownloadProgress(DownloadStage.preparing,
+          received: 100, total: 100, partial: true);
+    final c = await _container(installer);
+    addTearDown(c.dispose);
+    final close = await _openDialog(tester, c);
+
+    await tester.tap(find.text(_l10n.updateDownloadAction));
+    await tester.pump();
+    await c.read(updateDownloadProvider.notifier).refresh();
+    await tester.pump();
+
+    expect(find.text(_l10n.updateStatusPreparing), findsOneWidget);
+    expect(find.text(_l10n.updatePreparingHint), findsOneWidget);
+    expect(find.text(_l10n.updatePartialDownloadHint), findsNothing);
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    final install = find.widgetWithText(FilledButton, _l10n.updateInstallAction);
+    expect(tester.widget<FilledButton>(install).onPressed, isNull);
+    expect(installer.installs, isEmpty);
+
+    installer.status = const DownloadProgress(DownloadStage.done);
+    await c.read(updateDownloadProvider.notifier).refresh();
+    await tester.pumpAndSettle();
+    expect(find.text(_l10n.updateReadyCaption), findsOneWidget);
+    expect(tester.widget<FilledButton>(install).onPressed, isNotNull);
+    await tester.tap(install);
+    await tester.pumpAndSettle();
+    expect(installer.installs, [42]);
+    await close();
+  });
+
+  for (final fallback in [false, true]) {
+    testWidgets('${fallback ? 'full fallback' : 'partial download'} explains the current transfer',
+        (tester) async {
+      final installer = FakeAppInstaller()
+        ..status = DownloadProgress(DownloadStage.running, received: 25,
+            total: 100, partial: !fallback, fallback: fallback);
+      final c = await _container(installer);
+      addTearDown(c.dispose);
+      final close = await _openDialog(tester, c);
+
+      await tester.tap(find.text(_l10n.updateDownloadAction));
+      await tester.pump();
+      await c.read(updateDownloadProvider.notifier).refresh();
+      await tester.pumpAndSettle();
+
+      expect(find.text(fallback
+          ? _l10n.updateFullDownloadFallbackHint
+          : _l10n.updatePartialDownloadHint), findsOneWidget);
+      expect(find.text(_l10n.updateCanLeaveHint), findsNothing);
+      expect(tester.widget<FilledButton>(find.widgetWithText(
+          FilledButton, _l10n.updateInstallAction)).onPressed, isNull);
+      expect(installer.installs, isEmpty);
+      await close();
+    });
+  }
+
   testWidgets('Omitir esta versión persists the skip', (tester) async {
     final c = await _container(FakeAppInstaller());
     addTearDown(c.dispose);

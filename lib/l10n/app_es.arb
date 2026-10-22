@@ -2524,6 +2524,10 @@
     "description": "Snackbar mostrado cuando falta el permiso de instalar apps."
   },
 
+  "updateStatusPreparing": "Preparando actualización…",
+  "updatePreparingHint": "Puedes ocultar este aviso. La instalación estará disponible cuando termine.",
+  "updatePartialDownloadHint": "Solo se descargan los cambios. Puedes salir de Kivo.",
+  "updateFullDownloadFallbackHint": "Esta actualización necesita la descarga completa. Puedes salir de Kivo.",
   "updateStatusQueued": "En cola…",
   "@updateStatusQueued": {
     "description": "Texto de estado de la descarga mientras está en cola."

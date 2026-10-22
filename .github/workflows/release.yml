@@ -70,6 +70,54 @@ jobs:
           mv app-armeabi-v7a-release.apk "kivo-${v}-armeabi-v7a.apk"
           mv app-x86_64-release.apk      "kivo-${v}-x86_64.apk"
 
+      - name: Test the delta codec
+        run: python3 -B -m unittest discover -s scripts -p test_update_delta.py
+
+      - name: Build verified partial updates
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p build/update-bases build/update-base-downloads build/update-assets
+          # An unavailable old release only disables its patch. Every target
+          # still gets a full-APK hash and size in the manifest.
+          if gh release list --limit 10 --exclude-drafts --exclude-pre-releases \
+            --json tagName --jq '.[].tagName' > build/update-tags.txt; then
+            count=0
+            while IFS= read -r tag; do
+              [ "$tag" = "$GITHUB_REF_NAME" ] && continue
+              [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || continue
+              mkdir -p "build/update-base-downloads/$tag"
+              if gh release download "$tag" --pattern '*.apk' \
+                --dir "build/update-base-downloads/$tag"; then
+                mv "build/update-base-downloads/$tag" "build/update-bases/$tag"
+              else
+                echo "::warning::Could not download all APKs for $tag; unavailable bases will be skipped."
+              fi
+              count=$((count + 1))
+              [ "$count" -ge 2 ] && break
+            done < build/update-tags.txt
+          else
+            echo "::warning::Previous releases unavailable; publishing full-APK metadata only."
+          fi
+          version_build=$(awk '/^version:/ {print $2}' pubspec.yaml)
+          IFS='+' read -r version code <<< "$version_build"
+          [ "$GITHUB_REF_NAME" = "v$version" ] || { echo 'Tag and app version differ'; exit 1; }
+          python3 -B scripts/update_delta.py generate \
+            --base-dir build/update-bases \
+            --target-dir build/app/outputs/flutter-apk \
+            --output-dir build/update-assets \
+            --apk-metadata build/app/outputs/apk/release/output-metadata.json \
+            --version "$version" --version-code "$code"
+
+      - name: Test Android update verification
+        env:
+          KIVO_DELTA_MANIFEST: ${{ github.workspace }}/build/update-assets/kivo-update-v1.json
+          KIVO_DELTA_BASE_DIR: ${{ github.workspace }}/build/update-bases
+          KIVO_DELTA_TARGET_DIR: ${{ github.workspace }}/build/app/outputs/flutter-apk
+        run: |
+          cd android
+          ./gradlew :app:testReleaseUnitTest -Psplit-per-abi=true -Ptarget-platform=android-arm,android-arm64,android-x64
+
       # GitHub's own generated notes list merged PRs. For a repo that has been
       # pushing straight to master that list is empty, which is why every
       # release so far said nothing but "Full Changelog: <link>". The commit
@@ -98,6 +146,8 @@ jobs:
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: build/app/outputs/flutter-apk/kivo-*.apk
+          files: |
+            build/app/outputs/flutter-apk/kivo-*.apk
+            build/update-assets/*
           body_path: RELEASE_NOTES.md
           fail_on_unmatched_files: true

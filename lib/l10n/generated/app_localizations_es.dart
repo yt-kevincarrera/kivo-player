@@ -1650,6 +1650,21 @@ class AppLocalizationsEs extends AppLocalizations {
       'Permite instalar apps para continuar, luego pulsa Instalar.';
 
   @override
+  String get updateStatusPreparing => 'Preparando actualización…';
+
+  @override
+  String get updatePreparingHint =>
+      'Puedes ocultar este aviso. La instalación estará disponible cuando termine.';
+
+  @override
+  String get updatePartialDownloadHint =>
+      'Solo se descargan los cambios. Puedes salir de Kivo.';
+
+  @override
+  String get updateFullDownloadFallbackHint =>
+      'Esta actualización necesita la descarga completa. Puedes salir de Kivo.';
+
+  @override
   String get updateStatusQueued => 'En cola…';
 
   @override

@@ -41,13 +41,36 @@ class AndroidAppInstaller implements AppInstaller {
   }
 
   @override
-  Future<int> enqueueUpdate(String url, String fileName) async {
+  Future<int> enqueueUpdate(
+    String url,
+    String fileName, {
+    String? manifestUrl,
+  }) async {
     try {
-      return (await _channel.invokeMethod<int>(
-              'enqueueUpdate', {'url': url, 'fileName': fileName})) ??
+      return (await _channel.invokeMethod<int>('enqueueUpdate', {
+            'url': url,
+            'fileName': fileName,
+            if (manifestUrl != null) 'manifestUrl': manifestUrl,
+          })) ??
           -1;
     } catch (_) {
       return -1;
+    }
+  }
+
+  @override
+  Future<PendingUpdate?> pendingUpdate() async {
+    try {
+      final data = await _channel.invokeMapMethod<String, dynamic>(
+        'pendingUpdate',
+      );
+      final id = (data?['id'] as num?)?.toInt();
+      final version = data?['version'] as String?;
+      return id != null && id >= 0 && version != null && version.isNotEmpty
+          ? PendingUpdate(id, version)
+          : null;
+    } catch (_) {
+      return null;
     }
   }
 
@@ -57,24 +80,35 @@ class AndroidAppInstaller implements AppInstaller {
   @override
   Future<DownloadProgress> downloadStatus(int id) async {
     try {
-      final m = await _channel
-          .invokeMapMethod<String, dynamic>('downloadStatus', {'id': id});
+      final m = await _channel.invokeMapMethod<String, dynamic>(
+        'downloadStatus',
+        {'id': id},
+      );
       if (m == null) return DownloadProgress.gone;
       final received = (m['received'] as num?)?.toInt() ?? 0;
       final total = (m['total'] as num?)?.toInt() ?? -1;
-      return DownloadProgress(_stage(m['status'] as String?, m['reason'] as String?),
-          received: received, total: total);
+      return DownloadProgress(
+        _stage(m['status'] as String?, m['reason'] as String?),
+        received: received,
+        total: total,
+        partial: m['partial'] == true,
+        fallback: m['fallback'] == true,
+      );
     } catch (_) {
       return DownloadProgress.gone;
     }
   }
 
-  static DownloadStage _stage(String? status, String? reason) => switch (status) {
+  static DownloadStage _stage(String? status, String? reason) =>
+      switch (status) {
         'pending' => DownloadStage.pending,
         'running' => DownloadStage.running,
         'paused' =>
-          reason == 'retry' ? DownloadStage.pausedRetry : DownloadStage.pausedNetwork,
+          reason == 'retry'
+              ? DownloadStage.pausedRetry
+              : DownloadStage.pausedNetwork,
         'done' => DownloadStage.done,
+        'preparing' => DownloadStage.preparing,
         'failed' => DownloadStage.failed,
         _ => DownloadStage.gone,
       };
@@ -83,13 +117,17 @@ class AndroidAppInstaller implements AppInstaller {
   Future<void> cancelDownload(int id) async {
     try {
       await _channel.invokeMethod<void>('cancelDownload', {'id': id});
-    } catch (_) {/* the download is going away either way */}
+    } catch (_) {
+      /* the download is going away either way */
+    }
   }
 
   @override
   Future<InstallOutcome> installDownload(int id) async {
     try {
-      final s = await _channel.invokeMethod<String>('installDownload', {'id': id});
+      final s = await _channel.invokeMethod<String>('installDownload', {
+        'id': id,
+      });
       return switch (s) {
         'started' => InstallOutcome.started,
         'needsPermission' => InstallOutcome.needsPermission,

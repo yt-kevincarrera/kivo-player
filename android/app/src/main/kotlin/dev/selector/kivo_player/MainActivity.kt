@@ -1,6 +1,5 @@
 package dev.selector.kivo_player
 
-import android.app.DownloadManager
 import android.app.PendingIntent
 import android.app.PictureInPictureParams
 import android.app.RecoverableSecurityException
@@ -27,6 +26,7 @@ import io.flutter.plugin.common.MethodChannel
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.concurrent.Executors
+import dev.selector.kivo_player.update.UpdateDownloads
 
 class MainActivity : FlutterFragmentActivity() {
     // --- kivo/frames ---
@@ -62,60 +62,23 @@ class MainActivity : FlutterFragmentActivity() {
     private var pendingAllFilesResult: MethodChannel.Result? = null
 
     // --- kivo/update ---
-    // The download is owned by DownloadManager, not by this Activity: it keeps
-    // going with Kivo backgrounded or killed. Dart holds the id (persisted in
-    // settings) and polls downloadStatus while its UI is on screen. Nothing
-    // installs automatically — installDownload only runs when the user taps
-    // Instalar, so an update never hijacks the screen mid-video.
-    private val downloadManager: DownloadManager
-        get() = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+    // The application-owned manager survives Activity recreation and keeps the
+    // original download id stable if a patch falls back to the full APK.
+    private val updateDownloads by lazy { UpdateDownloads.get(applicationContext) }
 
-    /** Queues the APK and returns its DownloadManager id, or -1 on failure. */
-    private fun enqueueApk(url: String, fileName: String): Long {
-        // App-private external files: no storage permission, and the manifest's
-        // FileProvider already maps exactly this directory.
-        val dest = File(getExternalFilesDir(null), fileName).apply { if (exists()) delete() }
-        val req = DownloadManager.Request(Uri.parse(url))
-            .setTitle("Kivo $fileName")
-            .setMimeType("application/vnd.android.package-archive")
-            // Visible while it runs, gone once it finishes. A completed-download
-            // notification would offer a second, competing way to install.
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
-            .setDestinationUri(Uri.fromFile(dest))
-        return try { downloadManager.enqueue(req) } catch (_: Exception) { -1L }
-    }
-
-    /** Null when the id is unknown — cleared by the system or by the user. */
-    private fun queryDownload(id: Long): Map<String, Any?>? {
-        if (id < 0) return null
-        val cursor = try {
-            downloadManager.query(DownloadManager.Query().setFilterById(id))
-        } catch (_: Exception) { null } ?: return null
-        cursor.use {
-            if (!it.moveToFirst()) return null
-            val status = it.getInt(it.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
-            val reason = it.getInt(it.getColumnIndexOrThrow(DownloadManager.COLUMN_REASON))
-            return mapOf(
-                "status" to when (status) {
-                    DownloadManager.STATUS_PENDING -> "pending"
-                    DownloadManager.STATUS_RUNNING -> "running"
-                    DownloadManager.STATUS_PAUSED -> "paused"
-                    DownloadManager.STATUS_SUCCESSFUL -> "done"
-                    else -> "failed"
-                },
-                // Only read while paused. It is what separates "the system
-                // parked this until you have Wi-Fi" from "a transfer hiccup,
-                // retrying" — the difference the UI used to be unable to show.
-                "reason" to if (reason == DownloadManager.PAUSED_WAITING_TO_RETRY) "retry" else "network",
-                "received" to it.getLong(
-                    it.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)),
-                "total" to it.getLong(
-                    it.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)),
-            )
+    private fun updateTask(result: MethodChannel.Result, action: () -> Any?) {
+        updateDownloads.execute {
+            try {
+                val value = action()
+                runOnUiThread { result.success(value) }
+            } catch (failure: Exception) {
+                runOnUiThread { result.error("UPDATE_FAILED", failure.message, null) }
+            }
         }
     }
 
-    private fun installDownload(id: Long): String {
+    private fun launchUpdateInstaller(uri: Uri?): String {
+        if (uri == null) return "failed"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !packageManager.canRequestPackageInstalls()) {
             // Route the user to enable "install unknown apps" for Kivo, then they retry.
             try {
@@ -124,8 +87,6 @@ class MainActivity : FlutterFragmentActivity() {
             } catch (_: Exception) {}
             return "needsPermission"
         }
-        val uri = try { downloadManager.getUriForDownloadedFile(id) } catch (_: Exception) { null }
-            ?: return "failed"
         return try {
             startActivity(Intent(Intent.ACTION_VIEW).apply {
                 setDataAndType(uri, "application/vnd.android.package-archive")
@@ -977,19 +938,30 @@ class MainActivity : FlutterFragmentActivity() {
                         val url = call.argument<String>("url")
                         val fileName = call.argument<String>("fileName") ?: "update.apk"
                         if (url == null) { result.error("INVALID_ARG", "url required", null); return@setMethodCallHandler }
-                        result.success(enqueueApk(url, fileName))
+                        val manifestUrl = call.argument<String>("manifestUrl")
+                        updateTask(result) { updateDownloads.enqueue(url, fileName, manifestUrl) }
                     }
                     // The channel codec sends a Dart int as Int32 or Int64 depending
                     // on its magnitude, so read every id as a Number.
-                    "downloadStatus" -> result.success(
-                        queryDownload(call.argument<Number>("id")?.toLong() ?: -1L))
+                    "downloadStatus" -> {
+                        val id = call.argument<Number>("id")?.toLong() ?: -1L
+                        updateTask(result) { updateDownloads.status(id) }
+                    }
                     "cancelDownload" -> {
                         val id = call.argument<Number>("id")?.toLong() ?: -1L
-                        if (id >= 0) try { downloadManager.remove(id) } catch (_: Exception) {}
-                        result.success(null)
+                        updateDownloads.requestCancellation(id)
+                        updateTask(result) { updateDownloads.cancel(id); null }
                     }
-                    "installDownload" -> result.success(
-                        installDownload(call.argument<Number>("id")?.toLong() ?: -1L))
+                    "pendingUpdate" -> updateTask(result) { updateDownloads.pending() }
+                    "installDownload" -> {
+                        val id = call.argument<Number>("id")?.toLong() ?: -1L
+                        updateDownloads.execute {
+                            val uri = try { updateDownloads.installationUri(id) } catch (_: Exception) { null }
+                            runOnUiThread {
+                                result.success(if (updateDownloads.canInstall(id)) launchUpdateInstaller(uri) else "failed")
+                            }
+                        }
+                    }
                     else -> result.notImplemented()
                 }
             }

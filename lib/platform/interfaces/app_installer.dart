@@ -1,7 +1,7 @@
 enum InstallOutcome {
-  started,          // the system installer was launched
-  needsPermission,  // user must allow "install unknown apps" first
-  failed,           // couldn't start (caller should offer the browser fallback)
+  started, // the system installer was launched
+  needsPermission, // user must allow "install unknown apps" first
+  failed, // couldn't start (caller should offer the browser fallback)
 }
 
 /// Where a queued download currently is.
@@ -11,20 +11,29 @@ enum InstallOutcome {
 /// app showed nothing at all — a deferred download and a broken one looked
 /// identical. Surfacing the reason turns a silent freeze into a sentence.
 enum DownloadStage {
-  pending,        // queued, not a byte transferred yet
+  pending, // queued, not a byte transferred yet
   running,
-  pausedNetwork,  // waiting for connectivity, or for Wi-Fi on a metered link
-  pausedRetry,    // transient failure; the system will retry on its own
+  pausedNetwork, // waiting for connectivity, or for Wi-Fi on a metered link
+  pausedRetry, // transient failure; the system will retry on its own
+  preparing, // verifying or reconstructing the APK; not installable yet
   done,
   failed,
-  gone,           // no such download — cleared by the system or by the user
+  gone, // no such download — cleared by the system or by the user
 }
 
 class DownloadProgress {
-  const DownloadProgress(this.stage, {this.received = 0, this.total = -1});
+  const DownloadProgress(
+    this.stage, {
+    this.received = 0,
+    this.total = -1,
+    this.partial = false,
+    this.fallback = false,
+  });
 
   final DownloadStage stage;
   final int received;
+  final bool partial;
+  final bool fallback;
 
   /// Bytes expected, or -1 when the server sent no Content-Length.
   final int total;
@@ -32,11 +41,13 @@ class DownloadProgress {
   static const gone = DownloadProgress(DownloadStage.gone);
 
   /// null when [total] is unknown — the UI shows an indeterminate bar.
-  double? get fraction =>
-      total > 0 ? (received / total).clamp(0.0, 1.0) : null;
+  double? get fraction => stage != DownloadStage.preparing && total > 0
+      ? (received / total).clamp(0.0, 1.0)
+      : null;
 
   bool get isPaused =>
-      stage == DownloadStage.pausedNetwork || stage == DownloadStage.pausedRetry;
+      stage == DownloadStage.pausedNetwork ||
+      stage == DownloadStage.pausedRetry;
 
   bool get isSettled =>
       stage == DownloadStage.done ||
@@ -48,10 +59,19 @@ class DownloadProgress {
       other is DownloadProgress &&
       other.stage == stage &&
       other.received == received &&
-      other.total == total;
+      other.total == total &&
+      other.partial == partial &&
+      other.fallback == fallback;
 
   @override
-  int get hashCode => Object.hash(stage, received, total);
+  int get hashCode => Object.hash(stage, received, total, partial, fallback);
+}
+
+/// Native durable job recovered before Dart could persist its handle.
+class PendingUpdate {
+  const PendingUpdate(this.id, this.version);
+  final int id;
+  final String version;
 }
 
 /// Reads the running app's version/ABI and drives APK download + install.
@@ -60,13 +80,16 @@ class DownloadProgress {
 /// app (DownloadManager owns it), while installing is an explicit user action
 /// taken from inside Kivo.
 abstract class AppInstaller {
-  Future<String> appVersion();   // BuildConfig.VERSION_NAME, e.g. "1.0.0"
-  Future<String> primaryAbi();   // Build.SUPPORTED_ABIS[0], e.g. "arm64-v8a"
-  Future<int> androidSdk();      // Build.VERSION.SDK_INT — logged with each failure
-  Future<String> deviceModel();  // Build.MANUFACTURER + MODEL — for problem reports
+  Future<String> appVersion(); // BuildConfig.VERSION_NAME, e.g. "1.0.0"
+  Future<String> primaryAbi(); // Build.SUPPORTED_ABIS[0], e.g. "arm64-v8a"
+  Future<int> androidSdk(); // Build.VERSION.SDK_INT — logged with each failure
+  Future<String>
+  deviceModel(); // Build.MANUFACTURER + MODEL — for problem reports
 
   /// Queues the APK and returns the download id, or -1 if it couldn't start.
-  Future<int> enqueueUpdate(String url, String fileName);
+  Future<int> enqueueUpdate(String url, String fileName, {String? manifestUrl});
+
+  Future<PendingUpdate?> pendingUpdate();
 
   Future<DownloadProgress> downloadStatus(int id);
 

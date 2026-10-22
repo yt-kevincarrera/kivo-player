@@ -822,6 +822,10 @@ class FakeAppInstaller implements AppInstaller {
   );
 
   final List<(String, String)> enqueued = [];
+  final List<String?> manifests = [];
+  PendingUpdate? pending;
+  Future<int> Function()? onEnqueue;
+  Future<DownloadProgress> Function()? onStatus;
   final List<int> cancelled = [];
   final List<int> installs = [];
   final List<String> openedUrls = [];
@@ -845,13 +849,18 @@ class FakeAppInstaller implements AppInstaller {
   Future<String> deviceModel() async => 'Google Pixel 6';
 
   @override
-  Future<int> enqueueUpdate(String url, String fileName) async {
+  Future<int> enqueueUpdate(String url, String fileName, {String? manifestUrl}) async {
     enqueued.add((url, fileName));
-    return nextDownloadId;
+    manifests.add(manifestUrl);
+    return onEnqueue == null ? nextDownloadId : await onEnqueue!();
   }
 
   @override
+  Future<PendingUpdate?> pendingUpdate() async => pending;
+
+  @override
   Future<DownloadProgress> downloadStatus(int id) async =>
+      onStatus != null ? await onStatus!() :
       id == nextDownloadId ? status : DownloadProgress.gone;
 
   @override

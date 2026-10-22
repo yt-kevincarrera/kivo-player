@@ -16,8 +16,10 @@ Future<void> showUpdateDialog(BuildContext context, UpdateInfo info) =>
 /// Re-opens the dialog on a download that is already queued or finished,
 /// without an [UpdateInfo] and therefore without touching the network. This is
 /// how a hidden download gets its Instalar button back while offline.
-Future<void> showPendingUpdateDialog(BuildContext context) =>
-    showDialog<void>(context: context, builder: (_) => const _UpdateDialog(null));
+Future<void> showPendingUpdateDialog(BuildContext context) => showDialog<void>(
+  context: context,
+  builder: (_) => const _UpdateDialog(null),
+);
 
 class _UpdateDialog extends ConsumerStatefulWidget {
   const _UpdateDialog(this.info);
@@ -51,13 +53,19 @@ class _UpdateDialogState extends ConsumerState<_UpdateDialog> {
   @override
   Widget build(BuildContext context) {
     final st = ref.watch(updateDownloadProvider);
-    final accent = Color(ref.watch(settingsProvider.select((s) => s.accentColor)));
+    final accent = Color(
+      ref.watch(settingsProvider.select((s) => s.accentColor)),
+    );
     final cs = Theme.of(context).colorScheme;
     final l10n = context.l10n;
     final version = _info?.version ?? st.version;
 
     return AlertDialog(
-      title: Text(version == null ? l10n.updateGenericTitle : l10n.updateTitleWithVersion(version)),
+      title: Text(
+        version == null
+            ? l10n.updateGenericTitle
+            : l10n.updateTitleWithVersion(version),
+      ),
       content: SizedBox(
         width: double.maxFinite,
         child: SingleChildScrollView(child: _content(context, st, accent, cs)),
@@ -66,7 +74,12 @@ class _UpdateDialogState extends ConsumerState<_UpdateDialog> {
     );
   }
 
-  Widget _content(BuildContext context, UpdateDownloadState st, Color accent, ColorScheme cs) {
+  Widget _content(
+    BuildContext context,
+    UpdateDownloadState st,
+    Color accent,
+    ColorScheme cs,
+  ) {
     final l10n = context.l10n;
     final muted = TextStyle(color: cs.onSurfaceVariant, fontSize: 13);
     switch (st.phase) {
@@ -88,7 +101,13 @@ class _UpdateDialogState extends ConsumerState<_UpdateDialog> {
           accent,
           cs,
           caption: _statusLine(context, st.progress),
-          hint: l10n.updateCanLeaveHint,
+          hint: st.progress.stage == DownloadStage.preparing
+              ? l10n.updatePreparingHint
+              : st.progress.partial
+              ? l10n.updatePartialDownloadHint
+              : st.progress.fallback
+              ? l10n.updateFullDownloadFallbackHint
+              : l10n.updateCanLeaveHint,
         );
       case DownloadPhase.ready:
         return _progressBlock(
@@ -100,10 +119,7 @@ class _UpdateDialogState extends ConsumerState<_UpdateDialog> {
         );
       case DownloadPhase.failed:
         final f = kivoErrorCatalog[KivoOp.updateInstall]!;
-        return Text(
-          l10n.updateFailedMessage(f.message, f.code),
-          style: muted,
-        );
+        return Text(l10n.updateFailedMessage(f.message, f.code), style: muted);
     }
   }
 
@@ -118,7 +134,18 @@ class _UpdateDialogState extends ConsumerState<_UpdateDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _SegmentedBar(fraction: p.fraction, accent: accent, cs: cs, dimmed: p.isPaused),
+        if (p.stage == DownloadStage.preparing)
+          LinearProgressIndicator(
+            color: accent,
+            backgroundColor: cs.onSurface.withValues(alpha: 0.18),
+          )
+        else
+          _SegmentedBar(
+            fraction: p.fraction,
+            accent: accent,
+            cs: cs,
+            dimmed: p.isPaused,
+          ),
         const SizedBox(height: 10),
         Text(
           caption,
@@ -160,7 +187,11 @@ class _UpdateDialogState extends ConsumerState<_UpdateDialog> {
                     Navigator.pop(context);
                   }
                 : () => _dl.start(info),
-            child: Text(info.apkUrl == null ? l10n.updateOpenInBrowserAction : l10n.updateDownloadAction),
+            child: Text(
+              info.apkUrl == null
+                  ? l10n.updateOpenInBrowserAction
+                  : l10n.updateDownloadAction,
+            ),
           ),
         ];
       case DownloadPhase.downloading:
@@ -178,7 +209,10 @@ class _UpdateDialogState extends ConsumerState<_UpdateDialog> {
           // Without a way out, a downloaded APK you no longer want is
           // permanent: it keeps its 30 MB and keeps claiming the update slot,
           // which is how an updater bug once made itself unfixable in-app.
-          TextButton(onPressed: _dl.cancel, child: Text(l10n.updateDiscardReadyAction)),
+          TextButton(
+            onPressed: _dl.cancel,
+            child: Text(l10n.updateDiscardReadyAction),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(l10n.commonNotNow),
@@ -209,9 +243,9 @@ class _UpdateDialogState extends ConsumerState<_UpdateDialog> {
   }
 
   Widget _closeButton(BuildContext context) => TextButton(
-        onPressed: () => Navigator.pop(context),
-        child: Text(context.l10n.commonClose),
-      );
+    onPressed: () => Navigator.pop(context),
+    child: Text(context.l10n.commonClose),
+  );
 
   /// Reports the outcome of an install attempt. A null outcome means a fresh
   /// download was queued instead, which the progress block already narrates.
@@ -224,9 +258,9 @@ class _UpdateDialogState extends ConsumerState<_UpdateDialog> {
       case InstallOutcome.started:
         Navigator.pop(context);
       case InstallOutcome.needsPermission:
-        messenger.showSnackBar(SnackBar(
-          content: Text(l10n.updateInstallNeedsPermissionSnackbar),
-        ));
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.updateInstallNeedsPermissionSnackbar)),
+        );
       case InstallOutcome.failed:
         break; // the dialog already switched to its failed state
     }
@@ -241,13 +275,18 @@ String _statusLine(BuildContext context, DownloadProgress p) {
   final pct = p.fraction;
   return switch (p.stage) {
     DownloadStage.pending => l10n.updateStatusQueued,
+    DownloadStage.preparing => l10n.updateStatusPreparing,
     DownloadStage.pausedNetwork => l10n.updateStatusPausedNetwork,
     DownloadStage.pausedRetry => l10n.updateStatusPausedRetry,
-    _ => pct == null ? size : l10n.updateStatusSizePercent(size, (pct * 100).round()),
+    _ =>
+      pct == null
+          ? size
+          : l10n.updateStatusSizePercent(size, (pct * 100).round()),
   };
 }
 
-String _mb(int bytes) => (bytes / 1048576).toStringAsFixed(1).replaceAll('.', ',');
+String _mb(int bytes) =>
+    (bytes / 1048576).toStringAsFixed(1).replaceAll('.', ',');
 
 /// Kivo's signature meter: discrete segments, lit in the accent colour.
 class _SegmentedBar extends StatelessWidget {

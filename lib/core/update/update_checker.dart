@@ -34,9 +34,9 @@ class GithubUpdateChecker implements UpdateChecker {
     ErrorLog? log,
     Uri? apiEndpoint,
     Uri? latestPage,
-  })  : _log = log,
-        _api = apiEndpoint ?? _defaultApi,
-        _page = latestPage ?? _defaultPage;
+  }) : _log = log,
+       _api = apiEndpoint ?? _defaultApi,
+       _page = latestPage ?? _defaultPage;
 
   final Future<String> Function() _primaryAbi;
 
@@ -46,12 +46,14 @@ class GithubUpdateChecker implements UpdateChecker {
   final Uri _page;
 
   static final Uri _defaultApi = Uri.parse(
-      'https://api.github.com/repos/yt-kevincarrera/kivo-player/releases/latest');
+    'https://api.github.com/repos/yt-kevincarrera/kivo-player/releases/latest',
+  );
 
   /// The public page, which redirects to the newest tag and is not subject to
   /// the API's per-IP rate limit.
-  static final Uri _defaultPage =
-      Uri.parse('https://github.com/yt-kevincarrera/kivo-player/releases/latest');
+  static final Uri _defaultPage = Uri.parse(
+    'https://github.com/yt-kevincarrera/kivo-player/releases/latest',
+  );
 
   static const _timeout = Duration(seconds: 10);
 
@@ -69,14 +71,15 @@ class GithubUpdateChecker implements UpdateChecker {
       final info = await _fromPage();
       // Worked, but the API's reason is worth keeping: a device that is
       // always rate-limited explains why release notes never show.
-      debugPrint('UpdateChecker: API failed ($apiError), used the release page');
+      debugPrint(
+        'UpdateChecker: API failed ($apiError), used the release page',
+      );
       return info;
     } catch (e) {
       // The UI only ever shows "no se pudo comprobar", so log the real reason
       // — both of them. A missing INTERNET permission once looked identical to
       // being offline; a silent non-200 looked identical to both.
-      _log?.record(
-          KivoFailure(KivoOp.updateCheck, 'API: $apiError; page: $e'));
+      _log?.record(KivoFailure(KivoOp.updateCheck, 'API: $apiError; page: $e'));
       debugPrint('UpdateChecker.fetchLatest failed: API $apiError; page $e');
       return null;
     }
@@ -107,6 +110,7 @@ class GithubUpdateChecker implements UpdateChecker {
         apkUrl: pickApkAsset(assets, abi),
         releaseUrl: (json['html_url'] as String?) ?? '',
         notes: (json['body'] as String?) ?? '',
+        manifestUrl: pickUpdateManifest(assets),
       );
     } finally {
       client.close(force: true);
@@ -141,6 +145,10 @@ class GithubUpdateChecker implements UpdateChecker {
         releaseUrl: target.toString(),
         // Only the API carries the body; the dialog copes with none.
         notes: '',
+        // A 404 means a legacy release; native code then downloads its APK.
+        manifestUrl: _page
+            .resolve('download/$tag/$updateManifestName')
+            .toString(),
       );
     } finally {
       client.close(force: true);

@@ -1,0 +1,1 @@
+Future updates can download only the changes when a compatible partial update is available. Kivo verifies the reconstructed APK before offering installation; if a partial update is unavailable or fails, it downloads the full APK. This first version supporting partial updates requires a full download.

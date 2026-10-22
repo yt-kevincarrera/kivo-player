@@ -2762,6 +2762,30 @@ abstract class AppLocalizations {
   /// **'Permite instalar apps para continuar, luego pulsa Instalar.'**
   String get updateInstallNeedsPermissionSnackbar;
 
+  /// No description provided for @updateStatusPreparing.
+  ///
+  /// In es, this message translates to:
+  /// **'Preparando actualización…'**
+  String get updateStatusPreparing;
+
+  /// No description provided for @updatePreparingHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Puedes ocultar este aviso. La instalación estará disponible cuando termine.'**
+  String get updatePreparingHint;
+
+  /// No description provided for @updatePartialDownloadHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Solo se descargan los cambios. Puedes salir de Kivo.'**
+  String get updatePartialDownloadHint;
+
+  /// No description provided for @updateFullDownloadFallbackHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Esta actualización necesita la descarga completa. Puedes salir de Kivo.'**
+  String get updateFullDownloadFallbackHint;
+
   /// Texto de estado de la descarga mientras está en cola.
   ///
   /// In es, this message translates to:

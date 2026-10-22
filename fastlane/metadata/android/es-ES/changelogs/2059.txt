@@ -1,0 +1,1 @@
+Las próximas actualizaciones podrán descargar solo los cambios cuando haya una actualización parcial compatible. Kivo verifica el APK reconstruido antes de ofrecer instalarlo; si la actualización parcial no está disponible o falla, descarga el APK completo. Esta primera versión con soporte para actualizaciones parciales requiere una descarga completa.
