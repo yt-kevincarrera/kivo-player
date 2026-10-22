@@ -1,0 +1,1 @@
+Corregido el fallo intermitente KV-201 al abrir la biblioteca y la detección incorrecta que mostraba borrado permanente en teléfonos con papelera del sistema.

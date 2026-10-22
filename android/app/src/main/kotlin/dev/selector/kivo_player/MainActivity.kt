@@ -22,11 +22,13 @@ import android.util.Rational
 import android.view.KeyEvent
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.embedding.engine.dart.DartExecutor.DartEntrypoint
 import io.flutter.plugin.common.MethodChannel
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.concurrent.Executors
 import dev.selector.kivo_player.update.UpdateDownloads
+import dev.selector.kivo_player.startup.EngineStartup
 
 class MainActivity : FlutterFragmentActivity() {
     // --- kivo/frames ---
@@ -156,7 +158,7 @@ class MainActivity : FlutterFragmentActivity() {
         }
     }
 
-    // Reuse the process-lifetime engine warmed up in KivoApplication instead of
+    // Reuse the process-lifetime engine prepared in KivoApplication instead of
     // creating a per-Activity one, and keep it alive when this Activity is torn
     // down. This pins the Dart isolate (and mpv's FFI callback) to the process
     // lifetime — see KivoApplication for the crash this prevents.
@@ -167,6 +169,15 @@ class MainActivity : FlutterFragmentActivity() {
     override fun shouldDestroyEngineWithHost(): Boolean = false
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        EngineStartup.configureAndStart(
+            flutterEngine,
+            configureChannels = ::configureChannels,
+            isExecutingDart = { it.dartExecutor.isExecutingDart },
+            executeDart = { it.dartExecutor.executeDartEntrypoint(DartEntrypoint.createDefault()) },
+        )
+    }
+
+    private fun configureChannels(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
         // ── kivo/subtitles ── (its own file: this one is big enough already)

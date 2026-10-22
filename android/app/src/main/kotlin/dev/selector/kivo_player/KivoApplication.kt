@@ -3,12 +3,13 @@ package dev.selector.kivo_player
 import android.app.Application
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.FlutterEngineCache
-import io.flutter.embedding.engine.dart.DartExecutor.DartEntrypoint
 import java.util.concurrent.Executors
+import dev.selector.kivo_player.startup.EngineStartup
 
-/// Creates ONE FlutterEngine at process start and caches it for the process
+/// Prepares ONE FlutterEngine at process start and caches it for the process
 /// lifetime. MainActivity reuses this cached engine (see provideFlutterEngine)
-/// and does NOT destroy it when the Activity is torn down.
+/// and starts Dart after registering its channels. It does NOT destroy the
+/// engine when the Activity is torn down.
 ///
 /// Why: media_kit's mpv Player is a process-lifetime native object with its own
 /// threads and an FFI "wake up Dart" callback. With the default per-Activity
@@ -21,17 +22,16 @@ import java.util.concurrent.Executors
 class KivoApplication : Application() {
     override fun onCreate() {
         super.onCreate()
-        val engine = FlutterEngine(this) // auto-registers plugins
-        engine.dartExecutor.executeDartEntrypoint(DartEntrypoint.createDefault())
+        val engine = EngineStartup.prepare(
+            createEngine = { FlutterEngine(this) }, // auto-registers plugins
+            configureProcessChannels = { prepared ->
+                // These bridges belong to the engine rather than an Activity.
+                LauncherBridge.attach(prepared.dartExecutor.binaryMessenger, this,
+                    Executors.newSingleThreadExecutor())
+                CastBridge.attach(prepared.dartExecutor.binaryMessenger, this)
+            },
+        )
         FlutterEngineCache.getInstance().put(ENGINE_ID, engine)
-        // kivo/launch lives with the engine, not with an activity: the Dart
-        // side can call it before any activity configures it, and with its own
-        // executor it never holds one an activity has shut down.
-        LauncherBridge.attach(
-            engine.dartExecutor.binaryMessenger, this, Executors.newSingleThreadExecutor())
-        // kivo/cast (Enviar a la TV) likewise outlives any activity: a cast
-        // keeps going with the app in the background.
-        CastBridge.attach(engine.dartExecutor.binaryMessenger, this)
     }
 
     companion object {
