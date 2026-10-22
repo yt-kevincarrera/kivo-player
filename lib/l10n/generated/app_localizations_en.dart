@@ -1594,6 +1594,32 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get updateSizeChecking => 'Checking download size…';
+
+  @override
+  String updatePartialDownloadSize(String size) {
+    return 'Partial download: $size';
+  }
+
+  @override
+  String updateFullDownloadSize(String size) {
+    return 'Full download: $size';
+  }
+
+  @override
+  String updateDownloadSizeUpperBound(String size) {
+    return 'Download: up to $size';
+  }
+
+  @override
+  String updateFullDownloadAlternative(String size) {
+    return 'Full download if needed: $size';
+  }
+
+  @override
+  String get updateSizeUnavailable => 'Size unavailable';
+
+  @override
   String get updateNoActiveDownload =>
       'There\'s no download in progress anymore.';
 

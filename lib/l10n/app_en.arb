@@ -2447,6 +2447,34 @@
     }
   },
 
+  "updateSizeChecking": "Checking download size…",
+  "@updateSizeChecking": {
+    "description": "Brief state while checking the download size before starting."
+  },
+  "updatePartialDownloadSize": "Partial download: {size}",
+  "@updatePartialDownloadSize": {
+    "description": "Confirmed compatible patch size before starting the download.",
+    "placeholders": {"size": {"type": "String"}}
+  },
+  "updateFullDownloadSize": "Full download: {size}",
+  "@updateFullDownloadSize": {
+    "description": "Confirmed full APK size before starting the download.",
+    "placeholders": {"size": {"type": "String"}}
+  },
+  "updateDownloadSizeUpperBound": "Download: up to {size}",
+  "@updateDownloadSizeUpperBound": {
+    "description": "Upper bound from the full APK asset when the actual plan could not be confirmed.",
+    "placeholders": {"size": {"type": "String"}}
+  },
+  "updateFullDownloadAlternative": "Full download if needed: {size}",
+  "@updateFullDownloadAlternative": {
+    "description": "Full download size if the partial update needs a fallback.",
+    "placeholders": {"size": {"type": "String"}}
+  },
+  "updateSizeUnavailable": "Size unavailable",
+  "@updateSizeUnavailable": {
+    "description": "No reliable size information is available before downloading."
+  },
   "updateNoActiveDownload": "There's no download in progress anymore.",
   "@updateNoActiveDownload": {
     "description": "Body of the update dialog when reopened over a download that no longer exists."

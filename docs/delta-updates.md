@@ -57,6 +57,18 @@ buffers and performs hashing, reconstruction and verification off the UI thread.
 
 ## Download and recovery
 
+Before a download is queued, the update dialog asks the native planner for its
+selected transfer size. Preview and enqueue share the same manifest and exact
+installed-APK compatibility check. A small process-local cache avoids fetching
+and hashing twice; changes to the installed base invalidate the selection.
+Preview transfers only release metadata and never queues an APK or patch.
+
+The dialog shows the patch size and the full APK fallback size, or the selected
+full download size. If native discovery is unavailable, GitHub's APK asset size
+is shown as an upper bound. Missing sizes are explicitly unavailable; they are
+never displayed as zero. Size discovery times out so a failed metadata request
+cannot leave the download button disabled indefinitely.
+
 `UpdateDownloads` owns native job metadata and preparation. DownloadManager owns
 the actual transfer, so downloads survive closing Kivo. The original download
 id remains a stable handle even if patch failure starts a full download. Native

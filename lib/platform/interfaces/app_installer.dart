@@ -74,6 +74,15 @@ class PendingUpdate {
   final String version;
 }
 
+/// Transfer selected for this installed APK, without queuing any download.
+class UpdatePreview {
+  const UpdatePreview({this.bytes, this.fullBytes, this.partial = false});
+
+  final int? bytes;
+  final int? fullBytes;
+  final bool partial;
+}
+
 /// Reads the running app's version/ABI and drives APK download + install.
 ///
 /// Download and install are deliberately separate: the download outlives the
@@ -85,6 +94,10 @@ abstract class AppInstaller {
   Future<int> androidSdk(); // Build.VERSION.SDK_INT — logged with each failure
   Future<String>
   deviceModel(); // Build.MANUFACTURER + MODEL — for problem reports
+
+  /// Reads small release metadata and checks patch compatibility. Never queues
+  /// the APK or patch; null means the transfer size could not be determined.
+  Future<UpdatePreview?> previewUpdate(String url, {String? manifestUrl});
 
   /// Queues the APK and returns the download id, or -1 if it couldn't start.
   Future<int> enqueueUpdate(String url, String fileName, {String? manifestUrl});

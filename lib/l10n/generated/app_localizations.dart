@@ -2678,6 +2678,42 @@ abstract class AppLocalizations {
   /// **'Nueva versión {version}'**
   String updateTitleWithVersion(String version);
 
+  /// Estado breve mientras se calcula el tamaño antes de descargar.
+  ///
+  /// In es, this message translates to:
+  /// **'Consultando tamaño…'**
+  String get updateSizeChecking;
+
+  /// Tamaño confirmado del parche compatible antes de descargar.
+  ///
+  /// In es, this message translates to:
+  /// **'Descarga parcial: {size}'**
+  String updatePartialDownloadSize(String size);
+
+  /// Tamaño confirmado del APK completo antes de descargar.
+  ///
+  /// In es, this message translates to:
+  /// **'Descarga completa: {size}'**
+  String updateFullDownloadSize(String size);
+
+  /// Límite superior desde el tamaño del APK cuando no se pudo confirmar el plan.
+  ///
+  /// In es, this message translates to:
+  /// **'Descarga: hasta {size}'**
+  String updateDownloadSizeUpperBound(String size);
+
+  /// Tamaño de la descarga completa si el parche necesita una alternativa.
+  ///
+  /// In es, this message translates to:
+  /// **'Si hace falta la completa: {size}'**
+  String updateFullDownloadAlternative(String size);
+
+  /// No hay datos de tamaño fiables antes de descargar.
+  ///
+  /// In es, this message translates to:
+  /// **'Tamaño no disponible'**
+  String get updateSizeUnavailable;
+
   /// Cuerpo del diálogo de actualización cuando se reabre sobre una descarga que ya no existe.
   ///
   /// In es, this message translates to:

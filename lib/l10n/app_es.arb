@@ -2446,6 +2446,34 @@
     }
   },
 
+  "updateSizeChecking": "Consultando tamaño…",
+  "@updateSizeChecking": {
+    "description": "Estado breve mientras se calcula el tamaño antes de descargar."
+  },
+  "updatePartialDownloadSize": "Descarga parcial: {size}",
+  "@updatePartialDownloadSize": {
+    "description": "Tamaño confirmado del parche compatible antes de descargar.",
+    "placeholders": {"size": {"type": "String"}}
+  },
+  "updateFullDownloadSize": "Descarga completa: {size}",
+  "@updateFullDownloadSize": {
+    "description": "Tamaño confirmado del APK completo antes de descargar.",
+    "placeholders": {"size": {"type": "String"}}
+  },
+  "updateDownloadSizeUpperBound": "Descarga: hasta {size}",
+  "@updateDownloadSizeUpperBound": {
+    "description": "Límite superior desde el tamaño del APK cuando no se pudo confirmar el plan.",
+    "placeholders": {"size": {"type": "String"}}
+  },
+  "updateFullDownloadAlternative": "Si hace falta la completa: {size}",
+  "@updateFullDownloadAlternative": {
+    "description": "Tamaño de la descarga completa si el parche necesita una alternativa.",
+    "placeholders": {"size": {"type": "String"}}
+  },
+  "updateSizeUnavailable": "Tamaño no disponible",
+  "@updateSizeUnavailable": {
+    "description": "No hay datos de tamaño fiables antes de descargar."
+  },
   "updateNoActiveDownload": "Ya no hay ninguna descarga en curso.",
   "@updateNoActiveDownload": {
     "description": "Cuerpo del diálogo de actualización cuando se reabre sobre una descarga que ya no existe."

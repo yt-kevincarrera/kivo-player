@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/errors/kivo_failure.dart';
 import '../../core/settings/settings_provider.dart';
@@ -8,6 +11,7 @@ import '../../core/update/update_download_controller.dart';
 import '../../core/update/update_info.dart';
 import '../../core/update/update_providers.dart';
 import '../../l10n/l10n.dart';
+import '../../platform/app_installer_provider.dart';
 import '../../platform/interfaces/app_installer.dart';
 
 Future<void> showUpdateDialog(BuildContext context, UpdateInfo info) =>
@@ -34,24 +38,67 @@ class _UpdateDialog extends ConsumerStatefulWidget {
 class _UpdateDialogState extends ConsumerState<_UpdateDialog> {
   /// Held from initState so dispose never has to touch ref.
   late final UpdateDownloadNotifier _dl;
+  UpdatePreview? _preview;
+  bool _checkingSize = false;
+  int _previewGeneration = 0;
 
   @override
   void initState() {
     super.initState();
     _dl = ref.read(updateDownloadProvider.notifier);
     _dl.startWatching();
+    _requestPreview();
   }
 
   @override
   void dispose() {
+    _previewGeneration++;
     _dl.stopWatching();
     super.dispose();
   }
 
   UpdateInfo? get _info => widget.info;
 
+  void _requestPreview() {
+    final info = _info;
+    if (info?.apkUrl == null ||
+        ref.read(updateDownloadProvider).phase != DownloadPhase.idle) {
+      return;
+    }
+    _checkingSize = true;
+    final generation = ++_previewGeneration;
+    unawaited(_resolvePreview(info!, generation));
+  }
+
+  Future<void> _resolvePreview(UpdateInfo info, int generation) async {
+    UpdatePreview? preview;
+    try {
+      preview = await ref
+          .read(appInstallerProvider)
+          .previewUpdate(info.apkUrl!, manifestUrl: info.manifestUrl);
+    } catch (_) {
+      // Size discovery is optional; a release asset size is an upper bound.
+    }
+    if (!mounted || generation != _previewGeneration) return;
+    setState(() {
+      _preview = preview;
+      _checkingSize = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    ref.listen<UpdateDownloadState>(updateDownloadProvider, (previous, next) {
+      if (previous?.phase == next.phase) return;
+      if (next.phase == DownloadPhase.idle) {
+        _requestPreview();
+      } else {
+        // A resumed/native download can become visible while discovery is in
+        // flight. Its late result must not change the active download's UI.
+        _previewGeneration++;
+        _checkingSize = false;
+      }
+    });
     final st = ref.watch(updateDownloadProvider);
     final accent = Color(
       ref.watch(settingsProvider.select((s) => s.accentColor)),
@@ -61,6 +108,7 @@ class _UpdateDialogState extends ConsumerState<_UpdateDialog> {
     final version = _info?.version ?? st.version;
 
     return AlertDialog(
+      scrollable: true,
       title: Text(
         version == null
             ? l10n.updateGenericTitle
@@ -68,7 +116,7 @@ class _UpdateDialogState extends ConsumerState<_UpdateDialog> {
       ),
       content: SizedBox(
         width: double.maxFinite,
-        child: SingleChildScrollView(child: _content(context, st, accent, cs)),
+        child: _content(context, st, accent, cs),
       ),
       actions: _actions(context, st),
     );
@@ -91,9 +139,19 @@ class _UpdateDialogState extends ConsumerState<_UpdateDialog> {
         // Stripped of headings and the compare link: a URL is no use inside a
         // dialog, and older releases contain nothing else.
         final notes = cleanReleaseNotes(info.notes);
-        return Text(
-          notes.isEmpty ? l10n.updateNoNotesAvailable : notes,
-          style: muted,
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (info.apkUrl != null) ...[
+              _sizePreview(context, info, cs),
+              const SizedBox(height: 16),
+            ],
+            Text(
+              notes.isEmpty ? l10n.updateNoNotesAvailable : notes,
+              style: muted,
+            ),
+          ],
         );
       case DownloadPhase.downloading:
         return _progressBlock(
@@ -121,6 +179,50 @@ class _UpdateDialogState extends ConsumerState<_UpdateDialog> {
         final f = kivoErrorCatalog[KivoOp.updateInstall]!;
         return Text(l10n.updateFailedMessage(f.message, f.code), style: muted);
     }
+  }
+
+  Widget _sizePreview(BuildContext context, UpdateInfo info, ColorScheme cs) {
+    final l10n = context.l10n;
+    final bytes = _positiveSize(_preview?.bytes);
+    final fullBytes = _positiveSize(_preview?.fullBytes);
+    final upperBound = fullBytes ?? _positiveSize(info.apkSizeBytes);
+    final partial = _preview?.partial == true && bytes != null;
+    final label = _checkingSize
+        ? l10n.updateSizeChecking
+        : bytes != null
+        ? (partial
+              ? l10n.updatePartialDownloadSize(_formatBytes(context, bytes))
+              : l10n.updateFullDownloadSize(_formatBytes(context, bytes)))
+        : upperBound != null
+        ? l10n.updateDownloadSizeUpperBound(_formatBytes(context, upperBound))
+        : l10n.updateSizeUnavailable;
+    return Semantics(
+      liveRegion: true,
+      child: Column(
+        key: const Key('update-size-preview'),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: cs.onSurface,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          if (!_checkingSize && partial && fullBytes != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              l10n.updateFullDownloadAlternative(
+                _formatBytes(context, fullBytes),
+              ),
+              style: TextStyle(color: cs.onSurface, fontSize: 12),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 
   Widget _progressBlock(
@@ -186,6 +288,8 @@ class _UpdateDialogState extends ConsumerState<_UpdateDialog> {
                     ref.read(updateControllerProvider).openInBrowser(info);
                     Navigator.pop(context);
                   }
+                : _checkingSize
+                ? null
                 : () => _dl.start(info),
             child: Text(
               info.apkUrl == null
@@ -270,8 +374,8 @@ class _UpdateDialogState extends ConsumerState<_UpdateDialog> {
 String _statusLine(BuildContext context, DownloadProgress p) {
   final l10n = context.l10n;
   final size = p.total > 0
-      ? '${_mb(p.received)} / ${_mb(p.total)} MB'
-      : '${_mb(p.received)} MB';
+      ? '${_mb(context, p.received)} / ${_mb(context, p.total)} MB'
+      : '${_mb(context, p.received)} MB';
   final pct = p.fraction;
   return switch (p.stage) {
     DownloadStage.pending => l10n.updateStatusQueued,
@@ -285,8 +389,20 @@ String _statusLine(BuildContext context, DownloadProgress p) {
   };
 }
 
-String _mb(int bytes) =>
-    (bytes / 1048576).toStringAsFixed(1).replaceAll('.', ',');
+int? _positiveSize(int? bytes) => bytes != null && bytes > 0 ? bytes : null;
+
+String _formatBytes(BuildContext context, int bytes) {
+  final locale = Localizations.localeOf(context).toString();
+  final format = NumberFormat('0.#', locale);
+  if (bytes < 1000) return '${format.format(bytes)} B';
+  if (bytes < 1000000) return '${format.format(bytes / 1000)} KB';
+  return '${format.format(bytes / 1000000)} MB';
+}
+
+String _mb(BuildContext context, int bytes) => NumberFormat(
+  '0.#',
+  Localizations.localeOf(context).toString(),
+).format(bytes / 1000000);
 
 /// Kivo's signature meter: discrete segments, lit in the accent colour.
 class _SegmentedBar extends StatelessWidget {

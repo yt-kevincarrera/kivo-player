@@ -25,10 +25,15 @@ import java.util.concurrent.Executors
 class UpdateDownloads private constructor(private val context: Context) {
     private val workers = Executors.newFixedThreadPool(2)
     private val downloads = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-    private val directory = File(context.filesDir, "updates").apply { mkdirs() }
+    private val directory = File(context.filesDir, "updates")
     private val jobs = ConcurrentHashMap<Long, Job>()
     private val preparing = Collections.newSetFromMap(ConcurrentHashMap<Long, Boolean>())
     private val invalidated = Collections.newSetFromMap(ConcurrentHashMap<Long, Boolean>())
+    private val planner = UpdatePlanner(context.packageName,
+        installedBase = {
+            InstalledUpdateBase(File(context.applicationInfo.sourceDir),
+                !context.applicationInfo.splitSourceDirs.isNullOrEmpty())
+        }, fetchManifest = ::fetchManifest)
 
     private class Job(
         val handle: Long, val url: String, val version: String,
@@ -73,39 +78,16 @@ class UpdateDownloads private constructor(private val context: Context) {
 
     fun execute(action: () -> Unit) { workers.execute(action) }
 
+    fun preview(url: String, manifestUrl: String?): Map<String, Any?> = planner.preview(url, manifestUrl)
+
     fun enqueue(url: String, fileName: String, manifestUrl: String?): Long {
-        val release = ReleaseUrls.parse(url)
         ReleaseUrls.requireBasename(fileName)
         require(fileName.endsWith(".apk"))
-        var text: String? = null
-        var manifest: UpdateManifest? = null
-        if (manifestUrl != null) {
-            try {
-                val fetched = fetchManifest(manifestUrl)
-                manifest = UpdateManifest.parse(fetched, manifestUrl, url, context.packageName)
-                text = fetched
-            } catch (_: Exception) {
-                // Older releases have no manifest. Their signed full APK uses the legacy installer.
-            }
-        }
-        var patch: PatchArtifact? = null
-        if (manifest != null && context.applicationInfo.splitSourceDirs.isNullOrEmpty() &&
-            manifest.artifact.patches.isNotEmpty()) {
-            try {
-                val base = File(context.applicationInfo.sourceDir)
-                if (base.length() in 1..DeltaPatch.MAX_APK_BYTES) {
-                    val hash = DeltaPatch.sha256(base)
-                    patch = manifest.artifact.patches.firstOrNull {
-                        it.fromSize == base.length() && it.fromSha256 == hash && it.size < manifest.artifact.size
-                    }
-                }
-            } catch (_: Exception) { /* Unreadable bases still have the verified full APK route. */ }
-        }
-        val artifactUrl = if (patch != null) ReleaseUrls.asset(manifestUrl!!, patch.file) else url
-        val handle = enqueueArtifact(artifactUrl, patch != null)
+        val plan = planner.plan(url, manifestUrl)
+        val handle = enqueueArtifact(plan.downloadUrl, plan.partial)
         if (handle < 0) return -1
-        val job = Job(handle, url, manifest?.version ?: release.first.removePrefix("v"),
-            if (manifest != null) manifestUrl else null, text, manifest, patch, handle, patch != null)
+        val job = Job(handle, url, plan.version, plan.manifestUrl, plan.manifestText,
+            plan.manifest, plan.patch, handle, plan.partial)
         try {
             synchronized(job) { save(job); jobs[handle] = job }
         } catch (failure: Exception) {
@@ -355,6 +337,9 @@ class UpdateDownloads private constructor(private val context: Context) {
     }
 
     private fun save(job: Job) {
+        if (!directory.isDirectory && !directory.mkdirs() && !directory.isDirectory) {
+            throw IOException("Cannot create update storage")
+        }
         val json = JSONObject().put("handle", job.handle).put("activeId", job.activeId)
             .put("url", job.url).put("version", job.version)
             .put("manifestUrl", job.manifestUrl ?: "").put("manifestText", job.manifestText ?: "")

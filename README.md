@@ -44,7 +44,7 @@ Powered by **[media_kit](https://github.com/media-kit/media-kit) (libmpv)**, so 
 - ⏱️ **Sleep timer** (additive extend, or "stop after N episodes").
 - 🔒 **Vault** — hide private videos from the gallery and other apps behind a strengthened PIN or your fingerprint (hidden, not encrypted — the app says so).
 - 🚀 **Launcher shortcuts** and a **"Continue watching" home-screen widget**.
-- 📦 **Partial app updates** from GitHub when a compatible patch is available, with verified reconstruction and a full-download fallback.
+- 📦 **Partial app updates** from GitHub when a compatible patch is available, with the download size shown before starting, verified reconstruction and a full-download fallback.
 
 ### Library
 - 📁 **Auto-indexed library** with folders, search, sorting, thumbnails, and adjustable grid density.

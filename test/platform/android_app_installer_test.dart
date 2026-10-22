@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kivo_player/platform/android/android_app_installer.dart';
@@ -10,6 +12,211 @@ void main() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
 
   tearDown(() => messenger.setMockMethodCallHandler(channel, null));
+
+  test(
+    'preview forwards optional metadata and never queues a download',
+    () async {
+      final calls = <MethodCall>[];
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        calls.add(call);
+        return {'bytes': 690795, 'fullBytes': 35076444, 'partial': true};
+      });
+      final installer = AndroidAppInstaller();
+
+      final preview = await installer.previewUpdate(
+        'https://example.com/full.apk',
+        manifestUrl: 'https://example.com/kivo-update-v1.json',
+      );
+      expect(preview, isNotNull);
+      expect(preview!.bytes, 690795);
+      expect(preview.fullBytes, 35076444);
+      expect(preview.partial, isTrue);
+      await installer.previewUpdate('https://example.com/legacy.apk');
+
+      expect(calls.map((call) => call.method), [
+        'previewUpdate',
+        'previewUpdate',
+      ]);
+      expect(calls.first.arguments, {
+        'url': 'https://example.com/full.apk',
+        'manifestUrl': 'https://example.com/kivo-update-v1.json',
+      });
+      expect(calls.last.arguments, {'url': 'https://example.com/legacy.apk'});
+    },
+  );
+
+  test('preview keeps integral codec numbers exact', () async {
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      expect(call.method, 'previewUpdate');
+      return {'bytes': 690795.0, 'fullBytes': 35076444.0, 'partial': false};
+    });
+
+    final preview = await AndroidAppInstaller().previewUpdate(
+      'https://example.com/full.apk',
+    );
+    expect(preview!.bytes, 690795);
+    expect(preview.fullBytes, 35076444);
+    expect(preview.partial, isFalse);
+  });
+
+  test('preview preserves unknown sizes without inventing bytes', () async {
+    for (final payload in [
+      <String, Object?>{},
+      {'bytes': null, 'fullBytes': null, 'partial': false},
+      {'bytes': null, 'fullBytes': 35076444},
+    ]) {
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        expect(call.method, 'previewUpdate');
+        return payload;
+      });
+
+      final preview = await AndroidAppInstaller().previewUpdate(
+        'https://example.com/full.apk',
+      );
+      expect(preview, isNotNull);
+      expect(preview!.bytes, isNull);
+      expect(preview.fullBytes, payload['fullBytes']);
+      expect(preview.partial, isFalse);
+    }
+  });
+
+  test('preview ignores each invalid byte count independently', () async {
+    final invalidSizes = <Object>[
+      0,
+      0.0,
+      -1,
+      -1.0,
+      '690795',
+      true,
+      690795.5,
+      double.nan,
+      double.infinity,
+      double.negativeInfinity,
+      <int>[],
+      <String, int>{'value': 1},
+    ];
+    for (final invalid in invalidSizes) {
+      for (final invalidField in ['bytes', 'fullBytes']) {
+        messenger.setMockMethodCallHandler(channel, (call) async {
+          expect(call.method, 'previewUpdate');
+          return {
+            'bytes': invalidField == 'bytes' ? invalid : 690795,
+            'fullBytes': invalidField == 'fullBytes' ? invalid : 35076444,
+            'partial': true,
+          };
+        });
+
+        final preview = await AndroidAppInstaller().previewUpdate(
+          'https://example.com/full.apk',
+        );
+        expect(preview, isNotNull, reason: '$invalidField: $invalid');
+        expect(
+          preview!.bytes,
+          invalidField == 'bytes' ? isNull : 690795,
+          reason: '$invalidField: $invalid',
+        );
+        expect(
+          preview.fullBytes,
+          invalidField == 'fullBytes' ? isNull : 35076444,
+          reason: '$invalidField: $invalid',
+        );
+        expect(preview.partial, isTrue);
+      }
+    }
+  });
+
+  test(
+    'preview returns null for absent or malformed native payloads',
+    () async {
+      for (final payload in <Object?>[
+        null,
+        'not metadata',
+        123,
+        false,
+        <int>[],
+      ]) {
+        messenger.setMockMethodCallHandler(channel, (call) async {
+          expect(call.method, 'previewUpdate');
+          return payload;
+        });
+
+        expect(
+          await AndroidAppInstaller().previewUpdate(
+            'https://example.com/full.apk',
+          ),
+          isNull,
+        );
+      }
+    },
+  );
+
+  test('preview returns null when the native plugin is unavailable', () async {
+    final calls = <MethodCall>[];
+    for (final error in [
+      PlatformException(code: 'UNAVAILABLE'),
+      MissingPluginException('preview not supported by this build'),
+    ]) {
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        calls.add(call);
+        throw error;
+      });
+      expect(
+        await AndroidAppInstaller().previewUpdate(
+          'https://example.com/full.apk',
+        ),
+        isNull,
+      );
+    }
+    expect(calls.map((call) => call.method), [
+      'previewUpdate',
+      'previewUpdate',
+    ]);
+  });
+
+  testWidgets('preview times out after 15 seconds without queueing a download', (
+    tester,
+  ) async {
+    final nativeResponse = Completer<Object?>();
+    final calls = <MethodCall>[];
+    messenger.setMockMethodCallHandler(channel, (call) {
+      calls.add(call);
+      return nativeResponse.future;
+    });
+    var completions = 0;
+    final preview = AndroidAppInstaller()
+        .previewUpdate('https://example.com/full.apk')
+        .then((value) {
+          completions++;
+          return value;
+        });
+
+    try {
+      await tester.pump();
+      expect(calls.map((call) => call.method), ['previewUpdate']);
+      expect(completions, 0);
+
+      await tester.pump(const Duration(seconds: 14));
+      expect(completions, 0);
+
+      await tester.pump(const Duration(seconds: 1));
+      expect(completions, 1);
+      expect(await preview, isNull);
+
+      // Native work may finish after Dart has stopped waiting for its preview.
+      nativeResponse.complete({
+        'bytes': 690795,
+        'fullBytes': 35076444,
+        'partial': true,
+      });
+      await tester.pump();
+      expect(completions, 1);
+      expect(calls.map((call) => call.method), ['previewUpdate']);
+      expect(tester.takeException(), isNull);
+    } finally {
+      if (!nativeResponse.isCompleted) nativeResponse.complete(null);
+      await tester.pump();
+    }
+  });
 
   test(
     'enqueue forwards an optional manifest without changing the APK fallback',

@@ -41,6 +41,39 @@ class AndroidAppInstaller implements AppInstaller {
   }
 
   @override
+  Future<UpdatePreview?> previewUpdate(
+    String url, {
+    String? manifestUrl,
+  }) async {
+    try {
+      final preview = await _channel
+          .invokeMapMethod<String, dynamic>('previewUpdate', {
+            'url': url,
+            if (manifestUrl != null) 'manifestUrl': manifestUrl,
+          })
+          .timeout(const Duration(seconds: 15));
+      if (preview == null) return null;
+      return UpdatePreview(
+        bytes: _positiveBytes(preview['bytes']),
+        fullBytes: _positiveBytes(preview['fullBytes']),
+        partial: preview['partial'] == true,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static int? _positiveBytes(Object? value) {
+    if (value is! num ||
+        !value.isFinite ||
+        value <= 0 ||
+        value != value.roundToDouble()) {
+      return null;
+    }
+    return value.toInt();
+  }
+
+  @override
   Future<int> enqueueUpdate(
     String url,
     String fileName, {

@@ -945,6 +945,12 @@ class MainActivity : FlutterFragmentActivity() {
                             result.success(null)
                         } catch (e: Exception) { result.error("OPEN_FAILED", e.message, null) }
                     }
+                    "previewUpdate" -> {
+                        val url = call.argument<String>("url")
+                        if (url == null) { result.error("INVALID_ARG", "url required", null); return@setMethodCallHandler }
+                        val manifestUrl = call.argument<String>("manifestUrl")
+                        updateTask(result) { updateDownloads.preview(url, manifestUrl) }
+                    }
                     "enqueueUpdate" -> {
                         val url = call.argument<String>("url")
                         val fileName = call.argument<String>("fileName") ?: "update.apk"

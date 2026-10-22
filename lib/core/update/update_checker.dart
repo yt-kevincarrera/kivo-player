@@ -104,10 +104,12 @@ class GithubUpdateChecker implements UpdateChecker {
           .map((e) => (e as Map).cast<String, dynamic>())
           .toList();
       final abi = await _primaryAbi();
+      final apk = pickApkAssetInfo(assets, abi);
       return UpdateInfo(
         version: _versionOf(tag),
         tagName: tag,
-        apkUrl: pickApkAsset(assets, abi),
+        apkUrl: apk?.url,
+        apkSizeBytes: apk?.sizeBytes,
         releaseUrl: (json['html_url'] as String?) ?? '',
         notes: (json['body'] as String?) ?? '',
         manifestUrl: pickUpdateManifest(assets),
