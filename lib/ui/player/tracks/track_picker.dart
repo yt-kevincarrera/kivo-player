@@ -71,6 +71,7 @@ class _TrackPickerSheetState extends ConsumerState<_TrackPickerSheet> {
     final session = ref.watch(currentVideoProvider);
     final showStyle = widget.isSubtitles && _styleTab;
     final accent = Color(ref.watch(settingsProvider).accentColor);
+    final screenHeight = MediaQuery.sizeOf(context).height;
 
     final header = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -135,15 +136,43 @@ class _TrackPickerSheetState extends ConsumerState<_TrackPickerSheet> {
         padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
         child: widget.isSubtitles
             ? SizedBox(
-                height: MediaQuery.of(context).size.height * 0.6,
+                // Short windows need most of the height for usable controls.
+                height: screenHeight * (screenHeight < 600 ? 0.9 : 0.6),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     header,
-                    // Outside the scroll: the sample must stay in sight
-                    // while any option below is being adjusted.
-                    if (showStyle) const _StylePreview(),
-                    Expanded(child: SingleChildScrollView(child: body)),
+                    Expanded(
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final textScale =
+                              MediaQuery.textScalerOf(context).scale(14) / 14;
+                          // Keep a useful options viewport below the preview.
+                          // With little height or large text, let it scroll away.
+                          final pinPreview = showStyle &&
+                              constraints.maxHeight >= 360 * textScale;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              if (pinPreview) const _StylePreview(),
+                              Expanded(
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      if (showStyle && !pinPreview)
+                                        const _StylePreview(compact: true),
+                                      body,
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
                   ],
                 ),
               )
@@ -783,22 +812,22 @@ class _TrackCard extends StatelessWidget {
   }
 }
 
-/// The Estilo preview, pinned above the scrolling options: whatever is being
-/// adjusted, the sample stays in sight and changes as the finger moves. It is
-/// the overlay's own widget, at the preview's scale — what shows here is what
-/// shows over the video.
+/// The overlay's own widget at the preview's scale. Stays above the options
+/// when space permits; joins the scroll in short windows or with large text.
 class _StylePreview extends ConsumerWidget {
-  const _StylePreview();
+  const _StylePreview({this.compact = false});
+
+  final bool compact;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(settingsProvider);
     return Container(
       key: const Key('style-preview'),
-      height: 96,
+      constraints: BoxConstraints(minHeight: compact ? 64 : 96),
       margin: const EdgeInsets.only(top: 4, bottom: 10),
       alignment: Alignment.bottomCenter,
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(13),
         gradient: const LinearGradient(
@@ -839,7 +868,7 @@ class _StyleSection extends ConsumerWidget {
       ];
 
   void _set(WidgetRef ref, KivoSettings Function(KivoSettings) f) {
-    // Kivo's own overlay (and the pinned preview) draw from the settings:
+    // Kivo's own overlay and the preview draw from the settings:
     // nothing to push to mpv.
     ref.read(settingsProvider.notifier).set(f(ref.read(settingsProvider)));
   }
