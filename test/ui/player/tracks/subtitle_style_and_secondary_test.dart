@@ -28,7 +28,10 @@ class _H {
 }
 
 Future<_H> _open(WidgetTester tester,
-    {bool style = false, KivoSettings Function(KivoSettings)? tweak}) async {
+    {bool style = false,
+    Size size = const Size(420, 2200),
+    double textScale = 1,
+    KivoSettings Function(KivoSettings)? tweak}) async {
   final engine = FakePlaybackEngine()
     ..currentSubtitleTrackValue = _es
     ..subtitleTracksValue = const [_es, _en, _pgs];
@@ -43,8 +46,12 @@ Future<_H> _open(WidgetTester tester,
   addTearDown(c.dispose);
   c.read(currentVideoProvider.notifier).open(const VideoSession(
       playbackPath: '/v/a.mkv', displayName: 'a.mkv', queue: ['/v/a.mkv'], index: 0));
-  await tester.binding.setSurfaceSize(const Size(420, 2200));
-  addTearDown(() => tester.binding.setSurfaceSize(null));
+  tester.view.devicePixelRatio = 1;
+  tester.view.physicalSize = size;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+  tester.platformDispatcher.textScaleFactorTestValue = textScale;
+  addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
   await pumpLocalized(
     tester,
     Scaffold(
@@ -131,6 +138,88 @@ void main() {
   });
 
   group('Estilo', () {
+    for (final size in [
+      const Size(844, 390),
+      const Size(640, 360),
+      const Size(568, 320),
+    ]) {
+      testWidgets(
+        'short viewport $size gives options room and scrolls preview',
+        (tester) async {
+          final h = await _open(tester, style: true, size: size);
+          expect(tester.takeException(), isNull);
+          final preview = find.byKey(const Key('style-preview'));
+          final scrollable = find.byType(SingleChildScrollView).last;
+          expect(
+            tester.getSize(scrollable).height,
+            greaterThan(size.height * 0.45),
+          );
+          expect(tester.getSize(preview).height, lessThan(96));
+          final initialTop = tester.getTopLeft(preview).dy;
+
+          await _reach(tester, find.text(_l10n.playerTracksFontSerif));
+          await tester.tap(find.text(_l10n.playerTracksFontSerif));
+          await tester.pumpAndSettle();
+          expect(h.c.read(settingsProvider).subtitleFontFamily, 'serif');
+          await _reach(tester, find.text(_l10n.playerTracksResetStyleAction));
+          expect(tester.getTopLeft(preview).dy, lessThan(initialTop - 64));
+          await tester.tap(find.text(_l10n.playerTracksResetStyleAction));
+          await tester.pumpAndSettle();
+          expect(h.c.read(settingsProvider).subtitleFontFamily, 'default');
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+
+    testWidgets('portrait keeps the live preview visible while scrolling', (
+      tester,
+    ) async {
+      await _open(tester, style: true, size: const Size(390, 844));
+      final preview = find.byKey(const Key('style-preview'));
+      final initialTop = tester.getTopLeft(preview).dy;
+      await _reach(tester, find.text(_l10n.playerTracksResetStyleAction));
+      expect(tester.getTopLeft(preview).dy, initialTop);
+      expect(preview.hitTestable(), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('large text leaves all options reachable in a short viewport', (
+      tester,
+    ) async {
+      await _open(
+        tester,
+        style: true,
+        size: const Size(640, 360),
+        textScale: 2,
+        tweak: (s) => s.copyWith(subtitleFontSize: 48),
+      );
+      expect(tester.takeException(), isNull);
+      await _reach(tester, find.text(_l10n.playerTracksResetStyleAction));
+      await tester.tap(find.text(_l10n.playerTracksResetStyleAction));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets(
+      'rotating preserves the selected style and adapts the preview',
+      (tester) async {
+        final h = await _open(tester, style: true, size: const Size(390, 844));
+        await _reach(tester, find.text(_l10n.playerTracksFontSerif));
+        await tester.tap(find.text(_l10n.playerTracksFontSerif));
+        await tester.pumpAndSettle();
+        tester.view.physicalSize = const Size(844, 390);
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        expect(h.c.read(settingsProvider).subtitleFontFamily, 'serif');
+        expect(find.byType(SubtitleText), findsOneWidget);
+        await _reach(tester, find.text(_l10n.playerTracksResetStyleAction));
+        expect(
+          find.text(_l10n.playerTracksResetStyleAction).hitTestable(),
+          findsOneWidget,
+        );
+      },
+    );
+
     testWidgets('the preview is the overlay\'s own widget', (tester) async {
       await _open(tester, style: true);
       expect(find.byType(SubtitleText), findsOneWidget);

@@ -1,0 +1,1 @@
+Subtitle customization is more comfortable in landscape: the panel uses more height and the preview becomes compact and scrolls with the options when space is limited. Your selected style is preserved when rotating the phone.

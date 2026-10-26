@@ -1,0 +1,1 @@
+Personalizar los subtítulos resulta más cómodo en horizontal: el panel aprovecha más altura y la vista previa se compacta y se desplaza con las opciones cuando falta espacio. El estilo elegido se conserva al girar el teléfono.
