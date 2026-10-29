@@ -286,6 +286,51 @@ void main() {
     },
   );
 
+  test(
+    'pending reports observed heat separately and clears it as status changes',
+    () async {
+      for (final status in ['pending', 'running', 'paused', 'done']) {
+        messenger.setMockMethodCallHandler(
+          channel,
+          (_) async => {'status': status, 'deviceHot': true},
+        );
+        final progress = await AndroidAppInstaller().downloadStatus(81);
+        expect(progress.deviceHot, status == 'pending');
+      }
+      messenger.setMockMethodCallHandler(
+        channel,
+        (_) async => {'status': 'pending'},
+      );
+      expect(
+        (await AndroidAppInstaller().downloadStatus(81)).deviceHot,
+        isFalse,
+      );
+    },
+  );
+
+  test(
+    'pause reasons preserve Wi-Fi and unknown instead of inventing a network failure',
+    () async {
+      for (final entry in {
+        'network': DownloadStage.pausedNetwork,
+        'retry': DownloadStage.pausedRetry,
+        'wifi': DownloadStage.pausedWifi,
+        'unknown': DownloadStage.pausedUnknown,
+        'new-system-reason': DownloadStage.pausedUnknown,
+        null: DownloadStage.pausedUnknown,
+      }.entries) {
+        messenger.setMockMethodCallHandler(
+          channel,
+          (_) async => {'status': 'paused', 'reason': entry.key},
+        );
+        final progress = await AndroidAppInstaller().downloadStatus(81);
+        expect(progress.stage, entry.value);
+        expect(progress.isPaused, isTrue);
+        expect(progress.isSettled, isFalse);
+      }
+    },
+  );
+
   test('full fallback keeps the same native handle and its progress', () async {
     final calls = <MethodCall>[];
     messenger.setMockMethodCallHandler(channel, (call) async {

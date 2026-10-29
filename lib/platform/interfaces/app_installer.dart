@@ -13,7 +13,9 @@ enum InstallOutcome {
 enum DownloadStage {
   pending, // queued, not a byte transferred yet
   running,
-  pausedNetwork, // waiting for connectivity, or for Wi-Fi on a metered link
+  pausedNetwork, // waiting for connectivity
+  pausedWifi, // the system requires Wi-Fi for this transfer
+  pausedUnknown, // paused without a reason exposed by Android
   pausedRetry, // transient failure; the system will retry on its own
   preparing, // verifying or reconstructing the APK; not installable yet
   done,
@@ -28,12 +30,16 @@ class DownloadProgress {
     this.total = -1,
     this.partial = false,
     this.fallback = false,
+    this.deviceHot = false,
   });
 
   final DownloadStage stage;
   final int received;
   final bool partial;
   final bool fallback;
+
+  /// An observed device condition, not a confirmed download restriction.
+  final bool deviceHot;
 
   /// Bytes expected, or -1 when the server sent no Content-Length.
   final int total;
@@ -47,6 +53,8 @@ class DownloadProgress {
 
   bool get isPaused =>
       stage == DownloadStage.pausedNetwork ||
+      stage == DownloadStage.pausedWifi ||
+      stage == DownloadStage.pausedUnknown ||
       stage == DownloadStage.pausedRetry;
 
   bool get isSettled =>
@@ -61,10 +69,12 @@ class DownloadProgress {
       other.received == received &&
       other.total == total &&
       other.partial == partial &&
-      other.fallback == fallback;
+      other.fallback == fallback &&
+      other.deviceHot == deviceHot;
 
   @override
-  int get hashCode => Object.hash(stage, received, total, partial, fallback);
+  int get hashCode =>
+      Object.hash(stage, received, total, partial, fallback, deviceHot);
 }
 
 /// Native durable job recovered before Dart could persist its handle.

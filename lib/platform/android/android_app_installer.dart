@@ -107,9 +107,8 @@ class AndroidAppInstaller implements AppInstaller {
     }
   }
 
-  /// The native side reports DownloadManager's raw status/reason ints; the
-  /// mapping to Kivo's vocabulary lives here so the platform layer stays a
-  /// thin passthrough and the enum has one owner.
+  /// Native status includes confirmed pause reasons and a separate thermal
+  /// observation. Pending downloads don't expose their exact blocking reason.
   @override
   Future<DownloadProgress> downloadStatus(int id) async {
     try {
@@ -126,6 +125,7 @@ class AndroidAppInstaller implements AppInstaller {
         total: total,
         partial: m['partial'] == true,
         fallback: m['fallback'] == true,
+        deviceHot: m['status'] == 'pending' && m['deviceHot'] == true,
       );
     } catch (_) {
       return DownloadProgress.gone;
@@ -136,10 +136,12 @@ class AndroidAppInstaller implements AppInstaller {
       switch (status) {
         'pending' => DownloadStage.pending,
         'running' => DownloadStage.running,
-        'paused' =>
-          reason == 'retry'
-              ? DownloadStage.pausedRetry
-              : DownloadStage.pausedNetwork,
+        'paused' => switch (reason) {
+          'retry' => DownloadStage.pausedRetry,
+          'network' => DownloadStage.pausedNetwork,
+          'wifi' => DownloadStage.pausedWifi,
+          _ => DownloadStage.pausedUnknown,
+        },
         'done' => DownloadStage.done,
         'preparing' => DownloadStage.preparing,
         'failed' => DownloadStage.failed,

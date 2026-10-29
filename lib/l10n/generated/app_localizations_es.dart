@@ -1694,6 +1694,39 @@ class AppLocalizationsEs extends AppLocalizations {
   String get updateStatusQueued => 'En cola…';
 
   @override
+  String get updateStatusQueuedHot => 'En cola · temperatura elevada';
+
+  @override
+  String get updateQueuedHotHint =>
+      'Deja enfriar el teléfono. Android puede retrasar la descarga mientras está caliente.';
+
+  @override
+  String get updateQueuedHint =>
+      'Android aún no ha iniciado la descarga y no ha indicado el motivo. Puedes dejarla en cola o cancelarla.';
+
+  @override
+  String get updateStatusPausedWifi => 'En pausa · esperando Wi-Fi';
+
+  @override
+  String get updatePausedWifiHint =>
+      'Conéctate a una red Wi-Fi para continuar.';
+
+  @override
+  String get updateStatusPausedUnknown => 'En pausa · esperando a Android';
+
+  @override
+  String get updatePausedUnknownHint =>
+      'Android ha pausado la descarga sin indicar el motivo. Puedes dejarla en cola o cancelarla.';
+
+  @override
+  String get updatePausedNetworkHint =>
+      'Comprueba la conexión a Internet. La descarga continuará cuando Android permita usar la red.';
+
+  @override
+  String get updatePausedRetryHint =>
+      'Hubo un problema de conexión. Android volverá a intentarlo automáticamente.';
+
+  @override
   String get updateStatusPausedNetwork => 'En pausa · esperando conexión';
 
   @override
