@@ -12,6 +12,7 @@ import 'ui/launch/launch_coordinator.dart';
 import 'player/background/background_playback.dart';
 import 'ui/home/home_shell.dart';
 import 'ui/update/update_dialog.dart';
+import 'ui/widgets/playback_failure_listener.dart';
 import 'core/diagnostics/open_trace.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:media_kit_video/media_kit_video.dart'
@@ -81,6 +82,7 @@ class _KivoAppState extends ConsumerState<KivoApp> {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: localeSetting == 'system' ? null : Locale(localeSetting),
+      builder: (context, child) => PlaybackFailureListener(child: child!),
       home: const HomeShell(),
     );
   }

@@ -1,0 +1,46 @@
+{
+  "recipe": "realmedia-v1",
+  "upstream": "fe8c3ac1a91c09aa6fb1deccbc833f1bafa54768",
+  "addedDecoders": [
+    "rv10",
+    "rv20",
+    "rv30",
+    "rv40",
+    "cook",
+    "sipr"
+  ],
+  "artifacts": [
+    {
+      "abi": "arm64-v8a",
+      "file": "realmedia-arm64-v8a.jar",
+      "sha256": "cb4768efc63673a48af786fa21415c104c63e94b66d4f99a6b62266a6bed8315",
+      "sizeBytes": 5793638,
+      "libmpvBytes": 12538832,
+      "baseSizeBytes": 5729978
+    },
+    {
+      "abi": "armeabi-v7a",
+      "file": "realmedia-armeabi-v7a.jar",
+      "sha256": "be170755f56e37bc4dda3650bab3bd4f62a80241f07bbe19e837e2d80ac63f10",
+      "sizeBytes": 5565936,
+      "libmpvBytes": 11924524,
+      "baseSizeBytes": 5499353
+    },
+    {
+      "abi": "x86_64",
+      "file": "realmedia-x86_64.jar",
+      "sha256": "a3b755ed2f594b74629e1ebde205572c48e5fe35fde6c3e314dbe4f276cddfd9",
+      "sizeBytes": 6567439,
+      "libmpvBytes": 16025128,
+      "baseSizeBytes": 6516632
+    },
+    {
+      "abi": "x86",
+      "file": "realmedia-x86.jar",
+      "sha256": "1b59ab71e093913d9ffe209aa7e7ad126c61d9bad45d47e6fd827d21c3948bd5",
+      "sizeBytes": 5895925,
+      "libmpvBytes": 13346984,
+      "baseSizeBytes": 5839220
+    }
+  ]
+}

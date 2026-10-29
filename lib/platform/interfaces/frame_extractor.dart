@@ -4,6 +4,8 @@ import 'dart:typed_data';
 /// Android-only for now (MediaMetadataRetriever); iOS fills this in later.
 abstract class FrameExtractor {
   /// Prepare/reuse an extractor for [path]. Idempotent for the same path.
+  /// A format unsupported by the thumbnail decoder can yield no frames even
+  /// when the playback engine can play it.
   Future<void> prepare(String path);
 
   /// Nearest (keyframe) frame to [position] as JPEG bytes, or null.

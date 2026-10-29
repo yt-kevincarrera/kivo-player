@@ -1,0 +1,31 @@
+[
+  {
+    "file": "rv10.rm",
+    "url": "https://samples.ffmpeg.org/real/VC-RV10/plumbbob1_hi.rm",
+    "video": "rv10",
+    "audio": "sipr",
+    "sha256": "669be770479d1650313bb76401221b09e9d1361329e80235063256802db0cf4c"
+  },
+  {
+    "file": "rv30.rm",
+    "url": "https://samples.ffmpeg.org/real/VC-RV30/sample.rm",
+    "video": "rv30",
+    "audio": "cook",
+    "sha256": "cb01503bf8fe0077f2b51b23cb673bc95e038e0ebd371cde0069dbba7d4dee96"
+  },
+  {
+    "file": "rv40.rm",
+    "url": "https://samples.ffmpeg.org/real/VC-RV40/20040506.rm",
+    "video": "rv40",
+    "audio": "cook",
+    "sha256": "cfd9358eb8e848640d6b0442230c840cb9fc948dc9cca4eb556039d232b6edad"
+  },
+  {
+    "file": "sipr.rm",
+    "expectedSeekPositionSeconds": 2.376,
+    "url": "https://samples.ffmpeg.org/real/AC-sipr/28dewdz-ep2.rm",
+    "video": "rv20",
+    "audio": "sipr",
+    "sha256": "127c976042490c313b9820835feebc65784e16c7dd68a40cbd7d0de6069bc61e"
+  }
+]

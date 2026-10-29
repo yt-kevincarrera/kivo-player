@@ -47,6 +47,7 @@ class FakePlaybackEngine implements PlaybackEngine {
   final _playing = StreamController<bool>.broadcast();
   final _buffering = StreamController<bool>.broadcast();
   final _completed = StreamController<bool>.broadcast();
+  final _unplayable = StreamController<String>.broadcast();
   final _audioTracks = StreamController<List<MediaTrack>>.broadcast();
   final _subtitleTracks = StreamController<List<MediaTrack>>.broadcast();
   final _currentAudio = StreamController<MediaTrack?>.broadcast();
@@ -86,12 +87,15 @@ class FakePlaybackEngine implements PlaybackEngine {
   @override
   Stream<bool> get completedStream => _completed.stream;
   @override
+  Stream<String> get unplayableStream => _unplayable.stream;
+  @override
   Stream<bool> get hasVideoFrameStream => _frame.stream;
 
   void emitPosition(Duration d) => _pos.add(d);
   void emitDuration(Duration d) => _dur.add(d);
   void emitPlaying(bool v) => _playing.add(v);
   void emitCompleted(bool v) => _completed.add(v);
+  void emitUnplayable(String message) => _unplayable.add(message);
   void emitVideoFrame(bool v) => _frame.add(v);
 
   @override
@@ -140,6 +144,7 @@ class FakePlaybackEngine implements PlaybackEngine {
     _playing.close();
     _buffering.close();
     _completed.close();
+    _unplayable.close();
     _audioTracks.close();
     _subtitleTracks.close();
     _currentAudio.close();

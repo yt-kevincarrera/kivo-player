@@ -216,14 +216,21 @@ class MainActivity : FlutterFragmentActivity() {
                             try {
                                 if (retrieverPath != path) {
                                     retriever?.release()
+                                    retriever = null
+                                    retrieverPath = null
                                     val r = MediaMetadataRetriever()
                                     // content:// URIs (MediaStore library) need the
                                     // Context+Uri overload; setDataSource(String) only
                                     // handles file paths/URLs.
-                                    if (path.startsWith("content://")) {
-                                        r.setDataSource(this@MainActivity, Uri.parse(path))
-                                    } else {
-                                        r.setDataSource(path)
+                                    try {
+                                        if (path.startsWith("content://")) {
+                                            r.setDataSource(this@MainActivity, Uri.parse(path))
+                                        } else {
+                                            r.setDataSource(path)
+                                        }
+                                    } catch (e: Exception) {
+                                        runCatching { r.release() }
+                                        throw e
                                     }
                                     // Warm the decoder so the first scrub frame isn't a
                                     // ~half-second cold-start (discard the result).
@@ -319,56 +326,8 @@ class MainActivity : FlutterFragmentActivity() {
                 when (call.method) {
                     "scan" -> {
                         ioExecutor.execute {
-                            val out = ArrayList<HashMap<String, Any>>()
                             try {
-                                val col = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                                val proj = arrayOf(
-                                    MediaStore.Video.Media._ID,
-                                    MediaStore.Video.Media.DISPLAY_NAME,
-                                    MediaStore.Video.Media.BUCKET_DISPLAY_NAME,
-                                    MediaStore.Video.Media.DURATION,
-                                    MediaStore.Video.Media.SIZE,
-                                    MediaStore.Video.Media.DATE_ADDED,
-                                    MediaStore.Video.Media.DATA,
-                                    MediaStore.Video.Media.WIDTH,
-                                    MediaStore.Video.Media.HEIGHT,
-                                )
-                                queryVideos(col, proj,
-                                    "${MediaStore.Video.Media.DATE_ADDED} DESC")?.use { c ->
-                                    val idC = c.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
-                                    val nameC = c.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
-                                    val bucketC = c.getColumnIndex(MediaStore.Video.Media.BUCKET_DISPLAY_NAME)
-                                    val durC = c.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
-                                    val sizeC = c.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)
-                                    val dateC = c.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED)
-                                    val dataC = c.getColumnIndex(MediaStore.Video.Media.DATA)
-                                    val widthC = c.getColumnIndex(MediaStore.Video.Media.WIDTH)
-                                    val heightC = c.getColumnIndex(MediaStore.Video.Media.HEIGHT)
-                                    // -1 whenever the column wasn't queried or isn't there.
-                                    val relPathC = c.getColumnIndex(MediaStore.Video.Media.RELATIVE_PATH)
-                                    while (c.moveToNext()) {
-                                        val id = c.getLong(idC)
-                                        val uri = ContentUris.withAppendedId(col, id).toString()
-                                        val data = if (dataC >= 0) c.getString(dataC) else null
-                                        var folder = if (bucketC >= 0) c.getString(bucketC) else null
-                                        if (folder.isNullOrEmpty() && data != null) {
-                                            folder = File(data).parentFile?.name
-                                        }
-                                        out.add(hashMapOf(
-                                            "id" to id.toString(),
-                                            "uri" to uri,
-                                            "name" to (c.getString(nameC) ?: ""),
-                                            "folder" to (folder ?: ""),
-                                            "durationMs" to c.getLong(durC),
-                                            "sizeBytes" to c.getLong(sizeC),
-                                            "dateAddedMs" to c.getLong(dateC) * 1000L, // DATE_ADDED is seconds
-                                            "width" to (if (widthC >= 0) c.getInt(widthC) else 0),
-                                            "height" to (if (heightC >= 0) c.getInt(heightC) else 0),
-                                            "path" to relativePathOf(
-                                                if (relPathC >= 0) c.getString(relPathC) else null, data),
-                                        ))
-                                    }
-                                }
+                                val out = MediaCatalog(contentResolver).scan()
                                 runOnUiThread { result.success(out) }
                             } catch (e: Exception) {
                                 runOnUiThread { result.error("SCAN_FAILED", e.message, null) }
@@ -1058,9 +1017,6 @@ class MainActivity : FlutterFragmentActivity() {
     /// Below that the provider's SQLite schema has no such column, so naming it in
     /// a projection makes the WHOLE query fail to compile ("no such column
     /// relative_path") instead of just yielding -1 from getColumnIndex.
-    private val hasRelativePath: Boolean
-        get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
-
     /// Queries video rows with RELATIVE_PATH appended only where the OS version
     /// says it exists — and, if the provider rejects it anyway, retries without it.
     /// The version check covers stock Android; the retry covers vendor-forked
@@ -1072,27 +1028,14 @@ class MainActivity : FlutterFragmentActivity() {
         columns: Array<String>,
         sortOrder: String? = null,
     ): android.database.Cursor? {
-        if (!hasRelativePath) return contentResolver.query(uri, columns, null, null, sortOrder)
-        val withRelPath = arrayOf(*columns, MediaStore.Video.Media.RELATIVE_PATH)
-        return try {
-            contentResolver.query(uri, withRelPath, null, null, sortOrder)
-        } catch (e: Exception) {
-            android.util.Log.w("kivo/media",
-                "query rejected ${MediaStore.Video.Media.RELATIVE_PATH} (${e.message}); retrying without it")
-            contentResolver.query(uri, columns, null, null, sortOrder)
-        }
+        return MediaCatalog(contentResolver).query(uri, columns, sortOrder)
     }
 
     /// The folder a row lives in, relative to the storage root, MediaStore style
     /// ("Movies/"). Read from RELATIVE_PATH where available, otherwise derived
     /// from the _data path so pre-Android-10 devices still get a real folder.
     private fun relativePathOf(relPath: String?, data: String?): String {
-        if (!relPath.isNullOrEmpty()) return relPath
-        val parent = data?.takeIf { it.isNotEmpty() }?.let { File(it).parent } ?: return ""
-        val root = Environment.getExternalStorageDirectory().absolutePath.trimEnd('/')
-        if (!parent.startsWith(root)) return "" // removable volume: unknown root
-        val rel = parent.removePrefix(root).trim('/')
-        return if (rel.isEmpty()) "" else "$rel/"
+        return MediaCatalog.relativePathOf(relPath, data)
     }
 
     /// The vault directory: a hidden folder in shared storage (same volume as the

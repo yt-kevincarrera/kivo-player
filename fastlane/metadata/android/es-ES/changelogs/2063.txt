@@ -1,0 +1,4 @@
+Soporte para videos .rm y .rmvb con RealVideo 1–4 y audio Cook/SIPR.
+Permite seleccionarlos aunque Android los clasifique como audio.
+Muestra un aviso cuando el motor no puede reproducir un archivo.
+La falta de miniaturas de Android ya no interrumpe la apertura del video.

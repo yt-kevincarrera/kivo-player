@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,6 +28,29 @@ class _GrantedPerm implements MediaPermission {
   Future<MediaAccess> status() async => MediaAccess.granted;
   @override
   Future<MediaAccess> request() async => MediaAccess.granted;
+}
+
+class _RecordingFilePicker extends FilePicker {
+  FileType? requestedType;
+
+  @override
+  Future<FilePickerResult?> pickFiles({
+    String? dialogTitle,
+    String? initialDirectory,
+    FileType type = FileType.any,
+    List<String>? allowedExtensions,
+    Function(FilePickerStatus)? onFileLoading,
+    bool allowCompression = true,
+    int compressionQuality = 30,
+    bool allowMultiple = false,
+    bool withData = false,
+    bool withReadStream = false,
+    bool lockParentWindow = false,
+    bool readSequential = false,
+  }) async {
+    requestedType = type;
+    return null;
+  }
 }
 
 /// A fixed timestamp so groupByDay produces a predictable label.
@@ -89,6 +113,23 @@ Future<ProviderContainer> _buildApp(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('open file allows video containers with non-video MIME types', (
+    tester,
+  ) async {
+    final picker = _RecordingFilePicker();
+    FilePicker.platform = picker;
+    addTearDown(FilePickerIO.registerWith);
+    final container = await _buildApp(tester);
+    addTearDown(container.dispose);
+
+    await tester.tap(find.byTooltip('Abrir archivo'));
+    await tester.pumpAndSettle();
+
+    expect(picker.requestedType, FileType.any);
+    expect(container.read(currentVideoProvider), isNull);
+    expect(find.text('Inception.mp4'), findsOneWidget);
+  });
+
   testWidgets('Kivo wordmark is shown in the AppBar', (tester) async {
     await _buildApp(tester);
 

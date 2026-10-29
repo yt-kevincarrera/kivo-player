@@ -1,0 +1,59 @@
+name: Android native libraries
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'third_party/media_kit_libs_android_video/**'
+      - 'scripts/native/**'
+      - '.github/workflows/native-libraries.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/native/verify.py
+
+  rebuild:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install native build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool pkg-config ninja-build nasm python3-pip unzip zip gettext autopoint
+          python3 -m pip install meson==1.3.2
+      - name: Download pinned Android NDK
+        run: |
+          curl --fail --location --retry 3 https://dl.google.com/android/repository/android-ndk-r25c-linux.zip -o "$RUNNER_TEMP/ndk.zip"
+          echo "53af80a1cce9144025b81c78c8cd556bff42bd0e  $RUNNER_TEMP/ndk.zip" | sha1sum --check
+          unzip -q "$RUNNER_TEMP/ndk.zip" -d "$RUNNER_TEMP"
+      - name: Build and package
+        env:
+          KIVO_NATIVE_WORK: ${{ runner.temp }}/kivo-native
+          ANDROID_NDK_HOME: ${{ runner.temp }}/android-ndk-r25c
+        run: |
+          bash scripts/native/build.sh
+          python3 scripts/native/package.py --work "$KIVO_NATIVE_WORK" --base-cache "$RUNNER_TEMP/base-jni"
+          python3 scripts/native/verify.py
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Decode RealMedia on Android
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          script: python3 scripts/native/smoke.py --ndk "$RUNNER_TEMP/android-ndk-r25c" --serial emulator-5554 --jar third_party/media_kit_libs_android_video/native/realmedia-x86_64.jar
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kivo-realmedia-native
+          path: |
+            third_party/media_kit_libs_android_video/native/
+            ${{ runner.temp }}/kivo-native/symbols/

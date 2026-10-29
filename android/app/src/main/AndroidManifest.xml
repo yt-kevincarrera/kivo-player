@@ -78,6 +78,9 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="video/*" />
+                <data android:mimeType="application/vnd.rn-realmedia" />
+                <data android:mimeType="application/vnd.rn-realmedia-vbr" />
+                <data android:mimeType="audio/x-pn-realaudio" />
             </intent-filter>
         </activity>
         <!-- "Continuar viendo" home-screen widget (LauncherBridge.kt). -->

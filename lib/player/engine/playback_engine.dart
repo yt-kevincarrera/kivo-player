@@ -33,6 +33,11 @@ abstract class PlaybackEngine {
   Stream<bool> get bufferingStream;
   Stream<bool> get completedStream;
 
+  /// A terminal open failure reported after the native load command returned.
+  /// Recoverable decoder errors (which can trigger software fallback) are not
+  /// included: this means the file has no playable audio or video at all.
+  Stream<String> get unplayableStream;
+
   /// Emits true once the currently-open media has a decoded video frame, and
   /// false while a (re)open is in flight (no frame yet). Backed by the video
   /// width: media_kit resets it to null on every open and sets it when the
