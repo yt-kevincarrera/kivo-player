@@ -2,8 +2,22 @@ import 'natural_sort.dart';
 import 'file_system_lister.dart';
 
 const kVideoExtensions = {
-  'mkv', 'mp4', 'avi', 'mov', 'webm', 'flv', 'wmv',
-  'm4v', 'mpg', 'mpeg', 'ts', 'm2ts', '3gp', 'ogv',
+  'mkv',
+  'mp4',
+  'avi',
+  'mov',
+  'webm',
+  'flv',
+  'wmv',
+  'm4v',
+  'mpg',
+  'mpeg',
+  'ts',
+  'm2ts',
+  '3gp',
+  'ogv',
+  'rm',
+  'rmvb',
 };
 
 class FolderQueueScanner {

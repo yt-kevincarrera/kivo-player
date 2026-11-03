@@ -502,6 +502,110 @@ void main() {
     await close();
   });
 
+  testWidgets(
+    'a queued hot device explains the wait and clears the hint on cooling',
+    (tester) async {
+      final installer = FakeAppInstaller()
+        ..status = const DownloadProgress(
+          DownloadStage.pending,
+          deviceHot: true,
+        );
+      final c = await _container(installer);
+      addTearDown(c.dispose);
+      final close = await _openDialog(tester, c);
+      await tester.tap(find.text(_l10n.updateDownloadAction));
+      await tester.pumpAndSettle();
+      await c.read(updateDownloadProvider.notifier).refresh();
+      await tester.pumpAndSettle();
+
+      expect(find.text('En cola · temperatura elevada'), findsOneWidget);
+      expect(
+        find.textContaining('Android puede retrasar la descarga'),
+        findsOneWidget,
+      );
+      expect(find.text(_l10n.commonCancel), findsOneWidget);
+      expect(find.text(_l10n.updateHideAction), findsOneWidget);
+      expect(installer.cancelled, isEmpty);
+
+      // No byte or stage changed: the diagnostic alone must refresh the UI.
+      installer.status = const DownloadProgress(DownloadStage.pending);
+      await c.read(updateDownloadProvider.notifier).refresh();
+      await tester.pumpAndSettle();
+      expect(find.text('En cola · temperatura elevada'), findsNothing);
+      expect(find.text(_l10n.updateStatusQueued), findsOneWidget);
+      expect(find.textContaining('no ha indicado el motivo'), findsOneWidget);
+      await close();
+    },
+  );
+
+  for (final locale in [const Locale('es'), const Locale('en')]) {
+    testWidgets('wait messages remain actionable at 2x text in $locale', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 568);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final l10n = l10nFor(locale);
+      final installer = FakeAppInstaller()
+        ..status = const DownloadProgress(
+          DownloadStage.pending,
+          deviceHot: true,
+        );
+      final c = await _container(installer);
+      addTearDown(c.dispose);
+      final close = await _openDialog(tester, c, locale: locale, textScale: 2);
+      await tester.tap(find.text(l10n.updateDownloadAction));
+      await tester.pumpAndSettle();
+      for (final (progress, caption, hint) in [
+        (
+          const DownloadProgress(DownloadStage.pending, deviceHot: true),
+          l10n.updateStatusQueuedHot,
+          l10n.updateQueuedHotHint,
+        ),
+        (
+          const DownloadProgress(DownloadStage.pending),
+          l10n.updateStatusQueued,
+          l10n.updateQueuedHint,
+        ),
+        (
+          const DownloadProgress(DownloadStage.pausedNetwork),
+          l10n.updateStatusPausedNetwork,
+          l10n.updatePausedNetworkHint,
+        ),
+        (
+          const DownloadProgress(DownloadStage.pausedRetry),
+          l10n.updateStatusPausedRetry,
+          l10n.updatePausedRetryHint,
+        ),
+        (
+          const DownloadProgress(DownloadStage.pausedWifi),
+          l10n.updateStatusPausedWifi,
+          l10n.updatePausedWifiHint,
+        ),
+        (
+          const DownloadProgress(DownloadStage.pausedUnknown),
+          l10n.updateStatusPausedUnknown,
+          l10n.updatePausedUnknownHint,
+        ),
+      ]) {
+        installer.status = progress;
+        await c.read(updateDownloadProvider.notifier).refresh();
+        await tester.pumpAndSettle();
+        expect(find.text(caption), findsOneWidget);
+        await tester.ensureVisible(find.text(hint));
+        expect(find.text(hint), findsOneWidget);
+        expect(find.text(l10n.commonCancel), findsOneWidget);
+        expect(find.text(l10n.updateHideAction), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      }
+      await tester.tap(find.text(l10n.updateHideAction));
+      await tester.pumpAndSettle();
+      expect(installer.cancelled, isEmpty);
+      await close();
+    });
+  }
+
   testWidgets('Ocultar leaves the download alone', (tester) async {
     final installer = FakeAppInstaller();
     final c = await _container(installer);

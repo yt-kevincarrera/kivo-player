@@ -2557,6 +2557,15 @@
   "updatePartialDownloadHint": "Solo se descargan los cambios. Puedes salir de Kivo.",
   "updateFullDownloadFallbackHint": "Esta actualización necesita la descarga completa. Puedes salir de Kivo.",
   "updateStatusQueued": "En cola…",
+  "updateStatusQueuedHot": "En cola · temperatura elevada",
+  "updateQueuedHotHint": "Deja enfriar el teléfono. Android puede retrasar la descarga mientras está caliente.",
+  "updateQueuedHint": "Android aún no ha iniciado la descarga y no ha indicado el motivo. Puedes dejarla en cola o cancelarla.",
+  "updateStatusPausedWifi": "En pausa · esperando Wi-Fi",
+  "updatePausedWifiHint": "Conéctate a una red Wi-Fi para continuar.",
+  "updateStatusPausedUnknown": "En pausa · esperando a Android",
+  "updatePausedUnknownHint": "Android ha pausado la descarga sin indicar el motivo. Puedes dejarla en cola o cancelarla.",
+  "updatePausedNetworkHint": "Comprueba la conexión a Internet. La descarga continuará cuando Android permita usar la red.",
+  "updatePausedRetryHint": "Hubo un problema de conexión. Android volverá a intentarlo automáticamente.",
   "@updateStatusQueued": {
     "description": "Texto de estado de la descarga mientras está en cola."
   },

@@ -2828,6 +2828,60 @@ abstract class AppLocalizations {
   /// **'En cola…'**
   String get updateStatusQueued;
 
+  /// No description provided for @updateStatusQueuedHot.
+  ///
+  /// In es, this message translates to:
+  /// **'En cola · temperatura elevada'**
+  String get updateStatusQueuedHot;
+
+  /// No description provided for @updateQueuedHotHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Deja enfriar el teléfono. Android puede retrasar la descarga mientras está caliente.'**
+  String get updateQueuedHotHint;
+
+  /// No description provided for @updateQueuedHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Android aún no ha iniciado la descarga y no ha indicado el motivo. Puedes dejarla en cola o cancelarla.'**
+  String get updateQueuedHint;
+
+  /// No description provided for @updateStatusPausedWifi.
+  ///
+  /// In es, this message translates to:
+  /// **'En pausa · esperando Wi-Fi'**
+  String get updateStatusPausedWifi;
+
+  /// No description provided for @updatePausedWifiHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Conéctate a una red Wi-Fi para continuar.'**
+  String get updatePausedWifiHint;
+
+  /// No description provided for @updateStatusPausedUnknown.
+  ///
+  /// In es, this message translates to:
+  /// **'En pausa · esperando a Android'**
+  String get updateStatusPausedUnknown;
+
+  /// No description provided for @updatePausedUnknownHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Android ha pausado la descarga sin indicar el motivo. Puedes dejarla en cola o cancelarla.'**
+  String get updatePausedUnknownHint;
+
+  /// No description provided for @updatePausedNetworkHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Comprueba la conexión a Internet. La descarga continuará cuando Android permita usar la red.'**
+  String get updatePausedNetworkHint;
+
+  /// No description provided for @updatePausedRetryHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Hubo un problema de conexión. Android volverá a intentarlo automáticamente.'**
+  String get updatePausedRetryHint;
+
   /// Texto de estado de la descarga en pausa por falta de red.
   ///
   /// In es, this message translates to:

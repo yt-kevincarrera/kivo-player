@@ -14,8 +14,13 @@ void main() {
 
   late ErrorLog log;
 
-  setUp(() => log =
-      ErrorLog(InMemoryErrorLogStore(), appVersion: '1.1.0', androidSdk: 28));
+  setUp(
+    () => log = ErrorLog(
+      InMemoryErrorLogStore(),
+      appVersion: '1.1.0',
+      androidSdk: 28,
+    ),
+  );
 
   tearDown(() => messenger.setMockMethodCallHandler(channel, null));
 
@@ -30,9 +35,15 @@ void main() {
 
     await expectLater(
       AndroidMediaIndexer(log).scan(),
-      throwsA(isA<KivoFailure>()
-          .having((f) => f.code, 'code', 'KV-201')
-          .having((f) => f.message, 'message', 'No pudimos leer tu biblioteca')),
+      throwsA(
+        isA<KivoFailure>()
+            .having((f) => f.code, 'code', 'KV-201')
+            .having(
+              (f) => f.message,
+              'message',
+              'No pudimos leer tu biblioteca',
+            ),
+      ),
     );
   });
 
@@ -52,5 +63,26 @@ void main() {
 
     expect(await AndroidMediaIndexer(log).thumbnail('7'), isNull);
     expect(log.entries().single.code, 'KV-202');
+  });
+
+  test('thumbnail keeps the Files URI of a RealMedia library row', () async {
+    const uri = 'content://media/external/file/7';
+    Map<dynamic, dynamic>? thumbnailArgs;
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      if (call.method == 'scan') {
+        return [
+          {'id': '7', 'uri': uri, 'name': 'clip.rm'},
+        ];
+      }
+      thumbnailArgs = call.arguments as Map;
+      return null;
+    });
+    final indexer = AndroidMediaIndexer(
+      log,
+      realMediaThumbnail: (_) async => null,
+    );
+    await indexer.scan();
+    await indexer.thumbnail('7');
+    expect(thumbnailArgs?['uri'], uri);
   });
 }

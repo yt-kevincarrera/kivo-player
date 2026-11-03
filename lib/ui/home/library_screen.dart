@@ -132,7 +132,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   }
 
   Future<void> _pick() async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.video);
+    // Some video containers (notably RealMedia) have an application/* MIME
+    // type, or none at all on a vendor's Android build. Let the playback
+    // engine inspect the selected file instead of hiding it in the picker.
+    final result = await FilePicker.platform.pickFiles(type: FileType.any);
     final path = result?.files.single.path;
     if (path != null) _openPath(path);
   }

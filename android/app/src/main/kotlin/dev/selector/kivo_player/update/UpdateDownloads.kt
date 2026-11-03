@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.ParcelFileDescriptor
+import android.os.PowerManager
 import android.util.AtomicFile
 import androidx.core.content.FileProvider
 import org.json.JSONObject
@@ -306,17 +307,17 @@ class UpdateDownloads private constructor(private val context: Context) {
             if (!cursor.moveToFirst()) return null
             val status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
             val reason = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_REASON))
-            return mapOf(
-                "status" to when (status) {
-                    DownloadManager.STATUS_PENDING -> "pending"
-                    DownloadManager.STATUS_RUNNING -> "running"
-                    DownloadManager.STATUS_PAUSED -> "paused"
-                    DownloadManager.STATUS_SUCCESSFUL -> "done"
-                    else -> "failed"
-                },
-                "reason" to if (reason == DownloadManager.PAUSED_WAITING_TO_RETRY) "retry" else "network",
-                "received" to cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)),
-                "total" to cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)),
+            val thermalStatus = if (status == DownloadManager.STATUS_PENDING &&
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                runCatching {
+                    (context.getSystemService(Context.POWER_SERVICE) as PowerManager).currentThermalStatus
+                }.getOrNull()
+            } else null
+            return DownloadStatus.progress(
+                status, reason,
+                cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)),
+                cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)),
+                thermalStatus,
             )
         }
         return null

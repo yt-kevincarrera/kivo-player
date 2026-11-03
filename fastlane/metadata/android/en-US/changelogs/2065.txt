@@ -1,0 +1,3 @@
+RealMedia (.rm and .rmvb) videos show their duration when Android leaves it empty.
+Library thumbnails use Kivo's RealMedia decoder when Android cannot generate them.
+Thumbnail caching limits memory use and retries temporary failures.

@@ -1,0 +1,44 @@
+import groovy.json.JsonSlurper
+import java.security.MessageDigest
+
+group 'com.alexmercerind.media_kit_libs_android_video'
+version '1.0'
+
+buildscript {
+    repositories { google(); mavenCentral() }
+    dependencies { classpath 'com.android.tools.build:gradle:8.11.1' }
+}
+
+apply plugin: 'com.android.library'
+
+def nativeDir = file('../native')
+def nativeManifest = new JsonSlurper().parse(new File(nativeDir, 'manifest.json'))
+def nativeJars = nativeManifest.artifacts.collect { artifact -> new File(nativeDir, artifact.file) }
+
+android {
+    namespace 'com.alexmercerind.media_kit_libs_android_video'
+    compileSdkVersion 36
+    defaultConfig { minSdkVersion 21 }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies { implementation files(nativeJars) }
+
+def verifyNativeArtifacts = tasks.register('verifyNativeArtifacts') {
+    inputs.file(new File(nativeDir, 'manifest.json'))
+    inputs.files(nativeJars)
+    doLast {
+        nativeManifest.artifacts.each { artifact ->
+            def jar = new File(nativeDir, artifact.file)
+            if (!jar.isFile()) throw new GradleException("Missing Kivo native artifact: ${jar}")
+            def actual = MessageDigest.getInstance('SHA-256').digest(jar.bytes).encodeHex().toString()
+            if (actual != artifact.sha256) {
+                throw new GradleException("SHA-256 mismatch for ${jar.name}; rebuild with scripts/native/build.sh")
+            }
+        }
+    }
+}
+tasks.named('preBuild').configure { dependsOn verifyNativeArtifacts }

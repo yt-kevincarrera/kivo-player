@@ -1,0 +1,4 @@
+La actualización explica si espera conexión, Wi-Fi o un reintento de Android.
+Si el teléfono está caliente y la descarga sigue en cola, muestra un aviso para dejarlo enfriar.
+Cuando Android no indica el motivo de la espera, Kivo lo dice claramente.
+Los mensajes se adaptan a texto grande y se anuncian al lector de pantalla.

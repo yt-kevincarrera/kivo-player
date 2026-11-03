@@ -1685,6 +1685,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String get updateStatusQueued => 'Queued…';
 
   @override
+  String get updateStatusQueuedHot => 'Queued · device is warm';
+
+  @override
+  String get updateQueuedHotHint =>
+      'Let your phone cool down. Android may delay the download while it is warm.';
+
+  @override
+  String get updateQueuedHint =>
+      'Android has not started the download or provided a reason yet. You can leave it queued or cancel it.';
+
+  @override
+  String get updateStatusPausedWifi => 'Paused · waiting for Wi-Fi';
+
+  @override
+  String get updatePausedWifiHint => 'Connect to a Wi-Fi network to continue.';
+
+  @override
+  String get updateStatusPausedUnknown => 'Paused · waiting for Android';
+
+  @override
+  String get updatePausedUnknownHint =>
+      'Android paused the download without providing a reason. You can leave it queued or cancel it.';
+
+  @override
+  String get updatePausedNetworkHint =>
+      'Check your Internet connection. The download will continue when Android allows network access.';
+
+  @override
+  String get updatePausedRetryHint =>
+      'There was a connection problem. Android will retry automatically.';
+
+  @override
   String get updateStatusPausedNetwork => 'Paused · waiting for connection';
 
   @override

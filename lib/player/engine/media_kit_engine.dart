@@ -71,6 +71,13 @@ class MediaKitEngine implements PlaybackEngine {
   @override
   Stream<bool> get completedStream => _player.stream.completed;
 
+  @override
+  Stream<String> get unplayableStream => _player.stream.error.where(
+      (message) => const {
+        'No video or audio streams selected.',
+        'Failed to recognize file format.',
+      }.contains(message.trim()));
+
   /// Mirrors our own `vid` intent so [hasVideoFrameStream] can ignore the width
   /// events that `vid=no` produces (see [frameReadyStream]).
   bool _videoOutputEnabled = true;

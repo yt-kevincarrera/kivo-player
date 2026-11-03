@@ -18,7 +18,9 @@ No ads. No tracking. No accounts. Just your videos — played beautifully.
 
 Kivo is a local-only video player built to replace the ad-ridden, bloated players on the Play Store. It plays what's on your device — that's it — with a fast, gesture-driven interface where **almost everything is configurable** and a single accent color (gold by default) themes the whole app. In Spanish and English.
 
-Powered by **[media_kit](https://github.com/media-kit/media-kit) (libmpv)**, so it plays practically any format or codec you throw at it.
+Powered by **[media_kit](https://github.com/media-kit/media-kit) (libmpv)**, with support for many common video formats and codecs.
+
+The Android native build includes RealVideo 1–4 and Cook/SIPR audio support for `.rm` and `.rmvb` files. Android sometimes classifies these files as audio, so use **Open file** if media-library permissions prevent them from appearing in the library. Renaming a file does not convert its format.
 
 ## ✨ Features
 

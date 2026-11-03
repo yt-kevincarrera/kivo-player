@@ -1,0 +1,4 @@
+Play .rm and .rmvb videos with RealVideo 1–4 and Cook/SIPR audio.
+Select these files even when Android classifies them as audio.
+Show an error when the playback engine cannot play a file.
+Missing Android thumbnails no longer interrupt opening a video.

@@ -1,0 +1,4 @@
+Updates explain when Android is waiting for a connection, Wi-Fi, or a retry.
+Queued downloads show a cooling hint when the device is warm.
+Kivo clearly says when Android does not provide a reason for the wait.
+Status messages support large text and screen reader announcements.

@@ -2558,6 +2558,15 @@
   "updatePartialDownloadHint": "Only changes are being downloaded. You can leave Kivo.",
   "updateFullDownloadFallbackHint": "This update needs the full download. You can leave Kivo.",
   "updateStatusQueued": "Queued…",
+  "updateStatusQueuedHot": "Queued · device is warm",
+  "updateQueuedHotHint": "Let your phone cool down. Android may delay the download while it is warm.",
+  "updateQueuedHint": "Android has not started the download or provided a reason yet. You can leave it queued or cancel it.",
+  "updateStatusPausedWifi": "Paused · waiting for Wi-Fi",
+  "updatePausedWifiHint": "Connect to a Wi-Fi network to continue.",
+  "updateStatusPausedUnknown": "Paused · waiting for Android",
+  "updatePausedUnknownHint": "Android paused the download without providing a reason. You can leave it queued or cancel it.",
+  "updatePausedNetworkHint": "Check your Internet connection. The download will continue when Android allows network access.",
+  "updatePausedRetryHint": "There was a connection problem. Android will retry automatically.",
   "@updateStatusQueued": {
     "description": "Download status text while it is queued."
   },

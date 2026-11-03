@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 
 /// The native code inside the APK that Flutter's own license list does not
 /// know about: the libmpv build media_kit ships (media-kit/libmpv-android-
-/// video-build, "default" flavour — mpv built with -Dgpl=false, FFmpeg with
+/// video-build, Kivo's RealMedia-enabled default flavour — mpv with -Dgpl=false, FFmpeg with
 /// --disable-gpl, so the whole stack is LGPL-compatible) and the charset
 /// detector used for subtitles. Versions are that build's
 /// `buildscripts/include/depinfo.sh`.
@@ -11,6 +11,8 @@ import 'package:flutter/foundation.dart';
 /// scripts that build this exact binary, are at [_buildSource].
 const _buildSource =
     'https://github.com/media-kit/libmpv-android-video-build';
+const _buildRecipe =
+    'https://github.com/yt-kevincarrera/kivo-player/tree/v1.33.0/scripts/native';
 
 class NativeLicense {
   const NativeLicense(this.name, this.license, this.url, {this.note});
@@ -30,9 +32,11 @@ class NativeLicense {
 const nativeLicenses = <NativeLicense>[
   NativeLicense('mpv (libmpv)', 'LGPL-2.1-or-later',
       'https://github.com/mpv-player/mpv',
-      note: 'Built from commit 78d43740 by $_buildSource with -Dgpl=false.'),
+      note: 'Built from commit 78d43740 using $_buildSource with -Dgpl=false. '
+          'Kivo build recipe: $_buildRecipe.'),
   NativeLicense('FFmpeg 6.0', 'LGPL-2.1-or-later', 'https://ffmpeg.org',
-      note: 'Built by $_buildSource with --disable-gpl --disable-nonfree.'),
+      note: 'Based on $_buildSource with --disable-gpl --disable-nonfree. '
+          'Kivo enables RealVideo 1-4, Cook and SIPR: $_buildRecipe.'),
   NativeLicense('libass 0.17.1', 'ISC', 'https://github.com/libass/libass'),
   NativeLicense('FreeType 2.13.0', 'FTL', 'https://freetype.org',
       note: 'Portions of this software are copyright © The FreeType Project '

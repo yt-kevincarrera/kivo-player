@@ -3,6 +3,25 @@ import 'package:kivo_player/player/queue/folder_queue_scanner.dart';
 import '../../fakes/fakes.dart';
 
 void main() {
+  test('includes RealMedia videos without renaming their extensions', () {
+    final scanner = FolderQueueScanner(
+      FakeFileSystemLister({
+        '/movies': [
+          '/movies/ep3.RMVB',
+          '/movies/ep1.rm',
+          '/movies/notes.txt',
+          '/movies/ep2.RM',
+        ],
+      }),
+    );
+
+    expect(scanner.siblingsOf('/movies/ep1.rm'), [
+      '/movies/ep1.rm',
+      '/movies/ep2.RM',
+      '/movies/ep3.RMVB',
+    ]);
+  });
+
   test('returns only video siblings, naturally sorted', () {
     final lister = FakeFileSystemLister({
       '/movies': [
@@ -15,11 +34,7 @@ void main() {
     });
     final scanner = FolderQueueScanner(lister);
     final result = scanner.siblingsOf('/movies/ep2.mkv');
-    expect(result, [
-      '/movies/ep1.mp4',
-      '/movies/ep2.mkv',
-      '/movies/ep10.mkv',
-    ]);
+    expect(result, ['/movies/ep1.mp4', '/movies/ep2.mkv', '/movies/ep10.mkv']);
   });
 
   test('handles backslash paths and uppercase extensions', () {

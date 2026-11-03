@@ -159,13 +159,7 @@ class _UpdateDialogState extends ConsumerState<_UpdateDialog> {
           accent,
           cs,
           caption: _statusLine(context, st.progress),
-          hint: st.progress.stage == DownloadStage.preparing
-              ? l10n.updatePreparingHint
-              : st.progress.partial
-              ? l10n.updatePartialDownloadHint
-              : st.progress.fallback
-              ? l10n.updateFullDownloadFallbackHint
-              : l10n.updateCanLeaveHint,
+          hint: _progressHint(context, st.progress),
         );
       case DownloadPhase.ready:
         return _progressBlock(
@@ -232,35 +226,41 @@ class _UpdateDialogState extends ConsumerState<_UpdateDialog> {
     required String caption,
     required String hint,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (p.stage == DownloadStage.preparing)
-          LinearProgressIndicator(
-            color: accent,
-            backgroundColor: cs.onSurface.withValues(alpha: 0.18),
-          )
-        else
-          _SegmentedBar(
-            fraction: p.fraction,
-            accent: accent,
-            cs: cs,
-            dimmed: p.isPaused,
+    return Semantics(
+      liveRegion: p.stage == DownloadStage.pending || p.isPaused,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (p.stage == DownloadStage.preparing)
+            LinearProgressIndicator(
+              color: accent,
+              backgroundColor: cs.onSurface.withValues(alpha: 0.18),
+            )
+          else
+            _SegmentedBar(
+              fraction: p.fraction,
+              accent: accent,
+              cs: cs,
+              dimmed: p.isPaused,
+            ),
+          const SizedBox(height: 10),
+          Text(
+            caption,
+            style: TextStyle(
+              color: cs.onSurface,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
           ),
-        const SizedBox(height: 10),
-        Text(
-          caption,
-          style: TextStyle(
-            color: cs.onSurface,
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            fontFeatures: const [FontFeature.tabularFigures()],
+          const SizedBox(height: 4),
+          Text(
+            hint,
+            style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(hint, style: TextStyle(color: cs.onSurfaceVariant, fontSize: 11)),
-      ],
+        ],
+      ),
     );
   }
 
@@ -378,14 +378,36 @@ String _statusLine(BuildContext context, DownloadProgress p) {
       : '${_mb(context, p.received)} MB';
   final pct = p.fraction;
   return switch (p.stage) {
-    DownloadStage.pending => l10n.updateStatusQueued,
+    DownloadStage.pending =>
+      p.deviceHot ? l10n.updateStatusQueuedHot : l10n.updateStatusQueued,
     DownloadStage.preparing => l10n.updateStatusPreparing,
     DownloadStage.pausedNetwork => l10n.updateStatusPausedNetwork,
     DownloadStage.pausedRetry => l10n.updateStatusPausedRetry,
+    DownloadStage.pausedWifi => l10n.updateStatusPausedWifi,
+    DownloadStage.pausedUnknown => l10n.updateStatusPausedUnknown,
     _ =>
       pct == null
           ? size
           : l10n.updateStatusSizePercent(size, (pct * 100).round()),
+  };
+}
+
+String _progressHint(BuildContext context, DownloadProgress p) {
+  final l10n = context.l10n;
+  return switch (p.stage) {
+    DownloadStage.pending =>
+      p.deviceHot ? l10n.updateQueuedHotHint : l10n.updateQueuedHint,
+    DownloadStage.pausedNetwork => l10n.updatePausedNetworkHint,
+    DownloadStage.pausedRetry => l10n.updatePausedRetryHint,
+    DownloadStage.pausedWifi => l10n.updatePausedWifiHint,
+    DownloadStage.pausedUnknown => l10n.updatePausedUnknownHint,
+    DownloadStage.preparing => l10n.updatePreparingHint,
+    _ =>
+      p.partial
+          ? l10n.updatePartialDownloadHint
+          : p.fallback
+          ? l10n.updateFullDownloadFallbackHint
+          : l10n.updateCanLeaveHint,
   };
 }
 
