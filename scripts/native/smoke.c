@@ -9,6 +9,14 @@
 
 typedef struct mpv_handle mpv_handle;
 typedef struct { int event_id; int error; unsigned long long reply_userdata; void *data; } mpv_event;
+typedef struct mpv_node mpv_node;
+typedef struct { int num; mpv_node *values; char **keys; } mpv_node_list;
+typedef struct { void *data; size_t size; } mpv_byte_array;
+struct mpv_node {
+    union { char *string; int flag; long long int64; double number;
+        mpv_node_list *list; mpv_byte_array *bytes; } u;
+    int format;
+};
 static mpv_handle *(*create)(void);
 static int (*initialize)(mpv_handle *);
 static int (*option)(mpv_handle *, const char *, const char *);
@@ -17,6 +25,8 @@ static char *(*property)(mpv_handle *, const char *);
 static void (*release)(void *);
 static void (*destroy)(mpv_handle *);
 static mpv_event *(*event)(mpv_handle *, double);
+static int (*command_ret)(mpv_handle *, const char **, mpv_node *);
+static void (*free_node)(mpv_node *);
 
 static double number(mpv_handle *p, const char *name) {
     char *value = property(p, name);
@@ -26,8 +36,9 @@ static double number(mpv_handle *p, const char *name) {
 }
 
 int main(int argc, char **argv) {
-    if (argc != 3 && argc != 4) { fprintf(stderr, "usage: smoke /absolute/libmpv.so video [expected-seek-position]\n"); return 2; }
-    double expected_seek = argc == 4 ? atof(argv[3]) : 2;
+    if (argc != 3 && argc != 4) { fprintf(stderr, "usage: smoke /absolute/libmpv.so video [expected-seek-position|--thumbnail]\n"); return 2; }
+    int thumbnail_mode = argc == 4 && strcmp(argv[3], "--thumbnail") == 0;
+    double expected_seek = argc == 4 && !thumbnail_mode ? atof(argv[3]) : 2;
     void *lib = dlopen(argv[1], RTLD_NOW);
     if (!lib) { fprintf(stderr, "%s\n", dlerror()); return 2; }
     // The Dart/Android video bridge needs these exports as well as playback.
@@ -40,11 +51,15 @@ int main(int argc, char **argv) {
     LOAD(option, "mpv_set_option_string"); LOAD(command, "mpv_command");
     LOAD(property, "mpv_get_property_string"); LOAD(release, "mpv_free");
     LOAD(destroy, "mpv_terminate_destroy"); LOAD(event, "mpv_wait_event");
+    LOAD(command_ret, "mpv_command_ret"); LOAD(free_node, "mpv_free_node_contents");
     mpv_handle *p = create();
     if (!p) return 2;
     option(p, "vo", "null"); option(p, "ao", "null"); option(p, "hwdec", "no");
     option(p, "config", "no"); option(p, "terminal", "yes");
     option(p, "msg-level", "all=warn"); option(p, "keep-open", "yes");
+    if (thumbnail_mode) {
+        option(p, "aid", "no"); option(p, "sid", "no"); option(p, "pause", "yes");
+    }
     if (initialize(p) < 0) { destroy(p); return 2; }
     char *version = property(p, "mpv-version");
     printf("mpv-version=%s\n", version ? version : "unavailable");
@@ -65,6 +80,32 @@ int main(int argc, char **argv) {
     }
     const char *load[] = {"loadfile", argv[2], NULL};
     if (command(p, load) < 0) { destroy(p); return 1; }
+    if (thumbnail_mode) {
+        int passed = 0, w = 0, h = 0;
+        size_t size = 0;
+        for (int i = 0; i < 50 && !passed; ++i) {
+            event(p, .1);
+            mpv_node image = {0};
+            const char *shot[] = {"screenshot-raw", "video", NULL};
+            if (command_ret(p, shot, &image) >= 0 && image.format == 8) {
+                mpv_node_list *map = image.u.list;
+                for (int j = 0; j < map->num; ++j) {
+                    mpv_node value = map->values[j];
+                    if (value.format == 4 && strcmp(map->keys[j], "w") == 0) w = value.u.int64;
+                    if (value.format == 4 && strcmp(map->keys[j], "h") == 0) h = value.u.int64;
+                    if (value.format == 9 && strcmp(map->keys[j], "data") == 0) size = value.u.bytes->size;
+                }
+                passed = w > 0 && h > 0 && size >= (size_t)w * h * 4;
+            }
+            free_node(&image);
+        }
+        double duration = number(p, "duration");
+        passed = passed && duration > 0;
+        printf("thumbnail=%s duration=%.3f width=%d height=%d bytes=%zu\n",
+            passed ? "PASS" : "FAIL", duration, w, h, size);
+        destroy(p);
+        return passed ? 0 : 1;
+    }
     int decoded = 0;
     double duration = -1, position = -1, width = -1, rate = -1;
     for (int i = 0; i < 150; ++i) {

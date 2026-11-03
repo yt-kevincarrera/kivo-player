@@ -45,6 +45,7 @@ internal class MediaCatalog(private val resolver: ContentResolver) {
             MediaStore.Video.Media.DURATION,
             MediaStore.Video.Media.SIZE,
             MediaStore.Video.Media.DATE_ADDED,
+            MediaStore.MediaColumns.DATE_MODIFIED,
             MediaStore.Video.Media.DATA,
             MediaStore.Video.Media.WIDTH,
             MediaStore.Video.Media.HEIGHT,
@@ -56,6 +57,7 @@ internal class MediaCatalog(private val resolver: ContentResolver) {
             val durC = c.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
             val sizeC = c.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)
             val dateC = c.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED)
+            val modifiedC = c.getColumnIndex(MediaStore.MediaColumns.DATE_MODIFIED)
             val dataC = c.getColumnIndex(MediaStore.Video.Media.DATA)
             val widthC = c.getColumnIndex(MediaStore.Video.Media.WIDTH)
             val heightC = c.getColumnIndex(MediaStore.Video.Media.HEIGHT)
@@ -64,16 +66,27 @@ internal class MediaCatalog(private val resolver: ContentResolver) {
                 val id = c.getLong(idC)
                 if (!seen.add(id)) continue
                 val data = if (dataC >= 0) c.getString(dataC) else null
+                val uri = ContentUris.withAppendedId(collection, id)
+                val name = c.getString(nameC) ?: ""
+                var duration = c.getLong(durC)
+                if (duration <= 0 && RealMediaMetadata.matches(name)) {
+                    try {
+                        resolver.openInputStream(uri)?.use { duration = RealMediaMetadata.durationMs(it) }
+                    } catch (_: Exception) {
+                        // Keep the rest of the library available if this file vanished.
+                    }
+                }
                 val folder = (if (bucketC >= 0) c.getString(bucketC) else null)
                     ?.takeIf { it.isNotEmpty() } ?: data?.let { File(it).parentFile?.name } ?: ""
                 out.add(hashMapOf(
                     "id" to id.toString(),
-                    "uri" to ContentUris.withAppendedId(collection, id).toString(),
-                    "name" to (c.getString(nameC) ?: ""),
+                    "uri" to uri.toString(),
+                    "name" to name,
                     "folder" to folder,
-                    "durationMs" to c.getLong(durC),
+                    "durationMs" to duration,
                     "sizeBytes" to c.getLong(sizeC),
                     "dateAddedMs" to c.getLong(dateC) * 1000L,
+                    "dateModifiedMs" to (if (modifiedC >= 0) c.getLong(modifiedC) * 1000L else 0L),
                     "width" to (if (widthC >= 0) c.getInt(widthC) else 0),
                     "height" to (if (heightC >= 0) c.getInt(heightC) else 0),
                     "path" to relativePathOf(if (relPathC >= 0) c.getString(relPathC) else null, data),

@@ -13,6 +13,33 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class MediaCatalogInstrumentedTest {
     @Test
+    fun realMediaContainerDurationFillsMissingAndroidMetadata() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val resolver = instrumentation.targetContext.contentResolver
+        val collection = MediaStore.Files.getContentUri(
+            if (Build.VERSION.SDK_INT >= 29) MediaStore.VOLUME_EXTERNAL_PRIMARY else "external")
+        val name = "kivo-duration-${System.nanoTime()}.RMVB"
+        val uri = resolver.insert(collection, ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, name)
+            put(MediaStore.MediaColumns.MIME_TYPE, "application/vnd.rn-realmedia-vbr")
+            if (Build.VERSION.SDK_INT >= 29) {
+                put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/KivoCatalogTest/")
+            }
+        })!!
+        try {
+            resolver.openOutputStream(uri)!!.use { output ->
+                instrumentation.context.assets.open("generated.rm").use { it.copyTo(output) }
+            }
+            val row = MediaCatalog(resolver).scan().single { it["name"] == name }
+            assertTrue("RealMedia duration must be read even if MediaStore leaves it empty",
+                (row["durationMs"] as Number).toLong() >= 1800L)
+            assertTrue((row["uri"] as String).contains("/file/"))
+        } finally {
+            resolver.delete(uri, null, null)
+        }
+    }
+
+    @Test
     fun realMediaAudioRowsAreListedWithoutOrdinaryAudioOrDuplicates() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext

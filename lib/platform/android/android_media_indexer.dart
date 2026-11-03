@@ -2,19 +2,37 @@ import 'package:flutter/services.dart';
 import '../../core/errors/error_log.dart';
 import '../../core/errors/kivo_failure.dart';
 import '../interfaces/media_indexer.dart';
+import 'media_kit_thumbnailer.dart';
 
 class AndroidMediaIndexer implements MediaIndexer {
-  AndroidMediaIndexer(this._log);
+  AndroidMediaIndexer(
+    this._log, {
+    Future<Uint8List?> Function(String uri)? realMediaThumbnail,
+  }) : _realMediaThumbnail =
+           realMediaThumbnail ?? MediaKitThumbnailer().thumbnail;
 
   final ErrorLog _log;
+  final Future<Uint8List?> Function(String uri) _realMediaThumbnail;
+  final _items = <String, VideoItem>{};
+  final _versions = <String, Object>{};
+  final _thumbnails = <Object, Future<Uint8List?>>{};
   static const MethodChannel _channel = MethodChannel('kivo/media');
 
   @override
   Future<List<VideoItem>> scan() async {
     try {
-      final raw = await _channel.invokeMethod<List<dynamic>>('scan') ?? const [];
-      return raw.map((e) {
+      final raw =
+          await _channel.invokeMethod<List<dynamic>>('scan') ?? const [];
+      final versions = <String, Object>{};
+      final items = raw.map((e) {
         final m = (e as Map).cast<String, dynamic>();
+        versions[m['id'] as String] = (
+          m['uri'],
+          m['name'],
+          m['sizeBytes'],
+          m['dateAddedMs'],
+          m['dateModifiedMs'],
+        );
         return VideoItem(
           id: m['id'] as String,
           uri: m['uri'] as String,
@@ -28,6 +46,15 @@ class AndroidMediaIndexer implements MediaIndexer {
           path: (m['path'] as String?) ?? '',
         );
       }).toList();
+      _items
+        ..clear()
+        ..addEntries(items.map((item) => MapEntry(item.id, item)));
+      _versions
+        ..clear()
+        ..addAll(versions);
+      final live = versions.values.toSet();
+      _thumbnails.removeWhere((key, _) => !live.contains(key));
+      return items;
     } catch (e) {
       throw _log.record(KivoFailure(KivoOp.libraryScan, e));
     }
@@ -36,12 +63,42 @@ class AndroidMediaIndexer implements MediaIndexer {
   /// Records and returns null rather than throwing: one undecodable video must
   /// not blank out a grid of two hundred tiles.
   @override
-  Future<Uint8List?> thumbnail(String id) async {
+  Future<Uint8List?> thumbnail(String id) {
+    final version = _versions[id];
+    if (version == null) return _thumbnail(id, null);
+    final cached = _thumbnails.remove(version);
+    final result = cached ?? _thumbnail(id, _items[id]);
+    _thumbnails[version] = result;
+    if (cached == null) {
+      // A temporary storage/decoder failure must recover on the next request.
+      result.then((bytes) {
+        if (bytes == null && identical(_thumbnails[version], result)) {
+          _thumbnails.remove(version);
+        }
+      });
+    }
+    if (_thumbnails.length > 48) _thumbnails.remove(_thumbnails.keys.first);
+    return result;
+  }
+
+  Future<Uint8List?> _thumbnail(String id, VideoItem? item) async {
     try {
-      return await _channel.invokeMethod<Uint8List>('thumbnail', {'id': id});
+      final bytes = await _channel.invokeMethod<Uint8List>('thumbnail', {
+        'id': id,
+        if (item != null) 'uri': item.uri,
+      });
+      if (bytes != null && bytes.isNotEmpty) return bytes;
     } catch (e) {
       _log.record(KivoFailure(KivoOp.thumbnail, e));
-      return null;
     }
+    final name = item?.name.toLowerCase() ?? '';
+    if (item != null && (name.endsWith('.rm') || name.endsWith('.rmvb'))) {
+      try {
+        return await _realMediaThumbnail(item.uri);
+      } catch (e) {
+        _log.record(KivoFailure(KivoOp.thumbnail, e));
+      }
+    }
+    return null;
   }
 }

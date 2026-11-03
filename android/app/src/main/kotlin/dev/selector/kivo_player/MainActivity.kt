@@ -337,10 +337,11 @@ class MainActivity : FlutterFragmentActivity() {
                     "thumbnail" -> {
                         val id = call.argument<String>("id")
                         if (id == null) { result.error("INVALID_ARG", "id required", null); return@setMethodCallHandler }
+                        val source = call.argument<String>("uri")
                         ioExecutor.execute {
                             var bytes: ByteArray? = null
                             try {
-                                val uri = ContentUris.withAppendedId(
+                                val uri = source?.let(Uri::parse) ?: ContentUris.withAppendedId(
                                     MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id.toLong())
                                 val bmp = if (Build.VERSION.SDK_INT >= 29) {
                                     contentResolver.loadThumbnail(uri, android.util.Size(320, 180), null)

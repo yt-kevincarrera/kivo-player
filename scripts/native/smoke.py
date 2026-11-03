@@ -1,4 +1,4 @@
-"""Decode and seek public RealMedia samples with an Android native artifact."""
+"""Decode, seek and capture public RealMedia samples with an Android artifact."""
 import argparse
 import hashlib
 import json
@@ -60,12 +60,14 @@ def smoke(adb, ndk, serial, jar, work, extra_files):
         run([*adb_command, 'push', sample, remote_sample], stdout=subprocess.DEVNULL)
         print(f'{fixture["file"]}: {fixture["video"]}/{fixture["audio"]}', flush=True)
         check(remote_sample, fixture.get('expectedSeekPositionSeconds', 2))
+        check(remote_sample, '--thumbnail')
     for index, sample in enumerate(extra_files):
         remote_sample = remote + f'/extra-{index}' + sample.suffix
         run([*adb_command, 'push', sample, remote_sample], stdout=subprocess.DEVNULL)
         print(f'Regression: {sample.name}', flush=True)
         check(remote_sample)
-    print('All RealMedia decode/progress/seek checks passed.', flush=True)
+        check(remote_sample, '--thumbnail')
+    print('All RealMedia decode/progress/seek/thumbnail checks passed.', flush=True)
 
 
 if __name__ == '__main__':

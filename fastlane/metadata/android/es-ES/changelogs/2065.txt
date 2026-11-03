@@ -1,0 +1,3 @@
+Los vídeos RealMedia (.rm y .rmvb) muestran su duración aunque Android no la detecte.
+La biblioteca usa el decodificador RealMedia de Kivo si Android no puede generar la miniatura.
+La caché de miniaturas limita el uso de memoria y permite reintentar fallos temporales.
