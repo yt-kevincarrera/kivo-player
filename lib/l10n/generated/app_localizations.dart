@@ -4639,6 +4639,42 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Al terminar: {summary}'**
   String endActionsChipSemantics(String summary);
+
+  /// No description provided for @libraryDensityLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Vista de biblioteca'**
+  String get libraryDensityLabel;
+
+  /// No description provided for @libraryDensityComfortable.
+  ///
+  /// In es, this message translates to:
+  /// **'Cómoda'**
+  String get libraryDensityComfortable;
+
+  /// No description provided for @libraryDensityBalanced.
+  ///
+  /// In es, this message translates to:
+  /// **'Equilibrada'**
+  String get libraryDensityBalanced;
+
+  /// No description provided for @libraryDensityCompact.
+  ///
+  /// In es, this message translates to:
+  /// **'Compacta'**
+  String get libraryDensityCompact;
+
+  /// No description provided for @libraryDensityList.
+  ///
+  /// In es, this message translates to:
+  /// **'Lista'**
+  String get libraryDensityList;
+
+  /// No description provided for @libraryWideDensitySetting.
+  ///
+  /// In es, this message translates to:
+  /// **'Biblioteca en pantallas anchas'**
+  String get libraryWideDensitySetting;
 }
 
 class _AppLocalizationsDelegate

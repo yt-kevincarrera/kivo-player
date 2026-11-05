@@ -91,40 +91,47 @@ class _MiniPlayerBarState extends ConsumerState<MiniPlayerBar> {
     final session = ref.watch(currentVideoProvider);
     if (!minimized || session == null) return const SizedBox.shrink();
 
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
-        // A fresh instance mounts every time minimizing happens (the `if`
-        // above renders nothing otherwise), so this plays once per mount —
-        // a simple slide-up + fade-in entrance, no AnimationController needed.
-        child: TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0, end: 1),
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOutCubic,
-          builder: (context, t, child) => Opacity(
-            opacity: t,
-            child: Transform.translate(
-              offset: Offset(0, (1 - t) * 24),
-              child: child,
+    return Align(
+      alignment: AlignmentDirectional.centerEnd,
+      heightFactor: 1,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 480),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
+            // A fresh instance mounts every time minimizing happens (the `if`
+            // above renders nothing otherwise), so this plays once per mount —
+            // a simple slide-up + fade-in entrance, no AnimationController needed.
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              builder: (context, t, child) => Opacity(
+                opacity: t,
+                child: Transform.translate(
+                  offset: Offset(0, (1 - t) * 24),
+                  child: child,
+                ),
+              ),
+              child: Dismissible(
+                key: ValueKey('mini-player-${session.playbackPath}'),
+                direction: DismissDirection.horizontal,
+                // No list to shrink into — the bar just vanishes once the
+                // parent stops rendering it (the `if` above, on the next
+                // build after this fires), so opt out of Dismissible's own
+                // resize-then-remove choreography.
+                resizeDuration: null,
+                // Pause explicitly: with "keep playing on minimize" on, the video
+                // may still be running here — dismissing the bar must stop it.
+                onDismissed: (_) {
+                  ref.read(playbackEngineProvider).pause();
+                  ref.read(playerMinimizedProvider.notifier).state = false;
+                  ref.read(trashFlushRequestProvider.notifier).state++;
+                },
+                child: _MiniPlayerContent(session: session, onExpand: _expand),
+              ),
             ),
-          ),
-          child: Dismissible(
-            key: ValueKey('mini-player-${session.playbackPath}'),
-            direction: DismissDirection.horizontal,
-            // No list to shrink into — the bar just vanishes once the
-            // parent stops rendering it (the `if` above, on the next
-            // build after this fires), so opt out of Dismissible's own
-            // resize-then-remove choreography.
-            resizeDuration: null,
-            // Pause explicitly: with "keep playing on minimize" on, the video
-            // may still be running here — dismissing the bar must stop it.
-            onDismissed: (_) {
-              ref.read(playbackEngineProvider).pause();
-              ref.read(playerMinimizedProvider.notifier).state = false;
-              ref.read(trashFlushRequestProvider.notifier).state++;
-            },
-            child: _MiniPlayerContent(session: session, onExpand: _expand),
           ),
         ),
       ),
@@ -147,12 +154,15 @@ class _MiniPlayerContent extends ConsumerWidget {
         ? (position.inMilliseconds / duration.inMilliseconds).clamp(0.0, 1.0)
         : 0.0;
     final cs = Theme.of(context).colorScheme;
-    final accent = Color(ref.watch(settingsProvider).accentColor);
+    final accent = Theme.of(context).colorScheme.primary;
 
     return Material(
       color: cs.surfaceContainerHighest,
-      elevation: 8,
-      borderRadius: BorderRadius.circular(14),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(color: cs.outlineVariant),
+      ),
       clipBehavior: Clip.antiAlias,
       child: Column(
         mainAxisSize: MainAxisSize.min,

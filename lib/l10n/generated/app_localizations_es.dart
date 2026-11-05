@@ -2779,4 +2779,22 @@ class AppLocalizationsEs extends AppLocalizations {
   String endActionsChipSemantics(String summary) {
     return 'Al terminar: $summary';
   }
+
+  @override
+  String get libraryDensityLabel => 'Vista de biblioteca';
+
+  @override
+  String get libraryDensityComfortable => 'Cómoda';
+
+  @override
+  String get libraryDensityBalanced => 'Equilibrada';
+
+  @override
+  String get libraryDensityCompact => 'Compacta';
+
+  @override
+  String get libraryDensityList => 'Lista';
+
+  @override
+  String get libraryWideDensitySetting => 'Biblioteca en pantallas anchas';
 }

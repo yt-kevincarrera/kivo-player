@@ -29,6 +29,8 @@ class KivoSettings {
   final bool rememberOrientationLock;
   final int accentColor;
   final int libraryColumns;
+  /// Wide-window density: 0 list, 1 comfortable, 2 balanced, 3 compact.
+  final int wideLibraryDensity;
   final String themeMode; // 'auto' | 'light' | 'dark'
   final String locale; // 'system' | 'es' | 'en'
   final String librarySort; // LibrarySort enum name — see lib/player/library/library_filter.dart
@@ -141,6 +143,7 @@ class KivoSettings {
     required this.rememberOrientationLock,
     required this.accentColor,
     required this.libraryColumns,
+    this.wideLibraryDensity = 2,
     required this.themeMode,
     required this.locale,
     required this.librarySort,
@@ -225,7 +228,7 @@ class KivoSettings {
         resumeBehavior: 'auto',
         resumeMinSeconds: 5,
         rememberOrientationLock: true,
-        accentColor: 0xFFE8B84B,
+        accentColor: 0xFFC7A15A,
         libraryColumns: 1,
         themeMode: 'auto',
         locale: 'system',
@@ -316,6 +319,7 @@ class KivoSettings {
     bool? rememberOrientationLock,
     int? accentColor,
     int? libraryColumns,
+    int? wideLibraryDensity,
     String? themeMode,
     String? locale,
     String? librarySort,
@@ -401,6 +405,7 @@ class KivoSettings {
       rememberOrientationLock: rememberOrientationLock ?? this.rememberOrientationLock,
       accentColor: accentColor ?? this.accentColor,
       libraryColumns: libraryColumns ?? this.libraryColumns,
+      wideLibraryDensity: wideLibraryDensity ?? this.wideLibraryDensity,
       themeMode: themeMode ?? this.themeMode,
       locale: locale ?? this.locale,
       librarySort: librarySort ?? this.librarySort,
@@ -500,6 +505,7 @@ class KivoSettings {
         'rememberOrientationLock': rememberOrientationLock,
         'accentColor': accentColor,
         'libraryColumns': libraryColumns,
+        'wideLibraryDensity': wideLibraryDensity,
         'themeMode': themeMode,
         'locale': locale,
         'librarySort': librarySort,
@@ -586,8 +592,13 @@ class KivoSettings {
       resumeBehavior: m['resumeBehavior'] ?? d.resumeBehavior,
       resumeMinSeconds: m['resumeMinSeconds'] ?? d.resumeMinSeconds,
       rememberOrientationLock: m['rememberOrientationLock'] ?? d.rememberOrientationLock,
-      accentColor: m['accentColor'] ?? d.accentColor,
+      accentColor: m['accentColor'] == 0xFFE8B84B
+          ? d.accentColor
+          : m['accentColor'] ?? d.accentColor,
       libraryColumns: m['libraryColumns'] ?? d.libraryColumns,
+      wideLibraryDensity: m['wideLibraryDensity'] is int && const [0, 1, 2, 3].contains(m['wideLibraryDensity'])
+          ? m['wideLibraryDensity'] as int
+          : d.wideLibraryDensity,
       themeMode: m['themeMode'] ?? d.themeMode,
       locale: m['locale'] ?? d.locale,
       librarySort: m['librarySort'] ?? d.librarySort,

@@ -1,0 +1,4 @@
+Navegación adaptable en tablet, en vertical y horizontal, con más columnas y densidad independiente del móvil.
+Acentos dorados más sobrios y legibles en los temas claro y oscuro.
+Títulos bajo las miniaturas y minirreproductor ajustado a pantallas anchas.
+Al girar se conservan la carpeta, la búsqueda y la selección. Mejoras con texto ampliado.

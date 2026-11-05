@@ -1,0 +1,4 @@
+Tablet navigation adapts in portrait and landscape, with more library columns and a separate density preference.
+Matte gold accents improve readability in light and dark themes.
+Video titles sit below thumbnails, and the mini-player fits wide screens.
+Rotation preserves your folder, search and selection. Large-text layouts are improved.

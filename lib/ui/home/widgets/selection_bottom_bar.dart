@@ -37,7 +37,7 @@ class SelectionBottomBar extends ConsumerWidget {
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 58,
+          height: 40 + MediaQuery.textScalerOf(context).scale(11) * 3,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -113,7 +113,7 @@ class SelectionBottomBar extends ConsumerWidget {
           children: [
             Icon(icon, size: 22, color: c),
             const SizedBox(height: 3),
-            Text(label, style: TextStyle(fontSize: 11, color: c)),
+            Text(label, maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: TextStyle(fontSize: 11, color: c)),
           ],
         ),
       ),

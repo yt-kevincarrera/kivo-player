@@ -1,3 +1,4 @@
+import '../../widgets/readable_width.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -123,7 +124,7 @@ class PlaylistsTab extends ConsumerWidget {
     return Stack(
       children: [
         ListView.builder(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 88),
+          padding: readablePadding(context, const EdgeInsets.fromLTRB(12, 8, 12, 88)),
           itemCount: playlists.length,
           // Keyed by playlist id: this row now carries swipe-reveal state
           // (_offset) that must stay with the right playlist across
@@ -207,7 +208,7 @@ class _NewPlaylistButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final accent = Color(ref.watch(settingsProvider).accentColor);
+    final accent = Theme.of(context).colorScheme.primary;
     return FloatingActionButton.extended(
       heroTag: 'playlists-new',
       onPressed: onTap,
@@ -518,7 +519,7 @@ class _PlaylistRowState extends ConsumerState<_PlaylistRow>
   Widget build(BuildContext context) {
     final playlist = widget.playlist;
     final cs = Theme.of(context).colorScheme;
-    final accent = Color(ref.watch(settingsProvider).accentColor);
+    final accent = Theme.of(context).colorScheme.primary;
     final selectionIds = ref.watch(playlistsSelectionProvider);
     final selecting = widget.selecting;
     final selected = selectionIds.contains(playlist.id);

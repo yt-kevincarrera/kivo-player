@@ -13,7 +13,7 @@ import 'package:kivo_player/ui/player/controls/hold_to_unlock.dart';
 import 'package:kivo_player/ui/player/controls/seek_bar.dart';
 import 'package:kivo_player/ui/player/state/lock_state.dart';
 import 'package:kivo_player/platform/frame_extractor_provider.dart';
-import 'package:kivo_player/ui/home/widgets/video_density_feed.dart';
+import 'package:kivo_player/ui/home/library_layout.dart';
 import 'package:kivo_player/ui/home/widgets/video_tile.dart';
 import 'package:kivo_player/ui/player/controls/center_controls.dart';
 import 'package:kivo_player/ui/player/keys/player_keys.dart';
@@ -307,13 +307,16 @@ void main() {
   });
 
   group('wide screens', () {
-    test('a phone keeps the chosen columns; wider screens get more', () {
-      expect(adaptiveColumns(2, 393), 2);
-      expect(adaptiveColumns(3, 393), 3);
-      expect(adaptiveColumns(2, 800), 3);
-      expect(adaptiveColumns(2, 1280), 6);
-      expect(adaptiveColumns(3, 2000), 8);
-      expect(adaptiveColumns(1, 1280), 1, reason: 'a list stays a list');
+    test('density uses the available library width and respects explicit lists', () {
+      expect(libraryGridColumns(width: 345, wide: false, density: 2), 2);
+      expect(libraryGridColumns(width: 345, wide: false, density: 3), 3);
+      expect(libraryGridColumns(width: 664, wide: true, density: 2), 3);
+      expect(libraryGridColumns(width: 664, wide: true, density: 3), 4);
+      expect(libraryGridColumns(width: 1144, wide: true, density: 2), 5);
+      expect(libraryGridColumns(width: 1144, wide: true, density: 3), 6);
+      expect(libraryGridColumns(width: 1864, wide: true, density: 3), 8);
+      expect(libraryGridColumns(width: 1144, wide: true, density: 0), 1,
+        reason: 'an explicitly chosen list stays a list');
     });
 
     testWidgets('settings stay readable: centred within 720', (t) async {

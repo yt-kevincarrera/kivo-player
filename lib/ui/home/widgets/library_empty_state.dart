@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
 
 /// The single empty state the library uses everywhere a list can legitimately
@@ -42,7 +41,7 @@ class LibraryEmptyState extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
     // Follows whatever accent is set in Ajustes, like the filter chips do.
-    final accent = Color(ref.watch(settingsProvider).accentColor);
+    final accent = Theme.of(context).colorScheme.primary;
     final hasActions = primaryLabel != null || secondaryLabel != null;
 
     return Center(

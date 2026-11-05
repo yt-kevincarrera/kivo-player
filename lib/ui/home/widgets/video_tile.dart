@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/format.dart';
-import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
 import '../../../l10n/l10n.dart';
 import '../../../l10n/spoken.dart';
@@ -66,7 +65,7 @@ class _VideoTileState extends ConsumerState<VideoTile> {
 
   @override
   Widget build(BuildContext context) {
-    final accent = Color(ref.watch(settingsProvider).accentColor);
+    final accent = Theme.of(context).colorScheme.primary;
     // One node for the screen reader with what the picture shows (name,
     // length, how much is watched, new); the badges themselves are left out.
     // The ⋮ button keeps its own node.
@@ -123,7 +122,7 @@ class _VideoTileState extends ConsumerState<VideoTile> {
                 // Left: 168px-wide 16:9 thumbnail with badge + progress
                 ExcludeSemantics(
                   child: SizedBox(
-                    width: 168,
+                    width: MediaQuery.sizeOf(context).width < 380 ? 112 : 140,
                     child: ClipRRect(
                       key: _thumbKey,
                       borderRadius: BorderRadius.circular(8),
@@ -250,94 +249,103 @@ class _VideoTileState extends ConsumerState<VideoTile> {
       onLongPressUp: () => setState(() => _pressing = false),
       child: AnimatedScale(
         key: const Key('tile-press-scale'),
-        scale: _pressing ? 0.95 : 1.0,
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOut,
+        scale: _pressing && !MediaQuery.disableAnimationsOf(context)
+            ? 0.95
+            : 1.0,
+        duration: const Duration(milliseconds: 180),
         child: PressBounce(
           onTap: _handleTap,
-          child: ExcludeSemantics(
-            child: ClipRRect(
-              key: _thumbKey,
-              borderRadius: BorderRadius.circular(12),
-              child: AspectRatio(
-                aspectRatio: 16 / 9,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    ThumbnailImage(widget.video.id),
-                    // Duration badge (top-right)
-                    Positioned(
-                      top: 6,
-                      right: 6,
-                      child: _badge(
-                        fmtDuration(
-                          Duration(milliseconds: widget.video.durationMs),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ExcludeSemantics(
+                child: ClipRRect(
+                  key: _thumbKey,
+                  borderRadius: BorderRadius.circular(10),
+                  child: AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        ThumbnailImage(widget.video.id),
+                        Positioned(
+                          bottom: 6,
+                          right: 6,
+                          child: _badge(
+                            fmtDuration(
+                              Duration(milliseconds: widget.video.durationMs),
+                            ),
+                          ),
                         ),
-                      ),
+                        if (widget.isNew)
+                          Positioned(top: 6, left: 6, child: _newBadge(accent)),
+                        if (widget.progress != null)
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            child: SegmentedProgress(
+                              widget.progress!,
+                              accent: accent,
+                              unlit: Colors.black.withValues(alpha: 0.35),
+                            ),
+                          ),
+                        if (widget.selected)
+                          Positioned.fill(
+                            child: ColoredBox(
+                              color: accent.withValues(alpha: 0.28),
+                            ),
+                          ),
+                        if (widget.selecting)
+                          Positioned(
+                            top: 6,
+                            right: 6,
+                            child: _selectionBadge(accent, widget.selected),
+                          ),
+                      ],
                     ),
-                    // Nuevo badge (top-left)
-                    if (widget.isNew)
-                      Positioned(top: 6, left: 6, child: _newBadge(accent)),
-                    // Title gradient + text (on-thumbnail text stays white over the dark gradient)
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      child: Container(
-                        padding: EdgeInsets.fromLTRB(
-                          8,
-                          16,
-                          8,
-                          widget.progress != null ? 8 : 6,
-                        ),
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.bottomCenter,
-                            end: Alignment.topCenter,
-                            colors: [Colors.black87, Colors.transparent],
-                          ),
-                        ),
-                        child: Text(
-                          widget.video.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (widget.progress != null)
-                      Positioned(
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        child: SegmentedProgress(
-                          widget.progress!,
-                          accent: accent,
-                          unlit: cs.onSurface.withValues(alpha: 0.18),
-                        ),
-                      ),
-                    if (widget.selected)
-                      Positioned.fill(
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: accent.withValues(alpha: 0.28),
-                          ),
-                        ),
-                      ),
-                    if (widget.selecting)
-                      Positioned(
-                        top: 6,
-                        right: 6,
-                        child: _selectionBadge(accent, widget.selected),
-                      ),
-                  ],
+                  ),
                 ),
               ),
-            ),
+              const SizedBox(height: 8),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: ExcludeSemantics(
+                      child: Text(
+                        widget.video.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: cs.onSurface,
+                          fontSize: 16,
+                          height: 1.35,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (widget.onOptions != null)
+                    SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: IconButton(
+                        tooltip:
+                            widget.trailingTooltip ??
+                            context.l10n.videoTileOptionsTooltip,
+                        icon: Icon(
+                          widget.trailingIcon,
+                          size: 20,
+                          color: cs.onSurfaceVariant,
+                        ),
+                        onPressed: widget.onOptions,
+                      ),
+                    ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
@@ -360,14 +368,14 @@ class _VideoTileState extends ConsumerState<VideoTile> {
   Widget _badge(String t) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
     decoration: BoxDecoration(
-      color: Colors.black.withValues(alpha: 0.55),
+      color: Colors.black.withValues(alpha: 0.8),
       borderRadius: BorderRadius.circular(8),
     ),
     child: Text(
       t,
       style: const TextStyle(
         color: Colors.white,
-        fontSize: 9,
+        fontSize: 11,
         fontFeatures: [FontFeature.tabularFigures()],
       ),
     ),
@@ -376,14 +384,14 @@ class _VideoTileState extends ConsumerState<VideoTile> {
   Widget _newBadge(Color accent) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
     decoration: BoxDecoration(
-      color: accent,
+      color: Colors.black.withValues(alpha: 0.8),
       borderRadius: BorderRadius.circular(8),
     ),
     child: Text(
       context.l10n.videoTileNewBadge,
-      style: TextStyle(
-        color: onAccent(accent),
-        fontSize: 10,
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 11,
         fontWeight: FontWeight.w700,
       ),
     ),

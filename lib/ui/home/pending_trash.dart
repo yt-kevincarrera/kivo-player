@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/errors/kivo_failure.dart';
-import '../../core/settings/settings_provider.dart';
 import '../../core/theme/kivo_theme.dart';
 import '../../l10n/l10n.dart';
 import '../../platform/interfaces/media_file_ops.dart';
@@ -91,7 +90,7 @@ class PendingTrashSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final accent = Color(ref.watch(settingsProvider).accentColor);
+    final accent = Theme.of(context).colorScheme.primary;
     final toTrash = ref.watch(mediaFileOpsProvider).movesToTrash;
     final names = entries.take(_shown).map((e) => e.name).toList();
     return SafeArea(

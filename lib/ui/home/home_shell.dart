@@ -9,6 +9,7 @@ import '../../player/end_actions/end_flow.dart';
 import '../../player/end_actions/trash_queue.dart';
 import '../player/state/player_dismiss_state.dart';
 import 'library_screen.dart';
+import 'library_layout.dart';
 import 'pending_trash.dart';
 import 'state/library_selection.dart';
 import 'widgets/selection_bottom_bar.dart';
@@ -26,6 +27,9 @@ class HomeShell extends ConsumerStatefulWidget {
 
 class _HomeShellState extends ConsumerState<HomeShell> {
   int _index = 0;
+  final _libraryKey = GlobalKey<LibraryScreenState>();
+  bool _libraryAtRoot = true;
+  late final _LibraryRouteObserver _libraryObserver;
   final _navKeys = [GlobalKey<NavigatorState>(), GlobalKey<NavigatorState>()];
 
   GlobalKey<NavigatorState> get _activeNav => _navKeys[_index];
@@ -35,12 +39,23 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   @override
   void initState() {
     super.initState();
-    _lifecycle = AppLifecycleListener(onResume: () {
-      // Back in Kivo after it closed itself: asking is welcome again.
-      ref.read(suppressTrashFlushProvider.notifier).state = false;
-      _askAboutPendingTrash();
+    _libraryObserver = _LibraryRouteObserver((atRoot) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _libraryAtRoot != atRoot) {
+          setState(() => _libraryAtRoot = atRoot);
+        }
+      });
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) => _askAboutPendingTrash());
+    _lifecycle = AppLifecycleListener(
+      onResume: () {
+        // Back in Kivo after it closed itself: asking is welcome again.
+        ref.read(suppressTrashFlushProvider.notifier).state = false;
+        _askAboutPendingTrash();
+      },
+    );
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _askAboutPendingTrash(),
+    );
   }
 
   @override
@@ -69,12 +84,14 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
   Widget _tab(int i, Widget root) => Navigator(
     key: _navKeys[i],
+    observers: i == 0 ? [_libraryObserver] : const [],
     onGenerateRoute: (_) => MaterialPageRoute(builder: (_) => root),
   );
 
   @override
   Widget build(BuildContext context) {
     final selecting = ref.watch(librarySelectionProvider).isNotEmpty;
+    final sideNavigation = usesSideNavigation(context);
     // Leaving the full-screen player (its dismiss API goes away with it), or
     // closing the mini-bar: confirm the batched deletions now.
     ref.listen(playerDismissProvider, (prev, next) {
@@ -122,22 +139,56 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         }
       },
       child: Scaffold(
-        body: Column(
+        body: Row(
           children: [
+            SizedBox(
+              width: sideNavigation ? 88 : 0,
+              child: sideNavigation
+                  ? _SideNavigation(
+                      index: _index,
+                      onTap: selecting ? null : _select,
+                      tools: _index == 0 && _libraryAtRoot && !selecting
+                          ? LibraryRailTools(
+                              onSearch: () =>
+                                  _libraryKey.currentState?.toggleSearch(),
+                              onPick: () =>
+                                  _libraryKey.currentState?.pickFile(),
+                            )
+                          : null,
+                    )
+                  : null,
+            ),
             Expanded(
-              child: IndexedStack(
-                index: _index,
+              child: Column(
                 children: [
-                  _tab(0, const LibraryScreen()),
-                  _tab(1, const SettingsScreen()),
+                  Expanded(
+                    child: IndexedStack(
+                      index: _index,
+                      children: [
+                        _tab(
+                          0,
+                          LibraryScreen(key: _libraryKey, sideTools: true),
+                        ),
+                        _tab(1, const SettingsScreen()),
+                      ],
+                    ),
+                  ),
+                  if (!selecting) const MiniPlayerBar(),
                 ],
               ),
             ),
-            if (!selecting) const MiniPlayerBar(),
           ],
         ),
         bottomNavigationBar: selecting
-            ? const SelectionBottomBar()
+            ? Center(
+                heightFactor: 1,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 720),
+                  child: const SelectionBottomBar(),
+                ),
+              )
+            : sideNavigation
+            ? null
             : _BottomTabBar(index: _index, onTap: _select),
       ),
     );
@@ -208,6 +259,121 @@ class _BottomTabBar extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LibraryRouteObserver extends NavigatorObserver {
+  _LibraryRouteObserver(this.onRootChanged);
+  final ValueChanged<bool> onRootChanged;
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) =>
+      onRootChanged(route.isFirst);
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) =>
+      onRootChanged(previousRoute?.isFirst ?? true);
+}
+
+class _SideNavigation extends StatelessWidget {
+  const _SideNavigation({required this.index, required this.onTap, this.tools});
+  final int index;
+  final ValueChanged<int>? onTap;
+  final Widget? tools;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Material(
+      key: const Key('home-navigation-rail'),
+      color: cs.surface,
+      child: SafeArea(
+        right: false,
+        child: Column(
+          children: [
+            const SizedBox(height: 16),
+            Expanded(
+              child: SingleChildScrollView(
+                child: tools ?? const SizedBox.shrink(),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24),
+              child: Divider(),
+            ),
+            _destination(
+              context,
+              cs,
+              0,
+              Icons.play_circle_outline,
+              context.l10n.homeTabVideos,
+            ),
+            _destination(
+              context,
+              cs,
+              1,
+              Icons.settings_outlined,
+              context.l10n.homeTabSettings,
+            ),
+            const SizedBox(height: 12),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _destination(
+    BuildContext context,
+    ColorScheme cs,
+    int i,
+    IconData icon,
+    String label,
+  ) {
+    final active = index == i;
+    final iconOnly =
+        MediaQuery.sizeOf(context).height < 500 ||
+        MediaQuery.textScalerOf(context).scale(12) > 18;
+    return Tooltip(
+      message: label,
+      excludeFromSemantics: true,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+        child: Semantics(
+          label: iconOnly ? label : null,
+          selected: active,
+          button: true,
+          inMutuallyExclusiveGroup: true,
+          child: InkWell(
+            onTap: onTap == null ? null : () => onTap!(i),
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 64),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+              decoration: BoxDecoration(
+                color: active ? cs.primary.withValues(alpha: 0.12) : null,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, color: active ? cs.primary : cs.onSurfaceVariant),
+                  if (!iconOnly) const SizedBox(height: 4),
+                  if (!iconOnly)
+                    Text(
+                      label,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                        color: active ? cs.onSurface : cs.onSurfaceVariant,
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

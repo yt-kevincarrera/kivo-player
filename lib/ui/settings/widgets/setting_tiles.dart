@@ -262,7 +262,7 @@ Widget _titleBlock(BuildContext context, String title, String? subtitle) {
   );
 }
 
-const kAccentPresets = <int>[0xFFE8B84B, 0xFF5B9BE8, 0xFFE86B6B, 0xFF57C08A, 0xFFB77BE8];
+const kAccentPresets = <int>[0xFFC7A15A, 0xFF5B9BE8, 0xFFE86B6B, 0xFF57C08A, 0xFFB77BE8];
 
 class SettingColor extends StatelessWidget {
   final String title;
