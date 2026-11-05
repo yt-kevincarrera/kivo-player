@@ -1,0 +1,4 @@
+El móvil horizontal conserva la navegación etiquetada y usa fichas horizontales, con el minirreproductor al lado cuando hay espacio.
+Pestañas con etiquetas estables, iconos centrados y zonas táctiles más amplias.
+Nuevo vuelve a seguir tu paleta. Se mantiene el dorado mate aprobado.
+La tablet conserva sus columnas. Mejoras al girar, con recortes de pantalla, texto ampliado y movimiento reducido.

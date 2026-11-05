@@ -99,7 +99,8 @@ Future<ProviderContainer> _buildApp(WidgetTester tester) async {
       playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
       playlistStoreProvider.overrideWithValue(InMemoryPlaylistStore()),
       playlistClockProvider.overrideWithValue(
-          () => DateTime.fromMillisecondsSinceEpoch(1000 + tick++)),
+        () => DateTime.fromMillisecondsSinceEpoch(1000 + tick++),
+      ),
     ],
   );
   await pumpLocalized(
@@ -266,7 +267,8 @@ void main() {
     final inceptionCenter = tester.getCenter(find.text('Inception.mp4'));
     expect(
       avatarCenter.dy < inceptionCenter.dy ||
-          (avatarCenter.dy == inceptionCenter.dy && avatarCenter.dx < inceptionCenter.dx),
+          (avatarCenter.dy == inceptionCenter.dy &&
+              avatarCenter.dx < inceptionCenter.dx),
       isTrue,
     );
   });
@@ -304,37 +306,39 @@ void main() {
       expect(find.byIcon(Icons.select_all), findsNothing);
     },
   );
-  testWidgets('an unselected tab is its icon alone; selecting it spells it out',
-      (tester) async {
+  testWidgets('tab labels and bounds stay stable throughout selection', (
+    tester,
+  ) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(390, 844);
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    // Four full-width chips ate the row, so only the selected one carries its
-    // label. The label stays in the tree at zero width so it can slide out
-    // rather than pop in, which is why this measures the chip instead of
-    // asking whether the text exists.
     await _buildApp(tester);
 
-    double chipWidth(IconData icon) => tester.getSize(find
-        .ancestor(
-          of: find.byIcon(icon),
-          matching: find.byType(AnimatedContainer),
-        )
-        .first).width;
+    Rect chipBounds(IconData icon) => tester.getRect(
+      find
+          .ancestor(of: find.byIcon(icon), matching: find.byType(InkWell))
+          .first,
+    );
 
-    final collapsed = chipWidth(Icons.folder_outlined);
+    final before = chipBounds(Icons.folder_outlined);
 
     await tester.tap(find.byIcon(Icons.folder_outlined));
+    for (final elapsed in [16, 80, 160]) {
+      await tester.pump(Duration(milliseconds: elapsed));
+      expect(chipBounds(Icons.folder_outlined), before);
+      expect(tester.takeException(), isNull);
+    }
     await tester.pumpAndSettle();
-
-    expect(chipWidth(Icons.folder_outlined), greaterThan(collapsed));
-    // «Todo» keeps its label even now that it is not the selected one.
+    expect(chipBounds(Icons.folder_outlined), before);
     expect(find.text('Todo'), findsOneWidget);
+    expect(find.text('Carpetas'), findsOneWidget);
+    expect(find.text('Listas'), findsOneWidget);
   });
 
-  testWidgets('the icon-only chips still announce themselves to a reader',
-      (tester) async {
+  testWidgets('the icon-only chips still announce themselves to a reader', (
+    tester,
+  ) async {
     // An icon with no text has to carry its name in semantics or a screen
     // reader gets nothing at all.
     final handle = tester.ensureSemantics();
@@ -345,8 +349,9 @@ void main() {
     handle.dispose();
   });
 
-  testWidgets('leaving the Listas tab clears the playlists marked in it',
-      (tester) async {
+  testWidgets('leaving the Listas tab clears the playlists marked in it', (
+    tester,
+  ) async {
     // The pager keeps every sub-tab alive, so marks left behind would sit
     // there with their bar gone and reappear on return. Marking is the tab's
     // own gesture; what this covers is that the screen owning the pager is
@@ -392,8 +397,9 @@ void main() {
     },
   );
 
-  testWidgets('search hint says "listas" on the Listas tab, videos elsewhere',
-      (tester) async {
+  testWidgets('search hint says "listas" on the Listas tab, videos elsewhere', (
+    tester,
+  ) async {
     await _buildApp(tester);
 
     await tester.tap(find.byIcon(Icons.search));
@@ -417,8 +423,9 @@ void main() {
     );
   });
 
-  testWidgets('opening search from the Listas tab clears any playlist marks',
-      (tester) async {
+  testWidgets('opening search from the Listas tab clears any playlist marks', (
+    tester,
+  ) async {
     // Mirrors the sub-tab-switch test above: search replaces the visible
     // rows with a filtered set too, so a mark left behind is the same
     // orphaned-selection bug, just reached from the search icon instead.
@@ -440,79 +447,87 @@ void main() {
   });
 
   testWidgets(
-      'bulk Borrar on Listas only deletes playlists a search query still shows',
-      (tester) async {
-    final container = await _buildApp(tester);
-    addTearDown(container.dispose);
-    await container.read(playlistsProvider.notifier).create('Serie');
-    await container.read(playlistsProvider.notifier).create('Curso');
+    'bulk Borrar on Listas only deletes playlists a search query still shows',
+    (tester) async {
+      final container = await _buildApp(tester);
+      addTearDown(container.dispose);
+      await container.read(playlistsProvider.notifier).create('Serie');
+      await container.read(playlistsProvider.notifier).create('Curso');
 
-    await tester.tap(find.byIcon(Icons.queue_music_outlined));
-    await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.queue_music_outlined));
+      await tester.pumpAndSettle();
 
-    // Open search first (selection is already empty, so nothing to clear),
-    // THEN mark both rows while the query is still empty — search shows
-    // every playlist until something is typed.
-    await tester.tap(find.byIcon(Icons.search));
-    await tester.pumpAndSettle();
+      // Open search first (selection is already empty, so nothing to clear),
+      // THEN mark both rows while the query is still empty — search shows
+      // every playlist until something is typed.
+      await tester.tap(find.byIcon(Icons.search));
+      await tester.pumpAndSettle();
 
-    await tester.longPress(find.text('Serie'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Curso'));
-    await tester.pumpAndSettle();
-    expect(container.read(playlistsSelectionProvider).length, 2);
+      await tester.longPress(find.text('Serie'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Curso'));
+      await tester.pumpAndSettle();
+      expect(container.read(playlistsSelectionProvider).length, 2);
 
-    // Narrowing the query hides Curso's row without touching its mark.
-    await tester.enterText(find.byType(TextField), 'serie');
-    await tester.pump();
-    expect(find.text('Serie'), findsOneWidget);
-    expect(find.text('Curso'), findsNothing);
+      // Narrowing the query hides Curso's row without touching its mark.
+      await tester.enterText(find.byType(TextField), 'serie');
+      await tester.pump();
+      expect(find.text('Serie'), findsOneWidget);
+      expect(find.text('Curso'), findsNothing);
 
-    await tester.tap(find.byKey(const Key('playlists-bulk-borrar')));
-    await tester.pumpAndSettle();
-    // The confirm dialog names only the one still visible, not both marked.
-    expect(find.textContaining('¿Borrar 1 lista?'), findsOneWidget);
-    await tester.tap(find.descendant(
-        of: find.byType(AlertDialog), matching: find.text('Borrar')));
-    await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('playlists-bulk-borrar')));
+      await tester.pumpAndSettle();
+      // The confirm dialog names only the one still visible, not both marked.
+      expect(find.textContaining('¿Borrar 1 lista?'), findsOneWidget);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Borrar'),
+        ),
+      );
+      await tester.pumpAndSettle();
 
-    // Curso survives — it was marked but never shown once the query hid it.
-    expect(
-      container.read(playlistsProvider).map((p) => p.name).toList(),
-      ['Curso'],
-    );
-  });
+      // Curso survives — it was marked but never shown once the query hid it.
+      expect(container.read(playlistsProvider).map((p) => p.name).toList(), [
+        'Curso',
+      ]);
+    },
+  );
 
   testWidgets(
-      'Borrar búsqueda on the Listas empty state fully closes search, like the videos one',
-      (tester) async {
-    final container = await _buildApp(tester);
-    addTearDown(container.dispose);
-    await container.read(playlistsProvider.notifier).create('Serie');
+    'Borrar búsqueda on the Listas empty state fully closes search, like the videos one',
+    (tester) async {
+      final container = await _buildApp(tester);
+      addTearDown(container.dispose);
+      await container.read(playlistsProvider.notifier).create('Serie');
 
-    await tester.tap(find.byIcon(Icons.queue_music_outlined));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.search));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), 'zzz-no-match');
-    await tester.pump();
+      await tester.tap(find.byIcon(Icons.queue_music_outlined));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.search));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'zzz-no-match');
+      await tester.pump();
 
-    expect(find.textContaining('Ninguna lista coincide con "zzz-no-match"'),
-        findsOneWidget);
+      expect(
+        find.textContaining('Ninguna lista coincide con "zzz-no-match"'),
+        findsOneWidget,
+      );
 
-    await tester.tap(find.text('Borrar búsqueda'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Borrar búsqueda'));
+      await tester.pumpAndSettle();
 
-    // Same escape hatch as the videos search empty state: the field is
-    // gone, the title is back, and the full playlist list is showing again
-    // (not just an emptied query with the field still open).
-    expect(find.text('Kivo'), findsOneWidget);
-    expect(find.byType(TextField), findsNothing);
-    expect(find.text('Serie'), findsOneWidget);
-  });
+      // Same escape hatch as the videos search empty state: the field is
+      // gone, the title is back, and the full playlist list is showing again
+      // (not just an emptied query with the field still open).
+      expect(find.text('Kivo'), findsOneWidget);
+      expect(find.byType(TextField), findsNothing);
+      expect(find.text('Serie'), findsOneWidget);
+    },
+  );
 
-  testWidgets('changing the sort menu on Listas reorders the rows',
-      (tester) async {
+  testWidgets('changing the sort menu on Listas reorders the rows', (
+    tester,
+  ) async {
     final container = await _buildApp(tester);
     addTearDown(container.dispose);
     // Created in this order, so "recent" (the default) puts Zulu — made

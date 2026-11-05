@@ -22,45 +22,92 @@ const _video = VideoItem(
   dateAddedMs: 0,
 );
 
-Future<void> _pump(WidgetTester tester, Widget child) async {
+Future<void> _pump(
+  WidgetTester tester,
+  Widget child, {
+  ThemeData? theme,
+}) async {
   final s = await SettingsService.load(InMemorySettingsStore());
-  final container = ProviderContainer(overrides: [
-    settingsServiceProvider.overrideWithValue(s),
-    mediaIndexerProvider.overrideWithValue(FakeMediaIndexer()),
-  ]);
+  final container = ProviderContainer(
+    overrides: [
+      settingsServiceProvider.overrideWithValue(s),
+      mediaIndexerProvider.overrideWithValue(FakeMediaIndexer()),
+    ],
+  );
   addTearDown(container.dispose);
   await pumpLocalized(
     tester,
-    Scaffold(body: Center(child: SizedBox(width: 300, child: child))),
-    theme: KivoTheme.light(),
+    Scaffold(
+      body: Center(child: SizedBox(width: 300, child: child)),
+    ),
+    theme: theme ?? KivoTheme.light(),
     container: container,
   );
   await tester.pump();
 }
 
 void main() {
-  testWidgets('list-row mode: shows title, size, duration, fires onTap via title tap', (tester) async {
-    var tapped = false;
-    await _pump(
-      tester,
-      VideoTile(
-        video: _video,
-        listRow: true,
-        sizeLabel: '49.00 MB',
-        progress: 0.5,
-        onTap: (_) => tapped = true,
-      ),
-    );
+  for (final theme in [
+    KivoTheme.dark(),
+    KivoTheme.light(),
+    KivoTheme.dark(accent: Colors.blue),
+    KivoTheme.light(accent: Colors.blue),
+  ]) {
+    for (final listRow in [false, true]) {
+      testWidgets(
+        'new badge follows ${theme.brightness} ${theme.colorScheme.primary} in list=$listRow',
+        (tester) async {
+          await _pump(
+            tester,
+            VideoTile(
+              video: _video,
+              isNew: true,
+              listRow: listRow,
+              onTap: (_) {},
+            ),
+            theme: theme,
+          );
+          final label = find.text(_l10n.videoTileNewBadge);
+          final badge = tester.widget<Container>(
+            find.ancestor(of: label, matching: find.byType(Container)).first,
+          );
+          final fill = (badge.decoration! as BoxDecoration).color!;
+          final ink = tester.widget<Text>(label).style!.color!;
+          expect(fill, theme.colorScheme.primary);
+          final a = fill.computeLuminance(), b = ink.computeLuminance();
+          expect(
+            a > b ? (a + .05) / (b + .05) : (b + .05) / (a + .05),
+            greaterThanOrEqualTo(4.5),
+          );
+        },
+      );
+    }
+  }
+  testWidgets(
+    'list-row mode: shows title, size, duration, fires onTap via title tap',
+    (tester) async {
+      var tapped = false;
+      await _pump(
+        tester,
+        VideoTile(
+          video: _video,
+          listRow: true,
+          sizeLabel: '49.00 MB',
+          progress: 0.5,
+          onTap: (_) => tapped = true,
+        ),
+      );
 
-    expect(find.text('cool.mkv'), findsOneWidget);
-    expect(find.text('49.00 MB'), findsOneWidget);
-    expect(find.text('01:05'), findsOneWidget);
+      expect(find.text('cool.mkv'), findsOneWidget);
+      expect(find.text('49.00 MB'), findsOneWidget);
+      expect(find.text('01:05'), findsOneWidget);
 
-    // Tap the TITLE text — proves the whole row is tappable, not just the thumbnail.
-    await tester.tap(find.text('cool.mkv'));
-    await tester.pump();
-    expect(tapped, isTrue);
-  });
+      // Tap the TITLE text — proves the whole row is tappable, not just the thumbnail.
+      await tester.tap(find.text('cool.mkv'));
+      await tester.pump();
+      expect(tapped, isTrue);
+    },
+  );
 
   testWidgets('cover mode: shows title, duration, fires onTap', (tester) async {
     var tapped = false;
@@ -100,26 +147,26 @@ void main() {
   testWidgets('list-row with isNew:true shows Nuevo badge', (tester) async {
     await _pump(
       tester,
-      VideoTile(
-        video: _video,
-        listRow: true,
-        isNew: true,
-        onTap: (_) {},
-      ),
+      VideoTile(video: _video, listRow: true, isNew: true, onTap: (_) {}),
     );
 
     expect(find.text(_l10n.videoTileNewBadge), findsOneWidget);
+    final badge = tester.widget<Container>(
+      find
+          .ancestor(
+            of: find.text(_l10n.videoTileNewBadge),
+            matching: find.byType(Container),
+          )
+          .first,
+    );
+    expect(
+      (badge.decoration! as BoxDecoration).color,
+      KivoTheme.light().colorScheme.primary,
+    );
   });
 
   testWidgets('list-row shows more_vert options icon', (tester) async {
-    await _pump(
-      tester,
-      VideoTile(
-        video: _video,
-        listRow: true,
-        onTap: (_) {},
-      ),
-    );
+    await _pump(tester, VideoTile(video: _video, listRow: true, onTap: (_) {}));
 
     expect(find.byIcon(Icons.more_vert), findsOneWidget);
   });
@@ -128,11 +175,7 @@ void main() {
     var tapped = false;
     await _pump(
       tester,
-      VideoTile(
-        video: _video,
-        listRow: true,
-        onTap: (_) => tapped = true,
-      ),
+      VideoTile(video: _video, listRow: true, onTap: (_) => tapped = true),
     );
 
     await tester.tap(find.text('cool.mkv'));
@@ -140,7 +183,9 @@ void main() {
     expect(tapped, isTrue);
   });
 
-  testWidgets('list-row: tapping more_vert fires onOptions and NOT onTap', (tester) async {
+  testWidgets('list-row: tapping more_vert fires onOptions and NOT onTap', (
+    tester,
+  ) async {
     var tapped = false;
     var optionsTapped = false;
     await _pump(

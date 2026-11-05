@@ -315,6 +315,9 @@ void main() {
       expect(libraryGridColumns(width: 1144, wide: true, density: 2), 5);
       expect(libraryGridColumns(width: 1144, wide: true, density: 3), 6);
       expect(libraryGridColumns(width: 1864, wide: true, density: 3), 8);
+      expect(libraryGridColumns(width: 796, wide: true, density: 2, compactHeight: true), 2);
+      expect(libraryGridColumns(width: 520, wide: false, density: 2, compactHeight: true), 1);
+      expect(libraryGridColumns(width: 796, wide: true, density: 2, compactHeight: true, textScale: 2), 1);
       expect(libraryGridColumns(width: 1144, wide: true, density: 0), 1,
         reason: 'an explicitly chosen list stays a list');
     });

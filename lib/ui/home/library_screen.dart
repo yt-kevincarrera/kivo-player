@@ -153,6 +153,10 @@ class LibraryScreenState extends ConsumerState<LibraryScreen> {
   void _goToPage(int i) {
     if (!_pageController.hasClients) return;
     if (_pageController.page?.round() == i) return;
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _pageController.jumpToPage(i);
+      return;
+    }
     _pageController.animateToPage(
       i,
       duration: const Duration(milliseconds: 250),
@@ -275,10 +279,20 @@ class LibraryScreenState extends ConsumerState<LibraryScreen> {
                           HapticFeedback.selectionClick();
                           openVault(context);
                         },
-                        child: Text(
-                          'Kivo',
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(fontWeight: FontWeight.bold),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            minWidth: 48,
+                            minHeight: 48,
+                          ),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            widthFactor: 1,
+                            child: Text(
+                              'Kivo',
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                          ),
                         ),
                       ),
               ),
@@ -367,7 +381,12 @@ class LibraryScreenState extends ConsumerState<LibraryScreen> {
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) ref.read(librarySelectionProvider.notifier).clear();
       },
-      child: scaffold,
+      child: IconButtonTheme(
+        data: IconButtonThemeData(
+          style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
+        ),
+        child: scaffold,
+      ),
     );
   }
 
@@ -610,42 +629,45 @@ class _FilterChips extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            _chip(context, cs, context.l10n.libraryTabAll, 0),
-            const SizedBox(width: 8),
-            _chip(
-              context,
-              cs,
-              context.l10n.libraryTabFolders,
-              1,
-              icon: Icons.folder_outlined,
+      child: Row(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _chip(context, cs, context.l10n.libraryTabAll, 0),
+                  const SizedBox(width: 8),
+                  _chip(
+                    context,
+                    cs,
+                    context.l10n.libraryTabFolders,
+                    1,
+                    icon: Icons.folder_outlined,
+                  ),
+                  const SizedBox(width: 8),
+                  _chip(
+                    context,
+                    cs,
+                    context.l10n.libraryTabPlaylists,
+                    2,
+                    icon: Icons.queue_music_outlined,
+                  ),
+                ],
+              ),
             ),
+          ),
+          if (showUnwatchedToggle) ...[
             const SizedBox(width: 8),
-            _chip(
-              context,
-              cs,
-              context.l10n.libraryTabPlaylists,
-              2,
-              icon: Icons.queue_music_outlined,
-            ),
-            if (showUnwatchedToggle) ...[
-              const SizedBox(width: 8),
-              _UnwatchedChip(active: unwatchedOnly, onTap: onToggleUnwatched),
-            ],
+            _UnwatchedChip(active: unwatchedOnly, onTap: onToggleUnwatched),
           ],
-        ),
+        ],
       ),
     );
   }
 
-  /// A chip with an [icon] carries its label only while it is the selected
-  /// one: four full-width chips ate the row, and the three that are not
-  /// selected do not need to spell themselves out to stay recognisable.
-  /// "Todo" keeps its text always — it has no icon that would read as
-  /// "everything" without one.
+  /// Stable labels make the sections discoverable and keep their hit targets
+  /// in place when selection changes. The row scrolls when text needs space.
   Widget _chip(
     BuildContext context,
     ColorScheme cs,
@@ -653,103 +675,60 @@ class _FilterChips extends StatelessWidget {
     int i, {
     IconData? icon,
   }) {
-    return Consumer(
-      builder: (context, ref, _) {
-        final accent = Theme.of(context).colorScheme.primary;
-        final active = selected == i;
-        final showLabel = icon == null || active || usesWideLibrary(context);
-        final fg = active ? cs.onSurface : cs.onSurfaceVariant;
-        return Semantics(
-          // The unselected chips are icon-only, so the label has to live
-          // here or a screen reader gets nothing to read.
-          label: label,
-          button: true,
-          selected: active,
-          inMutuallyExclusiveGroup: true,
-          onTap: () => onChanged(i),
-          // The visible text (when shown) would read the label twice.
-          excludeSemantics: true,
-          child: KivoFocusable(
-            onActivate: () => onChanged(i),
+    final accent = Theme.of(context).colorScheme.primary;
+    final active = selected == i;
+    final fg = active ? cs.onSurface : cs.onSurfaceVariant;
+    return Semantics(
+      label: label,
+      button: true,
+      selected: active,
+      inMutuallyExclusiveGroup: true,
+      onTap: () => onChanged(i),
+      // The visible text (when shown) would read the label twice.
+      excludeSemantics: true,
+      child: KivoFocusable(
+        onActivate: () => onChanged(i),
+        borderRadius: BorderRadius.circular(20),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            canRequestFocus: false,
+            onTap: () => onChanged(i),
             borderRadius: BorderRadius.circular(20),
-            child: GestureDetector(
-              onTap: () => onChanged(i),
-              child: AnimatedContainer(
-                duration: _chipAnim,
-                curve: _chipCurve,
-                constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
-                padding: EdgeInsets.symmetric(
-                  horizontal: showLabel ? 14 : 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: active
-                      ? accent.withValues(alpha: 0.12)
-                      : cs.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: active ? accent : Colors.transparent,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (icon != null) Icon(icon, size: 15, color: fg),
-                    _chipLabel(
-                      show: showLabel,
-                      gap: icon != null,
-                      child: Text(
-                        label,
-                        style: TextStyle(
-                          color: fg,
-                          fontSize: 13,
-                          fontWeight: active
-                              ? FontWeight.w600
-                              : FontWeight.w500,
-                        ),
-                      ),
-                    ),
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: active
+                    ? accent.withValues(alpha: 0.12)
+                    : cs.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: active ? accent : Colors.transparent),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon, size: 22, color: fg),
+                    const SizedBox(width: 6),
                   ],
-                ),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: fg,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
-}
-
-/// One duration and curve for every chip, so the tabs and the filter next to
-/// them expand in step.
-const _chipAnim = Duration(milliseconds: 260);
-const _chipCurve = Curves.easeOutCubic;
-
-/// The label's width and its opacity ride the same value, so it slides out
-/// from behind the icon instead of popping in once the box has finished
-/// growing. AnimatedSize alone animated the box but not the text, which is
-/// what made the old version feel abrupt.
-Widget _chipLabel({
-  required bool show,
-  required bool gap,
-  required Widget child,
-}) {
-  return TweenAnimationBuilder<double>(
-    tween: Tween(begin: show ? 1 : 0, end: show ? 1 : 0),
-    duration: _chipAnim,
-    curve: _chipCurve,
-    builder: (context, t, inner) => ClipRect(
-      child: Align(
-        alignment: Alignment.centerLeft,
-        widthFactor: t,
-        child: Opacity(opacity: t, child: inner),
-      ),
-    ),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [if (gap) const SizedBox(width: 5), child],
-    ),
-  );
 }
 
 // ---------------------------------------------------------------------------
@@ -765,6 +744,7 @@ class _UnwatchedChip extends ConsumerWidget {
     final cs = Theme.of(context).colorScheme;
     final accent = Theme.of(context).colorScheme.primary;
     final fg = active ? cs.onSurface : cs.onSurfaceVariant;
+    final showLabel = usesWideLibrary(context);
     return Semantics(
       label: context.l10n.libraryUnwatchedFilter,
       button: true,
@@ -774,41 +754,49 @@ class _UnwatchedChip extends ConsumerWidget {
       child: KivoFocusable(
         onActivate: onTap,
         borderRadius: BorderRadius.circular(20),
-        child: GestureDetector(
-          onTap: onTap,
-          child: AnimatedContainer(
-            duration: _chipAnim,
-            curve: _chipCurve,
-            constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
-            padding: EdgeInsets.symmetric(
-              horizontal: active ? 14 : 10,
-              vertical: 6,
-            ),
-            decoration: BoxDecoration(
-              color: active
-                  ? accent.withValues(alpha: 0.12)
-                  : cs.surfaceContainerHighest,
+        child: Tooltip(
+          message: context.l10n.libraryUnwatchedFilter,
+          excludeFromSemantics: true,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              canRequestFocus: false,
+              onTap: onTap,
               borderRadius: BorderRadius.circular(20),
-            ),
-            // Same rule as the tabs: the label shows only while the filter is
-            // on, which is also when it is worth saying out loud.
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.visibility_off_outlined, size: 15, color: fg),
-                _chipLabel(
-                  show: active,
-                  gap: true,
-                  child: Text(
-                    context.l10n.libraryUnwatchedFilter,
-                    style: TextStyle(
-                      color: fg,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
+              child: Container(
+                constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+                padding: EdgeInsets.symmetric(
+                  horizontal: showLabel ? 12 : 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: active
+                      ? accent.withValues(alpha: 0.12)
+                      : cs.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: active ? accent : Colors.transparent,
                   ),
                 ),
-              ],
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.visibility_off_outlined, size: 22, color: fg),
+                    if (showLabel) ...[
+                      const SizedBox(width: 6),
+                      Text(
+                        context.l10n.libraryUnwatchedFilter,
+                        style: TextStyle(
+                          color: fg,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             ),
           ),
         ),

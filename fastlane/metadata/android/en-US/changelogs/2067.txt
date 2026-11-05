@@ -1,0 +1,4 @@
+Landscape phones keep labeled navigation and use horizontal video cards, with the mini-player alongside navigation when space allows.
+Library tabs have stable labels, centered icons and larger touch targets.
+The New badge follows your chosen palette again. The matte gold accent is preserved.
+Tablet grids stay spacious. Rotation, cutouts, large text and reduced motion are handled more consistently.

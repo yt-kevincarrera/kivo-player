@@ -7,7 +7,9 @@ import '../settings/search/settings_search_state.dart';
 import '../settings/settings_screen.dart';
 import '../../player/end_actions/end_flow.dart';
 import '../../player/end_actions/trash_queue.dart';
+import '../../player/open/video_source.dart';
 import '../player/state/player_dismiss_state.dart';
+import '../player/state/mini_player_state.dart';
 import 'library_screen.dart';
 import 'library_layout.dart';
 import 'pending_trash.dart';
@@ -28,6 +30,7 @@ class HomeShell extends ConsumerStatefulWidget {
 class _HomeShellState extends ConsumerState<HomeShell> {
   int _index = 0;
   final _libraryKey = GlobalKey<LibraryScreenState>();
+  final _miniPlayerKey = GlobalKey();
   bool _libraryAtRoot = true;
   late final _LibraryRouteObserver _libraryObserver;
   final _navKeys = [GlobalKey<NavigatorState>(), GlobalKey<NavigatorState>()];
@@ -92,6 +95,14 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   Widget build(BuildContext context) {
     final selecting = ref.watch(librarySelectionProvider).isNotEmpty;
     final sideNavigation = usesSideNavigation(context);
+    final inlineMiniPlayer =
+        hasCompactHeight(context) &&
+        MediaQuery.sizeOf(context).width -
+                MediaQuery.paddingOf(context).horizontal >=
+            540 &&
+        MediaQuery.textScalerOf(context).scale(12) <= 16 &&
+        ref.watch(playerMinimizedProvider) &&
+        ref.watch(currentVideoProvider) != null;
     // Leaving the full-screen player (its dismiss API goes away with it), or
     // closing the mini-bar: confirm the batched deletions now.
     ref.listen(playerDismissProvider, (prev, next) {
@@ -159,22 +170,27 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                   : null,
             ),
             Expanded(
-              child: Column(
-                children: [
-                  Expanded(
-                    child: IndexedStack(
-                      index: _index,
-                      children: [
-                        _tab(
-                          0,
-                          LibraryScreen(key: _libraryKey, sideTools: true),
-                        ),
-                        _tab(1, const SettingsScreen()),
-                      ],
+              child: SafeArea(
+                top: false,
+                bottom: false,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: IndexedStack(
+                        index: _index,
+                        children: [
+                          _tab(
+                            0,
+                            LibraryScreen(key: _libraryKey, sideTools: true),
+                          ),
+                          _tab(1, const SettingsScreen()),
+                        ],
+                      ),
                     ),
-                  ),
-                  if (!selecting) const MiniPlayerBar(),
-                ],
+                    if (!selecting && !inlineMiniPlayer)
+                      MiniPlayerBar(key: _miniPlayerKey),
+                  ],
+                ),
               ),
             ),
           ],
@@ -189,6 +205,19 @@ class _HomeShellState extends ConsumerState<HomeShell> {
               )
             : sideNavigation
             ? null
+            : inlineMiniPlayer
+            ? SafeArea(
+                top: false,
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 220,
+                      child: _BottomTabBar(index: _index, onTap: _select),
+                    ),
+                    Expanded(child: MiniPlayerBar(key: _miniPlayerKey)),
+                  ],
+                ),
+              )
             : _BottomTabBar(index: _index, onTap: _select),
       ),
     );
@@ -203,6 +232,7 @@ class _BottomTabBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final compact = hasCompactHeight(context);
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
@@ -213,7 +243,7 @@ class _BottomTabBar extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.only(top: 8, bottom: 6),
+          padding: EdgeInsets.symmetric(vertical: compact ? 0 : 4),
           child: Row(
             children: [
               _item(
@@ -221,12 +251,14 @@ class _BottomTabBar extends StatelessWidget {
                 0,
                 Icons.play_circle_outline,
                 context.l10n.homeTabVideos,
+                compact,
               ),
               _item(
                 cs,
                 1,
                 Icons.settings_outlined,
                 context.l10n.homeTabSettings,
+                compact,
               ),
             ],
           ),
@@ -235,7 +267,13 @@ class _BottomTabBar extends StatelessWidget {
     );
   }
 
-  Widget _item(ColorScheme cs, int i, IconData icon, String label) {
+  Widget _item(
+    ColorScheme cs,
+    int i,
+    IconData icon,
+    String label,
+    bool compact,
+  ) {
     final active = i == index;
     final color = active ? cs.secondary : cs.onSurfaceVariant;
     return Expanded(
@@ -245,20 +283,30 @@ class _BottomTabBar extends StatelessWidget {
         inMutuallyExclusiveGroup: true,
         child: InkWell(
           onTap: () => onTap(i),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 24, color: color),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-                  color: color,
-                ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              child: Flex(
+                direction: compact ? Axis.horizontal : Axis.vertical,
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 24, color: color),
+                  SizedBox(width: compact ? 8 : 0, height: compact ? 0 : 4),
+                  Flexible(
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                        color: color,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -350,16 +398,24 @@ class _SideNavigation extends StatelessWidget {
             onTap: onTap == null ? null : () => onTap!(i),
             borderRadius: BorderRadius.circular(14),
             child: Container(
+              width: double.infinity,
               constraints: const BoxConstraints(minHeight: 64),
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
               decoration: BoxDecoration(
                 color: active ? cs.primary.withValues(alpha: 0.12) : null,
                 borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: active ? cs.primary : Colors.transparent,
+                ),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(icon, color: active ? cs.primary : cs.onSurfaceVariant),
+                  Icon(
+                    icon,
+                    size: 24,
+                    color: active ? cs.primary : cs.onSurfaceVariant,
+                  ),
                   if (!iconOnly) const SizedBox(height: 4),
                   if (!iconOnly)
                     Text(
