@@ -9,6 +9,7 @@ import '../../player/open/video_source.dart';
 import '../player/controls/resume_prompt.dart';
 import '../player/player_route.dart';
 import 'state/library_selection.dart';
+import 'library_layout.dart';
 import 'widgets/library_empty_state.dart';
 import 'widgets/selection_app_bar.dart';
 import 'widgets/video_density_feed.dart';
@@ -57,8 +58,11 @@ class FolderScreen extends ConsumerWidget {
         appBar: selecting
             ? SelectionAppBar(allVisible: vids)
             : AppBar(
+                actions: const [LibraryDensityButton()],
                 title: Text(
                   folder,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,

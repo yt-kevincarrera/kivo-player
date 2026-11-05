@@ -6,7 +6,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import '../../core/icons/kivo_icons.dart';
 import '../../core/settings/settings_provider.dart';
-import '../../core/theme/kivo_theme.dart';
 import '../../l10n/l10n.dart';
 import '../../platform/interfaces/media_indexer.dart';
 import '../../platform/interfaces/media_permission.dart';
@@ -22,6 +21,7 @@ import '../player/player_route.dart';
 import '../vault/vault_entry_actions.dart';
 import '../widgets/failure_view.dart';
 import 'folder_screen.dart';
+import 'library_layout.dart';
 import 'playlists/playlists_tab.dart';
 import 'state/library_filter_state.dart';
 import 'state/library_selection.dart';
@@ -32,10 +32,11 @@ import 'widgets/video_density_feed.dart';
 import '../widgets/kivo_focusable.dart';
 
 class LibraryScreen extends ConsumerStatefulWidget {
-  const LibraryScreen({super.key});
+  const LibraryScreen({super.key, this.sideTools = false});
+  final bool sideTools;
 
   @override
-  ConsumerState<LibraryScreen> createState() => _LibraryScreenState();
+  ConsumerState<LibraryScreen> createState() => LibraryScreenState();
 }
 
 /// Which sub-tab of Videos is showing: 0 = Todo, 1 = Carpetas, 2 = Listas.
@@ -45,7 +46,7 @@ class LibraryScreen extends ConsumerStatefulWidget {
 /// owns the pager; it just no longer owns the answer to "which tab".
 final librarySubTabProvider = StateProvider<int>((ref) => 0);
 
-class _LibraryScreenState extends ConsumerState<LibraryScreen> {
+class LibraryScreenState extends ConsumerState<LibraryScreen> {
   // Quick taps on the title toggle incognito (a shortcut to the switch in
   // Ajustes › Reproducción avanzada; how many is a setting, 0 = off). Taps
   // more than [_tapGap] apart start the count again, so ordinary taps never
@@ -68,11 +69,15 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     ref.read(settingsProvider.notifier).set(s.copyWith(incognito: on));
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(
-        content: Text(on
-            ? context.l10n.libraryIncognitoOnSnackbar
-            : context.l10n.libraryIncognitoOffSnackbar),
-      ));
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            on
+                ? context.l10n.libraryIncognitoOnSnackbar
+                : context.l10n.libraryIncognitoOffSnackbar,
+          ),
+        ),
+      );
   }
 
   StreamSubscription<dynamic>? _shareSub;
@@ -140,8 +145,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     if (path != null) _openPath(path);
   }
 
-  /// 1→2→3→1, the same cycle the button's tooltip announces.
-  int get _nextColumns => (ref.read(settingsProvider).libraryColumns % 3) + 1;
+  void toggleSearch() =>
+      ref.read(librarySearchActiveProvider) ? _closeSearch() : _openSearch();
+
+  Future<void> pickFile() => _pick();
 
   void _goToPage(int i) {
     if (!_pageController.hasClients) return;
@@ -151,19 +158,6 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       duration: const Duration(milliseconds: 250),
       curve: Curves.easeOutCubic,
     );
-  }
-
-  void _cycleDensity() {
-    final s = ref.read(settingsProvider);
-    final next = (s.libraryColumns % 3) + 1; // 1→2→3→1
-    HapticFeedback.selectionClick();
-    _setColumns(next);
-  }
-
-  void _setColumns(int cols) {
-    final s = ref.read(settingsProvider);
-    if (s.libraryColumns == cols) return;
-    ref.read(settingsProvider.notifier).set(s.copyWith(libraryColumns: cols));
   }
 
   void _openSearch() {
@@ -220,6 +214,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final sideTools = widget.sideTools && usesSideNavigation(context);
     final perm = ref.watch(mediaPermissionProvider);
     final tab = ref.watch(librarySubTabProvider);
     final selecting = ref.watch(librarySelectionProvider).isNotEmpty;
@@ -319,25 +314,27 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                 // different widgets rather than reusing the same IconButton
                 // Element with a swapped icon — without this, an in-flight tap
                 // ripple can visibly carry over onto the new icon.
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  child: ref.watch(librarySearchActiveProvider)
-                      ? IconButton(
-                          key: const ValueKey('close'),
-                          tooltip: context.l10n.librarySearchClose,
-                          icon: const Icon(Icons.close),
-                          onPressed: _closeSearch,
-                        )
-                      : IconButton(
-                          key: const ValueKey('search'),
-                          tooltip: context.l10n.librarySearchTooltip,
-                          icon: const Icon(Icons.search),
-                          onPressed: _openSearch,
-                        ),
-                ),
-                if (ref.watch(librarySearchActiveProvider) ||
-                    tab == 0 ||
-                    tab == 2)
+                if (!sideTools || ref.watch(librarySearchActiveProvider))
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: ref.watch(librarySearchActiveProvider)
+                        ? IconButton(
+                            key: const ValueKey('close'),
+                            tooltip: context.l10n.librarySearchClose,
+                            icon: const Icon(Icons.close),
+                            onPressed: _closeSearch,
+                          )
+                        : IconButton(
+                            key: const ValueKey('search'),
+                            tooltip: context.l10n.librarySearchTooltip,
+                            icon: const Icon(Icons.search),
+                            onPressed: _openSearch,
+                          ),
+                  ),
+                if (!sideTools &&
+                    (ref.watch(librarySearchActiveProvider) ||
+                        tab == 0 ||
+                        tab == 2))
                   // While searching, the search view (not `tab`) decides what
                   // is being sorted — but the search view on Listas IS the
                   // playlist list (see `_body`'s search branch above), so
@@ -345,18 +342,11 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                   (tab == 2
                       ? const _PlaylistSortMenuButton()
                       : const _SortMenuButton()),
-                if (!ref.watch(librarySearchActiveProvider)) ...[
+                if (!sideTools && !ref.watch(librarySearchActiveProvider)) ...[
                   // Density is a property of the Todo feed and the Carpetas
                   // grid; on Listas the button would respond and change
                   // nothing.
-                  if (tab != 2)
-                    IconButton(
-                      // Says what the tap DOES, not what the feature is
-                      // called: "densidad" told the user nothing.
-                      tooltip: context.l10n.libraryDensityTooltip(_nextColumns),
-                      icon: const Icon(Icons.grid_view),
-                      onPressed: _cycleDensity,
-                    ),
+                  if (tab != 2) const LibraryDensityButton(),
                   IconButton(
                     tooltip: context.l10n.libraryOpenFile,
                     icon: KivoIcon(KivoIcons.folderOpen, size: 22),
@@ -400,6 +390,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           return _searchResults(videos);
         }
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _FilterChips(
               selected: tab,
@@ -619,30 +610,33 @@ class _FilterChips extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-      child: Row(
-        children: [
-          _chip(context, cs, context.l10n.libraryTabAll, 0),
-          const SizedBox(width: 8),
-          _chip(
-            context,
-            cs,
-            context.l10n.libraryTabFolders,
-            1,
-            icon: Icons.folder_outlined,
-          ),
-          const SizedBox(width: 8),
-          _chip(
-            context,
-            cs,
-            context.l10n.libraryTabPlaylists,
-            2,
-            icon: Icons.queue_music_outlined,
-          ),
-          if (showUnwatchedToggle) ...[
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _chip(context, cs, context.l10n.libraryTabAll, 0),
             const SizedBox(width: 8),
-            _UnwatchedChip(active: unwatchedOnly, onTap: onToggleUnwatched),
+            _chip(
+              context,
+              cs,
+              context.l10n.libraryTabFolders,
+              1,
+              icon: Icons.folder_outlined,
+            ),
+            const SizedBox(width: 8),
+            _chip(
+              context,
+              cs,
+              context.l10n.libraryTabPlaylists,
+              2,
+              icon: Icons.queue_music_outlined,
+            ),
+            if (showUnwatchedToggle) ...[
+              const SizedBox(width: 8),
+              _UnwatchedChip(active: unwatchedOnly, onTap: onToggleUnwatched),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -661,10 +655,10 @@ class _FilterChips extends StatelessWidget {
   }) {
     return Consumer(
       builder: (context, ref, _) {
-        final accent = Color(ref.watch(settingsProvider).accentColor);
+        final accent = Theme.of(context).colorScheme.primary;
         final active = selected == i;
-        final showLabel = icon == null || active;
-        final fg = active ? onAccent(accent) : cs.onSurfaceVariant;
+        final showLabel = icon == null || active || usesWideLibrary(context);
+        final fg = active ? cs.onSurface : cs.onSurfaceVariant;
         return Semantics(
           // The unselected chips are icon-only, so the label has to live
           // here or a screen reader gets nothing to read.
@@ -683,13 +677,19 @@ class _FilterChips extends StatelessWidget {
               child: AnimatedContainer(
                 duration: _chipAnim,
                 curve: _chipCurve,
+                constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
                 padding: EdgeInsets.symmetric(
                   horizontal: showLabel ? 14 : 10,
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: active ? accent : cs.surfaceContainerHighest,
+                  color: active
+                      ? accent.withValues(alpha: 0.12)
+                      : cs.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: active ? accent : Colors.transparent,
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -763,8 +763,8 @@ class _UnwatchedChip extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
-    final accent = Color(ref.watch(settingsProvider).accentColor);
-    final fg = active ? onAccent(accent) : cs.onSurfaceVariant;
+    final accent = Theme.of(context).colorScheme.primary;
+    final fg = active ? cs.onSurface : cs.onSurfaceVariant;
     return Semantics(
       label: context.l10n.libraryUnwatchedFilter,
       button: true,
@@ -779,12 +779,15 @@ class _UnwatchedChip extends ConsumerWidget {
           child: AnimatedContainer(
             duration: _chipAnim,
             curve: _chipCurve,
+            constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
             padding: EdgeInsets.symmetric(
               horizontal: active ? 14 : 10,
               vertical: 6,
             ),
             decoration: BoxDecoration(
-              color: active ? accent : cs.surfaceContainerHighest,
+              color: active
+                  ? accent.withValues(alpha: 0.12)
+                  : cs.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(20),
             ),
             // Same rule as the tabs: the label shows only while the filter is
@@ -934,5 +937,42 @@ class _KeepAlivePageState extends State<_KeepAlivePage>
   Widget build(BuildContext context) {
     super.build(context); // required by AutomaticKeepAliveClientMixin
     return widget.child;
+  }
+}
+
+/// Same library commands on a vertical axis. The screen retains its controllers
+/// and routes while HomeShell chooses where to present these controls.
+class LibraryRailTools extends ConsumerWidget {
+  const LibraryRailTools({
+    super.key,
+    required this.onSearch,
+    required this.onPick,
+  });
+  final VoidCallback onSearch;
+  final VoidCallback onPick;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tab = ref.watch(librarySubTabProvider);
+    final searching = ref.watch(librarySearchActiveProvider);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (!searching)
+          IconButton(
+            tooltip: context.l10n.librarySearchTooltip,
+            onPressed: onSearch,
+            icon: const Icon(Icons.search),
+          ),
+        if (searching || tab == 0 || tab == 2)
+          tab == 2 ? const _PlaylistSortMenuButton() : const _SortMenuButton(),
+        if (tab != 2) const LibraryDensityButton(),
+        IconButton(
+          tooltip: context.l10n.libraryOpenFile,
+          onPressed: onPick,
+          icon: KivoIcon(KivoIcons.folderOpen, size: 22),
+        ),
+      ],
+    );
   }
 }

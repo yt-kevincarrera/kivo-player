@@ -1,9 +1,9 @@
+import '../../widgets/readable_width.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/format.dart';
-import '../../../core/settings/settings_provider.dart';
 import '../../../core/theme/kivo_theme.dart';
 import '../../../l10n/l10n.dart';
 import '../../../player/library/continue_watching.dart';
@@ -48,7 +48,7 @@ class PlaylistScreen extends ConsumerWidget {
     }
 
     final resolved = ref.watch(resolvedPlaylistProvider(playlistId));
-    final accent = Color(ref.watch(settingsProvider).accentColor);
+    final accent = Theme.of(context).colorScheme.primary;
     final selected = ref.watch(librarySelectionProvider);
     final selecting = selected.isNotEmpty;
 
@@ -105,7 +105,7 @@ class PlaylistScreen extends ConsumerWidget {
               subtitle: context.l10n.playlistEmptySubtitle,
             )
           : ReorderableListView.builder(
-              padding: const EdgeInsets.fromLTRB(4, 8, 4, 96),
+              padding: readablePadding(context, const EdgeInsets.fromLTRB(4, 8, 4, 96)),
               buildDefaultDragHandles: false,
               itemCount: resolved.length,
               // Two taps of the motor say "you have it" and "it landed".

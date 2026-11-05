@@ -26,7 +26,7 @@ void main() {
   });
 
   test('accentColor defaults to gold and round-trips', () {
-    expect(KivoSettings.defaults().accentColor, 0xFFE8B84B);
+    expect(KivoSettings.defaults().accentColor, 0xFFC7A15A);
     final s = KivoSettings.defaults().copyWith(accentColor: 0xFF2D6CFF);
     expect(KivoSettings.fromMap(s.toMap()).accentColor, 0xFF2D6CFF);
   });
@@ -56,5 +56,40 @@ void main() {
     await svc.update(svc.current.copyWith(excludedFolders: const ['WhatsApp']));
     final reloaded = await SettingsService.load(store);
     expect(reloaded.current.excludedFolders, ['WhatsApp']);
+  });
+
+  test('wide density defaults independently of an existing phone list', () {
+    final settings = KivoSettings.fromMap({'libraryColumns': 1});
+    expect(settings.libraryColumns, 1);
+    expect(settings.wideLibraryDensity, 2);
+    final updated = settings.copyWith(wideLibraryDensity: 3);
+    final restored = KivoSettings.fromMap(updated.toMap());
+    expect(restored.libraryColumns, 1);
+    expect(restored.wideLibraryDensity, 3);
+    expect(
+      KivoSettings.fromMap({'wideLibraryDensity': 0}).wideLibraryDensity,
+      0,
+    );
+    expect(
+      KivoSettings.fromMap({
+        'wideLibraryDensity': 'compact',
+      }).wideLibraryDensity,
+      2,
+    );
+    expect(
+      KivoSettings.fromMap({'wideLibraryDensity': 2.0}).wideLibraryDensity,
+      2,
+    );
+  });
+
+  test('legacy default gold upgrades while custom accents remain saved', () {
+    expect(
+      KivoSettings.fromMap({'accentColor': 0xFFE8B84B}).accentColor,
+      0xFFC7A15A,
+    );
+    expect(
+      KivoSettings.fromMap({'accentColor': 0xFF5B9BE8}).accentColor,
+      0xFF5B9BE8,
+    );
   });
 }

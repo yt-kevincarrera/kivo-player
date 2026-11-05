@@ -16,11 +16,13 @@ import 'continue_row.dart';
 import 'video_options_sheet.dart';
 import 'video_tile.dart';
 import '../../widgets/readable_width.dart';
+import '../library_layout.dart';
 
 /// Maps [group] to its localized display label. `dated` groups carry an
 /// already-formatted (non-localized — date formatting is out of scope this
 /// wave) date string of their own; only `today`/`yesterday` need a lookup.
-String dateGroupLabel(AppLocalizations l10n, DateGroup group) => switch (group.kind) {
+String dateGroupLabel(AppLocalizations l10n, DateGroup group) =>
+    switch (group.kind) {
       DateGroupKind.today => l10n.homeDateToday,
       DateGroupKind.yesterday => l10n.homeDateYesterday,
       DateGroupKind.dated => group.formatted!,
@@ -33,13 +35,6 @@ String dateGroupLabel(AppLocalizations l10n, DateGroup group) => switch (group.k
 /// Used by both the "Todo" tab (grouped by day, with the "Continuar viendo"
 /// strip) and by [FolderScreen] (flat, no strip) so a folder looks and behaves
 /// exactly like the main library.
-/// Columns for a library grid: [chosen] is the phone setting (1–3); wider
-/// screens get proportionally more, up to 8. One column stays a list.
-int adaptiveColumns(int chosen, double width) {
-  if (chosen <= 1) return 1;
-  return (chosen * width / 420).floor().clamp(chosen, 8);
-}
-
 class VideoDensityFeed extends ConsumerStatefulWidget {
   final List<VideoItem> videos;
   final void Function(VideoItem current, List<VideoItem> all, Rect? origin)
@@ -101,12 +96,18 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
     // pointerCount makes the gesture direction-agnostic, like a photo gallery).
     if (_pinchStepDone || d.pointerCount < 2) return;
     final rel = d.scale; // cumulative from gesture start
-    final cols = ref.read(settingsProvider).libraryColumns;
+    final cols = libraryDensity(context, ref.read(settingsProvider));
     int next = cols;
     if (rel > 1.08) {
-      next = (cols - 1).clamp(1, 3); // pinch out → fewer cols (bigger tiles)
+      next = (cols - 1).clamp(
+        usesWideLibrary(context) ? 0 : 1,
+        3,
+      ); // pinch out → fewer cols (bigger tiles)
     } else if (rel < 0.92) {
-      next = (cols + 1).clamp(1, 3); // pinch in → more cols (smaller tiles)
+      next = (cols + 1).clamp(
+        usesWideLibrary(context) ? 0 : 1,
+        3,
+      ); // pinch in → more cols (smaller tiles)
     } else {
       return;
     }
@@ -118,9 +119,7 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
   }
 
   void _setColumns(int cols) {
-    final s = ref.read(settingsProvider);
-    if (s.libraryColumns == cols) return;
-    ref.read(settingsProvider.notifier).set(s.copyWith(libraryColumns: cols));
+    setLibraryDensity(context, ref, cols);
   }
 
   /// Wraps a tile so that, on a column change, it settles into place with a
@@ -146,14 +145,19 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
   @override
   Widget build(BuildContext context) {
     // Any column change (pinch OR the density icon) triggers the reflow.
-    ref.listen<int>(settingsProvider.select((s) => s.libraryColumns), (
-      prev,
-      next,
-    ) {
-      if (prev != null && prev != next) {
-        _reflowCtrl.forward(from: 0);
-      }
-    });
+    final wideWindow = usesWideLibrary(context);
+    ref.listen<int>(
+      settingsProvider.select(
+        (s) => wideWindow ? s.wideLibraryDensity : s.libraryColumns,
+      ),
+      (prev, next) {
+        if (prev != null && prev != next) {
+          if (!MediaQuery.disableAnimationsOf(context)) {
+            _reflowCtrl.forward(from: 0);
+          }
+        }
+      },
+    );
 
     // The "Continuar viendo" strip is deliberately dropped here: a video in
     // progress is by definition one you started, so pairing it with "there's
@@ -162,16 +166,26 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
       return widget.emptyState!;
     }
 
-    final width = MediaQuery.sizeOf(context).width;
-    // The setting is what the user picked on a phone; a tablet or a TV
-    // gets as many more columns as fit at the same tile size.
-    final chosen = ref.watch(settingsProvider).libraryColumns;
-    final cols = isLargeScreen(context) ? adaptiveColumns(chosen, width) : chosen;
-    // A one-column list stays readable on a wide screen: centred, not a
-    // row with its title a screen away from its picture.
-    final hPad = cols == 1
-        ? readablePadding(context, const EdgeInsets.symmetric(horizontal: _sectionPad)).left
+    return LayoutBuilder(
+      builder: (context, constraints) =>
+          _buildFeed(context, constraints.maxWidth),
+    );
+  }
+
+  Widget _buildFeed(BuildContext context, double width) {
+    final wide = usesWideLibrary(context);
+    final chosen = libraryDensity(context, ref.watch(settingsProvider));
+    final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
+    final cols = libraryGridColumns(
+      width: width - _sectionPad * 2,
+      wide: wide,
+      density: chosen,
+      textScale: textScale,
+    );
+    final hPad = cols == 1 && (wide ? chosen == 0 : chosen == 1)
+        ? ((width - kReadableWidth) / 2).clamp(_sectionPad, double.infinity)
         : _sectionPad;
+    final tileWidth = (width - hPad * 2 - (cols - 1) * 12) / cols;
     final sections = widget.groupByDate
         ? groupByDay(widget.videos, DateTime.now())
         : [DaySection(null, widget.videos)];
@@ -180,7 +194,7 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
     };
     final played = ref.watch(playedKeysProvider);
     final cs = Theme.of(context).colorScheme;
-    final accentColor = Color(ref.watch(settingsProvider).accentColor);
+    final accentColor = Theme.of(context).colorScheme.primary;
     final selected = ref.watch(librarySelectionProvider);
     final selecting = selected.isNotEmpty;
     final sel = ref.read(librarySelectionProvider.notifier);
@@ -282,9 +296,12 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
                   : SliverGrid(
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: cols,
-                        childAspectRatio: 16 / 9,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
+                        mainAxisExtent:
+                            tileWidth * 9 / 16 +
+                            12 +
+                            56 * textScale.clamp(1.0, double.infinity),
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 16,
                       ),
                       delegate: SliverChildBuilderDelegate((_, i) {
                         final v = s.items[i];

@@ -4125,5 +4125,11 @@
     "placeholders": {
       "summary": {"type": "String"}
     }
-  }
+  },
+  "libraryDensityLabel": "Library view",
+  "libraryDensityComfortable": "Comfortable",
+  "libraryDensityBalanced": "Balanced",
+  "libraryDensityCompact": "Compact",
+  "libraryDensityList": "List",
+  "libraryWideDensitySetting": "Library on wide screens"
 }

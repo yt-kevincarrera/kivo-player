@@ -10,7 +10,9 @@ import '../../fakes/fakes.dart';
 import '../../helpers/pump_app.dart';
 
 void main() {
-  testWidgets('folder count pill uses the accent, not a hardcoded gold', (t) async {
+  testWidgets('folder count uses legible text and the theme accent border', (
+    t,
+  ) async {
     final s = await SettingsService.load(InMemorySettingsStore());
     await s.update(s.current.copyWith(accentColor: 0xFF2D6CFF)); // blue accent
     const item = VideoItem(
@@ -22,9 +24,9 @@ void main() {
       sizeBytes: 1,
       dateAddedMs: 1,
     );
-    final container = ProviderContainer(overrides: [
-      settingsServiceProvider.overrideWithValue(s),
-    ]);
+    final container = ProviderContainer(
+      overrides: [settingsServiceProvider.overrideWithValue(s)],
+    );
     addTearDown(container.dispose);
     await pumpLocalized(
       t,
@@ -37,10 +39,20 @@ void main() {
     await t.pump();
     // The "1 vid" pill text should be painted with the accent, not gold.
     final txt = findPillText(t);
-    expect(txt.style!.color, const Color(0xFF2D6CFF));
+    final theme = KivoTheme.dark(accent: const Color(0xFF2D6CFF));
+    expect(txt.style!.color, theme.colorScheme.onSurface);
+    final pill = t.widget<Container>(
+      find
+          .ancestor(
+            of: find.textContaining('vid'),
+            matching: find.byType(Container),
+          )
+          .first,
+    );
+    final border = (pill.decoration! as BoxDecoration).border! as Border;
+    expect(border.top.color, theme.colorScheme.primary.withValues(alpha: 0.55));
   });
 }
 
 // Helper: find the count-pill Text ("1 vid"/"N vids").
-Text findPillText(WidgetTester t) =>
-    t.widget<Text>(find.textContaining('vid'));
+Text findPillText(WidgetTester t) => t.widget<Text>(find.textContaining('vid'));

@@ -264,7 +264,11 @@ void main() {
 
     final avatarCenter = tester.getCenter(find.text('Avatar.mp4'));
     final inceptionCenter = tester.getCenter(find.text('Inception.mp4'));
-    expect(avatarCenter.dy, lessThan(inceptionCenter.dy));
+    expect(
+      avatarCenter.dy < inceptionCenter.dy ||
+          (avatarCenter.dy == inceptionCenter.dy && avatarCenter.dx < inceptionCenter.dx),
+      isTrue,
+    );
   });
 
   testWidgets('"No vistos" chip is hidden on the Carpetas tab', (tester) async {
@@ -302,6 +306,10 @@ void main() {
   );
   testWidgets('an unselected tab is its icon alone; selecting it spells it out',
       (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 844);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     // Four full-width chips ate the row, so only the selected one carries its
     // label. The label stays in the tree at zero width so it can slide out
     // rather than pop in, which is why this measures the chip instead of

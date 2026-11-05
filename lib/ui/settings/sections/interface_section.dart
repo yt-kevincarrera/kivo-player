@@ -8,6 +8,7 @@ import '../widgets/setting_tiles.dart';
 import '../widgets/setting_choice.dart';
 import '../widgets/setting_corner_picker.dart';
 import '../../widgets/readable_width.dart';
+import '../../home/library_layout.dart';
 
 class InterfaceSettingsSection extends ConsumerWidget {
   const InterfaceSettingsSection({super.key});
@@ -93,6 +94,12 @@ class InterfaceSettingsSection extends ConsumerWidget {
                 title: l10n.settingsInterfaceColumns, value: s.libraryColumns,
                 options: const [(1, '1'), (2, '2'), (3, '3')],
                 onChanged: (v) => n.set(s.copyWith(libraryColumns: v))),
+            ),
+            SettingChoice<int>(
+              title: l10n.libraryWideDensitySetting,
+              value: s.wideLibraryDensity,
+              options: wideDensityOptions(context),
+              onChanged: (v) => n.set(s.copyWith(wideLibraryDensity: v)),
             ),
           ]),
         ],

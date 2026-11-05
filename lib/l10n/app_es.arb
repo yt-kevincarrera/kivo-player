@@ -4124,5 +4124,11 @@
     "placeholders": {
       "summary": {"type": "String"}
     }
-  }
+  },
+  "libraryDensityLabel": "Vista de biblioteca",
+  "libraryDensityComfortable": "Cómoda",
+  "libraryDensityBalanced": "Equilibrada",
+  "libraryDensityCompact": "Compacta",
+  "libraryDensityList": "Lista",
+  "libraryWideDensitySetting": "Biblioteca en pantallas anchas"
 }
