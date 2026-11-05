@@ -2,12 +2,18 @@
 
 This is the Android plugin from `media_kit_libs_android_video` 1.3.8 (MIT).
 The Java bridge and `libmediakitandroidhelper.so` are unchanged. The bundled
-`libmpv.so` is rebuilt from the same upstream source revision with six extra
-FFmpeg decoders: `rv10`, `rv20`, `rv30`, `rv40`, `cook`, and `sipr`.
+`libmpv.so` is rebuilt from the same upstream source revision with seven extra
+FFmpeg decoders: `rv10`, `rv20`, `rv30`, `rv40`, `cook`, `sipr`, and `cinepak`.
 
 The upstream small build already enables the RealMedia demuxer and several
 RealAudio decoders, but omits these decoders. Both video and audio support are
 needed: a RealVideo/Cook file otherwise ends with no playable streams.
+
+The `avi-v2` recipe also patches mpv's decoded audio path for AVI files. It
+fills reported timestamp holes with bounded PCM silence and normalizes
+backwards timestamp resets while retaining decoded samples. Seeks clear this
+recovery state. Other containers retain the upstream timing path. Each silence
+buffer has at most 8192 samples; gaps over 30 seconds retain upstream behavior.
 
 ## Normal app builds
 
@@ -19,8 +25,8 @@ Keep all four ABIs (`arm64-v8a`, `armeabi-v7a`, `x86_64`, `x86`), including the
 unchanged JNI helper for each ABI. Do not substitute a stock archive: it loses
 RealMedia support. The app's normal release pipeline still produces three APKs.
 
-Run `python3 scripts/native/verify.py` from the repository root to verify archive
-contents, hashes and 16 KB ELF page alignment. On Windows use `py -3` in place of
+Run `python3 scripts/native/verify.py --check-source` from the repository root to verify archive
+contents, hashes, the compatibility recipe and 16 KB ELF page alignment. On Windows use `py -3` in place of
 `python3`.
 
 ## Rebuilding the native libraries
@@ -37,14 +43,14 @@ The `--disable-gpl`, `--disable-nonfree` and `-Dgpl=false` options are unchanged
 
 ```bash
 # Keep the build directory persistent: WSL startup may clean /tmp.
-export KIVO_NATIVE_WORK="$HOME/.cache/kivo-native-realmedia-v1"
+export KIVO_NATIVE_WORK="$HOME/.cache/kivo-native-avi-v2"
 export ANDROID_NDK_HOME=/path/to/android-ndk-r25c
 export KIVO_NATIVE_JOBS=4
 bash scripts/native/build.sh
 python3 scripts/native/package.py \
   --work "$KIVO_NATIVE_WORK" \
   --base-cache "$HOME/.cache/kivo-native-jni"
-python3 scripts/native/verify.py
+python3 scripts/native/verify.py --check-source
 ```
 
 The build saves unstripped libraries in `$KIVO_NATIVE_WORK/symbols` and packages
@@ -52,6 +58,10 @@ stripped libraries with fixed ZIP entry dates. Use a new work directory when the
 source lock or preparation recipe changes. Review the generated manifest and
 native playback results whenever replacing artifacts. This recipe pins sources
 and tools; it does not promise bit-identical results across arbitrary host tools.
+
+`recipe.json`, the AVI timing header and downstream patches participate in the
+prepared-source signature. Use a fresh work directory after changing any of
+them. The bundle manifest records this signature and each patch's SHA-256.
 
 ## Regression validation
 
@@ -74,6 +84,21 @@ an additional media permission. No `READ_MEDIA_AUDIO` permission is added.
 Native headless decoding is separate evidence from Flutter surface rendering,
 audible output, and playback on the reporter's Xiaomi. Keep those distinctions
 in the validation report.
+
+The AVI regression uses seven hash-pinned public FFmpeg samples and four
+generated files. It measures real playback progress, final A/V skew, thumbnails,
+seeking and optional detailed timelines/backwards-seek roundtrips:
+
+```bash
+cc -std=c11 -O2 -Wall -Wextra -Werror test/native/avi_audio_clock_test.c -lm -o /tmp/avi-audio-clock-test
+/tmp/avi-audio-clock-test
+python3 scripts/native/avi_smoke.py --ndk /path/to/ndk --serial emulator-5554 \
+  --jar third_party/media_kit_libs_android_video/native/realmedia-x86_64.jar \
+  --generate --check-timeline --check-seek-roundtrip
+```
+
+Raw failures and warnings remain in the JSON report. See
+`docs/avi-validation-2026-11-05.md` for the baseline and the delivery boundaries.
 
 ## Local validation (2026-10-29)
 

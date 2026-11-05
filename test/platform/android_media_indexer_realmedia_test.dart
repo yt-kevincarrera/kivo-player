@@ -35,6 +35,29 @@ void main() {
   });
   tearDown(() => messenger.setMockMethodCallHandler(channel, null));
 
+  for (final throwsNative in [false, true]) {
+    test('AVI falls back to its original URI after native '
+        '${throwsNative ? 'exception' : 'empty thumbnail'}', () async {
+      rows.single['name'] = 'clip.AVI';
+      if (throwsNative) {
+        nativeError = PlatformException(code: 'THUMB_FAILED');
+      } else {
+        nativeThumbnail = Uint8List(0);
+      }
+      String? source;
+      final indexer = AndroidMediaIndexer(
+        log,
+        decoderThumbnail: (uri) async {
+          source = uri;
+          return Uint8List.fromList([5]);
+        },
+      );
+      await indexer.scan();
+      expect(await indexer.thumbnail('7'), [5]);
+      expect(source, rows.single['uri']);
+    });
+  }
+
   test(
     'a library RealMedia thumbnail falls back to its playable URI',
     () async {
@@ -42,7 +65,7 @@ void main() {
       String? source;
       final indexer = AndroidMediaIndexer(
         log,
-        realMediaThumbnail: (uri) async {
+        decoderThumbnail: (uri) async {
           source = uri;
           return decoded;
         },
@@ -60,7 +83,7 @@ void main() {
       rows.single['name'] = 'clip.RmVb';
       final indexer = AndroidMediaIndexer(
         log,
-        realMediaThumbnail: (_) async => Uint8List.fromList([9]),
+        decoderThumbnail: (_) async => Uint8List.fromList([9]),
       );
       await indexer.scan();
       expect(await indexer.thumbnail('7'), [9]);
@@ -69,10 +92,11 @@ void main() {
   );
 
   test('keeps native images and never probes ordinary videos', () async {
+    rows.single['name'] = 'clip.avi';
     var probes = 0;
     final indexer = AndroidMediaIndexer(
       log,
-      realMediaThumbnail: (_) async {
+      decoderThumbnail: (_) async {
         probes++;
         return null;
       },
@@ -88,13 +112,38 @@ void main() {
   });
 
   test(
+    'AVI retries failed decoding and caches until the file changes',
+    () async {
+      rows.single['name'] = 'clip.avi';
+      var attempts = 0;
+      final indexer = AndroidMediaIndexer(
+        log,
+        decoderThumbnail: (_) async {
+          attempts++;
+          return attempts == 1 ? null : Uint8List.fromList([6]);
+        },
+      );
+      await indexer.scan();
+      expect(await indexer.thumbnail('7'), isNull);
+      expect(await indexer.thumbnail('7'), [6]);
+      await indexer.scan();
+      expect(await indexer.thumbnail('7'), [6]);
+      expect(attempts, 2);
+      rows.single['dateModifiedMs'] = 2;
+      await indexer.scan();
+      expect(await indexer.thumbnail('7'), [6]);
+      expect(attempts, 3);
+    },
+  );
+
+  test(
     'coalesces requests, retains images on rescan, invalidates changed files',
     () async {
       var probes = 0;
       final ready = Completer<Uint8List?>();
       final indexer = AndroidMediaIndexer(
         log,
-        realMediaThumbnail: (_) {
+        decoderThumbnail: (_) {
           probes++;
           return ready.future;
         },
@@ -125,7 +174,7 @@ void main() {
       });
       final indexer = AndroidMediaIndexer(
         log,
-        realMediaThumbnail: (uri) async {
+        decoderThumbnail: (uri) async {
           if (uri.endsWith('/7')) throw StateError('invalid media');
           return Uint8List.fromList([4]);
         },
@@ -149,7 +198,7 @@ void main() {
     var probes = 0;
     final indexer = AndroidMediaIndexer(
       log,
-      realMediaThumbnail: (_) async {
+      decoderThumbnail: (_) async {
         probes++;
         return Uint8List.fromList([1]);
       },
@@ -170,7 +219,7 @@ void main() {
       var available = false;
       final indexer = AndroidMediaIndexer(
         log,
-        realMediaThumbnail: (_) async {
+        decoderThumbnail: (_) async {
           return available ? Uint8List.fromList([7]) : null;
         },
       );

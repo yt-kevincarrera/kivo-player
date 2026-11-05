@@ -6,6 +6,7 @@ from pathlib import Path
 import struct
 import urllib.request
 import zipfile
+from prepare import prepared_signature
 
 ABIS = {'arm64-v8a': 'arm64', 'armeabi-v7a': 'armv7l', 'x86_64': 'x86_64', 'x86': 'x86'}
 ROOT = Path(__file__).resolve().parents[2]
@@ -35,6 +36,9 @@ def verify_elf(data, abi=None):
 
 
 def package(work, cache, output, abis=ABIS):
+    signature = prepared_signature()
+    if (work / '.kivo-prepared').read_text() != signature:
+        raise ValueError('Native source recipe changed; rebuild in a new work directory.')
     lock = json.loads(Path(__file__).with_name('base-artifacts.lock.json').read_text())
     artifacts = []
     cache.mkdir(parents=True, exist_ok=True)
@@ -63,9 +67,14 @@ def package(work, cache, output, abis=ABIS):
                           'sizeBytes': dest.stat().st_size, 'libmpvBytes': len(data),
                           'baseSizeBytes': base.stat().st_size})
         print(f'{abi}: {dest.stat().st_size:,} bytes (base {base.stat().st_size:,})')
-    manifest = {'recipe': 'realmedia-v1', 'upstream': 'fe8c3ac1a91c09aa6fb1deccbc833f1bafa54768',
-                'addedDecoders': ['rv10', 'rv20', 'rv30', 'rv40', 'cook', 'sipr'], 'artifacts': artifacts}
-    (output / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
+    recipe = json.loads(Path(__file__).with_name('recipe.json').read_text())
+    patches = [{'file': patch.name, 'sha256': digest(patch)}
+               for patch in sorted(Path(__file__).with_name('patches').glob('*.patch'))]
+    manifest = {'recipe': recipe['name'], 'upstream': 'fe8c3ac1a91c09aa6fb1deccbc833f1bafa54768',
+                'sourceRecipeSha256': signature, 'patches': patches,
+                'addedDecoders': recipe['addedDecoders'], 'artifacts': artifacts}
+    (output / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n',
+                                          encoding='utf-8', newline='\n')
 
 
 if __name__ == '__main__':

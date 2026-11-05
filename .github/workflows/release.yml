@@ -37,7 +37,7 @@ jobs:
       - run: flutter pub get
 
       - name: Verify bundled native libraries
-        run: python3 scripts/native/verify.py
+        run: python3 scripts/native/verify.py --check-source
 
       # Sign with the project's real release key so every build — CI or local —
       # shares one signature. Android rejects an update whose signature changed,

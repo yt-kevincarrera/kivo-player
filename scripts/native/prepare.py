@@ -10,6 +10,14 @@ import tarfile
 import urllib.request
 
 
+def prepared_signature():
+    directory = Path(__file__).parent
+    recipe = [Path(__file__), directory / 'sources.lock.json', directory / 'recipe.json',
+              directory / 'avi_audio_clock.h']
+    recipe.extend(sorted((directory / 'patches').glob('*.patch')))
+    return hashlib.sha256(b''.join(path.read_bytes() for path in recipe)).hexdigest()
+
+
 def prepare(work: Path, ndk: Path):
     lock = json.loads(Path(__file__).with_name('sources.lock.json').read_text())
     scripts = work / 'upstream' / 'buildscripts'
@@ -65,10 +73,7 @@ def prepare(work: Path, ndk: Path):
         sdk_ndk.symlink_to(ndk.resolve(), target_is_directory=True)
 
     ready = work / '.kivo-prepared'
-    signature = hashlib.sha256(
-        Path(__file__).read_bytes() +
-        Path(__file__).with_name('sources.lock.json').read_bytes()
-    ).hexdigest()
+    signature = prepared_signature()
     if ready.exists():
         if ready.read_text() != signature:
             raise RuntimeError('The build recipe changed; use a new work directory.')
@@ -77,13 +82,20 @@ def prepare(work: Path, ndk: Path):
         for patch in sorted(dependency.glob('*.patch')):
             subprocess.run(['patch', '-p1', '-i', str(patch.resolve())],
                            cwd=scripts / 'deps' / dependency.name, check=True)
-    # Use the existing small build, with the missing RealMedia decoders added.
+    for patch in sorted(Path(__file__).with_name('patches').glob('*.patch')):
+        dependency = patch.name.split('-', 1)[0]
+        subprocess.run(['patch', '--batch', '-p1', '-i', str(patch.resolve())],
+                       cwd=scripts / 'deps' / dependency, check=True)
+    shutil.copyfile(Path(__file__).with_name('avi_audio_clock.h'),
+                    scripts / 'deps/mpv/audio/avi_audio_clock.h')
+    # Retain the small build and add only the compatibility decoders we test.
     # ra_144/ra_288, AAC, AC-3 and ATRAC are already enabled upstream.
     ffmpeg = (scripts / 'flavors/default.sh').read_text()
     anchor = '\t--enable-decoder=wmv* \\\n'
     if ffmpeg.count(anchor) != 1:
         raise RuntimeError('The upstream FFmpeg recipe changed; review the codec patch.')
-    extra = ''.join(f'\t--enable-decoder={codec} \\\n' for codec in ('rv10', 'rv20', 'rv30', 'rv40', 'cook', 'sipr'))
+    recipe = json.loads(Path(__file__).with_name('recipe.json').read_text())
+    extra = ''.join(f'\t--enable-decoder={codec} \\\n' for codec in recipe['addedDecoders'])
     (scripts / 'scripts/ffmpeg.sh').write_text(ffmpeg.replace(anchor, anchor + extra))
     build = scripts / 'build.sh'
     build.write_text(build.read_text().replace('sudo chmod +x', 'chmod +x'))

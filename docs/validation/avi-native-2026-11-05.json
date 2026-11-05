@@ -1,0 +1,409 @@
+{
+  "createdAt": "2026-11-05T18:40:27.827816+00:00",
+  "abi": "x86_64",
+  "serial": "emulator-5560",
+  "jarSha256": "a3b755ed2f594b74629e1ebde205572c48e5fe35fde6c3e314dbe4f276cddfd9",
+  "limits": "Software decode with null audio/video outputs; no physical-device or Flutter-surface proof.",
+  "checks": [
+    {
+      "sample": "required RealMedia decoders",
+      "mode": "2",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecoder rv10=PASS\ndecoder rv20=PASS\ndecoder rv30=PASS\ndecoder rv40=PASS\ndecoder cook=PASS\ndecoder sipr=PASS\n"
+    },
+    {
+      "sample": "xvid-qpel-bframes.avi",
+      "mode": "2",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=10.423 position=0.560 width=640 audio-rate=44100\nseek=PASS position=2.000\n[ffmpeg] NULL: low_delay flag set incorrectly, clearing it\n[ffmpeg/video] mpeg4: low_delay flag set incorrectly, clearing it\nInvalid video timestamp: 0.000000 -> -0.040000\n[ffmpeg] NULL: low_delay flag set incorrectly, clearing it\n"
+    },
+    {
+      "sample": "xvid-qpel-bframes.avi",
+      "mode": "--thumbnail",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\nthumbnail=PASS duration=10.423 width=640 height=352 bytes=901120\n[ffmpeg] NULL: low_delay flag set incorrectly, clearing it\n[ffmpeg/video] mpeg4: low_delay flag set incorrectly, clearing it\nInvalid video timestamp: 0.000000 -> -0.040000\n"
+    },
+    {
+      "sample": "xvid-qpel-bframes.avi",
+      "mode": "--realtime",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=10.423 position=0.600 width=640 audio-rate=44100\nrealtime=PASS media-seconds=3.040 wall-seconds=3.058 speed=0.994 avsync=0.000 decoder-fps=23.936 dropped-frames=0\n[ffmpeg] NULL: low_delay flag set incorrectly, clearing it\n[ffmpeg/video] mpeg4: low_delay flag set incorrectly, clearing it\nInvalid video timestamp: 0.000000 -> -0.040000\n"
+    },
+    {
+      "sample": "xvid-qpel-bframes.avi",
+      "mode": "--realtime",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=10.423 position=0.600 width=640 audio-rate=44100\nrealtime=PASS media-seconds=3.000 wall-seconds=3.006 speed=0.998 avsync=0.000 decoder-fps=23.925 dropped-frames=0\n[ffmpeg] NULL: low_delay flag set incorrectly, clearing it\n[ffmpeg/video] mpeg4: low_delay flag set incorrectly, clearing it\nInvalid video timestamp: 0.000000 -> -0.040000\n"
+    },
+    {
+      "sample": "mpeg4-slow-mp3.avi",
+      "mode": "2",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=37.663 position=0.542 width=640 audio-rate=48000\nseek=PASS position=2.002\n[ffmpeg/audio] mp3float: Header missing\n[ffmpeg/audio] mp3float: Header missing\n[ffmpeg/audio] mp3float: Header missing\n[ffmpeg/audio] mp3float: Header missing\nError decoding audio.\n[ffmpeg/audio] mp3float: Header missing\nError decoding audio.\n[ffmpeg/audio] mp3float: Header missing\nError decoding audio.\n[ffmpeg/audio] mp3float: Header missing\nError decoding audio.\n"
+    },
+    {
+      "sample": "mpeg4-slow-mp3.avi",
+      "mode": "--thumbnail",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\nthumbnail=PASS duration=37.663 width=640 height=480 bytes=1228800\n[ffmpeg/audio] mp3float: Header missing\n[ffmpeg/audio] mp3float: Header missing\n[ffmpeg/audio] mp3float: Header missing\n"
+    },
+    {
+      "sample": "mpeg4-slow-mp3.avi",
+      "mode": "--realtime",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=37.663 position=0.501 width=640 audio-rate=48000\nrealtime=PASS media-seconds=3.086 wall-seconds=3.010 speed=1.025 avsync=0.000 decoder-fps=23.976 dropped-frames=0\n[ffmpeg/audio] mp3float: Header missing\n[ffmpeg/audio] mp3float: Header missing\n[ffmpeg/audio] mp3float: Header missing\n[ffmpeg/audio] mp3float: Header missing\nError decoding audio.\n[ffmpeg/audio] mp3float: Header missing\nError decoding audio.\n[ffmpeg/audio] mp3float: Header missing\nError decoding audio.\n"
+    },
+    {
+      "sample": "mpeg4-slow-mp3.avi",
+      "mode": "--realtime",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=37.663 position=0.501 width=640 audio-rate=48000\nrealtime=PASS media-seconds=3.086 wall-seconds=3.017 speed=1.023 avsync=0.000 decoder-fps=23.976 dropped-frames=2\n[ffmpeg/audio] mp3float: Header missing\n[ffmpeg/audio] mp3float: Header missing\n[ffmpeg/audio] mp3float: Header missing\n[ffmpeg/audio] mp3float: Header missing\nError decoding audio.\n[ffmpeg/audio] mp3float: Header missing\nError decoding audio.\n[ffmpeg/audio] mp3float: Header missing\nError decoding audio.\n"
+    },
+    {
+      "sample": "mpeg4-sync.avi",
+      "mode": "2",
+      "passed": false,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=24.760 position=0.560 width=576 audio-rate=48000\nseek=FAIL position=2.160\n[ffmpeg/demuxer] avi: Could not find codec parameters for stream 1 (Audio: mp3 (mp3float) (U[0][0][0] / 0x0055), 48000 Hz, 2 channels, fltp, 126 kb/s): unspecified frame size\n[ffmpeg/demuxer] Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options\nInvalid audio PTS: 0.024000 -> 13.008000\nReset playback due to audio timestamp reset.\n[ffmpeg/video] mpeg4: warning: first frame is no keyframe\nInvalid audio PTS: 0.024000 -> 13.008000\nReset playback due to audio timestamp reset.\n[ffmpeg/video] mpeg4: warning: first frame is no keyframe\n"
+    },
+    {
+      "sample": "mpeg4-sync.avi",
+      "mode": "--thumbnail",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\nthumbnail=PASS duration=24.760 width=576 height=240 bytes=552960\n[ffmpeg/demuxer] avi: Could not find codec parameters for stream 1 (Audio: mp3 (mp3float) (U[0][0][0] / 0x0055), 48000 Hz, 2 channels, fltp, 126 kb/s): unspecified frame size\n[ffmpeg/demuxer] Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options\n"
+    },
+    {
+      "sample": "mpeg4-sync.avi",
+      "mode": "--realtime",
+      "passed": false,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=24.760 position=0.600 width=576 audio-rate=48000\nrealtime=FAIL media-seconds=5.160 wall-seconds=3.081 speed=1.675 avsync=10.768 decoder-fps=25.000 dropped-frames=3\n[ffmpeg/demuxer] avi: Could not find codec parameters for stream 1 (Audio: mp3 (mp3float) (U[0][0][0] / 0x0055), 48000 Hz, 2 channels, fltp, 126 kb/s): unspecified frame size\n[ffmpeg/demuxer] Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options\nInvalid audio PTS: 0.024000 -> 13.008000\nReset playback due to audio timestamp reset.\n[ffmpeg/video] mpeg4: warning: first frame is no keyframe\n\nAudio/Video desynchronisation detected! Possible reasons include too slow\nhardware, temporary CPU spikes, broken drivers, and broken files. Audio\nposition will not match to the video (see A-V status field).\nConsider trying `--profile=fast` and/or `--hwdec=auto-safe` as they may help.\n\n"
+    },
+    {
+      "sample": "mpeg4-sync.avi",
+      "mode": "--realtime",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=24.760 position=0.520 width=576 audio-rate=48000\nrealtime=PASS media-seconds=3.040 wall-seconds=3.080 speed=0.987 avsync=0.000 decoder-fps=25.000 dropped-frames=0\n[ffmpeg/demuxer] avi: Could not find codec parameters for stream 1 (Audio: mp3 (mp3float) (U[0][0][0] / 0x0055), 48000 Hz, 2 channels, fltp, 126 kb/s): unspecified frame size\n[ffmpeg/demuxer] Consider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options\nInvalid audio PTS: 0.024000 -> 13.008000\nReset playback due to audio timestamp reset.\n[ffmpeg/video] mpeg4: warning: first frame is no keyframe\n"
+    },
+    {
+      "sample": "mpeg4-ac3.avi",
+      "mode": "2",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=33.492 position=0.542 width=608 audio-rate=48000\nseek=PASS position=2.002\nError decoding audio.\nError decoding audio.\n"
+    },
+    {
+      "sample": "mpeg4-ac3.avi",
+      "mode": "--thumbnail",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\nthumbnail=PASS duration=33.492 width=608 height=336 bytes=817152\n"
+    },
+    {
+      "sample": "mpeg4-ac3.avi",
+      "mode": "--realtime",
+      "passed": false,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=33.492 position=0.542 width=608 audio-rate=48000\nrealtime=FAIL media-seconds=1.710 wall-seconds=3.102 speed=0.551 avsync=1.408 decoder-fps=23.976 dropped-frames=9\nError decoding audio.\n\nAudio/Video desynchronisation detected! Possible reasons include too slow\nhardware, temporary CPU spikes, broken drivers, and broken files. Audio\nposition will not match to the video (see A-V status field).\nConsider trying `--profile=fast` and/or `--hwdec=auto-safe` as they may help.\n\n"
+    },
+    {
+      "sample": "mpeg4-ac3.avi",
+      "mode": "--realtime",
+      "passed": false,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=33.492 position=0.542 width=608 audio-rate=48000\nrealtime=FAIL media-seconds=1.585 wall-seconds=3.071 speed=0.516 avsync=1.463 decoder-fps=23.976 dropped-frames=1\nError decoding audio.\n\nAudio/Video desynchronisation detected! Possible reasons include too slow\nhardware, temporary CPU spikes, broken drivers, and broken files. Audio\nposition will not match to the video (see A-V status field).\nConsider trying `--profile=fast` and/or `--hwdec=auto-safe` as they may help.\n\n"
+    },
+    {
+      "sample": "xvid-aac.avi",
+      "mode": "2",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=23.808 position=0.520 width=704 audio-rate=48000\nseek=PASS position=2.000\n"
+    },
+    {
+      "sample": "xvid-aac.avi",
+      "mode": "--thumbnail",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\nthumbnail=PASS duration=23.808 width=768 height=320 bytes=983040\n"
+    },
+    {
+      "sample": "xvid-aac.avi",
+      "mode": "--realtime",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=23.808 position=0.520 width=704 audio-rate=48000\nrealtime=PASS media-seconds=3.080 wall-seconds=3.042 speed=1.013 avsync=0.006 decoder-fps=25.000 dropped-frames=2\n"
+    },
+    {
+      "sample": "xvid-aac.avi",
+      "mode": "--realtime",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=23.808 position=0.600 width=704 audio-rate=48000\nrealtime=PASS media-seconds=3.120 wall-seconds=3.049 speed=1.023 avsync=0.000 decoder-fps=25.000 dropped-frames=5\n"
+    },
+    {
+      "sample": "mjpeg-pcm-u8.avi",
+      "mode": "2",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=23.531 position=0.512 width=320 audio-rate=8000\nseek=PASS position=2.046\n"
+    },
+    {
+      "sample": "mjpeg-pcm-u8.avi",
+      "mode": "--thumbnail",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\nthumbnail=PASS duration=23.531 width=320 height=240 bytes=307200\n"
+    },
+    {
+      "sample": "mjpeg-pcm-u8.avi",
+      "mode": "--realtime",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=23.531 position=0.597 width=320 audio-rate=8000\nrealtime=PASS media-seconds=2.984 wall-seconds=3.035 speed=0.983 avsync=0.000 decoder-fps=11.729 dropped-frames=0\n"
+    },
+    {
+      "sample": "mjpeg-pcm-u8.avi",
+      "mode": "--realtime",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=23.531 position=0.512 width=320 audio-rate=8000\nrealtime=PASS media-seconds=3.069 wall-seconds=3.038 speed=1.010 avsync=0.000 decoder-fps=11.729 dropped-frames=0\n"
+    },
+    {
+      "sample": "cinepak-pcm.avi",
+      "mode": "2",
+      "passed": false,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=FAIL duration=-1.000 position=-1.000 width=-1 audio-rate=-1\nseek=FAIL position=-1.000\n[ffmpeg/demuxer] avi: could not decoding EXIF data in stream header.\nFailed to initialize a decoder for codec 'cinepak'.\n"
+    },
+    {
+      "sample": "cinepak-pcm.avi",
+      "mode": "--thumbnail",
+      "passed": false,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\nthumbnail=FAIL duration=-1.000 width=0 height=0 bytes=0\n[ffmpeg/demuxer] avi: could not decoding EXIF data in stream header.\nFailed to initialize a decoder for codec 'cinepak'.\nNo video or audio streams selected.\n"
+    },
+    {
+      "sample": "cinepak-pcm.avi",
+      "mode": "--realtime",
+      "passed": false,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=FAIL duration=-1.000 position=-1.000 width=-1 audio-rate=-1\nrealtime=FAIL media-seconds=0.000 wall-seconds=0.000 speed=0.000 avsync=-1.000 decoder-fps=-1.000 dropped-frames=-1\n[ffmpeg/demuxer] avi: could not decoding EXIF data in stream header.\nFailed to initialize a decoder for codec 'cinepak'.\n"
+    },
+    {
+      "sample": "cinepak-pcm.avi",
+      "mode": "--realtime",
+      "passed": false,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=FAIL duration=-1.000 position=-1.000 width=-1 audio-rate=-1\nrealtime=FAIL media-seconds=0.000 wall-seconds=0.000 speed=0.000 avsync=-1.000 decoder-fps=-1.000 dropped-frames=-1\n[ffmpeg/demuxer] avi: could not decoding EXIF data in stream header.\nFailed to initialize a decoder for codec 'cinepak'.\n"
+    },
+    {
+      "sample": "mpeg4-mp3.avi",
+      "mode": "2",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=8.072 position=0.560 width=640 audio-rate=44100\nseek=PASS position=2.000\n"
+    },
+    {
+      "sample": "mpeg4-mp3.avi",
+      "mode": "--thumbnail",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\nthumbnail=PASS duration=8.072 width=640 height=360 bytes=921600\n"
+    },
+    {
+      "sample": "mpeg4-mp3.avi",
+      "mode": "--realtime",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=8.072 position=0.560 width=640 audio-rate=44100\nrealtime=PASS media-seconds=3.040 wall-seconds=3.002 speed=1.013 avsync=0.000 decoder-fps=25.000 dropped-frames=0\n"
+    },
+    {
+      "sample": "mpeg4-mp3.avi",
+      "mode": "--realtime",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=8.072 position=0.520 width=640 audio-rate=44100\nrealtime=PASS media-seconds=3.080 wall-seconds=3.066 speed=1.005 avsync=0.000 decoder-fps=25.000 dropped-frames=0\n"
+    },
+    {
+      "sample": "msmpeg4-mp3.avi",
+      "mode": "2",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=8.046 position=0.520 width=640 audio-rate=44100\nseek=PASS position=2.000\n"
+    },
+    {
+      "sample": "msmpeg4-mp3.avi",
+      "mode": "--thumbnail",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\nthumbnail=PASS duration=8.046 width=640 height=360 bytes=921600\n"
+    },
+    {
+      "sample": "msmpeg4-mp3.avi",
+      "mode": "--realtime",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=8.046 position=0.560 width=640 audio-rate=44100\nrealtime=PASS media-seconds=3.040 wall-seconds=3.022 speed=1.006 avsync=0.000 decoder-fps=24.725 dropped-frames=0\n"
+    },
+    {
+      "sample": "msmpeg4-mp3.avi",
+      "mode": "--realtime",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=8.046 position=0.600 width=640 audio-rate=44100\nrealtime=PASS media-seconds=3.040 wall-seconds=3.043 speed=0.999 avsync=0.009 decoder-fps=24.728 dropped-frames=0\n"
+    },
+    {
+      "sample": "xvid-mp3.avi",
+      "mode": "2",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=8.046 position=0.560 width=640 audio-rate=44100\nseek=PASS position=2.040\n"
+    },
+    {
+      "sample": "xvid-mp3.avi",
+      "mode": "--thumbnail",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\nthumbnail=PASS duration=8.046 width=640 height=360 bytes=921600\n"
+    },
+    {
+      "sample": "xvid-mp3.avi",
+      "mode": "--realtime",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=8.046 position=0.560 width=640 audio-rate=44100\nrealtime=PASS media-seconds=3.000 wall-seconds=3.012 speed=0.996 avsync=0.000 decoder-fps=25.000 dropped-frames=5\n"
+    },
+    {
+      "sample": "xvid-mp3.avi",
+      "mode": "--realtime",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=8.046 position=0.520 width=640 audio-rate=44100\nrealtime=PASS media-seconds=3.120 wall-seconds=3.101 speed=1.006 avsync=0.001 decoder-fps=25.000 dropped-frames=1\n"
+    },
+    {
+      "sample": "mjpeg-pcm.avi",
+      "mode": "2",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=8.000 position=0.500 width=640 audio-rate=48000\nseek=PASS position=2.000\n"
+    },
+    {
+      "sample": "mjpeg-pcm.avi",
+      "mode": "--thumbnail",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\nthumbnail=PASS duration=8.000 width=640 height=360 bytes=921600\n"
+    },
+    {
+      "sample": "mjpeg-pcm.avi",
+      "mode": "--realtime",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=8.000 position=0.567 width=640 audio-rate=48000\nrealtime=PASS media-seconds=3.100 wall-seconds=3.050 speed=1.016 avsync=0.000 decoder-fps=30.000 dropped-frames=1\n"
+    },
+    {
+      "sample": "mjpeg-pcm.avi",
+      "mode": "--realtime",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=8.000 position=0.600 width=640 audio-rate=48000\nrealtime=PASS media-seconds=3.000 wall-seconds=3.054 speed=0.982 avsync=0.025 decoder-fps=30.000 dropped-frames=52\n\nAudio/Video desynchronisation detected! Possible reasons include too slow\nhardware, temporary CPU spikes, broken drivers, and broken files. Audio\nposition will not match to the video (see A-V status field).\nConsider trying `--profile=fast` and/or `--hwdec=auto-safe` as they may help.\n\n"
+    }
+  ],
+  "nativeOptions": [],
+  "samples": [
+    {
+      "file": "xvid-qpel-bframes.avi",
+      "hasAudio": true,
+      "sha256": "6a939c21ec7eb0f5ef839bde0ee80ffdd6ef4dcb00142263b6d27838bee952f2"
+    },
+    {
+      "file": "mpeg4-slow-mp3.avi",
+      "hasAudio": true,
+      "sha256": "06b0ab81c91be90927244a214f1dd15b7106e9ce82d2113f0192956c31105cad"
+    },
+    {
+      "file": "mpeg4-sync.avi",
+      "hasAudio": true,
+      "sha256": "d8813cc5e90e94da09da071e2a993e632089bf6d4e59b78348d50c15316ad4fe"
+    },
+    {
+      "file": "mpeg4-ac3.avi",
+      "hasAudio": true,
+      "sha256": "e4b0e22d7768f8f7730ef0da52f58b46806403504f5d3630dad40558040f3d09"
+    },
+    {
+      "file": "xvid-aac.avi",
+      "hasAudio": true,
+      "sha256": "bf405da2f90b431c4375e57dadb39adfc5c4ddf402152fe174f3361fbbd65108"
+    },
+    {
+      "file": "mjpeg-pcm-u8.avi",
+      "hasAudio": true,
+      "sha256": "08866c98f2ec73399227f2c5878f17198db43b9196912499f4a2905592feb739"
+    },
+    {
+      "file": "cinepak-pcm.avi",
+      "hasAudio": true,
+      "sha256": "9c37998deb27595ade4409c5041ce92589acd6ea5f40ad7ac391d6f6a480b004"
+    },
+    {
+      "file": "mpeg4-mp3.avi",
+      "hasAudio": true,
+      "sha256": "34b3120239f4c6bee1223226c1cee40ab626e1e46b89c6d3ad61e423e3c9d139"
+    },
+    {
+      "file": "msmpeg4-mp3.avi",
+      "hasAudio": true,
+      "sha256": "b3550f5e9f9cb8694e4560758b4d26d474f317ff56c84af248d591d87c2453c6"
+    },
+    {
+      "file": "xvid-mp3.avi",
+      "hasAudio": true,
+      "sha256": "a9442eb49f0fcc8d4077b67f737dfe340bfb05a0eaab52862bf66159d412ebfe"
+    },
+    {
+      "file": "mjpeg-pcm.avi",
+      "hasAudio": true,
+      "sha256": "2f94e8a47b6aecc5e30fd1259b2d64557b19772a16cd9731287b9354da9d0b1f"
+    }
+  ],
+  "baseRevision": "161e981",
+  "harnessSha256": "c85b7ab08294e2a0fb69a6936067006f07e65916453cd718131491dcaee7ed83",
+  "differential": [
+    {
+      "case": "original",
+      "passed": false,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=33.492 position=0.542 width=608 audio-rate=48000\nrealtime=FAIL media-seconds=1.752 wall-seconds=3.087 speed=0.568 avsync=1.362 decoder-fps=23.976 dropped-frames=0\nError decoding audio.\n\nAudio/Video desynchronisation detected! Possible reasons include too slow\nhardware, temporary CPU spikes, broken drivers, and broken files. Audio\nposition will not match to the video (see A-V status field).\nConsider trying `--profile=fast` and/or `--hwdec=auto-safe` as they may help.\n\n"
+    },
+    {
+      "case": "audio-disabled",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=33.492 position=0.542 width=608 audio-rate=-1\nrealtime=PASS media-seconds=3.045 wall-seconds=3.069 speed=0.992 avsync=-1.000 decoder-fps=23.976 dropped-frames=0\n"
+    },
+    {
+      "case": "AVI-remux",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=8.008 position=0.500 width=608 audio-rate=48000\nrealtime=PASS media-seconds=3.003 wall-seconds=3.091 speed=0.971 avsync=0.138 decoder-fps=23.976 dropped-frames=0\nError decoding audio.\n\nAudio/Video desynchronisation detected! Possible reasons include too slow\nhardware, temporary CPU spikes, broken drivers, and broken files. Audio\nposition will not match to the video (see A-V status field).\nConsider trying `--profile=fast` and/or `--hwdec=auto-safe` as they may help.\n\n"
+    },
+    {
+      "case": "MKV-remux",
+      "passed": false,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=8.050 position=0.542 width=608 audio-rate=48000\nrealtime=FAIL media-seconds=1.835 wall-seconds=3.087 speed=0.594 avsync=1.270 decoder-fps=23.976 dropped-frames=0\nError decoding audio.\n\nAudio/Video desynchronisation detected! Possible reasons include too slow\nhardware, temporary CPU spikes, broken drivers, and broken files. Audio\nposition will not match to the video (see A-V status field).\nConsider trying `--profile=fast` and/or `--hwdec=auto-safe` as they may help.\n\n"
+    },
+    {
+      "case": "clean-AC3",
+      "passed": true,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=8.064 position=0.560 width=640 audio-rate=48000\nrealtime=PASS media-seconds=3.080 wall-seconds=3.085 speed=0.998 avsync=0.000 decoder-fps=25.000 dropped-frames=0\n"
+    },
+    {
+      "case": "original-no-ODML",
+      "passed": false,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=33.492 position=0.542 width=608 audio-rate=48000\nrealtime=FAIL media-seconds=1.793 wall-seconds=3.101 speed=0.578 avsync=1.345 decoder-fps=23.976 dropped-frames=0\nError decoding audio.\n\nAudio/Video desynchronisation detected! Possible reasons include too slow\nhardware, temporary CPU spikes, broken drivers, and broken files. Audio\nposition will not match to the video (see A-V status field).\nConsider trying `--profile=fast` and/or `--hwdec=auto-safe` as they may help.\n\n"
+    },
+    {
+      "case": "original-stereo",
+      "passed": false,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=33.492 position=0.542 width=608 audio-rate=48000\nrealtime=FAIL media-seconds=1.752 wall-seconds=3.078 speed=0.569 avsync=1.362 decoder-fps=23.976 dropped-frames=2\nError decoding audio.\n\nAudio/Video desynchronisation detected! Possible reasons include too slow\nhardware, temporary CPU spikes, broken drivers, and broken files. Audio\nposition will not match to the video (see A-V status field).\nConsider trying `--profile=fast` and/or `--hwdec=auto-safe` as they may help.\n\n"
+    }
+  ],
+  "recoveryOptions": [
+    {
+      "case": "ignore-audio-errors",
+      "passed": false,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=33.492 position=0.542 width=608 audio-rate=48000\nrealtime=FAIL media-seconds=1.293 wall-seconds=3.073 speed=0.421 avsync=1.889 decoder-fps=23.976 dropped-frames=1\nError decoding audio.\n\nAudio/Video desynchronisation detected! Possible reasons include too slow\nhardware, temporary CPU spikes, broken drivers, and broken files. Audio\nposition will not match to the video (see A-V status field).\nConsider trying `--profile=fast` and/or `--hwdec=auto-safe` as they may help.\n\nAudio device underrun detected.\n"
+    },
+    {
+      "case": "output-corrupt-audio",
+      "passed": false,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=33.492 position=0.542 width=608 audio-rate=48000\nrealtime=FAIL media-seconds=1.710 wall-seconds=3.062 speed=0.558 avsync=1.379 decoder-fps=23.976 dropped-frames=0\nError decoding audio.\n\nAudio/Video desynchronisation detected! Possible reasons include too slow\nhardware, temporary CPU spikes, broken drivers, and broken files. Audio\nposition will not match to the video (see A-V status field).\nConsider trying `--profile=fast` and/or `--hwdec=auto-safe` as they may help.\n\n"
+    },
+    {
+      "case": "discard-corrupt-packets",
+      "passed": false,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=33.492 position=0.500 width=608 audio-rate=48000\nrealtime=FAIL media-seconds=1.585 wall-seconds=3.068 speed=0.517 avsync=1.445 decoder-fps=23.976 dropped-frames=0\nError decoding audio.\nAudio device underrun detected.\n\nAudio/Video desynchronisation detected! Possible reasons include too slow\nhardware, temporary CPU spikes, broken drivers, and broken files. Audio\nposition will not match to the video (see A-V status field).\nConsider trying `--profile=fast` and/or `--hwdec=auto-safe` as they may help.\n\n"
+    },
+    {
+      "case": "analyze-ten-seconds",
+      "passed": false,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=33.492 position=0.542 width=608 audio-rate=48000\nrealtime=FAIL media-seconds=1.710 wall-seconds=3.060 speed=0.559 avsync=1.379 decoder-fps=23.976 dropped-frames=3\nError decoding audio.\n\nAudio/Video desynchronisation detected! Possible reasons include too slow\nhardware, temporary CPU spikes, broken drivers, and broken files. Audio\nposition will not match to the video (see A-V status field).\nConsider trying `--profile=fast` and/or `--hwdec=auto-safe` as they may help.\n\n"
+    },
+    {
+      "case": "generate-PTS-ignore-DTS",
+      "passed": false,
+      "output": "mpv-version=mpv 0.36.0-UNKNOWN\ndecode=PASS duration=33.492 position=0.542 width=608 audio-rate=48000\nrealtime=FAIL media-seconds=1.710 wall-seconds=3.055 speed=0.560 avsync=1.378 decoder-fps=23.976 dropped-frames=0\nError decoding audio.\n\nAudio/Video desynchronisation detected! Possible reasons include too slow\nhardware, temporary CPU spikes, broken drivers, and broken files. Audio\nposition will not match to the video (see A-V status field).\nConsider trying `--profile=fast` and/or `--hwdec=auto-safe` as they may help.\n\n"
+    }
+  ],
+  "desktopFfmpeg8AudioReference": "[aist#0:1/ac3 @ 000001927f95eb40] Guessed Channel Layout: 5.1\n[aist#0:1/ac3 @ 000001927f95eb40] [dec:ac3 @ 000001927fa3aa40] Error submitting packet to decoder: Invalid data found when processing input\n",
+  "initialMatrixSummary": {
+    "checks": 45,
+    "failures": 8,
+    "retainedLocalReport": "build/avi-smoke/results.json"
+  }
+}

@@ -1,0 +1,135 @@
+--- a/demux/stheader.h
++++ b/demux/stheader.h
+@@ -95,6 +95,7 @@
+     bool force_channels;
+     int bitrate; // compressed bits/sec
+     int block_align;
++    bool avi_audio_timestamps; // repair gaps/overlaps in decoded AVI audio
+     struct replaygain_data *replaygain_data;
+ 
+     // STREAM_VIDEO
+--- a/demux/demux_lavf.c
++++ b/demux/demux_lavf.c
+@@ -701,6 +701,7 @@
+         }
+ #endif
+ 
++        sh->codec->avi_audio_timestamps = matches_avinputformat_name(priv, "avi");
+         sh->codec->samplerate = codec->sample_rate;
+         sh->codec->bitrate = codec->bit_rate;
+ 
+--- a/filters/f_decoder_wrapper.c
++++ b/filters/f_decoder_wrapper.c
+@@ -42,6 +42,7 @@
+ #include "misc/dispatch.h"
+ 
+ #include "audio/aframe.h"
++#include "audio/avi_audio_clock.h"
+ #include "video/out/vo.h"
+ #include "video/csputils.h"
+ 
+@@ -190,6 +191,10 @@
+     // Final PTS of previously decoded frame
+     double pts;
+ 
++    struct mp_frame avi_pending_audio;
++    struct kivo_avi_audio_clock avi_audio_clock;
++    struct mp_aframe_pool *avi_silence_pool;
++
+     struct mp_image_params dec_format, last_format, fixed_format;
+ 
+     double fps;
+@@ -296,6 +301,8 @@
+ // some of the user-relevant state.
+ static void reset_decoder(struct priv *p)
+ {
++    mp_frame_unref(&p->avi_pending_audio);
++    p->avi_audio_clock = (struct kivo_avi_audio_clock){0};
+     p->first_packet_pdts = MP_NOPTS_VALUE;
+     p->start_pts = MP_NOPTS_VALUE;
+     p->codec_pts = MP_NOPTS_VALUE;
+@@ -970,13 +977,64 @@
+     p->reverse_queue_complete = eof;
+ }
+ 
++
++// AVI audio chunk/index timestamps can jump after damaged compressed packets.
++// Keep valid audio at its declared time: fill forward holes with bounded PCM
++// silence. Normalize backwards metadata resets without dropping valid samples.
++// Explicit seeks flush the pending frame and reset the expected timestamp.
++static struct mp_frame repair_avi_audio_clock(struct priv *p, struct mp_frame frame,
++                                             bool pending)
++{
++    if (frame.type != MP_FRAME_AUDIO || p->play_dir < 0 ||
++        !p->codec->avi_audio_timestamps)
++        return frame;
++
++    struct mp_aframe *audio = frame.data;
++    double pts = mp_aframe_get_pts(audio);
++    double expected = p->pts != MP_NOPTS_VALUE ? p->pts : p->first_packet_pdts;
++    int rate = mp_aframe_get_rate(audio);
++    if (pts == MP_NOPTS_VALUE || expected == MP_NOPTS_VALUE ||
++        !isfinite(pts) || !isfinite(expected) || rate <= 0)
++        return frame;
++
++    if (!pending) {
++        pts = kivo_avi_audio_pts(&p->avi_audio_clock, pts, expected);
++        mp_aframe_set_pts(audio, pts);
++    }
++    int samples = kivo_avi_audio_gap_samples(pts, expected, rate);
++    if (samples > 0) {
++        struct mp_aframe *silence = mp_aframe_create();
++        mp_aframe_config_copy(silence, audio);
++        if (!p->avi_silence_pool)
++            p->avi_silence_pool = mp_aframe_pool_create(p);
++        if (mp_aframe_pool_allocate(p->avi_silence_pool, silence, samples) < 0 ||
++            !mp_aframe_set_silence(silence, 0, samples)) {
++            talloc_free(silence);
++            MP_ERR(p, "Could not allocate AVI audio gap recovery frame.\n");
++            return frame;
++        }
++        mp_aframe_set_pts(silence, expected);
++        p->avi_pending_audio = frame;
++        return MAKE_FRAME(MP_FRAME_AUDIO, silence);
++    }
++    return frame;
++}
++
+ static void read_frame(struct priv *p)
+ {
+     struct mp_pin *pin = p->decf->ppins[0];
+     struct mp_frame frame = {0};
++    bool avi_pending = false;
+ 
+     if (!p->decoder || !mp_pin_in_needs_data(pin))
+         return;
++
++    if (p->avi_pending_audio.type) {
++        avi_pending = true;
++        frame = p->avi_pending_audio;
++        p->avi_pending_audio = MP_NO_FRAME;
++        goto output_frame;
++    }
+ 
+     if (p->decoded_coverart.type) {
+         if (p->coverart_returned == 0) {
+@@ -1067,6 +1125,11 @@
+     }
+ 
+ output_frame:
++    frame = repair_avi_audio_clock(p, frame, avi_pending);
++    if (!frame.type) {
++        mp_filter_internal_mark_progress(p->decf);
++        return;
++    }
+     process_output_frame(p, frame);
+     mp_pin_in_write(pin, frame);
+ }
+@@ -1150,6 +1213,7 @@
+ 
+     mp_filter_free_children(f);
+ 
++    mp_frame_unref(&p->avi_pending_audio);
+     talloc_free(p->dec_root_filter);
+     talloc_free(p->queue);
+     pthread_mutex_destroy(&p->cache_lock);
