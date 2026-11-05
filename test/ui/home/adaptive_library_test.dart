@@ -59,6 +59,8 @@ Future<ProviderContainer> _mount(
   Size size, {
   double textScale = 1,
   bool light = false,
+  EdgeInsets safeInsets = EdgeInsets.zero,
+  bool reduceMotion = false,
 }) async {
   t.view.devicePixelRatio = 1;
   t.view.physicalSize = size;
@@ -177,9 +179,12 @@ Future<ProviderContainer> _mount(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(
-            context,
-          ).copyWith(textScaler: TextScaler.linear(textScale)),
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.linear(textScale),
+            padding: safeInsets,
+            viewPadding: safeInsets,
+            disableAnimations: reduceMotion,
+          ),
           child: child!,
         ),
         home: const RepaintBoundary(
@@ -243,6 +248,83 @@ void main() {
       null,
     );
   });
+  testWidgets('landscape phones keep labeled navigation and toolbar actions', (
+    t,
+  ) async {
+    await _mount(t, const Size(844, 390));
+    expect(find.byKey(const Key('home-navigation-rail')), findsNothing);
+    expect(find.text('Videos'), findsOneWidget);
+    expect(find.text('Ajustes'), findsOneWidget);
+    final search = t.getRect(find.byTooltip('Buscar'));
+    expect(search.top, lessThan(60));
+    expect(search.width, greaterThanOrEqualTo(48));
+    expect(search.height, greaterThanOrEqualTo(48));
+  });
+
+  testWidgets('filter content is centered and icons remain legible', (t) async {
+    await _mount(t, const Size(390, 844));
+    for (final icon in [
+      Icons.folder_outlined,
+      Icons.queue_music_outlined,
+      Icons.visibility_off_outlined,
+    ]) {
+      final glyph = find.byIcon(icon);
+      final target = find
+          .ancestor(of: glyph, matching: find.byType(InkWell))
+          .first;
+      final content = find
+          .ancestor(of: glyph, matching: find.byType(Row))
+          .first;
+      expect(t.getSize(target).width, greaterThanOrEqualTo(48));
+      expect(t.getSize(target).height, greaterThanOrEqualTo(48));
+      expect(t.widget<Icon>(glyph).size, greaterThanOrEqualTo(22));
+      expect(t.getCenter(content).dx, closeTo(t.getCenter(target).dx, 0.5));
+      expect(t.getCenter(content).dy, closeTo(t.getCenter(target).dy, 0.5));
+    }
+  });
+  testWidgets(
+    'short windows show library videos above the fold and can expand continue watching',
+    (t) async {
+      await _mount(t, const Size(844, 390));
+      final feed = find.byType(CustomScrollView).first;
+      final tile = find
+          .byWidgetPredicate((w) => w is VideoTile && w.isNew)
+          .first;
+      expect(
+        t.getRect(tile).intersect(t.getRect(feed)).height,
+        greaterThanOrEqualTo(80),
+      );
+      expect(t.widget<VideoTile>(tile).listRow, isTrue);
+      expect(_videoGrid(t).crossAxisCount, 2);
+      final miniState = t.state(find.byType(MiniPlayerBar));
+      final nav = find
+          .ancestor(of: find.text('Videos'), matching: find.byType(InkWell))
+          .first;
+      final miniBounds = t.getRect(find.byType(MiniPlayerBar));
+      expect(
+        t.getRect(nav).center.dy,
+        inInclusiveRange(miniBounds.top, miniBounds.bottom),
+      );
+      final continueCards = find.descendant(
+        of: find.byType(ExpansionTile),
+        matching: find.byType(VideoTile),
+      );
+      expect(continueCards, findsNothing);
+      await t.tap(find.text('Continuar viendo'));
+      await t.pumpAndSettle();
+      expect(continueCards, findsOneWidget);
+      await t.tap(find.text('Continuar viendo'));
+      await t.pumpAndSettle();
+      expect(continueCards, findsNothing);
+      t.view.physicalSize = const Size(390, 844);
+      await t.pumpAndSettle();
+      expect(t.state(find.byType(MiniPlayerBar)), same(miniState));
+      t.view.physicalSize = const Size(844, 390);
+      await t.pumpAndSettle();
+      expect(t.state(find.byType(MiniPlayerBar)), same(miniState));
+    },
+  );
+
   for (final scenario in [
     ('tablet-portrait', const Size(800, 1280), false),
     ('tablet-landscape', const Size(1280, 800), false),
@@ -252,6 +334,10 @@ void main() {
     ('phone', const Size(390, 844), false),
     ('small-phone', const Size(320, 640), true),
     ('phone-landscape', const Size(844, 390), false),
+    ('small-phone-landscape', const Size(568, 320), true),
+    ('large-phone-landscape', const Size(932, 430), true),
+    ('tablet-split', const Size(540, 900), false),
+    ('short-window', const Size(1100, 540), false),
   ]) {
     for (final scale in [1.0, 2.0]) {
       testWidgets('${scenario.$1} at ${scale}x text has accessible layouts', (
@@ -264,7 +350,7 @@ void main() {
           textScale: scale,
         );
         expect(t.takeException(), isNull);
-        final wide = scenario.$2.width >= 600;
+        final wide = scenario.$2.shortestSide >= 600;
         expect(
           find.byKey(const Key('home-navigation-rail')),
           wide ? findsOneWidget : findsNothing,
@@ -291,6 +377,8 @@ void main() {
         expect(t.takeException(), isNull);
         await _capture(t, '${scenario.$1}-folders-${scale.toInt()}x');
 
+        await t.ensureVisible(find.text('Documentales').first);
+        await t.pumpAndSettle();
         await t.tap(find.text('Documentales').first);
         await t.pumpAndSettle();
         expect(find.byType(FolderScreen), findsOneWidget);
@@ -375,7 +463,7 @@ void main() {
   );
 
   testWidgets(
-    'crossing the rail breakpoint preserves the library route and one set of tools',
+    'rotating a phone preserves the library route and one set of toolbar actions',
     (t) async {
       await _mount(t, const Size(390, 844));
       final state = t.state(find.byType(LibraryScreen));
@@ -397,4 +485,83 @@ void main() {
       expect(t.takeException(), isNull);
     },
   );
+
+  testWidgets(
+    'phone landscape respects cutouts and keeps navigation touch targets',
+    (t) async {
+      final semantics = t.ensureSemantics();
+      try {
+        await _mount(
+          t,
+          const Size(844, 390),
+          safeInsets: const EdgeInsets.only(left: 44, right: 44, bottom: 21),
+        );
+        final search = t.getRect(find.byTooltip('Buscar'));
+        expect(search.left, greaterThanOrEqualTo(44));
+        expect(search.right, lessThanOrEqualTo(800));
+        final nav = find
+            .ancestor(of: find.text('Videos'), matching: find.byType(InkWell))
+            .first;
+        expect(t.getSize(nav).height, greaterThanOrEqualTo(48));
+        expect(t.getRect(nav).bottom, lessThanOrEqualTo(369));
+        await expectLater(t, meetsGuideline(androidTapTargetGuideline));
+        await _capture(t, 'phone-landscape-cutout');
+      } finally {
+        semantics.dispose();
+      }
+    },
+  );
+
+  testWidgets('tablet toolbar and destinations have accessible touch targets', (
+    t,
+  ) async {
+    final semantics = t.ensureSemantics();
+    try {
+      await _mount(t, const Size(800, 1280));
+      await expectLater(t, meetsGuideline(androidTapTargetGuideline));
+    } finally {
+      semantics.dispose();
+    }
+  });
+
+  testWidgets(
+    'crossing tablet split-window thresholds keeps routes and search',
+    (t) async {
+      final c = await _mount(t, const Size(800, 1280));
+      final state = t.state(find.byType(LibraryScreen));
+      await t.tap(find.byTooltip('Buscar'));
+      await t.pumpAndSettle();
+      await t.enterText(find.byType(TextField), 'Costa');
+      for (final size in [
+        const Size(540, 900),
+        const Size(960, 600),
+        const Size(900, 540),
+      ]) {
+        t.view.physicalSize = size;
+        await t.pumpAndSettle();
+        expect(t.state(find.byType(LibraryScreen)), same(state));
+        expect(
+          t.widget<TextField>(find.byType(TextField)).controller!.text,
+          'Costa',
+        );
+        expect(
+          find.byIcon(Icons.close),
+          findsNWidgets(2),
+        ); // search and mini-player
+        expect(t.takeException(), isNull);
+      }
+      expect(c.read(librarySelectionProvider), isEmpty);
+    },
+  );
+
+  testWidgets('reduced motion switches tabs without animating the page', (
+    t,
+  ) async {
+    await _mount(t, const Size(390, 844), reduceMotion: true);
+    await t.tap(find.byIcon(Icons.folder_outlined));
+    await t.pump();
+    final page = t.widget<PageView>(find.byType(PageView));
+    expect(page.controller!.page, 1);
+    expect(t.takeException(), isNull);
+  });
 }

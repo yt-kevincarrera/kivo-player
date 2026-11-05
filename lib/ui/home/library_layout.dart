@@ -6,10 +6,16 @@ import '../../core/settings/kivo_settings.dart';
 import '../../core/settings/settings_provider.dart';
 import '../../l10n/l10n.dart';
 
-/// Window space, rather than orientation or the device's shortest side, decides
-/// the shell. A portrait tablet and a landscape phone both benefit from a rail.
-bool usesSideNavigation(BuildContext context) =>
-    MediaQuery.sizeOf(context).width >= 600;
+/// A rail needs space on both axes. A wide but short phone keeps its familiar
+/// labeled bottom navigation and toolbar, even though its library can fit more
+/// columns. Window constraints also cover split-screen and foldable layouts.
+bool usesSideNavigation(BuildContext context) {
+  final size = MediaQuery.sizeOf(context);
+  return size.shortestSide >= 600;
+}
+
+bool hasCompactHeight(BuildContext context) =>
+    MediaQuery.sizeOf(context).height < 500;
 
 bool usesWideLibrary(BuildContext context) =>
     MediaQuery.sizeOf(context).width >= 600;
@@ -42,9 +48,18 @@ int libraryGridColumns({
   required bool wide,
   required int density,
   double textScale = 1,
+  bool compactHeight = false,
 }) {
   if (wide ? density == 0 : density == 1) return 1;
   final scale = math.max(1.0, textScale);
+  if (compactHeight) {
+    final target = switch (density) {
+      1 => 400.0,
+      3 => 320.0,
+      _ => 360.0,
+    };
+    return ((width + 12) / (target * scale + 12)).floor().clamp(1, 8);
+  }
   if (!wide) return (density / scale).floor().clamp(1, density);
   final target = switch (density) {
     1 => 240.0,

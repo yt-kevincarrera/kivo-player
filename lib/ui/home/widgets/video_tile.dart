@@ -384,13 +384,13 @@ class _VideoTileState extends ConsumerState<VideoTile> {
   Widget _newBadge(Color accent) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
     decoration: BoxDecoration(
-      color: Colors.black.withValues(alpha: 0.8),
+      color: accent,
       borderRadius: BorderRadius.circular(8),
     ),
     child: Text(
       context.l10n.videoTileNewBadge,
-      style: const TextStyle(
-        color: Colors.white,
+      style: TextStyle(
+        color: onAccent(accent),
         fontSize: 11,
         fontWeight: FontWeight.w700,
       ),

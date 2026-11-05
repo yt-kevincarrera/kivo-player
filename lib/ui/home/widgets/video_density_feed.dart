@@ -174,6 +174,7 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
 
   Widget _buildFeed(BuildContext context, double width) {
     final wide = usesWideLibrary(context);
+    final compactRows = hasCompactHeight(context);
     final chosen = libraryDensity(context, ref.watch(settingsProvider));
     final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
     final cols = libraryGridColumns(
@@ -181,6 +182,7 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
       wide: wide,
       density: chosen,
       textScale: textScale,
+      compactHeight: compactRows,
     );
     final hPad = cols == 1 && (wide ? chosen == 0 : chosen == 1)
         ? ((width - kReadableWidth) / 2).clamp(_sectionPad, double.infinity)
@@ -296,10 +298,11 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
                   : SliverGrid(
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: cols,
-                        mainAxisExtent:
-                            tileWidth * 9 / 16 +
-                            12 +
-                            56 * textScale.clamp(1.0, double.infinity),
+                        mainAxisExtent: compactRows
+                            ? 100 * textScale.clamp(1.0, double.infinity)
+                            : tileWidth * 9 / 16 +
+                                  12 +
+                                  56 * textScale.clamp(1.0, double.infinity),
                         crossAxisSpacing: 12,
                         mainAxisSpacing: 16,
                       ),
@@ -310,8 +313,10 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
                           child: _reflowTile(
                             child: VideoTile(
                               video: v,
-                              listRow: false,
-                              sizeLabel: null,
+                              listRow: compactRows,
+                              sizeLabel: compactRows
+                                  ? fmtSize(v.sizeBytes)
+                                  : null,
                               progress: continueItems[v.name]?.fraction,
                               isNew: !played.contains(v.name),
                               onOptions: () =>
