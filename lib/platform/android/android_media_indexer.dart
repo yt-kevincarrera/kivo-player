@@ -7,12 +7,11 @@ import 'media_kit_thumbnailer.dart';
 class AndroidMediaIndexer implements MediaIndexer {
   AndroidMediaIndexer(
     this._log, {
-    Future<Uint8List?> Function(String uri)? realMediaThumbnail,
-  }) : _realMediaThumbnail =
-           realMediaThumbnail ?? MediaKitThumbnailer().thumbnail;
+    Future<Uint8List?> Function(String uri)? decoderThumbnail,
+  }) : _decoderThumbnail = decoderThumbnail ?? MediaKitThumbnailer().thumbnail;
 
   final ErrorLog _log;
-  final Future<Uint8List?> Function(String uri) _realMediaThumbnail;
+  final Future<Uint8List?> Function(String uri) _decoderThumbnail;
   final _items = <String, VideoItem>{};
   final _versions = <String, Object>{};
   final _thumbnails = <Object, Future<Uint8List?>>{};
@@ -92,9 +91,14 @@ class AndroidMediaIndexer implements MediaIndexer {
       _log.record(KivoFailure(KivoOp.thumbnail, e));
     }
     final name = item?.name.toLowerCase() ?? '';
-    if (item != null && (name.endsWith('.rm') || name.endsWith('.rmvb'))) {
+    // Android's thumbnail codecs vary by device. These containers can play
+    // in our bundled decoder even when MediaStore cannot produce an image.
+    if (item != null &&
+        (name.endsWith('.rm') ||
+            name.endsWith('.rmvb') ||
+            name.endsWith('.avi'))) {
       try {
-        return await _realMediaThumbnail(item.uri);
+        return await _decoderThumbnail(item.uri);
       } catch (e) {
         _log.record(KivoFailure(KivoOp.thumbnail, e));
       }

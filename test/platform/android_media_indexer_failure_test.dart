@@ -79,7 +79,7 @@ void main() {
     });
     final indexer = AndroidMediaIndexer(
       log,
-      realMediaThumbnail: (_) async => null,
+      decoderThumbnail: (_) async => null,
     );
     await indexer.scan();
     await indexer.thumbnail('7');

@@ -1,0 +1,51 @@
+[
+  {
+    "file": "xvid-qpel-bframes.avi",
+    "url": "https://samples.ffmpeg.org/archive/extension/avi/avi+mpeg4+mp3++qpel-bframes.avi",
+    "sha256": "6a939c21ec7eb0f5ef839bde0ee80ffdd6ef4dcb00142263b6d27838bee952f2",
+    "video": "mpeg4",
+    "audio": "mp3"
+  },
+  {
+    "file": "mpeg4-slow-mp3.avi",
+    "url": "https://samples.ffmpeg.org/archive/extension/avi/avi+mpeg4+mp3++bad-mp3-audio-with-ffmpeg_slow.avi",
+    "sha256": "06b0ab81c91be90927244a214f1dd15b7106e9ce82d2113f0192956c31105cad",
+    "video": "mpeg4",
+    "audio": "mp3"
+  },
+  {
+    "file": "mpeg4-sync.avi",
+    "url": "https://samples.ffmpeg.org/archive/extension/avi/avi+mpeg4+mp3++sync_problem.avi",
+    "sha256": "d8813cc5e90e94da09da071e2a993e632089bf6d4e59b78348d50c15316ad4fe",
+    "video": "mpeg4",
+    "audio": "mp3"
+  },
+  {
+    "file": "mpeg4-ac3.avi",
+    "url": "https://samples.ffmpeg.org/archive/extension/avi/avi+mpeg4+ac3++ffmpeg-audio-nok.avi",
+    "sha256": "e4b0e22d7768f8f7730ef0da52f58b46806403504f5d3630dad40558040f3d09",
+    "video": "mpeg4",
+    "audio": "ac3"
+  },
+  {
+    "file": "xvid-aac.avi",
+    "url": "https://samples.ffmpeg.org/archive/extension/avi/avi+mpeg4+aac++clip.mpg.xvid+aac.avi",
+    "sha256": "bf405da2f90b431c4375e57dadb39adfc5c4ddf402152fe174f3361fbbd65108",
+    "video": "mpeg4",
+    "audio": "aac"
+  },
+  {
+    "file": "mjpeg-pcm-u8.avi",
+    "url": "https://samples.ffmpeg.org/archive/extension/avi/avi+mjpeg+pcm_u8++CIMG0347.avi",
+    "sha256": "08866c98f2ec73399227f2c5878f17198db43b9196912499f4a2905592feb739",
+    "video": "mjpeg",
+    "audio": "pcm_u8"
+  },
+  {
+    "file": "cinepak-pcm.avi",
+    "url": "https://samples.ffmpeg.org/archive/extension/avi/avi+cinepak+pcm_s16le++escher.avi",
+    "sha256": "9c37998deb27595ade4409c5041ce92589acd6ea5f40ad7ac391d6f6a480b004",
+    "video": "cinepak",
+    "audio": "pcm_s16le"
+  }
+]

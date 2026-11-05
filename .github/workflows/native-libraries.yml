@@ -6,6 +6,7 @@ on:
     paths:
       - 'third_party/media_kit_libs_android_video/**'
       - 'scripts/native/**'
+      - 'test/native/**'
       - '.github/workflows/native-libraries.yml'
 
 permissions:
@@ -16,7 +17,11 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - run: python3 scripts/native/verify.py
+      - run: python3 scripts/native/verify.py --check-source
+      - name: Check AVI audio-clock recovery
+        run: |
+          cc -std=c11 -O2 -Wall -Wextra -Werror test/native/avi_audio_clock_test.c -lm -o "$RUNNER_TEMP/avi-audio-clock-test"
+          "$RUNNER_TEMP/avi-audio-clock-test"
 
   rebuild:
     if: github.event_name == 'workflow_dispatch'
@@ -26,7 +31,7 @@ jobs:
       - name: Install native build tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y autoconf automake libtool pkg-config ninja-build nasm python3-pip unzip zip gettext autopoint
+          sudo apt-get install -y autoconf automake libtool pkg-config ninja-build nasm python3-pip unzip zip gettext autopoint ffmpeg
           python3 -m pip install meson==1.3.2
       - name: Download pinned Android NDK
         run: |
@@ -40,20 +45,24 @@ jobs:
         run: |
           bash scripts/native/build.sh
           python3 scripts/native/package.py --work "$KIVO_NATIVE_WORK" --base-cache "$RUNNER_TEMP/base-jni"
-          python3 scripts/native/verify.py
+          python3 scripts/native/verify.py --check-source
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-      - name: Decode RealMedia on Android
+      - name: Decode RealMedia and AVI on Android
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
           arch: x86_64
-          script: python3 scripts/native/smoke.py --ndk "$RUNNER_TEMP/android-ndk-r25c" --serial emulator-5554 --jar third_party/media_kit_libs_android_video/native/realmedia-x86_64.jar
+          script: |
+            python3 scripts/native/smoke.py --ndk "$RUNNER_TEMP/android-ndk-r25c" --serial emulator-5554 --jar third_party/media_kit_libs_android_video/native/realmedia-x86_64.jar
+            python3 scripts/native/avi_smoke.py --ndk "$RUNNER_TEMP/android-ndk-r25c" --serial emulator-5554 --jar third_party/media_kit_libs_android_video/native/realmedia-x86_64.jar --generate --check-timeline --check-seek-roundtrip
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: kivo-realmedia-native
           path: |
             third_party/media_kit_libs_android_video/native/
             ${{ runner.temp }}/kivo-native/symbols/
+            build/avi-smoke/results.json

@@ -4,10 +4,17 @@ import json
 from pathlib import Path
 import zipfile
 from package import ABIS, ROOT, digest, verify_elf
+from prepare import prepared_signature
 
 
-def verify(directory):
+def verify(directory, check_source=False):
     manifest = json.loads((directory / 'manifest.json').read_text())
+    if check_source:
+        recipe = json.loads(Path(__file__).with_name('recipe.json').read_text())
+        if (manifest.get('sourceRecipeSha256') != prepared_signature() or
+                manifest.get('recipe') != recipe['name'] or
+                manifest.get('addedDecoders') != recipe['addedDecoders']):
+            raise ValueError('Native bundle does not match the current compatibility recipe')
     if {a['abi'] for a in manifest['artifacts']} != set(ABIS):
         raise ValueError('The native bundle must contain all supported Android ABIs')
     for artifact in manifest['artifacts']:
@@ -28,4 +35,6 @@ def verify(directory):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('directory', nargs='?', type=Path, default=ROOT / 'third_party/media_kit_libs_android_video/native')
-    verify(parser.parse_args().directory)
+    parser.add_argument('--check-source', action='store_true')
+    args = parser.parse_args()
+    verify(args.directory, check_source=args.check_source)
