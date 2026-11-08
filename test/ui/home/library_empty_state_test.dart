@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kivo_player/player/library/library_filter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
@@ -97,19 +98,21 @@ Future<ProviderContainer> _pump(
 }
 
 void main() {
-  testWidgets('a device with no videos shows the empty state, not a blank body',
-      (tester) async {
-    await _pump(
-      tester,
-      home: const LibraryScreen(),
-      indexer: FakeMediaIndexer(const []),
-      perm: _Perm(MediaAccess.granted),
-    );
+  testWidgets(
+    'a device with no videos shows the empty state, not a blank body',
+    (tester) async {
+      await _pump(
+        tester,
+        home: const LibraryScreen(),
+        indexer: FakeMediaIndexer(const []),
+        perm: _Perm(MediaAccess.granted),
+      );
 
-    expect(find.text('Todavía no hay videos'), findsOneWidget);
-    expect(find.text('Abrir archivo'), findsOneWidget);
-    expect(find.text('Volver a buscar'), findsOneWidget);
-  });
+      expect(find.text('Todavía no hay videos'), findsOneWidget);
+      expect(find.text('Abrir archivo'), findsOneWidget);
+      expect(find.text('Volver a buscar'), findsOneWidget);
+    },
+  );
 
   testWidgets('"Volver a buscar" re-scans the media index', (tester) async {
     final indexer = FakeMediaIndexer(const []);
@@ -144,17 +147,19 @@ void main() {
     expect(perm.requests, 1);
   });
 
-  testWidgets('"No vistos" hiding every video shows the all-watched state',
-      (tester) async {
+  testWidgets('"No vistos" hiding every video shows the all-watched state', (
+    tester,
+  ) async {
     final container = await _pump(
       tester,
       home: const LibraryScreen(),
       indexer: FakeMediaIndexer(_videos),
       perm: _Perm(MediaAccess.granted),
-      played: {'Inception.mp4', 'Avatar.mp4'},
+      played: _videos.map((v) => v.key).toSet(),
     );
 
-    container.read(libraryUnwatchedOnlyProvider.notifier).state = true;
+    container.read(libraryWatchFilterProvider.notifier).state =
+        LibraryWatchFilter.unwatched;
     await tester.pumpAndSettle();
 
     // Distinct from "no videos at all" — the videos exist, the filter hides
@@ -165,7 +170,7 @@ void main() {
     await tester.tap(find.text('Quitar filtro'));
     await tester.pumpAndSettle();
 
-    expect(container.read(libraryUnwatchedOnlyProvider), false);
+    expect(container.read(libraryWatchFilterProvider), LibraryWatchFilter.all);
     expect(find.text('Inception.mp4'), findsOneWidget);
   });
 
@@ -194,8 +199,9 @@ void main() {
     expect(find.text('Inception.mp4'), findsOneWidget);
   });
 
-  testWidgets('the Carpetas tab with no folders shows the empty state',
-      (tester) async {
+  testWidgets('the Carpetas tab with no folders shows the empty state', (
+    tester,
+  ) async {
     await _pump(
       tester,
       home: const LibraryScreen(),
@@ -209,8 +215,9 @@ void main() {
     expect(find.text('No hay carpetas'), findsOneWidget);
   });
 
-  testWidgets('a folder emptied by deleting its last video shows the state',
-      (tester) async {
+  testWidgets('a folder emptied by deleting its last video shows the state', (
+    tester,
+  ) async {
     // The index no longer holds anything in "Movies" — the same situation as
     // deleting the folder's last video from inside FolderScreen.
     await _pump(

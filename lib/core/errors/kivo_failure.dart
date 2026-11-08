@@ -24,6 +24,9 @@ enum KivoOp {
   cast,
   updateCheck,
   updateInstall,
+  backupExport,
+  backupRead,
+  backupRestore,
 
   /// Anything that reached the UI without being classified. Having a code for
   /// "we don't know" is the point: an uncoded error is the hole this closes.
@@ -36,37 +39,65 @@ enum KivoOp {
 /// Codes are APPEND-ONLY. Users quote them and bug reports refer to them, so a
 /// shipped code keeps its meaning forever — never renumber, never reuse.
 const kivoErrorCatalog = <KivoOp, ({String code, String message})>{
-  KivoOp.mediaAccess:
-      (code: 'KV-101', message: 'No pudimos acceder a tus videos'),
-  KivoOp.libraryScan:
-      (code: 'KV-201', message: 'No pudimos leer tu biblioteca'),
-  KivoOp.thumbnail:
-      (code: 'KV-202', message: 'No pudimos generar la miniatura'),
+  KivoOp.mediaAccess: (
+    code: 'KV-101',
+    message: 'No pudimos acceder a tus videos',
+  ),
+  KivoOp.libraryScan: (
+    code: 'KV-201',
+    message: 'No pudimos leer tu biblioteca',
+  ),
+  KivoOp.thumbnail: (
+    code: 'KV-202',
+    message: 'No pudimos generar la miniatura',
+  ),
   KivoOp.delete: (code: 'KV-301', message: 'No pudimos borrar el video'),
   KivoOp.rename: (code: 'KV-302', message: 'No pudimos renombrar el video'),
   KivoOp.share: (code: 'KV-303', message: 'No pudimos compartir el video'),
   KivoOp.vaultHide: (code: 'KV-401', message: 'No pudimos ocultar el video'),
-  KivoOp.vaultRestore:
-      (code: 'KV-402', message: 'No pudimos restaurar el video'),
-  KivoOp.vaultPurge:
-      (code: 'KV-403', message: 'No pudimos borrar el video definitivamente'),
+  KivoOp.vaultRestore: (
+    code: 'KV-402',
+    message: 'No pudimos restaurar el video',
+  ),
+  KivoOp.vaultPurge: (
+    code: 'KV-403',
+    message: 'No pudimos borrar el video definitivamente',
+  ),
   KivoOp.openVideo: (code: 'KV-501', message: 'No pudimos abrir el video'),
-  KivoOp.subtitleLoad:
-      (code: 'KV-502', message: 'No pudimos cargar el subtítulo'),
-  KivoOp.frameCapture:
-      (code: 'KV-503', message: 'No pudimos guardar la captura'),
+  KivoOp.subtitleLoad: (
+    code: 'KV-502',
+    message: 'No pudimos cargar el subtítulo',
+  ),
+  KivoOp.frameCapture: (
+    code: 'KV-503',
+    message: 'No pudimos guardar la captura',
+  ),
   KivoOp.decoderFallback: (
     code: 'KV-504',
     message: 'El video no se mostraba con el decodificador por hardware',
   ),
-  KivoOp.cast:
-      (code: 'KV-505', message: 'No pudimos enviar el video a la TV'),
-  KivoOp.updateCheck:
-      (code: 'KV-601', message: 'No pudimos comprobar si hay actualizaciones'),
-  KivoOp.updateInstall:
-      (code: 'KV-602', message: 'No pudimos instalar la actualización'),
-  KivoOp.unknown:
-      (code: 'KV-999', message: 'Algo no salió como esperábamos'),
+  KivoOp.cast: (code: 'KV-505', message: 'No pudimos enviar el video a la TV'),
+  KivoOp.updateCheck: (
+    code: 'KV-601',
+    message: 'No pudimos comprobar si hay actualizaciones',
+  ),
+  KivoOp.updateInstall: (
+    code: 'KV-602',
+    message: 'No pudimos instalar la actualización',
+  ),
+  KivoOp.unknown: (code: 'KV-999', message: 'Algo no salió como esperábamos'),
+  KivoOp.backupExport: (
+    code: 'KV-701',
+    message: 'No pudimos guardar la copia de seguridad',
+  ),
+  KivoOp.backupRead: (
+    code: 'KV-702',
+    message: 'No pudimos leer la copia de seguridad',
+  ),
+  KivoOp.backupRestore: (
+    code: 'KV-703',
+    message: 'No pudimos completar la restauración',
+  ),
 };
 
 /// A failure the user is allowed to see: a friendly [message], a quotable

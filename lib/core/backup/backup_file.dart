@@ -8,7 +8,7 @@ import '../../vault/vault_entry.dart';
 /// The backup file format's own version, independent of the app version. Bump
 /// only for a shape change that an older Kivo could not make sense of.
 /// [BackupFile.fromJson] refuses anything stamped higher than this.
-const int kBackupFormatVersion = 1;
+const int kBackupFormatVersion = 2;
 
 /// Thrown by [BackupFile.fromJson]/[BackupFile.fromMap] when the file's
 /// `kivo` field is higher than [kBackupFormatVersion] — it was written by a
@@ -71,6 +71,8 @@ class BackupFile {
 
   final Map<String, ResumeBackupEntry> resume;
   final Set<String> played;
+  final Set<String> completed;
+  final Map<String, String> historyNames;
   final Map<String, VideoTrackPrefs> trackPrefs;
   final List<Playlist> playlists;
   final Map<String, List<Bookmark>> bookmarks;
@@ -82,6 +84,8 @@ class BackupFile {
     required this.settings,
     required this.resume,
     required this.played,
+    this.completed = const {},
+    this.historyNames = const {},
     required this.trackPrefs,
     required this.playlists,
     required this.bookmarks,
@@ -89,29 +93,39 @@ class BackupFile {
   });
 
   Map<String, dynamic> toMap() => {
-        'kivo': kBackupFormatVersion,
-        'app': app,
-        'createdAtMs': createdAtMs,
-        'settings': settings,
-        'resume': {
-          for (final e in resume.entries)
-            e.key: {'s': e.value.seconds, 'u': e.value.updatedAtMs},
-        },
-        'played': played.toList(),
-        'trackPrefs': {
-          for (final e in trackPrefs.entries) e.key: e.value.toMap(),
-        },
-        'playlists': playlists.map((p) => p.toMap()).toList(),
-        'bookmarks': {
-          for (final e in bookmarks.entries)
-            e.key: e.value.map((b) => b.toMap()).toList(),
-        },
-        'vault': vault.map((v) => v.toMap()).toList(),
-      };
+    'kivo': kBackupFormatVersion,
+    'app': app,
+    'createdAtMs': createdAtMs,
+    'settings': settings,
+    'resume': {
+      for (final e in resume.entries)
+        e.key: {'s': e.value.seconds, 'u': e.value.updatedAtMs},
+    },
+    'played': played.toList(),
+    'completed': completed.toList(),
+    'historyNames': historyNames,
+    'trackPrefs': {for (final e in trackPrefs.entries) e.key: e.value.toMap()},
+    'playlists': playlists.map((p) => p.toMap()).toList(),
+    'bookmarks': {
+      for (final e in bookmarks.entries)
+        e.key: e.value.map((b) => b.toMap()).toList(),
+    },
+    'vault': vault.map((v) => v.toMap()).toList(),
+  };
 
   String toJson() => const JsonEncoder.withIndent('  ').convert(toMap());
 
   factory BackupFile.fromMap(Map<String, dynamic> m) {
+    try {
+      return BackupFile._parse(m);
+    } on TypeError {
+      throw const BackupFormatException('invalid section data');
+    } on FormatException {
+      throw const BackupFormatException('invalid section data');
+    }
+  }
+
+  factory BackupFile._parse(Map<String, dynamic> m) {
     final rawVersion = m['kivo'];
     // Missing 'kivo' is tolerated as version 1 (an old or hand-made file) —
     // only a version ABOVE what this build understands is refused.
@@ -149,8 +163,9 @@ class BackupFile {
     if (trackPrefsRaw is Map) {
       for (final e in trackPrefsRaw.entries) {
         if (e.value is Map) {
-          trackPrefs[e.key.toString()] =
-              VideoTrackPrefs.fromMap(e.value as Map);
+          trackPrefs[e.key.toString()] = VideoTrackPrefs.fromMap(
+            e.value as Map,
+          );
         }
       }
     }
@@ -176,9 +191,9 @@ class BackupFile {
     final vaultRaw = m['vault'];
     final vault = vaultRaw is List
         ? vaultRaw
-            .whereType<Map>()
-            .map((e) => VaultEntry.fromMap(Map<String, dynamic>.from(e)))
-            .toList()
+              .whereType<Map>()
+              .map((e) => VaultEntry.fromMap(Map<String, dynamic>.from(e)))
+              .toList()
         : <VaultEntry>[];
 
     return BackupFile(
@@ -187,6 +202,10 @@ class BackupFile {
       settings: settings,
       resume: resume,
       played: played,
+      completed: (m['completed'] as List?)?.cast<String>().toSet() ?? const {},
+      historyNames: m['historyNames'] == null
+          ? const {}
+          : Map<String, String>.from(m['historyNames'] as Map),
       trackPrefs: trackPrefs,
       playlists: playlists,
       bookmarks: bookmarks,

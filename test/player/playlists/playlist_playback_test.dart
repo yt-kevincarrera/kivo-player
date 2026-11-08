@@ -65,7 +65,7 @@ Playlist _findPlaylist(ProviderContainer c, String id) {
 
 void main() {
   test('playing a playlist opens the first unplayed entry', () async {
-    final played = InMemoryPlayedStore()..markPlayed('a.mkv');
+    final played = InMemoryPlayedStore()..markPlayed(_v('1', 'a.mkv').key);
     final c = await _c([_v('1', 'a.mkv'), _v('2', 'b.mkv')], played);
     addTearDown(c.dispose);
     await c.read(mediaIndexProvider.future);

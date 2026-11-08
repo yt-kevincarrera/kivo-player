@@ -50,7 +50,7 @@ void main() {
       'long-pressing a continue-watching card opens the shared video options sheet',
       (tester) async {
     final store = InMemoryResumeStore();
-    await store.put('clip.mp4', 30, 100); // 30s of 100s = 30% watched
+    await store.put(_v('clip.mp4', 100000).key, 30, 100); // 30s of 100s = 30% watched
 
     final settingsSvc = await SettingsService.load(InMemorySettingsStore());
     final container =
@@ -96,7 +96,7 @@ void main() {
     for (var i = 0; i < 8; i++) {
       // Descending updatedAtMs so v0 sorts first and v7 last — matches
       // continueWatchingProvider's "newest first" ordering.
-      await store.put('v$i.mp4', 30, 1000 - i);
+      await store.put(_v('v$i.mp4', 100000).key, 30, 1000 - i);
       items.add(_v('v$i.mp4', 100000));
     }
     final settingsSvc = await SettingsService.load(InMemorySettingsStore());

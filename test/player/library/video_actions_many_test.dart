@@ -35,8 +35,8 @@ void main() {
     final store = InMemoryResumeStore();
     final resume = ResumeService(store);
     final played = InMemoryPlayedStore();
-    await store.put('a.mp4', 5, 1);
-    await played.markPlayed('b.mp4');
+    await store.put(_a.key, 5, 1);
+    await played.markPlayed(_b.key);
     final ops = FakeMediaFileOps()..deleteManyResult = FileOpStatus.ok;
     final c = _c(ops, resume, played);
     addTearDown(c.dispose);
@@ -44,21 +44,21 @@ void main() {
     final status = await c.read(videoActionsProvider).deleteMany([_a, _b]);
     expect(status, FileOpStatus.ok);
     expect(ops.deletedManyUris.single, ['u1', 'u2']);
-    expect(resume.positionFor('a.mp4'), isNull);
-    expect(played.isPlayed('b.mp4'), false);
+    expect(resume.positionFor(_a.key), isNull);
+    expect(played.isPlayed(_b.key), false);
   });
 
   test('cancelled deleteMany leaves stores untouched', () async {
     final store = InMemoryResumeStore();
     final resume = ResumeService(store);
     final played = InMemoryPlayedStore();
-    await store.put('a.mp4', 5, 1);
+    await store.put(_a.key, 5, 1);
     final ops = FakeMediaFileOps()..deleteManyResult = FileOpStatus.cancelled;
     final c = _c(ops, resume, played);
     addTearDown(c.dispose);
 
     await c.read(videoActionsProvider).deleteMany([_a, _b]);
-    expect(resume.positionFor('a.mp4'), const Duration(seconds: 5));
+    expect(resume.positionFor(_a.key), const Duration(seconds: 5));
   });
 
   test('shareMany passes the uris', () async {

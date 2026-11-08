@@ -32,6 +32,7 @@ class _VaultContent extends ConsumerWidget {
           displayName: e.displayName,
           queue: all.map((v) => v.privatePath).toList(),
           queueNames: all.map((v) => v.displayName).toList(),
+          queueKeys: all.map((v) => v.key).toList(),
           index: index,
         ));
     Navigator.of(context, rootNavigator: true).push(playerRoute());

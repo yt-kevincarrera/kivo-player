@@ -2780,4 +2780,51 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get libraryWideDensitySetting => 'Library on wide screens';
+
+  @override
+  String get libraryWatchFilterAll => 'All statuses';
+
+  @override
+  String get libraryWatchFilterInProgress => 'In progress';
+
+  @override
+  String get libraryWatchFilterCompleted => 'Completed';
+
+  @override
+  String libraryWatchFilterTooltip(String status) {
+    return 'Filter videos: $status';
+  }
+
+  @override
+  String get libraryEmptyWatchFilterTitle => 'No videos with this status';
+
+  @override
+  String get libraryEmptyWatchFilterSubtitle =>
+      'Choose another status or remove the filter to see all videos.';
+
+  @override
+  String get settingsBackupWorking => 'Processing backup';
+
+  @override
+  String get errorBackupExport =>
+      'Could not save the backup. Check free space and choose an accessible location.';
+
+  @override
+  String get errorBackupRead =>
+      'Could not read the backup. Select an accessible file again.';
+
+  @override
+  String get errorBackupRestore =>
+      'Could not complete the restore. Some changes may have been applied. Retry to review what remains.';
+
+  @override
+  String settingsBackupRestoreItemCompletedVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count completed videos',
+      one: '1 completed video',
+    );
+    return '$_temp0';
+  }
 }

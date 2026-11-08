@@ -4130,5 +4130,150 @@
   "libraryDensityBalanced": "Equilibrada",
   "libraryDensityCompact": "Compacta",
   "libraryDensityList": "Lista",
-  "libraryWideDensitySetting": "Biblioteca en pantallas anchas"
+  "libraryWideDensitySetting": "Biblioteca en pantallas anchas",
+  "libraryWatchFilterAll": "Todos los estados",
+  "libraryWatchFilterInProgress": "En curso",
+  "libraryWatchFilterCompleted": "Terminados",
+  "libraryWatchFilterTooltip": "Filtrar videos: {status}",
+  "@libraryWatchFilterTooltip": {
+    "description": "Library video watch-status filter and recovery text.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "libraryEmptyWatchFilterTitle": "No hay videos con este estado",
+  "libraryEmptyWatchFilterSubtitle": "Elige otro estado o quita el filtro para ver todos los videos.",
+  "settingsBackupWorking": "Procesando copia de seguridad",
+  "errorBackupExport": "No se pudo guardar la copia. Comprueba el espacio y elige una ubicación accesible.",
+  "errorBackupRead": "No se pudo leer la copia. Vuelve a seleccionar un archivo accesible.",
+  "errorBackupRestore": "No se pudo completar la restauración. Puede haberse aplicado una parte. Reintenta para revisar lo que falta.",
+  "settingsBackupRestoreItemCompletedVideos": "{count, plural, =1{1 video terminado} other{{count} videos terminados}}",
+  "@settingsBackupRestoreItemCompletedVideos": {
+    "description": "Backup operation status, recovery guidance, or restore summary.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@updateStatusPreparing": {
+    "description": "Update download progress state shown in the update dialog."
+  },
+  "@updatePreparingHint": {
+    "description": "Update download progress state shown in the update dialog."
+  },
+  "@updatePartialDownloadHint": {
+    "description": "Update download progress state shown in the update dialog."
+  },
+  "@updateFullDownloadFallbackHint": {
+    "description": "Update download progress state shown in the update dialog."
+  },
+  "@updateStatusQueuedHot": {
+    "description": "Update download progress state shown in the update dialog."
+  },
+  "@updateQueuedHotHint": {
+    "description": "Update download progress state shown in the update dialog."
+  },
+  "@updateQueuedHint": {
+    "description": "Update download progress state shown in the update dialog."
+  },
+  "@updateStatusPausedWifi": {
+    "description": "Update download progress state shown in the update dialog."
+  },
+  "@updatePausedWifiHint": {
+    "description": "Update download progress state shown in the update dialog."
+  },
+  "@updateStatusPausedUnknown": {
+    "description": "Update download progress state shown in the update dialog."
+  },
+  "@updatePausedUnknownHint": {
+    "description": "Update download progress state shown in the update dialog."
+  },
+  "@updatePausedNetworkHint": {
+    "description": "Update download progress state shown in the update dialog."
+  },
+  "@updatePausedRetryHint": {
+    "description": "Update download progress state shown in the update dialog."
+  },
+  "@endActionsGlobal": {
+    "description": "End-of-video action label or explanation."
+  },
+  "@endActionsGlobalHint": {
+    "description": "End-of-video action label or explanation."
+  },
+  "@endActionsSessionHint": {
+    "description": "End-of-video action label or explanation."
+  },
+  "@endActionsSavedHint": {
+    "description": "End-of-video action label or explanation."
+  },
+  "@endActionsSettingsHint": {
+    "description": "End-of-video action label or explanation."
+  },
+  "@endActionsDefaultsHint": {
+    "description": "End-of-video action label or explanation."
+  },
+  "@endActionsDefaultTrashHint": {
+    "description": "End-of-video action label or explanation."
+  },
+  "@endActionsDefaultRestartHint": {
+    "description": "End-of-video action label or explanation."
+  },
+  "@endActionsRestart": {
+    "description": "End-of-video action label or explanation."
+  },
+  "@endActionsRestartHint": {
+    "description": "End-of-video action label or explanation."
+  },
+  "@endActionsTrashRestart": {
+    "description": "End-of-video action label or explanation."
+  },
+  "@libraryDensityLabel": {
+    "description": "Library video watch-status filter and recovery text."
+  },
+  "@libraryDensityComfortable": {
+    "description": "Library video watch-status filter and recovery text."
+  },
+  "@libraryDensityBalanced": {
+    "description": "Library video watch-status filter and recovery text."
+  },
+  "@libraryDensityCompact": {
+    "description": "Library video watch-status filter and recovery text."
+  },
+  "@libraryDensityList": {
+    "description": "Library video watch-status filter and recovery text."
+  },
+  "@libraryWideDensitySetting": {
+    "description": "Library video watch-status filter and recovery text."
+  },
+  "@libraryWatchFilterAll": {
+    "description": "Library video watch-status filter and recovery text."
+  },
+  "@libraryWatchFilterInProgress": {
+    "description": "Library video watch-status filter and recovery text."
+  },
+  "@libraryWatchFilterCompleted": {
+    "description": "Library video watch-status filter and recovery text."
+  },
+  "@libraryEmptyWatchFilterTitle": {
+    "description": "Library video watch-status filter and recovery text."
+  },
+  "@libraryEmptyWatchFilterSubtitle": {
+    "description": "Library video watch-status filter and recovery text."
+  },
+  "@settingsBackupWorking": {
+    "description": "Backup operation status, recovery guidance, or restore summary."
+  },
+  "@errorBackupExport": {
+    "description": "Backup operation status, recovery guidance, or restore summary."
+  },
+  "@errorBackupRead": {
+    "description": "Backup operation status, recovery guidance, or restore summary."
+  },
+  "@errorBackupRestore": {
+    "description": "Backup operation status, recovery guidance, or restore summary."
+  }
+
 }

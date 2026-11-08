@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kivo_player/core/media/video_identity.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/core/theme/kivo_theme.dart';
@@ -65,7 +66,7 @@ void main() {
   testWidgets('unnamed bookmarks show their time; named ones show name and time',
       (tester) async {
     final store = InMemoryBookmarkStore();
-    await store.put('a.mkv', const [
+    await store.put(videoIdentity('/v/a.mkv', 'a.mkv'), const [
       Bookmark(positionMs: 30000, name: '', createdAtMs: 1),
       Bookmark(positionMs: 90000, name: 'Golazo', createdAtMs: 2),
     ]);
@@ -78,7 +79,7 @@ void main() {
 
   testWidgets('tapping a row seeks there and closes the sheet', (tester) async {
     final store = InMemoryBookmarkStore();
-    await store.put('a.mkv', const [
+    await store.put(videoIdentity('/v/a.mkv', 'a.mkv'), const [
       Bookmark(positionMs: 45000, name: 'Escena', createdAtMs: 1),
     ]);
     final c = await _pump(tester, bookmarkStore: store);
@@ -93,7 +94,7 @@ void main() {
 
   testWidgets('renaming a bookmark updates its row; blank is refused', (tester) async {
     final store = InMemoryBookmarkStore();
-    await store.put('a.mkv', const [
+    await store.put(videoIdentity('/v/a.mkv', 'a.mkv'), const [
       Bookmark(positionMs: 10000, name: '', createdAtMs: 1),
     ]);
     final c = await _pump(tester, bookmarkStore: store);
@@ -116,7 +117,7 @@ void main() {
   testWidgets('deleting a bookmark removes it immediately, Deshacer restores it',
       (tester) async {
     final store = InMemoryBookmarkStore();
-    await store.put('a.mkv', const [
+    await store.put(videoIdentity('/v/a.mkv', 'a.mkv'), const [
       Bookmark(positionMs: 10000, name: 'Uno', createdAtMs: 1),
       Bookmark(positionMs: 20000, name: 'Dos', createdAtMs: 2),
     ]);
@@ -143,7 +144,7 @@ void main() {
       'video changing while Deshacer is pending drops the undo — it never '
       'writes into the newly-open video', (tester) async {
     final store = InMemoryBookmarkStore();
-    await store.put('a.mkv', const [
+    await store.put(videoIdentity('/v/a.mkv', 'a.mkv'), const [
       Bookmark(positionMs: 10000, name: 'Uno', createdAtMs: 1),
     ]);
     final c = await _pump(tester, bookmarkStore: store);
@@ -169,7 +170,7 @@ void main() {
     // B never receives A's bookmark, and A's is not silently restored
     // either — the undo is simply dropped.
     expect(c.read(bookmarksProvider), isEmpty);
-    expect(store.forVideo('a.mkv'), isEmpty);
-    expect(store.forVideo('b.mkv'), isEmpty);
+    expect(store.forVideo(videoIdentity('/v/a.mkv', 'a.mkv')), isEmpty);
+    expect(store.forVideo(videoIdentity('/v/b.mkv', 'b.mkv')), isEmpty);
   });
 }

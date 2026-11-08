@@ -99,8 +99,11 @@ class FakePlaybackEngine implements PlaybackEngine {
   void emitVideoFrame(bool v) => _frame.add(v);
 
   @override
-  Future<void> open(String path,
-      {Duration startAt = Duration.zero, bool play = true}) async {
+  Future<void> open(
+    String path, {
+    Duration startAt = Duration.zero,
+    bool play = true,
+  }) async {
     openHook?.call(path);
     if (openError != null) throw openError!;
     openedPath = path;
@@ -182,12 +185,16 @@ class FakePlaybackEngine implements PlaybackEngine {
   Duration loadedAudioTracksWait = Duration.zero;
 
   @override
-  Future<List<MediaTrack>> loadedAudioTracks(
-      {Duration timeout = const Duration(milliseconds: 1500)}) async {
+  Future<List<MediaTrack>> loadedAudioTracks({
+    Duration timeout = const Duration(milliseconds: 1500),
+  }) async {
     if (audioTracksValue.isNotEmpty) return audioTracksValue;
-    return _audioTracks.stream.first
-        .timeout(loadedAudioTracksWait, onTimeout: () => audioTracksValue);
+    return _audioTracks.stream.first.timeout(
+      loadedAudioTracksWait,
+      onTimeout: () => audioTracksValue,
+    );
   }
+
   @override
   MediaTrack? get currentSubtitleTrack => currentSubtitleTrackValue;
   @override
@@ -211,8 +218,11 @@ class FakePlaybackEngine implements PlaybackEngine {
   int subtitleReplaceCount = 0;
 
   @override
-  Future<void> setExternalSubtitle(String uri,
-      {String? title, bool replaceCurrent = false}) async {
+  Future<void> setExternalSubtitle(
+    String uri, {
+    String? title,
+    bool replaceCurrent = false,
+  }) async {
     if (replaceCurrent) subtitleReplaceCount++;
     externalSubtitleUri = uri;
     currentSubtitleTrackId = uri;
@@ -231,13 +241,18 @@ class FakePlaybackEngine implements PlaybackEngine {
   Future<void> setAudioGain(double db) async => audioWrites.add('gain=$db');
 
   @override
-  Future<void> setAudioDownmix(
-      {required bool forceStereo, required String swresample}) async {
+  Future<void> setAudioDownmix({
+    required bool forceStereo,
+    required String swresample,
+  }) async {
     audioWrites.add('downmix=$forceStereo|$swresample');
   }
 
   @override
-  Future<void> setDolbyDrc(double scale, {bool heavyCompression = false}) async =>
+  Future<void> setDolbyDrc(
+    double scale, {
+    bool heavyCompression = false,
+  }) async =>
       audioWrites.add(heavyCompression ? 'drc=$scale+heavy' : 'drc=$scale');
 
   @override
@@ -323,7 +338,6 @@ class FakePlaybackEngine implements PlaybackEngine {
     audioFilters.add(af);
   }
 
-
   final _subtitleText = StreamController<List<String>>.broadcast();
   List<String> subtitleTextValue = const ['', ''];
 
@@ -354,9 +368,10 @@ class FakePlaybackEngine implements PlaybackEngine {
   ({String dir, String family})? subtitleFonts;
 
   @override
-  Future<void> configureSubtitleFonts(
-          {required String dir, required String family}) async =>
-      subtitleFonts = (dir: dir, family: family);
+  Future<void> configureSubtitleFonts({
+    required String dir,
+    required String family,
+  }) async => subtitleFonts = (dir: dir, family: family);
 
   /// Every setSecondarySubtitleTrack call, in order (null = off).
   final List<String?> secondarySubtitleWrites = [];
@@ -370,8 +385,9 @@ class FakePlaybackEngine implements PlaybackEngine {
   @override
   Future<void> setSecondarySubtitleTrack(String? id) async {
     secondarySubtitleWrites.add(id);
-    secondarySubtitleTrackId =
-        (id != null && refusedSecondaryIds.contains(id)) ? secondarySubtitleTrackId : id;
+    secondarySubtitleTrackId = (id != null && refusedSecondaryIds.contains(id))
+        ? secondarySubtitleTrackId
+        : id;
   }
 
   /// What [currentSubtitleId] reports.
@@ -579,6 +595,22 @@ class FakePipController implements PipController {
 }
 
 class FakeResumeService implements ResumeService {
+  @override
+  Stream<int> get changes => const Stream.empty();
+  @override
+  Future<void> finish(String key) async {
+    completedKeys.add(key);
+    positions.remove(key);
+  }
+  @override
+  final Set<String> completedKeys = {};
+  @override
+  Future<void> markCompleted(String key) async => completedKeys.add(key);
+  @override
+  Future<void> markUnfinished(String key) async => completedKeys.remove(key);
+  @override
+  Future<void> restore(ResumeEntry entry) async =>
+      positions[entry.key] = Duration(seconds: entry.seconds);
   @override
   int minSeconds = 5;
   @override
@@ -857,13 +889,20 @@ class FakeAppInstaller implements AppInstaller {
   Future<String> deviceModel() async => 'Google Pixel 6';
 
   @override
-  Future<UpdatePreview?> previewUpdate(String url, {String? manifestUrl}) async {
+  Future<UpdatePreview?> previewUpdate(
+    String url, {
+    String? manifestUrl,
+  }) async {
     previewRequests.add((url, manifestUrl));
     return onPreview == null ? preview : await onPreview!();
   }
 
   @override
-  Future<int> enqueueUpdate(String url, String fileName, {String? manifestUrl}) async {
+  Future<int> enqueueUpdate(
+    String url,
+    String fileName, {
+    String? manifestUrl,
+  }) async {
     enqueued.add((url, fileName));
     manifests.add(manifestUrl);
     return onEnqueue == null ? nextDownloadId : await onEnqueue!();
@@ -873,9 +912,11 @@ class FakeAppInstaller implements AppInstaller {
   Future<PendingUpdate?> pendingUpdate() async => pending;
 
   @override
-  Future<DownloadProgress> downloadStatus(int id) async =>
-      onStatus != null ? await onStatus!() :
-      id == nextDownloadId ? status : DownloadProgress.gone;
+  Future<DownloadProgress> downloadStatus(int id) async => onStatus != null
+      ? await onStatus!()
+      : id == nextDownloadId
+      ? status
+      : DownloadProgress.gone;
 
   @override
   Future<void> cancelDownload(int id) async => cancelled.add(id);
@@ -911,20 +952,29 @@ class FakeSubtitleTranscoder implements SubtitleTranscoder {
   List<String> encodings = const ['UTF-8', 'windows-1251', 'KOI8-R', 'IBM437'];
 
   @override
-  Future<PreparedSubtitle> prepare(String uri,
-      {String? name, String? encoding}) async {
+  Future<PreparedSubtitle> prepare(
+    String uri, {
+    String? name,
+    String? encoding,
+  }) async {
     calls.add((uri, name, encoding));
     if (error != null) throw error!;
     return answer?.call(uri, encoding) ??
         PreparedSubtitle(
-            uri: uri, encoding: encoding ?? 'UTF-8', detected: encoding == null);
+          uri: uri,
+          encoding: encoding ?? 'UTF-8',
+          detected: encoding == null,
+        );
   }
 
   @override
   Future<List<String>> availableEncodings() async => encodings;
 
   /// What [systemSubtitleFont] reports; null = no font could be prepared.
-  ({String dir, String family})? font = (dir: '/app/subtitle-fonts', family: 'Roboto');
+  ({String dir, String family})? font = (
+    dir: '/app/subtitle-fonts',
+    family: 'Roboto',
+  );
 
   @override
   Future<({String dir, String family})?> systemSubtitleFont() async => font;

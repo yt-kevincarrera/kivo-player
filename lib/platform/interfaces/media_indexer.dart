@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import '../../core/media/video_identity.dart';
 
 class VideoItem {
   final String id;
@@ -8,9 +9,13 @@ class VideoItem {
   final int durationMs;
   final int sizeBytes;
   final int dateAddedMs;
-  final int width;   // px, 0 if unknown
-  final int height;  // px, 0 if unknown
+  final int width; // px, 0 if unknown
+  final int height; // px, 0 if unknown
   final String path; // MediaStore RELATIVE_PATH, '' if unknown
+  final String filePath; // full storage path, when MediaStore supplies one
+  String get key => filePath.isNotEmpty
+      ? videoIdentity(filePath, name)
+      : videoIdentity(uri, name, path: path);
   const VideoItem({
     required this.id,
     required this.uri,
@@ -22,6 +27,7 @@ class VideoItem {
     this.width = 0,
     this.height = 0,
     this.path = '',
+    this.filePath = '',
   });
 }
 

@@ -30,6 +30,8 @@ void main() {
     final s = c.read(currentVideoProvider)!;
     expect(s.queueIds, ['id-a.mkv', 'id-b.mkv', 'id-c.mkv']);
     expect(s.queueIds.length, s.queue.length);
+    expect(s.queueKeys, shown.map((v) => v.key).toList());
+    expect(s.resumeKey, shown.first.key);
   });
 
   test('sessionAt builds any index and null out of range; carries ids/names/folder', () async {
@@ -43,6 +45,8 @@ void main() {
     expect(s2.index, 2);
     expect(s2.queueIds, ['id-a.mkv', 'id-b.mkv', 'id-c.mkv']);
     expect(s2.folder, 'A');
+    expect(s2.resumeKey, shown[2].key);
+    expect(s2.withOrder([2, 1, 0], edited: true).resumeKey, shown[2].key);
     expect(n.sessionAt(3), isNull);
     expect(n.sessionAt(-1), isNull);
   });

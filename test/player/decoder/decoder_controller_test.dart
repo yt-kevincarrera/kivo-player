@@ -47,7 +47,7 @@ void main() {
     test('auto writes auto-safe, a software override writes no', () async {
       final h = await _harness();
       addTearDown(h.c.dispose);
-      await h.store.put('b.mkv', const VideoTrackPrefs(decoder: 'sw'));
+      await h.store.put(_s('b.mkv').resumeKey, const VideoTrackPrefs(decoder: 'sw'));
 
       await h.ctl.open(_s('a.mkv'));
       await h.ctl.open(_s('b.mkv'));
@@ -59,7 +59,7 @@ void main() {
     test('open A in software, then B without an override → B is reset', () async {
       final h = await _harness();
       addTearDown(h.c.dispose);
-      await h.store.put('a.mkv', const VideoTrackPrefs(decoder: 'sw'));
+      await h.store.put(_s('a.mkv').resumeKey, const VideoTrackPrefs(decoder: 'sw'));
 
       await h.ctl.open(_s('a.mkv'));
       await h.ctl.open(_s('b.mkv'));
@@ -91,9 +91,9 @@ void main() {
       expect(h.engine.hwdecWrites, ['auto-safe', 'no']);
       expect(h.engine.openCount, 1, reason: 'the retry is the one that opened');
       expect(h.engine.openedAt, const Duration(seconds: 42));
-      expect(h.store.forKey('a.mkv')!.decoder, 'sw');
+      expect(h.store.forKey(_s('a.mkv').resumeKey)!.decoder, 'sw');
       expect(h.log.entries().single.code, 'KV-504');
-      expect(h.c.read(decoderFallbackEventProvider)?.resumeKey, 'a.mkv');
+      expect(h.c.read(decoderFallbackEventProvider)?.resumeKey, _s('a.mkv').resumeKey);
     });
 
     test('failing in software too is still a KV-501, with no fallback saved',
@@ -104,7 +104,7 @@ void main() {
 
       await expectLater(h.ctl.open(_s('a.mkv')),
           throwsA(isA<KivoFailure>().having((f) => f.op, 'op', KivoOp.openVideo)));
-      expect(h.store.forKey('a.mkv'), isNull);
+      expect(h.store.forKey(_s('a.mkv').resumeKey), isNull);
       expect(h.c.read(decoderFallbackEventProvider), isNull);
     });
 
@@ -143,7 +143,7 @@ void main() {
         expect(h.engine.hwdecWrites, ['auto-safe', 'no']);
         expect(h.engine.lastSeek, const Duration(seconds: 10),
             reason: 'a seek in place makes the new decoder show a frame now');
-        expect(h.store.forKey('a.mkv')!.decoder, 'sw');
+        expect(h.store.forKey(_s('a.mkv').resumeKey)!.decoder, 'sw');
         expect(h.log.entries().single.code, 'KV-504');
         expect(h.c.read(decoderFallbackEventProvider)?.seq, 1);
         h.c.dispose();
@@ -258,8 +258,8 @@ void main() {
         t.flushMicrotasks();
         h.engine.emitVideoFrame(true);
         t.elapse(const Duration(seconds: 10));
-        expect(h.store.forKey('a.mkv'), isNull);
-        expect(h.store.forKey('b.mkv'), isNull);
+        expect(h.store.forKey(_s('a.mkv').resumeKey), isNull);
+        expect(h.store.forKey(_s('b.mkv').resumeKey), isNull);
         h.c.dispose();
       });
     });
@@ -273,11 +273,11 @@ void main() {
       await h.ctl.open(_s('a.mkv'));
 
       await h.ctl.choose(DecoderMode.software);
-      expect(h.store.forKey('a.mkv')!.decoder, 'sw');
+      expect(h.store.forKey(_s('a.mkv').resumeKey)!.decoder, 'sw');
       expect(h.engine.hwdecWrites.last, 'no');
 
       await h.ctl.choose(DecoderMode.auto);
-      expect(h.store.forKey('a.mkv'), isNull,
+      expect(h.store.forKey(_s('a.mkv').resumeKey), isNull,
           reason: 'back to the default leaves no record behind');
       expect(h.engine.hwdecWrites.last, 'auto-safe');
     });
@@ -291,10 +291,10 @@ void main() {
         if (++calls == 1) throw StateError('mediacodec init');
       };
       await h.ctl.open(_s('a.mkv'));
-      expect(h.store.forKey('a.mkv')!.decoder, 'sw');
+      expect(h.store.forKey(_s('a.mkv').resumeKey)!.decoder, 'sw');
 
-      await h.ctl.undoFallback('a.mkv');
-      expect(h.store.forKey('a.mkv')!.decoder, 'hw');
+      await h.ctl.undoFallback(_s('a.mkv').resumeKey);
+      expect(h.store.forKey(_s('a.mkv').resumeKey)!.decoder, 'hw');
       expect(h.engine.hwdecWrites.last, 'auto-safe');
     });
 
@@ -319,16 +319,16 @@ void main() {
     test('forgetAll clears every override but keeps the other prefs', () async {
       final h = await _harness();
       addTearDown(h.c.dispose);
-      await h.store.put('a.mkv', const VideoTrackPrefs(decoder: 'sw'));
+      await h.store.put(_s('a.mkv').resumeKey, const VideoTrackPrefs(decoder: 'sw'));
       await h.store.put(
-          'b.mkv', const VideoTrackPrefs(decoder: 'hw', subtitleDelayMs: 300));
-      await h.store.put('c.mkv', const VideoTrackPrefs(audioDelayMs: 50));
+          _s('b.mkv').resumeKey, const VideoTrackPrefs(decoder: 'hw', subtitleDelayMs: 300));
+      await h.store.put(_s('c.mkv').resumeKey, const VideoTrackPrefs(audioDelayMs: 50));
 
       expect(await h.ctl.forgetAll(), 2);
-      expect(h.store.forKey('a.mkv'), isNull);
-      expect(h.store.forKey('b.mkv')!.decoder, isNull);
-      expect(h.store.forKey('b.mkv')!.subtitleDelayMs, 300);
-      expect(h.store.forKey('c.mkv')!.audioDelayMs, 50);
+      expect(h.store.forKey(_s('a.mkv').resumeKey), isNull);
+      expect(h.store.forKey(_s('b.mkv').resumeKey)!.decoder, isNull);
+      expect(h.store.forKey(_s('b.mkv').resumeKey)!.subtitleDelayMs, 300);
+      expect(h.store.forKey(_s('c.mkv').resumeKey)!.audioDelayMs, 50);
     });
   });
 }

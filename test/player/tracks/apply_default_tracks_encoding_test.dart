@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kivo_player/core/media/video_identity.dart';
 import 'package:kivo_player/core/settings/kivo_settings.dart';
 import 'package:kivo_player/platform/interfaces/subtitle_transcoder.dart';
 import 'package:kivo_player/player/open/video_source.dart';
@@ -27,7 +28,7 @@ void main() {
     final engine = FakePlaybackEngine();
     final store = InMemoryTrackPrefsStore();
     await store.put(
-        'ep1.mkv',
+        videoIdentity('/v/ep1.mkv', 'ep1.mkv'),
         const VideoTrackPrefs(
             subtitlePath: '/subs/ep1.srt', subtitleEncoding: 'windows-1251'));
     final transcoder = FakeSubtitleTranscoder()

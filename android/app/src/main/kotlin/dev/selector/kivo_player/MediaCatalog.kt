@@ -90,6 +90,7 @@ internal class MediaCatalog(private val resolver: ContentResolver) {
                     "width" to (if (widthC >= 0) c.getInt(widthC) else 0),
                     "height" to (if (heightC >= 0) c.getInt(heightC) else 0),
                     "path" to relativePathOf(if (relPathC >= 0) c.getString(relPathC) else null, data),
+                    "filePath" to (data ?: ""),
                 ))
             }
         }

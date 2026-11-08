@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kivo_player/core/media/video_identity.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kivo_player/player/bookmarks/bookmark_store.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
@@ -153,7 +154,7 @@ void main() {
     // the save happened as part of the pop rather than racing behind it.
     final saved = resumeStore.entries();
     expect(saved, hasLength(1));
-    expect(saved.single.key, 'ep1.mkv');
+    expect(saved.single.key, videoIdentity('/v/ep1.mkv', 'ep1.mkv'));
     expect(saved.single.seconds, const Duration(minutes: 2).inSeconds);
 
     // Drain the periodic save timer so no pending timers remain at teardown.

@@ -23,30 +23,43 @@ class VaultRepository {
     if (pairs.isEmpty) return;
     final remap = {
       for (final p in pairs)
-        if (p['old'] is String && p['new'] is String) p['old'] as String: p['new'] as String,
+        if (p['old'] is String && p['new'] is String)
+          p['old'] as String: p['new'] as String,
     };
     if (remap.isEmpty) return;
     _entries = _entries
-        .map((e) => remap.containsKey(e.privatePath)
-            ? VaultEntry(
-                id: e.id,
-                privatePath: remap[e.privatePath]!,
-                displayName: e.displayName,
-                originalRelativePath: e.originalRelativePath,
-                durationMs: e.durationMs,
-                sizeBytes: e.sizeBytes,
-                dateAddedMs: e.dateAddedMs,
-                width: e.width,
-                height: e.height,
-              )
-            : e)
+        .map(
+          (e) => remap.containsKey(e.privatePath)
+              ? VaultEntry(
+                  id: e.id,
+                  privatePath: remap[e.privatePath]!,
+                  displayName: e.displayName,
+                  originalRelativePath: e.originalRelativePath,
+                  durationMs: e.durationMs,
+                  sizeBytes: e.sizeBytes,
+                  dateAddedMs: e.dateAddedMs,
+                  width: e.width,
+                  height: e.height,
+                  historyKey: e.key,
+                )
+              : e,
+        )
         .toList();
     await _store.writeAll(_entries);
   }
 
   Future<List<VaultEntry>> hide(List<VideoItem> videos) async {
     final maps = await _ops.hide(videos.map((v) => v.uri).toList());
-    final added = maps.map((m) => VaultEntry.fromMap(m)).toList();
+    final bySourceId = {for (final v in videos) v.id: v};
+    final added = maps
+        .map(
+          (m) => VaultEntry.fromMap({
+            ...m,
+            if (bySourceId[m['id']] != null)
+              'historyKey': bySourceId[m['id']]!.key,
+          }),
+        )
+        .toList();
     // Dedup by id: new entries win.
     final byId = {for (final e in _entries) e.id: e};
     for (final e in added) {
@@ -58,22 +71,26 @@ class VaultRepository {
   }
 
   Future<bool> unhide(List<VaultEntry> entries) async {
-    final succeeded = (await _ops.unhide(entries
-            .map((e) => {
-                  'privatePath': e.privatePath,
-                  'displayName': e.displayName,
-                  'relativePath': e.originalRelativePath,
-                  'dateAddedMs': e.dateAddedMs,
-                })
-            .toList()))
-        .toSet();
+    final succeeded = (await _ops.unhide(
+      entries
+          .map(
+            (e) => {
+              'privatePath': e.privatePath,
+              'displayName': e.displayName,
+              'relativePath': e.originalRelativePath,
+              'dateAddedMs': e.dateAddedMs,
+            },
+          )
+          .toList(),
+    )).toSet();
     await _removeByPaths(succeeded);
     return succeeded.length == entries.length;
   }
 
   Future<bool> deleteForever(List<VaultEntry> entries) async {
-    final succeeded =
-        (await _ops.deleteForever(entries.map((e) => e.privatePath).toList())).toSet();
+    final succeeded = (await _ops.deleteForever(
+      entries.map((e) => e.privatePath).toList(),
+    )).toSet();
     await _removeByPaths(succeeded);
     return succeeded.length == entries.length;
   }

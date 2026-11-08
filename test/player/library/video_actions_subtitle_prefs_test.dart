@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kivo_player/core/media/video_identity.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kivo_player/platform/interfaces/media_file_ops.dart';
 import 'package:kivo_player/platform/media_file_ops_provider.dart';
@@ -61,42 +62,42 @@ Future<ProviderContainer> buildVideoActionsContainer({
 void main() {
   test('rename carries the subtitle prefs to the new name', () async {
     final store = InMemoryTrackPrefsStore();
-    await store.put('ep1.mkv', const VideoTrackPrefs(subtitleDelayMs: 500));
+    await store.put(_v.key, const VideoTrackPrefs(subtitleDelayMs: 500));
     final c = await buildVideoActionsContainer(
         subtitlePrefs: store, renameTo: 'ep1-renamed.mkv');
     addTearDown(c.dispose);
 
     await c.read(videoActionsProvider).rename(_v, 'ep1-renamed');
 
-    expect(store.forKey('ep1.mkv'), isNull);
-    expect(store.forKey('ep1-renamed.mkv')!.subtitleDelayMs, 500);
+    expect(store.forKey(_v.key), isNull);
+    expect(store.forKey(videoIdentity(_v.uri, 'ep1-renamed.mkv'))!.subtitleDelayMs, 500);
   });
 
   test('delete clears the subtitle prefs', () async {
     final store = InMemoryTrackPrefsStore();
-    await store.put('ep1.mkv', const VideoTrackPrefs(subtitleDelayMs: 500));
+    await store.put(_v.key, const VideoTrackPrefs(subtitleDelayMs: 500));
     final c = await buildVideoActionsContainer(subtitlePrefs: store);
     addTearDown(c.dispose);
 
     await c.read(videoActionsProvider).delete(_v);
 
-    expect(store.forKey('ep1.mkv'), isNull);
+    expect(store.forKey(_v.key), isNull);
   });
 
   test('deleteMany clears the prefs of every video in the batch', () async {
     final store = InMemoryTrackPrefsStore();
-    await store.put('ep1.mkv', const VideoTrackPrefs(subtitleDelayMs: 500));
+    await store.put(_v.key, const VideoTrackPrefs(subtitleDelayMs: 500));
     final c = await buildVideoActionsContainer(subtitlePrefs: store);
     addTearDown(c.dispose);
 
     await c.read(videoActionsProvider).deleteMany([_v]);
 
-    expect(store.forKey('ep1.mkv'), isNull);
+    expect(store.forKey(_v.key), isNull);
   });
 
   test('deleting a video also deletes its imported subtitle copy', () async {
     final store = InMemoryTrackPrefsStore();
-    await store.put('ep1.mkv',
+    await store.put(_v.key,
         const VideoTrackPrefs(subtitlePath: '/app/subs/ep1.mkv.srt'));
     final importer = FakeSubtitleImporter();
     final c = await buildVideoActionsContainer(
@@ -110,7 +111,7 @@ void main() {
 
   test('a video with no imported copy discards nothing', () async {
     final store = InMemoryTrackPrefsStore();
-    await store.put('ep1.mkv', const VideoTrackPrefs(subtitleDelayMs: 500));
+    await store.put(_v.key, const VideoTrackPrefs(subtitleDelayMs: 500));
     final importer = FakeSubtitleImporter();
     final c = await buildVideoActionsContainer(
         subtitlePrefs: store, importer: importer);
@@ -124,9 +125,9 @@ void main() {
   test('deleteMany discards each video\'s own imported subtitle copy',
       () async {
     final store = InMemoryTrackPrefsStore();
-    await store.put('ep1.mkv',
+    await store.put(_v.key,
         const VideoTrackPrefs(subtitlePath: '/app/subs/ep1.mkv.srt'));
-    await store.put('ep2.mkv',
+    await store.put(_v2.key,
         const VideoTrackPrefs(subtitlePath: '/app/subs/ep2.mkv.srt'));
     final importer = FakeSubtitleImporter();
     final c = await buildVideoActionsContainer(

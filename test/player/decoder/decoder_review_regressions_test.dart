@@ -14,7 +14,11 @@ import 'package:kivo_player/player/tracks/track_prefs_store.dart';
 import '../../fakes/fakes.dart';
 
 VideoSession _s(String name) => VideoSession(
-    playbackPath: '/v/$name', displayName: name, queue: ['/v/$name'], index: 0);
+  playbackPath: '/v/$name',
+  displayName: name,
+  queue: ['/v/$name'],
+  index: 0,
+);
 
 class _H {
   _H(this.c, this.engine, this.store);
@@ -29,13 +33,16 @@ Future<_H> _harness({KivoSettings Function(KivoSettings)? tweak}) async {
   if (tweak != null) await svc.update(tweak(svc.current));
   final engine = FakePlaybackEngine();
   final store = InMemoryTrackPrefsStore();
-  final c = ProviderContainer(overrides: [
-    settingsServiceProvider.overrideWithValue(svc),
-    playbackEngineProvider.overrideWithValue(engine),
-    trackPrefsStoreProvider.overrideWithValue(store),
-    errorLogProvider.overrideWithValue(
-        ErrorLog(InMemoryErrorLogStore(), appVersion: 't', androidSdk: 0)),
-  ]);
+  final c = ProviderContainer(
+    overrides: [
+      settingsServiceProvider.overrideWithValue(svc),
+      playbackEngineProvider.overrideWithValue(engine),
+      trackPrefsStoreProvider.overrideWithValue(store),
+      errorLogProvider.overrideWithValue(
+        ErrorLog(InMemoryErrorLogStore(), appVersion: 't', androidSdk: 0),
+      ),
+    ],
+  );
   return _H(c, engine, store);
 }
 
@@ -49,38 +56,42 @@ _H _inFake(FakeAsync t, [KivoSettings Function(KivoSettings)? tweak]) {
 void main() {
   // media_kit reports buffering=true (mpv core-idle) until the first frame —
   // which, with a dead hardware decoder, is forever.
-  test('buffering reported until the first frame does not silence the watchdog',
-      () {
-    fakeAsync((t) {
-      final h = _inFake(t);
-      h.ctl.open(_s('a.mkv'));
-      t.flushMicrotasks();
-      h.engine.emitBuffering(true);
-      h.engine.emitPlaying(true);
-      t.elapse(const Duration(seconds: 4));
-      expect(h.engine.hwdecWrites, ['auto-safe', 'no']);
-      h.c.dispose();
-    });
-  });
+  test(
+    'buffering reported until the first frame does not silence the watchdog',
+    () {
+      fakeAsync((t) {
+        final h = _inFake(t);
+        h.ctl.open(_s('a.mkv'));
+        t.flushMicrotasks();
+        h.engine.emitBuffering(true);
+        h.engine.emitPlaying(true);
+        t.elapse(const Duration(seconds: 4));
+        expect(h.engine.hwdecWrites, ['auto-safe', 'no']);
+        h.c.dispose();
+      });
+    },
+  );
 
-  test('opened while the output is off, it counts once the output comes back',
-      () {
-    fakeAsync((t) {
-      final h = _inFake(t);
-      h.engine.videoOutputEnabled = false; // autoplay while minimized
-      h.ctl.open(_s('a.mkv'));
-      t.flushMicrotasks();
-      h.engine.emitPlaying(true);
-      t.elapse(const Duration(seconds: 10));
-      expect(h.engine.hwdecWrites, ['auto-safe']);
+  test(
+    'opened while the output is off, it counts once the output comes back',
+    () {
+      fakeAsync((t) {
+        final h = _inFake(t);
+        h.engine.videoOutputEnabled = false; // autoplay while minimized
+        h.ctl.open(_s('a.mkv'));
+        t.flushMicrotasks();
+        h.engine.emitPlaying(true);
+        t.elapse(const Duration(seconds: 10));
+        expect(h.engine.hwdecWrites, ['auto-safe']);
 
-      h.engine.setVideoTrackEnabled(true); // back in the foreground
-      t.flushMicrotasks();
-      t.elapse(const Duration(seconds: 4));
-      expect(h.engine.hwdecWrites, ['auto-safe', 'no']);
-      h.c.dispose();
-    });
-  });
+        h.engine.setVideoTrackEnabled(true); // back in the foreground
+        t.flushMicrotasks();
+        t.elapse(const Duration(seconds: 4));
+        expect(h.engine.hwdecWrites, ['auto-safe', 'no']);
+        h.c.dispose();
+      });
+    },
+  );
 
   test('the output going off just as the clock runs out keeps watching', () {
     fakeAsync((t) {
@@ -97,8 +108,11 @@ void main() {
       h.engine.setVideoTrackEnabled(true);
       t.flushMicrotasks();
       t.elapse(const Duration(seconds: 4));
-      expect(h.engine.hwdecWrites, ['auto-safe', 'no'],
-          reason: 're-armed, so the dead decoder is still caught');
+      expect(
+        h.engine.hwdecWrites,
+        ['auto-safe', 'no'],
+        reason: 're-armed, so the dead decoder is still caught',
+      );
       h.c.dispose();
     });
   });
@@ -126,8 +140,8 @@ void main() {
     await h.ctl.open(_s('b.mkv'));
 
     await h.ctl.undoFallback('a.mkv');
-    expect(h.store.forKey('b.mkv'), isNull);
-    expect(h.store.forKey('a.mkv')!.decoder, 'sw');
+    expect(h.store.forKey(_s('b.mkv').resumeKey), isNull);
+    expect(h.store.forKey(_s('a.mkv').resumeKey)!.decoder, 'sw');
     expect(h.engine.hwdecWrites.last, 'auto-safe', reason: "b's own open");
   });
 
@@ -144,21 +158,33 @@ void main() {
     await a;
     await b;
     expect(h.engine.openedPath, '/v/b.mkv');
-    expect(h.store.forKey('a.mkv'), isNull, reason: 'no fallback recorded');
+    expect(
+      h.store.forKey(_s('a.mkv').resumeKey),
+      isNull,
+      reason: 'no fallback recorded',
+    );
     expect(h.engine.hwdecWrites.where((v) => v == 'no'), isEmpty);
   });
 
-  test('falling back with a software default stores no redundant override',
-      () async {
-    final h = await _harness(tweak: (s) => s.copyWith(decoderMode: 'sw'));
-    addTearDown(h.c.dispose);
-    await h.store.put('a.mkv', const VideoTrackPrefs(decoder: 'auto'));
-    var calls = 0;
-    h.engine.openHook = (_) {
-      if (++calls == 1) throw StateError('mediacodec init');
-    };
-    await h.ctl.open(_s('a.mkv'));
-    expect(h.store.forKey('a.mkv'), isNull,
-        reason: 'software is already the default');
-  });
+  test(
+    'falling back with a software default stores no redundant override',
+    () async {
+      final h = await _harness(tweak: (s) => s.copyWith(decoderMode: 'sw'));
+      addTearDown(h.c.dispose);
+      await h.store.put(
+        _s('a.mkv').resumeKey,
+        const VideoTrackPrefs(decoder: 'auto'),
+      );
+      var calls = 0;
+      h.engine.openHook = (_) {
+        if (++calls == 1) throw StateError('mediacodec init');
+      };
+      await h.ctl.open(_s('a.mkv'));
+      expect(
+        h.store.forKey(_s('a.mkv').resumeKey),
+        isNull,
+        reason: 'software is already the default',
+      );
+    },
+  );
 }

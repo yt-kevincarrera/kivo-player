@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kivo_player/core/media/video_identity.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kivo_player/platform/interfaces/media_file_ops.dart';
 import 'package:kivo_player/platform/media_file_ops_provider.dart';
@@ -52,7 +53,7 @@ ProviderContainer _buildContainer({
 void main() {
   test('renaming a video migrates its bookmarks to the new key', () async {
     final store = InMemoryBookmarkStore();
-    await store.put('ep1.mkv', const [
+    await store.put(_v.key, const [
       Bookmark(positionMs: 1000, name: 'Golazo', createdAtMs: 1),
     ]);
     final c = _buildContainer(bookmarkStore: store, renameTo: 'ep1-nuevo.mkv');
@@ -60,13 +61,13 @@ void main() {
 
     await c.read(videoActionsProvider).rename(_v, 'ep1-nuevo');
 
-    expect(store.forVideo('ep1.mkv'), isEmpty);
-    expect(store.forVideo('ep1-nuevo.mkv').single.name, 'Golazo');
+    expect(store.forVideo(_v.key), isEmpty);
+    expect(store.forVideo(videoIdentity(_v.uri, 'ep1-nuevo.mkv')).single.name, 'Golazo');
   });
 
   test('a cancelled rename leaves the bookmarks under the old key', () async {
     final store = InMemoryBookmarkStore();
-    await store.put('ep1.mkv', const [
+    await store.put(_v.key, const [
       Bookmark(positionMs: 1000, name: 'Golazo', createdAtMs: 1),
     ]);
     final ops = FakeMediaFileOps()
@@ -83,7 +84,7 @@ void main() {
 
     await c.read(videoActionsProvider).rename(_v, 'ep1-nuevo');
 
-    expect(store.forVideo('ep1.mkv').single.name, 'Golazo');
+    expect(store.forVideo(_v.key).single.name, 'Golazo');
   });
 
   test('deleting a video leaves its bookmarks alone — no delete hook by design', () async {
@@ -91,7 +92,7 @@ void main() {
     // restored (or an SD card unplugged for an afternoon) must not destroy
     // what was marked in it.
     final store = InMemoryBookmarkStore();
-    await store.put('ep1.mkv', const [
+    await store.put(_v.key, const [
       Bookmark(positionMs: 1000, name: 'Golazo', createdAtMs: 1),
     ]);
     final c = _buildContainer(bookmarkStore: store);
@@ -99,12 +100,12 @@ void main() {
 
     await c.read(videoActionsProvider).delete(_v);
 
-    expect(store.forVideo('ep1.mkv').single.name, 'Golazo');
+    expect(store.forVideo(_v.key).single.name, 'Golazo');
   });
 
   test('deleteMany also leaves bookmarks alone — no delete hook by design', () async {
     final store = InMemoryBookmarkStore();
-    await store.put('ep1.mkv', const [
+    await store.put(_v.key, const [
       Bookmark(positionMs: 1000, name: 'Golazo', createdAtMs: 1),
     ]);
     final c = _buildContainer(bookmarkStore: store);
@@ -112,6 +113,6 @@ void main() {
 
     await c.read(videoActionsProvider).deleteMany([_v]);
 
-    expect(store.forVideo('ep1.mkv').single.name, 'Golazo');
+    expect(store.forVideo(_v.key).single.name, 'Golazo');
   });
 }

@@ -8,6 +8,7 @@ import 'package:kivo_player/platform/app_installer_provider.dart';
 import 'package:kivo_player/player/bookmarks/bookmark.dart';
 import 'package:kivo_player/player/bookmarks/bookmark_store.dart';
 import 'package:kivo_player/player/library/played.dart';
+import 'package:kivo_player/player/library/history_names.dart';
 import 'package:kivo_player/player/open/video_source.dart'; // resumeServiceProvider
 import 'package:kivo_player/player/playlists/playlist.dart';
 import 'package:kivo_player/player/playlists/playlist_store.dart';
@@ -32,35 +33,119 @@ class _Stores {
 Future<(ProviderContainer, _Stores)> _container() async {
   final stores = _Stores();
   final settingsService = await SettingsService.load(InMemorySettingsStore());
-  final container = ProviderContainer(overrides: [
-    settingsServiceProvider.overrideWithValue(settingsService),
-    resumeServiceProvider.overrideWithValue(stores.resumeService),
-    playedStoreProvider.overrideWithValue(stores.played),
-    playlistStoreProvider.overrideWithValue(stores.playlists),
-    bookmarkStoreProvider.overrideWithValue(stores.bookmarks),
-    trackPrefsStoreProvider.overrideWithValue(stores.trackPrefs),
-    vaultStoreProvider.overrideWithValue(stores.vault),
-    appInstallerProvider.overrideWithValue(FakeAppInstaller(version: '1.14.2')),
-  ]);
+  final container = ProviderContainer(
+    overrides: [
+      settingsServiceProvider.overrideWithValue(settingsService),
+      resumeServiceProvider.overrideWithValue(stores.resumeService),
+      playedStoreProvider.overrideWithValue(stores.played),
+      playlistStoreProvider.overrideWithValue(stores.playlists),
+      bookmarkStoreProvider.overrideWithValue(stores.bookmarks),
+      trackPrefsStoreProvider.overrideWithValue(stores.trackPrefs),
+      vaultStoreProvider.overrideWithValue(stores.vault),
+      appInstallerProvider.overrideWithValue(
+        FakeAppInstaller(version: '1.14.2'),
+      ),
+    ],
+  );
   return (container, stores);
 }
 
 void main() {
+  test(
+    'completion survives backup restore and short positions restore exactly',
+    () async {
+      final (source, sourceStores) = await _container();
+      final (target, targetStores) = await _container();
+      addTearDown(source.dispose);
+      addTearDown(target.dispose);
+      await sourceStores.resumeService.markCompleted('finished');
+      await source.read(historyNamesProvider).put('finished', 'movie.mp4');
+      await sourceStores.resumeStore.put('short', 2, 123);
+      final service = target.read(backupServiceProvider);
+      final json = await source.read(backupServiceProvider).exportJson();
+      await service.apply(await service.plan(json));
+      expect(targetStores.resumeService.completedKeys, {'finished'});
+      expect(target.read(historyNamesProvider).all()['finished'], 'movie.mp4');
+      expect(
+        targetStores.resumeService.positionFor('short'),
+        const Duration(seconds: 2),
+      );
+      expect(targetStores.resumeService.entries().single.updatedAtMs, 123);
+    },
+  );
+
+  test(
+    'confirmation cannot overwrite progress recorded after planning',
+    () async {
+      final (source, sourceStores) = await _container();
+      final (target, targetStores) = await _container();
+      addTearDown(source.dispose);
+      addTearDown(target.dispose);
+      await sourceStores.resumeStore.put('video', 10, 1);
+      final service = target.read(backupServiceProvider);
+      final plan = await service.plan(
+        await source.read(backupServiceProvider).exportJson(),
+      );
+      await targetStores.resumeStore.put('video', 80, 2);
+      await service.apply(plan);
+      expect(
+        targetStores.resumeService.positionFor('video'),
+        const Duration(seconds: 80),
+      );
+    },
+  );
+
+  test('decoder and subtitle encoding differences are restored', () async {
+    final (source, sourceStores) = await _container();
+    final (target, targetStores) = await _container();
+    addTearDown(source.dispose);
+    addTearDown(target.dispose);
+    await sourceStores.trackPrefs.put(
+      'video',
+      const VideoTrackPrefs(decoder: 'sw', subtitleEncoding: 'windows-1253'),
+    );
+    await targetStores.trackPrefs.put(
+      'video',
+      const VideoTrackPrefs(decoder: 'hw'),
+    );
+    final service = target.read(backupServiceProvider);
+    await service.apply(
+      await service.plan(await source.read(backupServiceProvider).exportJson()),
+    );
+    expect(targetStores.trackPrefs.forKey('video')!.decoder, 'sw');
+    expect(
+      targetStores.trackPrefs.forKey('video')!.subtitleEncoding,
+      'windows-1253',
+    );
+  });
+
   group('exportJson', () {
     test('carries settings, resume, played, playlists and vault', () async {
       final (container, stores) = await _container();
       addTearDown(container.dispose);
 
-      await container.read(settingsProvider.notifier).set(
-          container.read(settingsProvider).copyWith(accentColor: 0xFF5B9BE8));
+      await container
+          .read(settingsProvider.notifier)
+          .set(
+            container.read(settingsProvider).copyWith(accentColor: 0xFF5B9BE8),
+          );
       await stores.resumeService.record(
-          'ep1.mp4', const Duration(seconds: 90), const Duration(minutes: 40), 1000);
+        'ep1.mp4',
+        const Duration(seconds: 90),
+        const Duration(minutes: 40),
+        1000,
+      );
       await stores.played.markPlayed('ep2.mp4');
-      await stores.playlists.put(const Playlist(
-          id: 'p1', name: 'Serie', createdAtMs: 1, entries: []));
+      await stores.playlists.put(
+        const Playlist(id: 'p1', name: 'Serie', createdAtMs: 1, entries: []),
+      );
       await stores.vault.writeAll(const [
         VaultEntry(
-            id: 'v1', privatePath: '/vault/v1.mp4', displayName: 'v1.mp4', originalRelativePath: '')
+          id: 'v1',
+          privatePath: '/vault/v1.mp4',
+          displayName: 'v1.mp4',
+          originalRelativePath: '',
+        ),
       ]);
 
       final json = await container.read(backupServiceProvider).exportJson();
@@ -78,10 +163,14 @@ void main() {
       final (container, stores) = await _container();
       addTearDown(container.dispose);
 
-      await stores.trackPrefs
-          .put('ep1.mp4', const VideoTrackPrefs(subtitleDelayMs: 300));
-      await stores.trackPrefs
-          .put('ep2.mp4', const VideoTrackPrefs(audioDelayMs: -80));
+      await stores.trackPrefs.put(
+        'ep1.mp4',
+        const VideoTrackPrefs(subtitleDelayMs: 300),
+      );
+      await stores.trackPrefs.put(
+        'ep2.mp4',
+        const VideoTrackPrefs(audioDelayMs: -80),
+      );
       await stores.bookmarks.put('ep1.mp4', const [
         Bookmark(positionMs: 10, name: 'a', createdAtMs: 1),
         Bookmark(positionMs: 20, name: 'b', createdAtMs: 2),
@@ -98,104 +187,135 @@ void main() {
   });
 
   group('export -> plan -> apply round trip', () {
-    test('lands every exportable section on a fresh target, then is idempotent',
-        () async {
-      final (source, sourceStores) = await _container();
-      addTearDown(source.dispose);
-      final (target, _) = await _container();
-      addTearDown(target.dispose);
+    test(
+      'lands every exportable section on a fresh target, then is idempotent',
+      () async {
+        final (source, sourceStores) = await _container();
+        addTearDown(source.dispose);
+        final (target, _) = await _container();
+        addTearDown(target.dispose);
 
-      await source.read(settingsProvider.notifier).set(
-          source.read(settingsProvider).copyWith(accentColor: 0xFF57C08A));
-      await sourceStores.resumeService.record(
-          'ep1.mp4', const Duration(seconds: 45), const Duration(minutes: 40), 2000);
-      await sourceStores.played.markPlayed('ep2.mp4');
-      await sourceStores.playlists
-          .put(const Playlist(id: 'p1', name: 'Serie', createdAtMs: 1, entries: []));
-      await sourceStores.vault.writeAll(const [
-        VaultEntry(
-            id: 'v1', privatePath: '/vault/v1.mp4', displayName: 'v1.mp4', originalRelativePath: '')
-      ]);
+        await source
+            .read(settingsProvider.notifier)
+            .set(
+              source.read(settingsProvider).copyWith(accentColor: 0xFF57C08A),
+            );
+        await sourceStores.resumeService.record(
+          'ep1.mp4',
+          const Duration(seconds: 45),
+          const Duration(minutes: 40),
+          2000,
+        );
+        await sourceStores.played.markPlayed('ep2.mp4');
+        await sourceStores.playlists.put(
+          const Playlist(id: 'p1', name: 'Serie', createdAtMs: 1, entries: []),
+        );
+        await sourceStores.vault.writeAll(const [
+          VaultEntry(
+            id: 'v1',
+            privatePath: '/vault/v1.mp4',
+            displayName: 'v1.mp4',
+            originalRelativePath: '',
+          ),
+        ]);
 
-      final json = await source.read(backupServiceProvider).exportJson();
+        final json = await source.read(backupServiceProvider).exportJson();
 
-      final plan = await target.read(backupServiceProvider).plan(json);
-      expect(plan.hasChanges, isTrue);
-      await target.read(backupServiceProvider).apply(plan);
+        final plan = await target.read(backupServiceProvider).plan(json);
+        expect(plan.hasChanges, isTrue);
+        await target.read(backupServiceProvider).apply(plan);
 
-      expect(target.read(settingsProvider).accentColor, 0xFF57C08A);
-      expect(target.read(resumeServiceProvider).positionFor('ep1.mp4'),
-          const Duration(seconds: 45));
-      expect(target.read(playedStoreProvider).isPlayed('ep2.mp4'), isTrue);
-      expect(target.read(playlistStoreProvider).all().single.id, 'p1');
-      expect(target.read(vaultStoreProvider).readAll().single.id, 'v1');
+        expect(target.read(settingsProvider).accentColor, 0xFF57C08A);
+        expect(
+          target.read(resumeServiceProvider).positionFor('ep1.mp4'),
+          const Duration(seconds: 45),
+        );
+        expect(target.read(playedStoreProvider).isPlayed('ep2.mp4'), isTrue);
+        expect(target.read(playlistStoreProvider).all().single.id, 'p1');
+        expect(target.read(vaultStoreProvider).readAll().single.id, 'v1');
 
-      // Restoring the exact same backup again changes nothing further.
-      final secondPlan = await target.read(backupServiceProvider).plan(json);
-      expect(secondPlan.playedToAdd, isEmpty);
-      expect(secondPlan.playlistsToAdd, isEmpty);
-      expect(secondPlan.vaultToAdd, isEmpty);
-      expect(secondPlan.resumeToWrite, isEmpty);
-    });
+        // Restoring the exact same backup again changes nothing further.
+        final secondPlan = await target.read(backupServiceProvider).plan(json);
+        expect(secondPlan.playedToAdd, isEmpty);
+        expect(secondPlan.playlistsToAdd, isEmpty);
+        expect(secondPlan.vaultToAdd, isEmpty);
+        expect(secondPlan.resumeToWrite, isEmpty);
+      },
+    );
 
-    test('reproduces bookmarks and trackPrefs exactly, and applying twice is idempotent',
-        () async {
-      final (source, sourceStores) = await _container();
-      addTearDown(source.dispose);
-      final (target, targetStores) = await _container();
-      addTearDown(target.dispose);
+    test(
+      'reproduces bookmarks and trackPrefs exactly, and applying twice is idempotent',
+      () async {
+        final (source, sourceStores) = await _container();
+        addTearDown(source.dispose);
+        final (target, targetStores) = await _container();
+        addTearDown(target.dispose);
 
-      await sourceStores.trackPrefs.put(
-          'ep1.mp4', const VideoTrackPrefs(subtitleDelayMs: 250, audioDelayMs: -10));
-      await sourceStores.bookmarks.put('ep1.mp4', const [
-        Bookmark(positionMs: 500, name: 'intro', createdAtMs: 1),
-        Bookmark(positionMs: 9000, name: '', createdAtMs: 2),
-      ]);
+        await sourceStores.trackPrefs.put(
+          'ep1.mp4',
+          const VideoTrackPrefs(subtitleDelayMs: 250, audioDelayMs: -10),
+        );
+        await sourceStores.bookmarks.put('ep1.mp4', const [
+          Bookmark(positionMs: 500, name: 'intro', createdAtMs: 1),
+          Bookmark(positionMs: 9000, name: '', createdAtMs: 2),
+        ]);
 
-      final json = await source.read(backupServiceProvider).exportJson();
+        final json = await source.read(backupServiceProvider).exportJson();
 
-      final plan = await target.read(backupServiceProvider).plan(json);
-      expect(plan.trackPrefsCounts.added, 1);
-      expect(plan.bookmarksCounts.added, 2);
-      await target.read(backupServiceProvider).apply(plan);
+        final plan = await target.read(backupServiceProvider).plan(json);
+        expect(plan.trackPrefsCounts.added, 1);
+        expect(plan.bookmarksCounts.added, 2);
+        await target.read(backupServiceProvider).apply(plan);
 
-      expect(targetStores.trackPrefs.forKey('ep1.mp4')!.subtitleDelayMs, 250);
-      expect(targetStores.trackPrefs.forKey('ep1.mp4')!.audioDelayMs, -10);
-      expect(targetStores.bookmarks.forVideo('ep1.mp4').map((b) => b.name),
-          ['intro', '']);
+        expect(targetStores.trackPrefs.forKey('ep1.mp4')!.subtitleDelayMs, 250);
+        expect(targetStores.trackPrefs.forKey('ep1.mp4')!.audioDelayMs, -10);
+        expect(targetStores.bookmarks.forVideo('ep1.mp4').map((b) => b.name), [
+          'intro',
+          '',
+        ]);
 
-      // Applying the exact same export again changes nothing further.
-      final secondPlan = await target.read(backupServiceProvider).plan(json);
-      expect(secondPlan.trackPrefsToWrite, isEmpty);
-      expect(secondPlan.bookmarksToWrite, isEmpty);
-      expect(secondPlan.trackPrefsCounts.unchanged, 1);
-      expect(secondPlan.bookmarksCounts.unchanged, 2);
-      await target.read(backupServiceProvider).apply(secondPlan);
+        // Applying the exact same export again changes nothing further.
+        final secondPlan = await target.read(backupServiceProvider).plan(json);
+        expect(secondPlan.trackPrefsToWrite, isEmpty);
+        expect(secondPlan.bookmarksToWrite, isEmpty);
+        expect(secondPlan.trackPrefsCounts.unchanged, 1);
+        expect(secondPlan.bookmarksCounts.unchanged, 2);
+        await target.read(backupServiceProvider).apply(secondPlan);
 
-      expect(targetStores.trackPrefs.forKey('ep1.mp4')!.subtitleDelayMs, 250);
-      expect(targetStores.bookmarks.forVideo('ep1.mp4').map((b) => b.name),
-          ['intro', '']);
-    });
+        expect(targetStores.trackPrefs.forKey('ep1.mp4')!.subtitleDelayMs, 250);
+        expect(targetStores.bookmarks.forVideo('ep1.mp4').map((b) => b.name), [
+          'intro',
+          '',
+        ]);
+      },
+    );
 
     test('a restore never removes anything already on the target', () async {
       final (target, targetStores) = await _container();
       addTearDown(target.dispose);
       await targetStores.played.markPlayed('local-only.mp4');
-      await targetStores.playlists
-          .put(const Playlist(id: 'local', name: 'Local', createdAtMs: 1, entries: []));
+      await targetStores.playlists.put(
+        const Playlist(id: 'local', name: 'Local', createdAtMs: 1, entries: []),
+      );
 
       final (source, _) = await _container();
       addTearDown(source.dispose);
-      await source.read(settingsProvider.notifier).set(
-          source.read(settingsProvider).copyWith(accentColor: 0xFFE86B6B));
+      await source
+          .read(settingsProvider.notifier)
+          .set(source.read(settingsProvider).copyWith(accentColor: 0xFFE86B6B));
       final json = await source.read(backupServiceProvider).exportJson();
 
       final plan = await target.read(backupServiceProvider).plan(json);
       await target.read(backupServiceProvider).apply(plan);
 
-      expect(target.read(playedStoreProvider).isPlayed('local-only.mp4'), isTrue);
       expect(
-          target.read(playlistStoreProvider).all().map((p) => p.id), contains('local'));
+        target.read(playedStoreProvider).isPlayed('local-only.mp4'),
+        isTrue,
+      );
+      expect(
+        target.read(playlistStoreProvider).all().map((p) => p.id),
+        contains('local'),
+      );
     });
   });
 
@@ -221,7 +341,9 @@ void main() {
         vault: [],
       );
 
-      final plan = await target.read(backupServiceProvider).plan(handMade.toJson());
+      final plan = await target
+          .read(backupServiceProvider)
+          .plan(handMade.toJson());
       expect(plan.trackPrefsCounts.added, 1);
       expect(plan.bookmarksCounts.added, 1);
       await target.read(backupServiceProvider).apply(plan);
@@ -230,22 +352,26 @@ void main() {
       expect(targetStores.bookmarks.forVideo('ep1.mp4').single.name, 'intro');
 
       // Idempotent: planning the same file again sees no new work.
-      final secondPlan = await target.read(backupServiceProvider).plan(handMade.toJson());
+      final secondPlan = await target
+          .read(backupServiceProvider)
+          .plan(handMade.toJson());
       expect(secondPlan.trackPrefsToWrite, isEmpty);
       expect(secondPlan.bookmarksToWrite, isEmpty);
     });
   });
 
   group('plan errors', () {
-    test('a newer-format backup throws BackupTooNewException, not a raw parse error',
-        () async {
-      final (target, _) = await _container();
-      addTearDown(target.dispose);
-      final future = target
-          .read(backupServiceProvider)
-          .plan('{"kivo": ${kBackupFormatVersion + 1}}');
-      await expectLater(future, throwsA(isA<BackupTooNewException>()));
-    });
+    test(
+      'a newer-format backup throws BackupTooNewException, not a raw parse error',
+      () async {
+        final (target, _) = await _container();
+        addTearDown(target.dispose);
+        final future = target
+            .read(backupServiceProvider)
+            .plan('{"kivo": ${kBackupFormatVersion + 1}}');
+        await expectLater(future, throwsA(isA<BackupTooNewException>()));
+      },
+    );
 
     test('garbage input throws BackupFormatException', () async {
       final (target, _) = await _container();

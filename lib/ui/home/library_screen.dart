@@ -119,9 +119,27 @@ class LibraryScreenState extends ConsumerState<LibraryScreen> {
     });
   }
 
-  void _openPath(String path) {
+  void _openPath(String path, {String? originalUri, String? displayName}) {
     if (!mounted) return;
-    ref.read(currentVideoProvider.notifier).openPath(path);
+    final known = ref
+        .read(libraryIndexProvider)
+        .valueOrNull
+        ?.where(
+          (v) =>
+              v.uri == originalUri ||
+              (v.filePath.isNotEmpty && v.filePath == path),
+        )
+        .toList();
+    final notifier = ref.read(currentVideoProvider.notifier);
+    if (known != null && known.length == 1) {
+      notifier.openFromList(known.single, [known.single]);
+    } else {
+      notifier.openPath(
+        path,
+        originalUri: originalUri,
+        displayName: displayName,
+      );
+    }
     _push();
   }
 
@@ -141,8 +159,15 @@ class LibraryScreenState extends ConsumerState<LibraryScreen> {
     // type, or none at all on a vendor's Android build. Let the playback
     // engine inspect the selected file instead of hiding it in the picker.
     final result = await FilePicker.platform.pickFiles(type: FileType.any);
-    final path = result?.files.single.path;
-    if (path != null) _openPath(path);
+    final picked = result?.files.single;
+    final path = picked?.path;
+    if (path != null) {
+      _openPath(
+        path,
+        originalUri: picked!.identifier,
+        displayName: picked.name,
+      );
+    }
   }
 
   void toggleSearch() =>
@@ -204,14 +229,19 @@ class LibraryScreenState extends ConsumerState<LibraryScreen> {
     final index = ref.watch(libraryIndexProvider).valueOrNull;
     if (index == null) return const [];
     final sort = librarySortFor(ref.watch(settingsProvider).librarySort);
-    final unwatchedOnly = ref.watch(libraryUnwatchedOnlyProvider);
+    final watchFilter = ref.watch(libraryWatchFilterProvider);
     final played = ref.watch(playedKeysProvider);
     final searching = ref.watch(librarySearchActiveProvider);
     return applyLibraryFilters(
       index,
       query: searching ? ref.watch(librarySearchQueryProvider) : '',
       sort: sort,
-      unwatchedOnly: unwatchedOnly,
+      watchFilter: watchFilter,
+      inProgressKeys: ref
+          .watch(continueWatchingProvider)
+          .map((e) => e.video.key)
+          .toSet(),
+      completedKeys: ref.read(resumeServiceProvider).completedKeys,
       playedKeys: played,
     );
   }
@@ -428,14 +458,7 @@ class LibraryScreenState extends ConsumerState<LibraryScreen> {
                 // keeps a chip tap and a back press on one single path.
                 ref.read(librarySubTabProvider.notifier).state = i;
               },
-              showUnwatchedToggle: tab == 0,
-              unwatchedOnly: ref.watch(libraryUnwatchedOnlyProvider),
-              onToggleUnwatched: () {
-                final notifier = ref.read(
-                  libraryUnwatchedOnlyProvider.notifier,
-                );
-                notifier.state = !notifier.state;
-              },
+              showWatchFilter: tab == 0,
             ),
             Expanded(
               // The PageView provides the horizontal slide between tabs — no
@@ -469,29 +492,25 @@ class LibraryScreenState extends ConsumerState<LibraryScreen> {
   Widget _searchResults(List<VideoItem> videos) {
     final query = ref.watch(librarySearchQueryProvider);
     final sort = librarySortFor(ref.watch(settingsProvider).librarySort);
-    final unwatchedOnly = ref.watch(libraryUnwatchedOnlyProvider);
+    final watchFilter = ref.watch(libraryWatchFilterProvider);
     final played = ref.watch(playedKeysProvider);
     final filtered = applyLibraryFilters(
       videos,
       query: query,
       sort: sort,
-      unwatchedOnly: unwatchedOnly,
+      watchFilter: watchFilter,
+      inProgressKeys: ref
+          .watch(continueWatchingProvider)
+          .map((e) => e.video.key)
+          .toSet(),
+      completedKeys: ref.read(resumeServiceProvider).completedKeys,
       playedKeys: played,
     );
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-          child: Row(
-            children: [
-              _UnwatchedChip(
-                active: unwatchedOnly,
-                onTap: () =>
-                    ref.read(libraryUnwatchedOnlyProvider.notifier).state =
-                        !unwatchedOnly,
-              ),
-            ],
-          ),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(12, 8, 12, 4),
+          child: Row(children: [_WatchFilterButton()]),
         ),
         Expanded(
           child: VideoDensityFeed(
@@ -502,12 +521,18 @@ class LibraryScreenState extends ConsumerState<LibraryScreen> {
             // An empty query hasn't failed to match anything — it just hasn't
             // been typed yet, so it keeps the (equally empty) feed.
             emptyState: query.trim().isEmpty
-                ? null
+                ? _videosEmptyState(hiddenByFilter: videos.isNotEmpty)
                 : LibraryEmptyState(
                     icon: Icons.search_off,
                     title: context.l10n.libraryNoSearchResults(query),
                     primaryLabel: context.l10n.librarySearchClearAction,
                     onPrimary: _closeSearch,
+                    secondaryLabel: watchFilter == LibraryWatchFilter.all
+                        ? null
+                        : context.l10n.libraryEmptyRemoveFilterAction,
+                    onSecondary: () =>
+                        ref.read(libraryWatchFilterProvider.notifier).state =
+                            LibraryWatchFilter.all,
                   ),
           ),
         ),
@@ -517,19 +542,24 @@ class LibraryScreenState extends ConsumerState<LibraryScreen> {
 
   Widget _videosTab(List<VideoItem> videos) {
     final sort = librarySortFor(ref.watch(settingsProvider).librarySort);
-    final unwatchedOnly = ref.watch(libraryUnwatchedOnlyProvider);
+    final watchFilter = ref.watch(libraryWatchFilterProvider);
     final played = ref.watch(playedKeysProvider);
     final filtered = applyLibraryFilters(
       videos,
       sort: sort,
-      unwatchedOnly: unwatchedOnly,
+      watchFilter: watchFilter,
+      inProgressKeys: ref
+          .watch(continueWatchingProvider)
+          .map((e) => e.video.key)
+          .toSet(),
+      completedKeys: ref.read(resumeServiceProvider).completedKeys,
       playedKeys: played,
     );
     return VideoDensityFeed(
       videos: filtered,
       onOpen: (v, all, origin) => _open(v, all, origin),
       groupByDate: sort == LibrarySort.recent,
-      showContinueRow: true,
+      showContinueRow: watchFilter == LibraryWatchFilter.all,
       // `videos` is the unfiltered index: non-empty here means the videos do
       // exist and it's the "No vistos" filter that emptied the list.
       emptyState: _videosEmptyState(hiddenByFilter: videos.isNotEmpty),
@@ -543,11 +573,15 @@ class LibraryScreenState extends ConsumerState<LibraryScreen> {
     if (hiddenByFilter) {
       return LibraryEmptyState(
         icon: Icons.visibility_off_outlined,
-        title: context.l10n.libraryEmptyAllWatchedTitle,
-        subtitle: context.l10n.libraryEmptyAllWatchedSubtitle,
+        title:
+            ref.watch(libraryWatchFilterProvider) ==
+                LibraryWatchFilter.unwatched
+            ? context.l10n.libraryEmptyAllWatchedTitle
+            : context.l10n.libraryEmptyWatchFilterTitle,
+        subtitle: context.l10n.libraryEmptyWatchFilterSubtitle,
         primaryLabel: context.l10n.libraryEmptyRemoveFilterAction,
-        onPrimary: () =>
-            ref.read(libraryUnwatchedOnlyProvider.notifier).state = false,
+        onPrimary: () => ref.read(libraryWatchFilterProvider.notifier).state =
+            LibraryWatchFilter.all,
       );
     }
     // Android 14's partial grant: the scan is honest, it just can't see past
@@ -612,16 +646,12 @@ class LibraryScreenState extends ConsumerState<LibraryScreen> {
 class _FilterChips extends StatelessWidget {
   final int selected;
   final ValueChanged<int> onChanged;
-  final bool showUnwatchedToggle;
-  final bool unwatchedOnly;
-  final VoidCallback onToggleUnwatched;
+  final bool showWatchFilter;
 
   const _FilterChips({
     required this.selected,
     required this.onChanged,
-    required this.showUnwatchedToggle,
-    required this.unwatchedOnly,
-    required this.onToggleUnwatched,
+    required this.showWatchFilter,
   });
 
   @override
@@ -657,9 +687,9 @@ class _FilterChips extends StatelessWidget {
               ),
             ),
           ),
-          if (showUnwatchedToggle) ...[
+          if (showWatchFilter) ...[
             const SizedBox(width: 8),
-            _UnwatchedChip(active: unwatchedOnly, onTap: onToggleUnwatched),
+            const _WatchFilterButton(),
           ],
         ],
       ),
@@ -732,72 +762,77 @@ class _FilterChips extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// "No vistos" toggle — a filter, not a tab (visually distinct from _chip).
+// Watch-status filter — separate from the library navigation tabs.
 // ---------------------------------------------------------------------------
-class _UnwatchedChip extends ConsumerWidget {
-  final bool active;
-  final VoidCallback onTap;
-  const _UnwatchedChip({required this.active, required this.onTap});
+class _WatchFilterButton extends ConsumerWidget {
+  const _WatchFilterButton();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final active = ref.watch(libraryWatchFilterProvider);
+    final l10n = context.l10n;
+    final labels = {
+      LibraryWatchFilter.all: l10n.libraryWatchFilterAll,
+      LibraryWatchFilter.unwatched: l10n.libraryUnwatchedFilter,
+      LibraryWatchFilter.inProgress: l10n.libraryWatchFilterInProgress,
+      LibraryWatchFilter.completed: l10n.libraryWatchFilterCompleted,
+    };
     final cs = Theme.of(context).colorScheme;
-    final accent = Theme.of(context).colorScheme.primary;
-    final fg = active ? cs.onSurface : cs.onSurfaceVariant;
-    final showLabel = usesWideLibrary(context);
-    return Semantics(
-      label: context.l10n.libraryUnwatchedFilter,
-      button: true,
-      toggled: active,
-      onTap: onTap,
-      excludeSemantics: true,
-      child: KivoFocusable(
-        onActivate: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Tooltip(
-          message: context.l10n.libraryUnwatchedFilter,
-          excludeFromSemantics: true,
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              canRequestFocus: false,
-              onTap: onTap,
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
-                padding: EdgeInsets.symmetric(
-                  horizontal: showLabel ? 12 : 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: active
-                      ? accent.withValues(alpha: 0.12)
-                      : cs.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: active ? accent : Colors.transparent,
+    return PopupMenuButton<LibraryWatchFilter>(
+      tooltip: l10n.libraryWatchFilterTooltip(labels[active]!),
+      initialValue: active,
+      onSelected: (value) {
+        ref.read(librarySelectionProvider.notifier).clear();
+        ref.invalidate(continueWatchingProvider);
+        ref.invalidate(playedKeysProvider);
+        ref.read(libraryWatchFilterProvider.notifier).state = value;
+      },
+      itemBuilder: (_) => [
+        for (final value in LibraryWatchFilter.values)
+          CheckedPopupMenuItem(
+            value: value,
+            checked: value == active,
+            child: Text(labels[value]!),
+          ),
+      ],
+      child: Semantics(
+        button: true,
+        label: l10n.libraryWatchFilterTooltip(labels[active]!),
+        child: Container(
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            color: active == LibraryWatchFilter.all
+                ? cs.surfaceContainerHighest
+                : cs.primaryContainer,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                active == LibraryWatchFilter.all
+                    ? Icons.filter_list
+                    : Icons.filter_list_alt,
+                size: 22,
+                color: active == LibraryWatchFilter.all
+                    ? cs.onSurfaceVariant
+                    : cs.onPrimaryContainer,
+              ),
+              if (usesWideLibrary(context) &&
+                  MediaQuery.sizeOf(context).width >= 1000 &&
+                  MediaQuery.textScalerOf(context).scale(14) <= 18) ...[
+                const SizedBox(width: 6),
+                Text(
+                  labels[active]!,
+                  style: TextStyle(
+                    color: active == LibraryWatchFilter.all
+                        ? cs.onSurfaceVariant
+                        : cs.onPrimaryContainer,
                   ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.visibility_off_outlined, size: 22, color: fg),
-                    if (showLabel) ...[
-                      const SizedBox(width: 6),
-                      Text(
-                        context.l10n.libraryUnwatchedFilter,
-                        style: TextStyle(
-                          color: fg,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
+              ],
+            ],
           ),
         ),
       ),
