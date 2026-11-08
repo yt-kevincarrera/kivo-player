@@ -21,6 +21,8 @@ import 'player/resume/resume_service.dart';
 import 'player/tracks/subtitle_importer.dart';
 import 'player/tracks/track_prefs_store.dart';
 import 'player/library/played.dart';
+import 'player/library/video_history_migration.dart';
+import 'player/library/history_names.dart';
 import 'player/open/video_source.dart';
 import 'platform/all_files_access_provider.dart';
 import 'player/end_actions/pending_trash.dart';
@@ -68,6 +70,8 @@ Future<void> main() async {
   final settingsBox = await Hive.openBox('settings');
   final resumeBox = await Hive.openBox('resume');
   final playedBox = await Hive.openBox('played');
+  final completedBox = await Hive.openBox('completed');
+  final historyNames = HiveHistoryNames(await Hive.openBox('historyNames'));
   final vaultBox = await Hive.openBox('vault');
   final vaultCredsBox = await Hive.openBox('vaultCreds');
   final errorsBox = await Hive.openBox('errors');
@@ -88,10 +92,26 @@ Future<void> main() async {
     androidSdk: await installer.androidSdk(),
   );
 
-  final settingsService = await SettingsService.load(HiveSettingsStore(settingsBox));
+  final settingsService = await SettingsService.load(
+    HiveSettingsStore(settingsBox),
+  );
   final resumeService = ResumeService(
     HiveResumeStore(resumeBox),
     minSeconds: settingsService.current.resumeMinSeconds,
+    completedStore: HivePlayedStore(completedBox),
+  );
+  final playedStore = HivePlayedStore(playedBox);
+  final bookmarkStore = HiveBookmarkStore(bookmarksBox);
+  final trackStore = HiveTrackPrefsStore(trackPrefsBox);
+  final vaultStore = HiveVaultStore(vaultBox);
+  final historyMigration = VideoHistoryMigration(
+    resume: resumeService,
+    played: playedStore,
+    bookmarks: bookmarkStore,
+    tracks: trackStore,
+    names: historyNames,
+    otherVideos: () =>
+        vaultStore.readAll().map((v) => (name: v.displayName, key: v.key)),
   );
   final engine = MediaKitEngine();
   // Nullable by contract (external storage unmounted or shared, and some OEM
@@ -101,41 +121,52 @@ Future<void> main() async {
   final externalDir = await getExternalStorageDirectory();
   final subsDir = Directory('${(externalDir ?? dir).path}/subs');
 
-  runApp(ProviderScope(
-    overrides: [
-      settingsServiceProvider.overrideWithValue(settingsService),
-      playbackEngineProvider.overrideWithValue(engine),
-      resumeServiceProvider.overrideWithValue(resumeService),
-      playedStoreProvider.overrideWithValue(HivePlayedStore(playedBox)),
-      playlistStoreProvider.overrideWithValue(HivePlaylistStore(playlistsBox)),
-      bookmarkStoreProvider.overrideWithValue(HiveBookmarkStore(bookmarksBox)),
-      pendingTrashStoreProvider
-          .overrideWithValue(HivePendingTrashStore(pendingTrashBox)),
-      frameExtractorProvider.overrideWithValue(AndroidFrameExtractor()),
-      mediaIndexerProvider.overrideWithValue(AndroidMediaIndexer(errorLog)),
-      mediaFileOpsProvider.overrideWithValue(AndroidMediaFileOps(errorLog)),
-      mediaPermissionImplProvider
-          .overrideWithValue(PermissionHandlerMediaPermission(errorLog)),
-      subtitleFinderProvider.overrideWithValue(AndroidSubtitleFinder()),
-      subtitleTranscoderProvider
-          .overrideWithValue(AndroidSubtitleTranscoder(errorLog)),
-      launcherBridgeProvider.overrideWithValue(AndroidLauncherBridge()),
-      castPlatformProvider.overrideWithValue(AndroidCastPlatform()),
-      mediaSessionProvider.overrideWithValue(AndroidMediaSessionBridge()),
-      pipControllerProvider.overrideWithValue(AndroidPipController()),
-      allFilesAccessProvider.overrideWithValue(AndroidAllFilesAccess()),
-      errorLogProvider.overrideWithValue(errorLog),
-      trackPrefsStoreProvider
-          .overrideWithValue(HiveTrackPrefsStore(trackPrefsBox)),
-      imageSaverProvider.overrideWithValue(AndroidImageSaver(errorLog)),
-      subtitleImporterProvider
-          .overrideWithValue(FileSubtitleImporter(subsDir, log: errorLog)),
-      appInstallerProvider.overrideWithValue(installer),
-      vaultOpsProvider.overrideWithValue(AndroidVaultOps(errorLog)),
-      vaultStoreProvider.overrideWithValue(HiveVaultStore(vaultBox)),
-      vaultCredentialStoreProvider.overrideWithValue(HiveVaultCredentialStore(vaultCredsBox)),
-      biometricAuthProvider.overrideWithValue(LocalAuthBiometric()),
-    ],
-    child: const KivoApp(),
-  ));
+  runApp(
+    ProviderScope(
+      overrides: [
+        settingsServiceProvider.overrideWithValue(settingsService),
+        playbackEngineProvider.overrideWithValue(engine),
+        resumeServiceProvider.overrideWithValue(resumeService),
+        playedStoreProvider.overrideWithValue(playedStore),
+        videoHistoryMigrationProvider.overrideWithValue(historyMigration),
+        historyNamesProvider.overrideWithValue(historyNames),
+        playlistStoreProvider.overrideWithValue(
+          HivePlaylistStore(playlistsBox),
+        ),
+        bookmarkStoreProvider.overrideWithValue(bookmarkStore),
+        pendingTrashStoreProvider.overrideWithValue(
+          HivePendingTrashStore(pendingTrashBox),
+        ),
+        frameExtractorProvider.overrideWithValue(AndroidFrameExtractor()),
+        mediaIndexerProvider.overrideWithValue(AndroidMediaIndexer(errorLog)),
+        mediaFileOpsProvider.overrideWithValue(AndroidMediaFileOps(errorLog)),
+        mediaPermissionImplProvider.overrideWithValue(
+          PermissionHandlerMediaPermission(errorLog),
+        ),
+        subtitleFinderProvider.overrideWithValue(AndroidSubtitleFinder()),
+        subtitleTranscoderProvider.overrideWithValue(
+          AndroidSubtitleTranscoder(errorLog),
+        ),
+        launcherBridgeProvider.overrideWithValue(AndroidLauncherBridge()),
+        castPlatformProvider.overrideWithValue(AndroidCastPlatform()),
+        mediaSessionProvider.overrideWithValue(AndroidMediaSessionBridge()),
+        pipControllerProvider.overrideWithValue(AndroidPipController()),
+        allFilesAccessProvider.overrideWithValue(AndroidAllFilesAccess()),
+        errorLogProvider.overrideWithValue(errorLog),
+        trackPrefsStoreProvider.overrideWithValue(trackStore),
+        imageSaverProvider.overrideWithValue(AndroidImageSaver(errorLog)),
+        subtitleImporterProvider.overrideWithValue(
+          FileSubtitleImporter(subsDir, log: errorLog),
+        ),
+        appInstallerProvider.overrideWithValue(installer),
+        vaultOpsProvider.overrideWithValue(AndroidVaultOps(errorLog)),
+        vaultStoreProvider.overrideWithValue(vaultStore),
+        vaultCredentialStoreProvider.overrideWithValue(
+          HiveVaultCredentialStore(vaultCredsBox),
+        ),
+        biometricAuthProvider.overrideWithValue(LocalAuthBiometric()),
+      ],
+      child: const KivoApp(),
+    ),
+  );
 }

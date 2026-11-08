@@ -43,6 +43,7 @@ class AndroidMediaIndexer implements MediaIndexer {
           width: (m['width'] as num?)?.toInt() ?? 0,
           height: (m['height'] as num?)?.toInt() ?? 0,
           path: (m['path'] as String?) ?? '',
+          filePath: (m['filePath'] as String?) ?? '',
         );
       }).toList();
       _items

@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import '../../player/library/history_names.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import '../../core/errors/kivo_failure.dart';
+import '../../core/errors/error_log_provider.dart';
 import '../../core/settings/settings_provider.dart';
 import '../../platform/device_controls_provider.dart';
 import '../../platform/volume_keys.dart';
@@ -275,6 +277,13 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     // Incognito: watching leaves no trace (no "played" mark, no resume).
     if (!ref.read(settingsProvider).incognito) {
       ref.read(playedStoreProvider).markPlayed(_resumeKey!);
+      unawaited(
+        rememberHistoryName(
+          ref.read(historyNamesProvider),
+          _resumeKey!,
+          session.displayName,
+        ),
+      );
     }
     // Seed the stale-frame cover BEFORE the Video widget is revealed: a fresh
     // open must cover until the new first frame (below); expanding the same
@@ -327,13 +336,14 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _armPip();
   }
 
-  void _onCompleted() => _handleEnd();
+  void _onCompleted() => _handleEnd(naturallyCompleted: true);
 
   /// A video ended — naturally, by the sleep timer's episode mode
   /// ([sleepStopped]), or on «Terminar ya» ([immediate]: no countdown, the
   /// user asked for it). Decides through [decideEnd]: advance, stop, trash,
   /// or a «Después» action.
-  void _handleEnd({bool sleepStopped = false, bool immediate = false}) {
+  void _handleEnd({bool sleepStopped = false, bool immediate = false,
+      bool naturallyCompleted = false}) {
     // Once minimized, the app-level AutoplayCoordinator owns completion. This
     // guard makes the two mutually exclusive even during the minimize→dispose
     // window (playerMinimized flips true a few frames before this listener is
@@ -354,6 +364,15 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     // same play-through must not run the ending twice. Cleared on play.
     if (!immediate && identical(_endHandledFor, session)) return;
     _endHandledFor = session;
+    if (naturallyCompleted && !ref.read(settingsProvider).incognito) {
+      // Some engines reset position immediately after EOF. Preserve the end
+      // for the final save instead of resurrecting an old partial position.
+      _lastPosition = _lastDuration;
+      final log = ref.read(errorLogProvider);
+      unawaited(_resume.finish(session.resumeKey).catchError((Object error) {
+        log.record(KivoFailure(KivoOp.unknown, error));
+      }));
+    }
     final d = decideEnd(ref.read, session: session, sleepStopped: sleepStopped);
     final next = d.next;
     ref.read(endTrashProvider.notifier).state = d.trash;

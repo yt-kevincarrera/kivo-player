@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/format.dart';
+import '../../core/media/video_identity.dart';
 import '../../core/settings/settings_provider.dart';
 import '../../platform/interfaces/media_indexer.dart';
 import '../resume/resume_service.dart';
@@ -14,15 +15,17 @@ import '../../core/diagnostics/open_trace.dart';
 /// An immutable snapshot of the currently-opened video and its folder queue.
 ///
 /// [playbackPath] is the path or content:// URI that media_kit opens.
-/// [displayName] is the stable human-readable file name used as the resume key.
+/// [displayName] is a label; history uses the video's location identity.
 class VideoSession {
   final String playbackPath; // file path or content:// uri opened by media_kit
-  final String displayName;  // file name — the stable resume key
-  final List<String> queue;  // folder playbackPaths, natural order
+  final String displayName; // human-readable file name
+  final List<String> queue; // folder playbackPaths, natural order
   final List<String> queueNames; // folder display names, parallel to queue
-  final List<String> queueIds; // MediaStore ids, parallel to queue — for thumbnails
+  final List<String>
+  queueIds; // MediaStore ids, parallel to queue — for thumbnails
   final int index;
-  final String? folder; // set only when opened from the library — enables external-subtitle discovery
+  final String?
+  folder; // set only when opened from the library — enables external-subtitle discovery
   /// The effective play order — indices into [queue], in the order they will
   /// play. Null means natural order (`0..queue.length-1`). Shuffle draws it
   /// once per session (see [CurrentVideoNotifier.open] and
@@ -38,6 +41,7 @@ class VideoSession {
   /// Durations in ms, parallel to [queue] — 0 or missing when unknown (the
   /// queue's time left is only shown when every later one is known).
   final List<int> queueDurationsMs;
+  final List<String> queueKeys;
   const VideoSession({
     required this.playbackPath,
     required this.displayName,
@@ -49,8 +53,11 @@ class VideoSession {
     this.order,
     this.orderEdited = false,
     this.queueDurationsMs = const [],
+    this.queueKeys = const [],
   });
-  String get resumeKey => displayName;
+  String get resumeKey => index >= 0 && index < queueKeys.length
+      ? queueKeys[index]
+      : videoIdentity(playbackPath, displayName);
 
   /// [order], or the natural order when there is none.
   List<int> get playOrder =>
@@ -69,12 +76,17 @@ class VideoSession {
         order: order,
         orderEdited: edited,
         queueDurationsMs: queueDurationsMs,
+        queueKeys: queueKeys,
       );
 }
 
 final resumeServiceProvider = Provider<ResumeService>((ref) {
   throw UnimplementedError('resumeServiceProvider must be overridden');
 });
+
+final resumeHistoryChangesProvider = StreamProvider<int>(
+  (ref) => ref.watch(resumeServiceProvider).changes,
+);
 
 final queueScannerProvider = Provider<FolderQueueScanner>(
   (ref) => FolderQueueScanner(IoFileSystemLister()),
@@ -116,18 +128,27 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
       return;
     }
     state = session.withOrder(
-      shuffledOrder(session.queue.length, session.index, ref.read(queueRandomProvider)),
+      shuffledOrder(
+        session.queue.length,
+        session.index,
+        ref.read(queueRandomProvider),
+      ),
       edited: false,
     );
   }
 
   /// File-picker open: single-item queue (the picker gives a cache copy, no folder).
-  void openPath(String path) {
+  void openPath(String path, {String? originalUri, String? displayName}) {
     _dropUndo();
     _trashed.clear();
-    final name = basenameOf(path);
+    final name = displayName ?? basenameOf(path);
     state = VideoSession(
-        playbackPath: path, displayName: name, queue: [path], index: 0);
+      playbackPath: path,
+      displayName: name,
+      queue: [path],
+      queueKeys: [videoIdentity(originalUri ?? path, name)],
+      index: 0,
+    );
   }
 
   /// Library open: the queue is exactly the list the user is looking at
@@ -152,16 +173,20 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
     // No order here — [open] is the single place that draws one from
     // settings.shuffle, so this and any other multi-item entry point (the
     // vault's direct open(), for one) can never disagree about shuffle.
-    open(VideoSession(
-      playbackPath: current.uri,
-      displayName: current.name,
-      queue: list.map((v) => v.uri).toList(),
-      queueNames: list.map((v) => v.name).toList(),
-      queueIds: list.map((v) => v.id).toList(),
-      queueDurationsMs: list.map((v) => v.durationMs).toList(),
-      index: idx,
-      folder: current.folder, // still the tapped video's folder — for subtitle discovery
-    ));
+    open(
+      VideoSession(
+        playbackPath: current.uri,
+        displayName: current.name,
+        queue: list.map((v) => v.uri).toList(),
+        queueNames: list.map((v) => v.name).toList(),
+        queueIds: list.map((v) => v.id).toList(),
+        queueDurationsMs: list.map((v) => v.durationMs).toList(),
+        queueKeys: list.map((v) => v.key).toList(),
+        index: idx,
+        folder: current
+            .folder, // still the tapped video's folder — for subtitle discovery
+      ),
+    );
   }
 
   /// Builds (without mutating) the session for any valid queue [index], or
@@ -170,7 +195,9 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
   VideoSession? sessionAt(int index) {
     final s = state;
     if (s == null || index < 0 || index >= s.queue.length) return null;
-    final name = index < s.queueNames.length ? s.queueNames[index] : basenameOf(s.queue[index]);
+    final name = index < s.queueNames.length
+        ? s.queueNames[index]
+        : basenameOf(s.queue[index]);
     return VideoSession(
       playbackPath: s.queue[index],
       displayName: name,
@@ -182,6 +209,7 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
       order: s.order,
       orderEdited: s.orderEdited,
       queueDurationsMs: s.queueDurationsMs,
+      queueKeys: s.queueKeys,
     );
   }
 
@@ -242,8 +270,11 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
   void remove(int item) {
     final s = state;
     if (s == null || item == s.index) return;
-    _edit(s, removeFromOrder(s.playOrder, s.index, item),
-        undoKind: QueueEditKind.removed);
+    _edit(
+      s,
+      removeFromOrder(s.playOrder, s.index, item),
+      undoKind: QueueEditKind.removed,
+    );
   }
 
   void _edit(VideoSession s, List<int> order, {QueueEditKind? undoKind}) {
@@ -291,9 +322,9 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
   /// Every queue index holding the same file as [item] (a playlist may list a
   /// video twice) — they all go, or come back, together.
   List<int> _sameFile(VideoSession s, int item) => [
-        for (var i = 0; i < s.queue.length; i++)
-          if (s.queue[i] == s.queue[item]) i,
-      ];
+    for (var i = 0; i < s.queue.length; i++)
+      if (s.queue[i] == s.queue[item]) i,
+  ];
 
   /// Takes a video that was just sent to the trash out of the play order, so
   /// repeat-list or the strip never offer a file that is gone.
@@ -324,9 +355,11 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
     _trashed.removeAll(same);
     final now = s.playOrder;
     if (same.every(now.contains)) return;
-    final before = previousOrder ?? List<int>.generate(s.queue.length, (i) => i);
-    final restored =
-        before.where((i) => same.contains(i) || now.contains(i)).toList();
+    final before =
+        previousOrder ?? List<int>.generate(s.queue.length, (i) => i);
+    final restored = before
+        .where((i) => same.contains(i) || now.contains(i))
+        .toList();
     final unchanged = restored.length == before.length;
     state = unchanged
         ? s.withOrder(previousOrder, edited: previousEdited)
@@ -355,7 +388,9 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
   Future<void> setShuffle(bool value) async {
     final settings = ref.read(settingsProvider);
     final before = state;
-    await ref.read(settingsProvider.notifier).set(settings.copyWith(shuffle: value));
+    await ref
+        .read(settingsProvider.notifier)
+        .set(settings.copyWith(shuffle: value));
     final s = state;
     if (s == null) return;
     if (before != null && before.orderEdited && before.index == s.index) {
@@ -383,4 +418,6 @@ class CurrentVideoNotifier extends Notifier<VideoSession?> {
 }
 
 final currentVideoProvider =
-    NotifierProvider<CurrentVideoNotifier, VideoSession?>(CurrentVideoNotifier.new);
+    NotifierProvider<CurrentVideoNotifier, VideoSession?>(
+      CurrentVideoNotifier.new,
+    );

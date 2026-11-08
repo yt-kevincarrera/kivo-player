@@ -3,11 +3,99 @@ import 'package:kivo_player/core/settings/kivo_settings.dart';
 import 'package:kivo_player/platform/interfaces/media_indexer.dart';
 import 'package:kivo_player/player/library/library_filter.dart';
 
-const _beta = VideoItem(id: '1', uri: 'content://1', name: 'Beta.mp4', folder: 'Movies', durationMs: 60000, sizeBytes: 500, dateAddedMs: 100);
-const _alpha = VideoItem(id: '2', uri: 'content://2', name: 'Alpha.mp4', folder: 'Trips', durationMs: 120000, sizeBytes: 200, dateAddedMs: 300);
-const _gamma = VideoItem(id: '3', uri: 'content://3', name: 'Gamma.mp4', folder: 'Movies', durationMs: 30000, sizeBytes: 900, dateAddedMs: 200);
+const _beta = VideoItem(
+  id: '1',
+  uri: 'content://1',
+  name: 'Beta.mp4',
+  folder: 'Movies',
+  durationMs: 60000,
+  sizeBytes: 500,
+  dateAddedMs: 100,
+);
+const _alpha = VideoItem(
+  id: '2',
+  uri: 'content://2',
+  name: 'Alpha.mp4',
+  folder: 'Trips',
+  durationMs: 120000,
+  sizeBytes: 200,
+  dateAddedMs: 300,
+);
+const _gamma = VideoItem(
+  id: '3',
+  uri: 'content://3',
+  name: 'Gamma.mp4',
+  folder: 'Movies',
+  durationMs: 30000,
+  sizeBytes: 900,
+  dateAddedMs: 200,
+);
 
 void main() {
+  test('restored progress and completion also exclude videos from unwatched', () {
+    final out = applyLibraryFilters([_alpha, _beta, _gamma],
+        watchFilter: LibraryWatchFilter.unwatched,
+        inProgressKeys: {_alpha.key}, completedKeys: {_beta.key});
+    expect(out.map((v) => v.name), ['Gamma.mp4']);
+  });
+  test('episode names use natural ordering in both directions', () {
+    VideoItem episode(String n) => VideoItem(
+      id: n,
+      uri: 'content://$n',
+      name: n,
+      folder: 'Series',
+      durationMs: 100000,
+      sizeBytes: 1,
+      dateAddedMs: 0,
+    );
+    final episodes = [
+      episode('Episode 10.mp4'),
+      episode('Episode 2.mp4'),
+      episode('Episode 1.mp4'),
+    ];
+    expect(
+      applyLibraryFilters(
+        episodes,
+        sort: LibrarySort.nameAsc,
+      ).map((v) => v.name),
+      ['Episode 1.mp4', 'Episode 2.mp4', 'Episode 10.mp4'],
+    );
+    expect(
+      applyLibraryFilters(
+        episodes,
+        sort: LibrarySort.nameDesc,
+      ).map((v) => v.name),
+      ['Episode 10.mp4', 'Episode 2.mp4', 'Episode 1.mp4'],
+    );
+  });
+
+  test(
+    'in-progress and completed filters do not mistake an open for completion',
+    () {
+      final items = [_alpha, _beta, _gamma];
+      final played = {_alpha.key, _beta.key, _gamma.key};
+      expect(
+        applyLibraryFilters(
+          items,
+          watchFilter: LibraryWatchFilter.inProgress,
+          playedKeys: played,
+          inProgressKeys: {_alpha.key},
+        ).map((v) => v.name),
+        ['Alpha.mp4'],
+      );
+      expect(
+        applyLibraryFilters(
+          items,
+          watchFilter: LibraryWatchFilter.completed,
+          playedKeys: played,
+          inProgressKeys: {_alpha.key},
+          completedKeys: {_alpha.key, _beta.key},
+        ).map((v) => v.name),
+        ['Beta.mp4'],
+      );
+    },
+  );
+
   final videos = [_beta, _alpha, _gamma];
 
   test('KivoSettings.librarySort defaults to recent and round-trips', () {
@@ -68,7 +156,11 @@ void main() {
   });
 
   test('applyLibraryFilters unwatchedOnly excludes played keys', () {
-    final out = applyLibraryFilters(videos, unwatchedOnly: true, playedKeys: {'Alpha.mp4'});
+    final out = applyLibraryFilters(
+      videos,
+      unwatchedOnly: true,
+      playedKeys: {_alpha.key},
+    );
     expect(out.map((v) => v.name).toSet(), {'Beta.mp4', 'Gamma.mp4'});
   });
 
@@ -77,7 +169,7 @@ void main() {
       videos,
       query: 'movies',
       unwatchedOnly: true,
-      playedKeys: {'Gamma.mp4'},
+      playedKeys: {_gamma.key},
       sort: LibrarySort.nameAsc,
     );
     expect(out.map((v) => v.name), ['Beta.mp4']);

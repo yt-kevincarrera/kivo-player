@@ -12,11 +12,7 @@ class SectionCounts {
   final int added;
   final int updated;
   final int unchanged;
-  const SectionCounts({
-    this.added = 0,
-    this.updated = 0,
-    this.unchanged = 0,
-  });
+  const SectionCounts({this.added = 0, this.updated = 0, this.unchanged = 0});
 
   int get total => added + updated + unchanged;
 
@@ -33,6 +29,7 @@ class SectionCounts {
 /// them) as well as the store's `all()`.
 class CurrentBackupData {
   final Set<String> played;
+  final Set<String> completed;
   final Map<String, List<Bookmark>> bookmarks;
   final List<Playlist> playlists;
   final Map<String, VideoTrackPrefs> trackPrefs;
@@ -41,6 +38,7 @@ class CurrentBackupData {
 
   const CurrentBackupData({
     required this.played,
+    this.completed = const {},
     required this.bookmarks,
     required this.playlists,
     required this.trackPrefs,
@@ -58,8 +56,10 @@ class RestorePlan {
 
   final SectionCounts playedCounts;
   final Set<String> playedToAdd;
+  final Set<String> completedToAdd;
 
   final SectionCounts bookmarksCounts;
+
   /// Keyed by video; only videos whose bookmark list actually gained
   /// something are present, each mapped to its full merged list.
   final Map<String, List<Bookmark>> bookmarksToWrite;
@@ -84,6 +84,7 @@ class RestorePlan {
     required this.backup,
     required this.playedCounts,
     required this.playedToAdd,
+    this.completedToAdd = const {},
     required this.bookmarksCounts,
     required this.bookmarksToWrite,
     required this.playlistsCounts,
@@ -101,6 +102,7 @@ class RestorePlan {
   /// out or skip the confirm step when a backup is restored twice in a row.
   bool get hasChanges =>
       playedToAdd.isNotEmpty ||
+      completedToAdd.isNotEmpty ||
       bookmarksToWrite.isNotEmpty ||
       playlistsToAdd.isNotEmpty ||
       trackPrefsToWrite.isNotEmpty ||
@@ -112,7 +114,9 @@ class RestorePlan {
 bool _trackPrefsEqual(VideoTrackPrefs a, VideoTrackPrefs b) =>
     a.subtitleDelayMs == b.subtitleDelayMs &&
     a.audioDelayMs == b.audioDelayMs &&
-    a.subtitlePath == b.subtitlePath;
+    a.subtitlePath == b.subtitlePath &&
+    a.decoder == b.decoder &&
+    a.subtitleEncoding == b.subtitleEncoding;
 
 /// Builds a [RestorePlan] from [backup] against [current]. Pure: no store,
 /// no Riverpod — every rule below is exactly the one "Merge, never delete"
@@ -214,22 +218,31 @@ RestorePlan buildRestorePlan({
   }
 
   return RestorePlan(
+    completedToAdd: backup.completed.difference(current.completed),
     backup: backup,
     playedCounts: SectionCounts(added: playedAdded, unchanged: playedUnchanged),
     playedToAdd: playedToAdd,
-    bookmarksCounts:
-        SectionCounts(added: bookmarksAdded, unchanged: bookmarksUnchanged),
+    bookmarksCounts: SectionCounts(
+      added: bookmarksAdded,
+      unchanged: bookmarksUnchanged,
+    ),
     bookmarksToWrite: bookmarksToWrite,
-    playlistsCounts:
-        SectionCounts(added: playlistsAdded, unchanged: playlistsUnchanged),
+    playlistsCounts: SectionCounts(
+      added: playlistsAdded,
+      unchanged: playlistsUnchanged,
+    ),
     playlistsToAdd: playlistsToAdd,
     trackPrefsCounts: SectionCounts(
-        added: trackPrefsAdded,
-        updated: trackPrefsUpdated,
-        unchanged: trackPrefsUnchanged),
+      added: trackPrefsAdded,
+      updated: trackPrefsUpdated,
+      unchanged: trackPrefsUnchanged,
+    ),
     trackPrefsToWrite: trackPrefsToWrite,
     resumeCounts: SectionCounts(
-        added: resumeAdded, updated: resumeUpdated, unchanged: resumeUnchanged),
+      added: resumeAdded,
+      updated: resumeUpdated,
+      unchanged: resumeUnchanged,
+    ),
     resumeToWrite: resumeToWrite,
     vaultCounts: SectionCounts(added: vaultAdded, unchanged: vaultUnchanged),
     vaultToAdd: vaultToAdd,
@@ -255,6 +268,7 @@ class RestoreSummary {
   /// distinguish the two in the sentence (both read as "positions changed").
   final int positionsChanged;
   final int watchedVideosAdded;
+  final int completedVideosAdded;
   final int hiddenVideosAdded;
 
   /// Track prefs (sync offsets, chosen subtitle) added or updated.
@@ -266,6 +280,7 @@ class RestoreSummary {
     this.bookmarksAdded = 0,
     this.positionsChanged = 0,
     this.watchedVideosAdded = 0,
+    this.completedVideosAdded = 0,
     this.hiddenVideosAdded = 0,
     this.trackSettingsChanged = 0,
     this.settingsWillReplace = false,
@@ -276,13 +291,13 @@ class RestoreSummary {
 /// [plan] carries, reshaped as plain data for a localized UI to phrase
 /// itself.
 RestoreSummary summarizeRestorePlan(RestorePlan plan) => RestoreSummary(
-      playlistsAdded: plan.playlistsCounts.added,
-      bookmarksAdded: plan.bookmarksCounts.added,
-      positionsChanged: plan.resumeCounts.added + plan.resumeCounts.updated,
-      watchedVideosAdded: plan.playedCounts.added,
-      hiddenVideosAdded: plan.vaultCounts.added,
-      trackSettingsChanged:
-          plan.trackPrefsCounts.added + plan.trackPrefsCounts.updated,
-      settingsWillReplace: plan.settingsWillReplace,
-    );
-
+  playlistsAdded: plan.playlistsCounts.added,
+  bookmarksAdded: plan.bookmarksCounts.added,
+  positionsChanged: plan.resumeCounts.added + plan.resumeCounts.updated,
+  watchedVideosAdded: plan.playedCounts.added,
+  completedVideosAdded: plan.completedToAdd.length,
+  hiddenVideosAdded: plan.vaultCounts.added,
+  trackSettingsChanged:
+      plan.trackPrefsCounts.added + plan.trackPrefsCounts.updated,
+  settingsWillReplace: plan.settingsWillReplace,
+);

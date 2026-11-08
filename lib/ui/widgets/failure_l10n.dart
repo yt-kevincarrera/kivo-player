@@ -25,5 +25,8 @@ String failureMessage(AppLocalizations l10n, KivoOp op) => switch (op) {
       KivoOp.cast => l10n.errorCast,
       KivoOp.updateCheck => l10n.errorUpdateCheck,
       KivoOp.updateInstall => l10n.errorUpdateInstall,
+      KivoOp.backupExport => l10n.errorBackupExport,
+      KivoOp.backupRead => l10n.errorBackupRead,
+      KivoOp.backupRestore => l10n.errorBackupRestore,
       KivoOp.unknown => l10n.errorUnknown,
     };

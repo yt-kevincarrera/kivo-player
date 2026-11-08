@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kivo_player/core/media/video_identity.dart';
 import 'package:kivo_player/core/settings/kivo_settings.dart';
 import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/tracks/apply_default_tracks.dart';
@@ -25,7 +26,7 @@ void main() {
   test('a remembered offset is applied on open', () async {
     final engine = FakePlaybackEngine();
     final store = InMemoryTrackPrefsStore();
-    await store.put('ep1.mkv', const VideoTrackPrefs(subtitleDelayMs: -750));
+    await store.put(videoIdentity('/v/ep1.mkv', 'ep1.mkv'), const VideoTrackPrefs(subtitleDelayMs: -750));
 
     applyDefaultTracks(
       engine: engine,
@@ -45,7 +46,7 @@ void main() {
   test('a remembered subtitle file is loaded before the offset', () async {
     final engine = FakePlaybackEngine();
     final store = InMemoryTrackPrefsStore();
-    await store.put('ep1.mkv',
+    await store.put(videoIdentity('/v/ep1.mkv', 'ep1.mkv'),
         const VideoTrackPrefs(subtitleDelayMs: 500, subtitlePath: '/subs/ep1.srt'));
 
     applyDefaultTracks(
@@ -91,7 +92,7 @@ void main() {
       () async {
     final engine = FakePlaybackEngine();
     final store = InMemoryTrackPrefsStore();
-    await store.put('ep1.mkv', const VideoTrackPrefs(subtitleDelayMs: 500));
+    await store.put(videoIdentity('/v/ep1.mkv', 'ep1.mkv'), const VideoTrackPrefs(subtitleDelayMs: 500));
 
     applyDefaultTracks(
       engine: engine,
@@ -147,7 +148,7 @@ void main() {
       () async {
     final engine = FakePlaybackEngine();
     final store = InMemoryTrackPrefsStore();
-    await store.put('ep1.mkv', const VideoTrackPrefs(audioDelayMs: -300));
+    await store.put(videoIdentity('/v/ep1.mkv', 'ep1.mkv'), const VideoTrackPrefs(audioDelayMs: -300));
 
     applyDefaultTracks(
       engine: engine,

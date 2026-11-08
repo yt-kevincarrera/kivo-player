@@ -54,7 +54,7 @@ void main() {
 
   test('opening a video loads its stored bookmarks, sorted by position', () {
     final store = InMemoryBookmarkStore();
-    store.put('a.mkv', const [
+    store.put(_session('a.mkv').resumeKey, const [
       Bookmark(positionMs: 5000, name: 'Late', createdAtMs: 1),
       Bookmark(positionMs: 1000, name: 'Early', createdAtMs: 2),
     ]);
@@ -106,7 +106,7 @@ void main() {
 
     await c.read(bookmarksProvider.notifier).add(4000);
 
-    expect(store.forVideo('a.mkv').single.positionMs, 4000);
+    expect(store.forVideo(_session('a.mkv').resumeKey).single.positionMs, 4000);
   });
 
   test('add returns the created bookmark', () async {
@@ -129,7 +129,7 @@ void main() {
     await c.read(bookmarksProvider.notifier).rename(0, 'Golazo');
 
     expect(c.read(bookmarksProvider).single.name, 'Golazo');
-    expect(store.forVideo('a.mkv').single.name, 'Golazo');
+    expect(store.forVideo(_session('a.mkv').resumeKey).single.name, 'Golazo');
   });
 
   test('rename with an out-of-range index is a no-op', () async {
@@ -154,7 +154,7 @@ void main() {
     await c.read(bookmarksProvider.notifier).removeAt(0);
 
     expect(c.read(bookmarksProvider).map((b) => b.positionMs), [2000]);
-    expect(store.forVideo('a.mkv').map((b) => b.positionMs), [2000]);
+    expect(store.forVideo(_session('a.mkv').resumeKey).map((b) => b.positionMs), [2000]);
   });
 
   test('removeAt with an out-of-range index is a no-op', () async {
@@ -185,8 +185,8 @@ void main() {
 
   test('switching video shows the new video bookmarks immediately', () {
     final store = InMemoryBookmarkStore();
-    store.put('a.mkv', const [Bookmark(positionMs: 1, name: 'A', createdAtMs: 0)]);
-    store.put('b.mkv', const [Bookmark(positionMs: 2, name: 'B', createdAtMs: 0)]);
+    store.put(_session('a.mkv').resumeKey, const [Bookmark(positionMs: 1, name: 'A', createdAtMs: 0)]);
+    store.put(_session('b.mkv').resumeKey, const [Bookmark(positionMs: 2, name: 'B', createdAtMs: 0)]);
     final c = _c(store);
     addTearDown(c.dispose);
     final videos = c.read(currentVideoProvider.notifier);
@@ -239,7 +239,7 @@ void main() {
     videos.open(_session('a.mkv'));
     await c.read(bookmarksProvider.notifier).add(1000);
     final removed = c.read(bookmarksProvider).single;
-    const capturedKey = 'a.mkv';
+    final capturedKey = _session('a.mkv').resumeKey;
     final removedOk =
         await c.read(bookmarksProvider.notifier).removeAt(0, key: capturedKey);
     expect(removedOk, isTrue);
@@ -261,8 +261,8 @@ void main() {
     // out from under them is no better, so nothing is written at all.
     expect(applied, isFalse);
     expect(c.read(bookmarksProvider), isEmpty); // B's list: untouched
-    expect(store.forVideo('a.mkv'), isEmpty); // A's list: not restored
-    expect(store.forVideo('b.mkv'), isEmpty);
+    expect(store.forVideo(_session('a.mkv').resumeKey), isEmpty); // A's list: not restored
+    expect(store.forVideo(_session('b.mkv').resumeKey), isEmpty);
   });
 
   test('rename with a stale key does not touch the new video list', () async {
@@ -272,7 +272,7 @@ void main() {
     final videos = c.read(currentVideoProvider.notifier);
 
     videos.open(_session('a.mkv'));
-    const capturedKey = 'a.mkv'; // captured when a rename dialog opened on A
+    final capturedKey = _session('a.mkv').resumeKey; // captured when a rename dialog opened on A
 
     // The video changes underneath the still-open dialog.
     videos.open(_session('b.mkv'));
@@ -284,8 +284,8 @@ void main() {
 
     expect(applied, isFalse);
     expect(c.read(bookmarksProvider).single.name, ''); // B's bookmark: untouched
-    expect(store.forVideo('b.mkv').single.name, '');
-    expect(store.forVideo('a.mkv'), isEmpty);
+    expect(store.forVideo(_session('b.mkv').resumeKey).single.name, '');
+    expect(store.forVideo(_session('a.mkv').resumeKey), isEmpty);
   });
 
   test('callers that omit key keep writing to whatever video is open now',

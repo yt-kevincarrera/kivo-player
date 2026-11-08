@@ -68,7 +68,7 @@ Future<ProviderContainer> _mount(
   addTearDown(t.view.resetDevicePixelRatio);
   final service = await SettingsService.load(InMemorySettingsStore());
   final resume = InMemoryResumeStore();
-  await resume.put(_videos.first.name, 840, 1);
+  await resume.put(_videos.first.key, 840, 1);
   final engine = FakePlaybackEngine();
   addTearDown(engine.dispose);
   final frames = <Uint8List>[];
@@ -266,7 +266,7 @@ void main() {
     for (final icon in [
       Icons.folder_outlined,
       Icons.queue_music_outlined,
-      Icons.visibility_off_outlined,
+      Icons.filter_list,
     ]) {
       final glyph = find.byIcon(icon);
       final target = find

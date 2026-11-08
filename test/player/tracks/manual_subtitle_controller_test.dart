@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kivo_player/core/media/video_identity.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
@@ -34,7 +35,7 @@ void main() {
     // The title is the picked file's name, not the app-owned copy's videoKey
     // name — that is what the track picker lists.
     expect(engine.externalSubtitles.single, ('/app/subs/ep1.mkv.srt', 'foo.srt'));
-    expect(store.forKey('ep1.mkv')!.subtitlePath, '/app/subs/ep1.mkv.srt');
+    expect(store.forKey(videoIdentity('/v/ep1.mkv', 'ep1.mkv'))!.subtitlePath, '/app/subs/ep1.mkv.srt');
   });
 
   // Otherwise the file plays while the "Mostrar subtítulos" switch reads off,
@@ -62,19 +63,19 @@ void main() {
 
     expect(await c.read(manualSubtitleProvider).load('/picked/foo.srt'), false);
     expect(engine.externalSubtitles, isEmpty);
-    expect(store.forKey('ep1.mkv'), isNull);
+    expect(store.forKey(videoIdentity('/v/ep1.mkv', 'ep1.mkv')), isNull);
   });
 
   test('an existing delay survives loading a new subtitle', () async {
     final store = InMemoryTrackPrefsStore();
-    await store.put('ep1.mkv', const VideoTrackPrefs(subtitleDelayMs: 400));
+    await store.put(videoIdentity('/v/ep1.mkv', 'ep1.mkv'), const VideoTrackPrefs(subtitleDelayMs: 400));
     final c = await _c(FakePlaybackEngine(), FakeSubtitleImporter(), store);
     addTearDown(c.dispose);
     c.read(currentVideoProvider.notifier).open(const VideoSession(
         playbackPath: '/v/ep1.mkv', displayName: 'ep1.mkv', queue: ['/v/ep1.mkv'], index: 0));
 
     await c.read(manualSubtitleProvider).load('/picked/foo.srt');
-    expect(store.forKey('ep1.mkv')!.subtitleDelayMs, 400);
+    expect(store.forKey(videoIdentity('/v/ep1.mkv', 'ep1.mkv'))!.subtitleDelayMs, 400);
   });
 
   test('loading with no video open is refused', () async {

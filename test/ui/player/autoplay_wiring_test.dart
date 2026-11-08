@@ -81,6 +81,40 @@ void main() {
     return c;
   }
 
+  testWidgets('a short foreground clip completes without waiting for a periodic save', (tester) async {
+    final engine = FakePlaybackEngine();
+    addTearDown(engine.dispose);
+    final c = await pumpPlayer(tester, engine: engine, autoplayNext: false);
+    engine.emitDuration(const Duration(seconds: 3));
+    engine.emitPosition(const Duration(seconds: 1));
+    engine.emitCompleted(true);
+    await tester.pump();
+    await tester.pump();
+    final resume = c.read(resumeServiceProvider);
+    expect(resume.completedKeys, {session.resumeKey});
+    expect(resume.positionFor(session.resumeKey), isNull);
+    await tester.pump(const Duration(seconds: 5));
+    expect(resume.completedKeys, {session.resumeKey});
+  });
+
+  testWidgets('incognito EOF does not complete or clear an existing position', (tester) async {
+    final engine = FakePlaybackEngine();
+    addTearDown(engine.dispose);
+    final c = await pumpPlayer(tester, engine: engine, autoplayNext: false);
+    final resume = c.read(resumeServiceProvider);
+    await resume.record(session.resumeKey, const Duration(seconds: 20),
+        const Duration(seconds: 100), 1);
+    final settings = c.read(settingsProvider);
+    await c.read(settingsProvider.notifier).set(settings.copyWith(incognito: true));
+    await tester.pump();
+    engine.emitDuration(const Duration(seconds: 100));
+    engine.emitCompleted(true);
+    await tester.pump();
+    expect(resume.completedKeys, isEmpty);
+    expect(resume.positionFor(session.resumeKey), const Duration(seconds: 20));
+    await tester.pump(const Duration(seconds: 5));
+  });
+
   testWidgets('foreground completion with a next video sets autoplayPendingProvider',
       (tester) async {
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);

@@ -13,12 +13,13 @@ class ContinueItem {
 final continueWatchingProvider = Provider<List<ContinueItem>>((ref) {
   final index = ref.watch(libraryIndexProvider).valueOrNull ?? const [];
   if (index.isEmpty) return const [];
-  final byName = {for (final v in index) v.name: v};
+  ref.watch(resumeHistoryChangesProvider);
+  final byKey = {for (final v in index) v.key: v};
   final entries = ref.read(resumeServiceProvider).entries()
     ..sort((a, b) => b.updatedAtMs.compareTo(a.updatedAtMs));
   final out = <ContinueItem>[];
   for (final e in entries) {
-    final v = byName[e.key];
+    final v = byKey[e.key];
     if (v == null || v.durationMs <= 0) continue;
     final frac = (e.seconds * 1000) / v.durationMs;
     if (frac >= 0.97) continue;

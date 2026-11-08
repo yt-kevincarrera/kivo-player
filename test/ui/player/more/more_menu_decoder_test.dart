@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kivo_player/core/media/video_identity.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
 import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/core/theme/kivo_theme.dart';
@@ -70,7 +71,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(engine.hwdecWrites.last, 'no');
-    expect(prefs.forKey('a.mkv')!.decoder, 'sw');
+    expect(prefs.forKey(videoIdentity('/v/a.mkv', 'a.mkv'))!.decoder, 'sw');
     expect(
         find.text(_l10n.playerMenuDecoderThisVideoOnly(
             _l10n.playerMenuDecoderActiveSoftware)),
@@ -83,7 +84,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text(_l10n.playerMenuDecoderAuto));
     await tester.pumpAndSettle();
-    expect(prefs.forKey('a.mkv'), isNull);
+    expect(prefs.forKey(videoIdentity('/v/a.mkv', 'a.mkv')), isNull);
     expect(find.text(_l10n.playerMenuDecoderActiveHardware), findsOneWidget);
   });
 }

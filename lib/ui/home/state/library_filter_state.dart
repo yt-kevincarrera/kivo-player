@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../player/library/library_filter.dart';
 
 /// True while the library's search field is expanded in the AppBar
 /// (replacing the "Kivo" title). Reset to false (and the query cleared)
@@ -9,6 +10,7 @@ final librarySearchActiveProvider = StateProvider<bool>((ref) => false);
 /// closing search does.
 final librarySearchQueryProvider = StateProvider<String>((ref) => '');
 
-/// "No vistos" toggle — shows only never-played videos when true. Not
-/// persisted (unlike `KivoSettings.librarySort`).
-final libraryUnwatchedOnlyProvider = StateProvider<bool>((ref) => false);
+/// Session-only watch-status filter. Sorting remains persisted in settings.
+final libraryWatchFilterProvider = StateProvider<LibraryWatchFilter>(
+  (ref) => LibraryWatchFilter.all,
+);

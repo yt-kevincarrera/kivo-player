@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kivo_player/core/media/video_identity.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kivo_player/core/settings/kivo_settings.dart';
 import 'package:kivo_player/player/bookmarks/bookmark_store.dart';
@@ -52,8 +53,8 @@ void main() {
   testWidgets('normally, watching marks the video and saves where you are',
       (tester) async {
     final (played, resume, _) = await _play(tester, incognito: false);
-    expect(played.keys(), contains('ep1.mkv'));
-    expect(resume.entries().map((e) => e.key), contains('ep1.mkv'));
+    expect(played.keys(), contains(videoIdentity('/v/ep1.mkv', 'ep1.mkv')));
+    expect(resume.entries().map((e) => e.key), contains(videoIdentity('/v/ep1.mkv', 'ep1.mkv')));
     await tester.pump(const Duration(seconds: 6));
   });
 

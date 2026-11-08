@@ -9,6 +9,7 @@ import 'package:kivo_player/player/end_actions/end_actions.dart';
 import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/player/library/played.dart';
 import 'package:kivo_player/player/open/video_source.dart';
+import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/ui/player/state/mini_player_state.dart';
 import '../../fakes/fakes.dart';
 
@@ -18,7 +19,8 @@ const _twoItem = VideoSession(
   queueIds: ['1', '2'], index: 0);
 
 Future<(ProviderContainer, FakePlaybackEngine)> _setup(WidgetTester t,
-    {bool minimized = true, bool autoplay = true, String? repeatMode}) async {
+    {bool minimized = true, bool autoplay = true, String? repeatMode,
+      bool incognito = false, ResumeService? resume}) async {
   TestWidgetsFlutterBinding.ensureInitialized();
   final engine = FakePlaybackEngine();
   addTearDown(engine.dispose);
@@ -26,6 +28,7 @@ Future<(ProviderContainer, FakePlaybackEngine)> _setup(WidgetTester t,
   await s.update(s.current.copyWith(
     autoplayNext: autoplay,
     repeatMode: repeatMode,
+    incognito: incognito,
     // The fake engine never decodes a frame, so after an advance plays the
     // next video the decoder watchdog would sit on a pending 3 s timer. These
     // tests are about the queue, not decoding (decoder_controller_test owns
@@ -35,7 +38,7 @@ Future<(ProviderContainer, FakePlaybackEngine)> _setup(WidgetTester t,
   final c = ProviderContainer(overrides: [
     settingsServiceProvider.overrideWithValue(s),
     playbackEngineProvider.overrideWithValue(engine),
-    resumeServiceProvider.overrideWithValue(FakeResumeService()),
+    resumeServiceProvider.overrideWithValue(resume ?? FakeResumeService()),
     subtitleFinderProvider.overrideWithValue(FakeSubtitleFinder()),
     frameExtractorProvider.overrideWithValue(FakeFrameExtractor()),
     playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
@@ -48,11 +51,34 @@ Future<(ProviderContainer, FakePlaybackEngine)> _setup(WidgetTester t,
 }
 
 Future<void> _pump(WidgetTester t) async {
-  await t.pump();
-  await t.pump();
+  // A standalone ProviderContainer schedules invalidations with a zero-time
+  // timer, outside the widget tree's vsync. Drain that work as well.
+  await t.pump(Duration.zero);
+  await t.pump(Duration.zero);
 }
 
 void main() {
+  testWidgets('minimized EOF completes a short clip before any periodic save', (t) async {
+    final resume = ResumeService(InMemoryResumeStore());
+    final (_, engine) = await _setup(t, autoplay: false, resume: resume);
+    engine.emitDuration(const Duration(seconds: 3));
+    engine.emitCompleted(true);
+    await _pump(t);
+    expect(resume.completedKeys, {_twoItem.resumeKey});
+    expect(resume.positionFor(_twoItem.resumeKey), isNull);
+  });
+
+  testWidgets('minimized incognito EOF leaves existing history alone', (t) async {
+    final resume = ResumeService(InMemoryResumeStore());
+    await resume.record(_twoItem.resumeKey, const Duration(seconds: 20),
+        const Duration(seconds: 100), 1);
+    final (_, engine) = await _setup(t, autoplay: false, incognito: true, resume: resume);
+    engine.emitCompleted(true);
+    await _pump(t);
+    expect(resume.completedKeys, isEmpty);
+    expect(resume.positionFor(_twoItem.resumeKey), const Duration(seconds: 20));
+  });
+
   testWidgets('minimized end action restarts at zero with autoplay off', (t) async {
     final (c, engine) = await _setup(t, autoplay: false);
     await c.read(endActionsProvider.notifier).setAfter(AfterEnd.restart);

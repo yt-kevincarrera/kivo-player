@@ -213,8 +213,8 @@ Future<void> showVideoOptions(
   VideoItem v,
 ) {
   final messenger = ScaffoldMessenger.of(context);
-  final isPlayed = ref.read(playedStoreProvider).isPlayed(v.name);
-  final hasResume = ref.read(resumeServiceProvider).positionFor(v.name) != null;
+  final isPlayed = ref.read(playedStoreProvider).isPlayed(v.key);
+  final hasResume = ref.read(resumeServiceProvider).positionFor(v.key) != null;
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,

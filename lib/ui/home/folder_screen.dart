@@ -5,6 +5,7 @@ import '../../platform/interfaces/media_indexer.dart';
 import '../../player/library/continue_watching.dart';
 import '../../player/library/media_index.dart';
 import '../../player/library/played.dart';
+import '../../player/library/library_filter.dart';
 import '../../player/open/video_source.dart';
 import '../player/controls/resume_prompt.dart';
 import '../player/player_route.dart';
@@ -45,9 +46,10 @@ class FolderScreen extends ConsumerWidget {
     // ⋮ menu) is reflected immediately. Fall back to the constructor
     // snapshot only while the index is still loading.
     final live = ref.watch(libraryIndexProvider).valueOrNull;
-    final vids = live == null
-        ? videos
-        : live.where((v) => v.folder == folder).toList();
+    final vids = applyLibraryFilters(
+      live == null ? videos : live.where((v) => v.folder == folder).toList(),
+      sort: LibrarySort.nameAsc,
+    );
     final selecting = ref.watch(librarySelectionProvider).isNotEmpty;
     return PopScope(
       canPop: !selecting,

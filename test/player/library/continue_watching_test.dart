@@ -29,13 +29,39 @@ VideoItem v(String n, int dur) => VideoItem(
     dateAddedMs: 0);
 
 void main() {
+  test('progress and EOF update the library without manually invalidating it', () async {
+    final settings = await SettingsService.load(InMemorySettingsStore());
+    final resume = ResumeService(InMemoryResumeStore());
+    final video = v('clip.mp4', 100000);
+    final c = ProviderContainer(overrides: [
+      settingsServiceProvider.overrideWithValue(settings),
+      mediaPermissionImplProvider.overrideWithValue(_Granted()),
+      mediaIndexerProvider.overrideWithValue(FakeMediaIndexer([video])),
+      resumeServiceProvider.overrideWithValue(resume),
+    ]);
+    addTearDown(c.dispose);
+    await c.read(mediaIndexProvider.future);
+    c.listen(continueWatchingProvider, (_, __) {});
+    expect(c.read(continueWatchingProvider), isEmpty);
+    await resume.record(video.key, const Duration(seconds: 30),
+        const Duration(seconds: 100), 1);
+    await Future<void>.delayed(Duration.zero);
+    await c.pump();
+    expect(c.read(continueWatchingProvider).single.seconds, 30);
+    await resume.finish(video.key);
+    await Future<void>.delayed(Duration.zero);
+    await c.pump();
+    expect(c.read(continueWatchingProvider), isEmpty);
+    expect(resume.completedKeys, {video.key});
+  });
+
   test('joins resume entries with index, drops finished, newest first',
       () async {
     final store = InMemoryResumeStore();
-    await store.put('a.mp4', 30, 100); // 30s of 100s = 30%
-    await store.put('b.mp4', 95, 200); // 95s of 100s = 95% (keep; <97%)
-    await store.put('c.mp4', 99, 300); // 99% finished → drop
-    await store.put('ghost.mp4', 10, 400); // not in index → drop
+    await store.put(v('a.mp4', 100000).key, 30, 100); // 30s of 100s = 30%
+    await store.put(v('b.mp4', 100000).key, 95, 200); // 95s of 100s = 95% (keep; <97%)
+    await store.put(v('c.mp4', 100000).key, 99, 300); // 99% finished → drop
+    await store.put(v('ghost.mp4', 100000).key, 10, 400); // not in index → drop
     // continueWatchingProvider now reads libraryIndexProvider, which watches
     // settingsProvider (for excludedFolders) — needs a real settings service.
     final settingsSvc = await SettingsService.load(InMemorySettingsStore());

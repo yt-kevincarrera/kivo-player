@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kivo_player/core/media/video_identity.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kivo_player/player/bookmarks/bookmark_store.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
@@ -21,7 +22,7 @@ void main() {
     final resumeStore = InMemoryResumeStore();
     // Resume is keyed by the stable basename (VideoSession.resumeKey), not the
     // full path — Android's file picker copies into a per-pick cache dir.
-    await resumeStore.put('ep1.mkv', 120, 0); // 2 min saved
+    await resumeStore.put(videoIdentity('/movies/ep1.mkv', 'ep1.mkv'), 120, 0); // 2 min saved
     final settingsService = await SettingsService.load(InMemorySettingsStore());
 
     final container = ProviderContainer(overrides: [

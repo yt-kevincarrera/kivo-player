@@ -3,7 +3,7 @@ import 'package:hive/hive.dart';
 
 import 'bookmark.dart';
 
-/// Bookmarks keyed by video file name — the same resumeKey/displayName key
+/// Bookmarks keyed by video location identity — the same resumeKey
 /// the resume and played stores use, so a bookmark stays attached to a video
 /// exactly as long as the app can still tell which file it is.
 abstract class BookmarkStore {

@@ -1,4 +1,7 @@
 import 'dart:io';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
+import '../../core/media/video_identity.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,6 +30,11 @@ class FileSubtitleImporter implements SubtitleImporter {
 
   @override
   Future<String?> importFor(String videoKey, String sourcePath) async {
+    // Location identities contain URI separators and can exceed filename
+    // limits. Legacy names retain their old on-disk layout during migration.
+    final fileKey = isVideoIdentity(videoKey)
+        ? sha256.convert(utf8.encode(videoKey)).toString()
+        : videoKey;
     File? tempFile;
     try {
       final source = File(sourcePath);
@@ -37,7 +45,9 @@ class FileSubtitleImporter implements SubtitleImporter {
 
       final dot = sourcePath.lastIndexOf('.');
       final ext = dot == -1 ? '.srt' : sourcePath.substring(dot);
-      final dest = File('${targetDir.path}${Platform.pathSeparator}$videoKey$ext');
+      final dest = File(
+        '${targetDir.path}${Platform.pathSeparator}$fileKey$ext',
+      );
 
       // Copy into a temp file in the same directory first. The copy is the
       // step most likely to fail (disk full, permission error, a concurrent
@@ -62,7 +72,7 @@ class FileSubtitleImporter implements SubtitleImporter {
         final name = existing.path.split(Platform.pathSeparator).last;
         final nameDot = name.lastIndexOf('.');
         final stem = nameDot == -1 ? name : name.substring(0, nameDot);
-        if (stem == videoKey) existing.deleteSync();
+        if (stem == fileKey) existing.deleteSync();
       }
       await tempFile.rename(dest.path);
       tempFile = null;

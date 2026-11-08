@@ -45,7 +45,7 @@ void main() {
   test('what is in progress reaches the shortcuts/widget, once per change',
       () async {
     final store = InMemoryResumeStore();
-    await store.put('a.mp4', 30, 100);
+    await store.put(_v('a.mp4').key, 30, 100);
     final bridge = FakeLauncherBridge();
     final settingsSvc = await SettingsService.load(InMemorySettingsStore());
     final c = ProviderContainer(overrides: [
@@ -75,7 +75,7 @@ void main() {
   // shortcuts and the widget on every start.
   test('nothing is sent while the library is still loading', () async {
     final store = InMemoryResumeStore();
-    await store.put('a.mp4', 30, 100);
+    await store.put(_v('a.mp4').key, 30, 100);
     final bridge = FakeLauncherBridge();
     final indexer = _SlowIndexer();
     final settingsSvc = await SettingsService.load(InMemorySettingsStore());

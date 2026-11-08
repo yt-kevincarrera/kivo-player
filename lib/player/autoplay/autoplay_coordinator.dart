@@ -1,4 +1,7 @@
 import 'dart:async';
+import '../../core/errors/error_log_provider.dart';
+import '../../core/errors/kivo_failure.dart';
+import '../library/history_names.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/settings/settings_provider.dart';
 import '../../platform/frame_extractor_provider.dart';
@@ -54,6 +57,13 @@ class AutoplayCoordinator {
     if (!_ref.read(playerMinimizedProvider)) return;
     final session = _ref.read(currentVideoProvider);
     if (session == null || identical(_endHandledFor, session)) return;
+    if (!sleepStopped && !_ref.read(settingsProvider).incognito) {
+      final log = _ref.read(errorLogProvider);
+      unawaited(_ref.read(resumeServiceProvider).finish(session.resumeKey)
+          .catchError((Object error) {
+        log.record(KivoFailure(KivoOp.unknown, error));
+      }));
+    }
     _endHandledFor = session;
     final d = decideEnd(
       _ref.read,
@@ -133,6 +143,14 @@ class AutoplayCoordinator {
       unawaited(_stage(trash, unlessPlaying: next.playbackPath));
       if (!settings.incognito) {
         _ref.read(playedStoreProvider).markPlayed(next.resumeKey);
+        _ref.invalidate(playedKeysProvider);
+        unawaited(
+          rememberHistoryName(
+            _ref.read(historyNamesProvider),
+            next.resumeKey,
+            next.displayName,
+          ),
+        );
         if (fromBeginning) {
           await _ref.read(resumeServiceProvider).clear(next.resumeKey);
         }

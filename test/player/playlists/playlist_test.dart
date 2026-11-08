@@ -68,8 +68,8 @@ void main() {
 
     test('is the first entry that has not been played', () {
       final entries = [avail('1', 'a.mkv'), avail('2', 'b.mkv'), avail('3', 'c.mkv')];
-      expect(playlistStartIndex(entries, {'a.mkv'}), 1);
-      expect(playlistStartIndex(entries, {'a.mkv', 'b.mkv'}), 2);
+      expect(playlistStartIndex(entries, {_v('1', 'a.mkv').key}), 1);
+      expect(playlistStartIndex(entries, {_v('1', 'a.mkv').key, _v('2', 'b.mkv').key}), 2);
     });
 
     test('is the top when nothing has been played', () {
@@ -80,7 +80,7 @@ void main() {
     // Otherwise finishing a series would leave it unplayable without scrolling.
     test('is the top again once everything has been played', () {
       final entries = [avail('1', 'a.mkv'), avail('2', 'b.mkv')];
-      expect(playlistStartIndex(entries, {'a.mkv', 'b.mkv'}), 0);
+      expect(playlistStartIndex(entries, {_v('1', 'a.mkv').key, _v('2', 'b.mkv').key}), 0);
     });
 
     test('skips entries that are not available', () {

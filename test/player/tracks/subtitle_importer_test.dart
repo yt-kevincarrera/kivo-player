@@ -2,11 +2,32 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kivo_player/core/errors/kivo_failure.dart';
 import 'package:kivo_player/player/tracks/subtitle_importer.dart';
+import 'package:kivo_player/core/media/video_identity.dart';
 
 void main() {
   late Directory tmp;
   setUp(() => tmp = Directory.systemTemp.createTempSync('kivo_subs'));
   tearDown(() => tmp.deleteSync(recursive: true));
+
+  test('location keys produce separate, valid subtitle filenames', () async {
+    final source = File('${tmp.path}/picked.srt')
+      ..writeAsStringSync('subtitle');
+    final dest = Directory('${tmp.path}/subs');
+    final importer = FileSubtitleImporter(dest);
+    final first = await importer.importFor(
+      videoIdentity('/A/01.mp4', '01.mp4'),
+      source.path,
+    );
+    final second = await importer.importFor(
+      videoIdentity('/B/01.mp4', '01.mp4'),
+      source.path,
+    );
+    expect(first, isNotNull);
+    expect(second, isNotNull);
+    expect(first, isNot(second));
+    expect(File(first!).readAsStringSync(), 'subtitle');
+    expect(dest.listSync(), hasLength(2));
+  });
 
   test('KV-502 exists for a failed subtitle load', () {
     expect(kivoErrorCatalog[KivoOp.subtitleLoad]!.code, 'KV-502');
@@ -41,7 +62,10 @@ void main() {
 
   test('a missing source degrades to null instead of throwing', () async {
     final importer = FileSubtitleImporter(Directory('${tmp.path}/subs'));
-    expect(await importer.importFor('ep1.mkv', '${tmp.path}/ghost.srt'), isNull);
+    expect(
+      await importer.importFor('ep1.mkv', '${tmp.path}/ghost.srt'),
+      isNull,
+    );
   });
 
   test('discard removes the copy', () async {
@@ -54,8 +78,7 @@ void main() {
     expect(File(path).existsSync(), false);
   });
 
-  test(
-      'importing for a video whose name is a dotted prefix of another does '
+  test('importing for a video whose name is a dotted prefix of another does '
       'not delete the other video\'s copy', () async {
     final dest = Directory('${tmp.path}/subs');
     final importer = FileSubtitleImporter(dest);
@@ -72,8 +95,7 @@ void main() {
     expect(dest.listSync().length, 2);
   });
 
-  test(
-      'a failed copy on re-import leaves the previous copy intact and '
+  test('a failed copy on re-import leaves the previous copy intact and '
       'returns null', () async {
     final dest = Directory('${tmp.path}/subs');
     final importer = FileSubtitleImporter(dest);

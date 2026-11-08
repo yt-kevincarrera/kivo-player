@@ -192,7 +192,7 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
         ? groupByDay(widget.videos, DateTime.now())
         : [DaySection(null, widget.videos)];
     final continueItems = {
-      for (final c in ref.watch(continueWatchingProvider)) c.video.name: c,
+      for (final c in ref.watch(continueWatchingProvider)) c.video.key: c,
     };
     final played = ref.watch(playedKeysProvider);
     final cs = Theme.of(context).colorScheme;
@@ -273,8 +273,8 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
                                 video: v,
                                 listRow: true,
                                 sizeLabel: fmtSize(v.sizeBytes),
-                                progress: continueItems[v.name]?.fraction,
-                                isNew: !played.contains(v.name),
+                                progress: continueItems[v.key]?.fraction,
+                                isNew: !played.contains(v.key),
                                 onOptions: () =>
                                     showVideoOptions(context, ref, v),
                                 selected: selected.contains(v.uri),
@@ -317,8 +317,8 @@ class _VideoDensityFeedState extends ConsumerState<VideoDensityFeed>
                               sizeLabel: compactRows
                                   ? fmtSize(v.sizeBytes)
                                   : null,
-                              progress: continueItems[v.name]?.fraction,
-                              isNew: !played.contains(v.name),
+                              progress: continueItems[v.key]?.fraction,
+                              isNew: !played.contains(v.key),
                               onOptions: () =>
                                   showVideoOptions(context, ref, v),
                               selected: selected.contains(v.uri),

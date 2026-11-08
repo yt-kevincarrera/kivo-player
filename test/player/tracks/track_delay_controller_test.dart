@@ -1,5 +1,6 @@
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kivo_player/core/media/video_identity.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/player/open/video_source.dart';
@@ -46,13 +47,13 @@ void main() {
 
       c.read(subtitleSyncProvider.notifier).nudge(4);
       async.elapse(const Duration(milliseconds: 200));
-      expect(store.forKey('ep1.mkv')!.subtitleDelayMs, 200);
+      expect(store.forKey(videoIdentity('/v/ep1.mkv', 'ep1.mkv'))!.subtitleDelayMs, 200);
     });
   });
 
   test('opening a video restores its stored offset', () async {
     final store = InMemoryTrackPrefsStore();
-    await store.put('ep2.mkv', const VideoTrackPrefs(subtitleDelayMs: -750));
+    await store.put(videoIdentity('/v/ep2.mkv', 'ep2.mkv'), const VideoTrackPrefs(subtitleDelayMs: -750));
     final c = _c(FakePlaybackEngine(), store);
     addTearDown(c.dispose);
     c.read(currentVideoProvider.notifier).open(_session('ep2.mkv'));
@@ -72,7 +73,7 @@ void main() {
       async.elapse(const Duration(milliseconds: 200));
 
       expect(c.read(subtitleSyncProvider), 0);
-      expect(store.forKey('ep1.mkv'), isNull);
+      expect(store.forKey(videoIdentity('/v/ep1.mkv', 'ep1.mkv')), isNull);
     });
   });
 
@@ -94,7 +95,7 @@ void main() {
     fakeAsync((async) {
       final engine = FakePlaybackEngine();
       final store = InMemoryTrackPrefsStore();
-      store.put('ep2.mkv', const VideoTrackPrefs(subtitleDelayMs: -300));
+      store.put(videoIdentity('/v/ep2.mkv', 'ep2.mkv'), const VideoTrackPrefs(subtitleDelayMs: -300));
       final c = _c(engine, store);
       addTearDown(c.dispose);
       // The HUD watches this provider, so keep a listener: the rebuild has to
@@ -108,8 +109,8 @@ void main() {
 
       async.elapse(const Duration(milliseconds: 200));
       expect(engine.subtitleDelays, isEmpty);
-      expect(store.forKey('ep1.mkv'), isNull);
-      expect(store.forKey('ep2.mkv')!.subtitleDelayMs, -300);
+      expect(store.forKey(videoIdentity('/v/ep1.mkv', 'ep1.mkv')), isNull);
+      expect(store.forKey(videoIdentity('/v/ep2.mkv', 'ep2.mkv'))!.subtitleDelayMs, -300);
     });
   });
 
@@ -155,14 +156,14 @@ void main() {
       c.read(audioSyncProvider.notifier).nudge(-2); // -100 ms
       async.elapse(const Duration(milliseconds: 200));
 
-      expect(store.forKey('ep1.mkv')!.subtitleDelayMs, 200);
-      expect(store.forKey('ep1.mkv')!.audioDelayMs, -100);
+      expect(store.forKey(videoIdentity('/v/ep1.mkv', 'ep1.mkv'))!.subtitleDelayMs, 200);
+      expect(store.forKey(videoIdentity('/v/ep1.mkv', 'ep1.mkv'))!.audioDelayMs, -100);
     });
   });
 
   test('opening a video restores its stored audio offset', () async {
     final store = InMemoryTrackPrefsStore();
-    await store.put('ep2.mkv', const VideoTrackPrefs(audioDelayMs: 350));
+    await store.put(videoIdentity('/v/ep2.mkv', 'ep2.mkv'), const VideoTrackPrefs(audioDelayMs: 350));
     final c = _c(FakePlaybackEngine(), store);
     addTearDown(c.dispose);
     c.read(currentVideoProvider.notifier).open(_session('ep2.mkv'));

@@ -50,6 +50,8 @@ The Android native build includes RealVideo 1–4 and Cook/SIPR audio support fo
 
 ### Library
 - 📁 **Auto-indexed library** with folders, search, sorting, thumbnails, and adjustable grid density.
+- 🔎 **Watch-status filters** — unwatched, in progress, and completed — plus natural episode ordering (2 before 10).
+- 🎯 **Separate history for same-named videos** in different locations, including resume positions, bookmarks, and track preferences.
 - 🕘 **Continue watching** row and "new" badges.
 - 🗂️ **File operations** — rename, delete, share, and details, with **multi-select** batch actions.
 

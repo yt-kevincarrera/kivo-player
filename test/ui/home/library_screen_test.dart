@@ -1,5 +1,9 @@
+import 'dart:io';
+import 'dart:ui' as ui;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
@@ -11,6 +15,7 @@ import 'package:kivo_player/platform/media_indexer_provider.dart';
 import 'package:kivo_player/platform/media_permission_provider.dart';
 import 'package:kivo_player/player/engine/playback_provider.dart';
 import 'package:kivo_player/player/library/played.dart';
+import 'package:kivo_player/player/library/continue_watching.dart';
 import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/playlists/playlist_controller.dart';
 import 'package:kivo_player/player/playlists/playlist_store.dart';
@@ -103,17 +108,120 @@ Future<ProviderContainer> _buildApp(WidgetTester tester) async {
       ),
     ],
   );
+  var theme = KivoTheme.light();
+  final fontPath = Platform.environment['KIVO_VISUAL_FONT'];
+  if (fontPath != null) {
+    await tester.runAsync(() async {
+      await (FontLoader(
+        'MaterialIcons',
+      )..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'))).load();
+      await (FontLoader('KivoVisual')
+            ..addFont(File(fontPath).readAsBytes().then(ByteData.sublistView)))
+          .load();
+    });
+    theme = theme.copyWith(
+      textTheme: theme.textTheme.apply(fontFamily: 'KivoVisual'),
+    );
+  }
   await pumpLocalized(
     tester,
     const LibraryScreen(),
-    theme: KivoTheme.light(),
+    theme: theme,
     container: container,
+    captureKey: Platform.environment['KIVO_SCREENSHOT_DIR'] == null
+        ? null
+        : const Key('watch-filter-capture'),
   );
   await tester.pumpAndSettle();
   return container;
 }
 
 void main() {
+  final binding = TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() {
+    for (final name in [
+      'receive_sharing_intent/messages',
+      'receive_sharing_intent/events-media',
+    ]) {
+      binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        MethodChannel(name),
+        (_) async => null,
+      );
+    }
+  });
+  tearDownAll(() {
+    for (final name in [
+      'receive_sharing_intent/messages',
+      'receive_sharing_intent/events-media',
+    ]) {
+      binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        MethodChannel(name),
+        null,
+      );
+    }
+  });
+  testWidgets(
+    'status menu filters real progress and completion and composes with search',
+    (tester) async {
+      final container = await _buildApp(tester);
+      addTearDown(container.dispose);
+      final resume = container.read(resumeServiceProvider);
+      await resume.record(
+        _videos[0].key,
+        const Duration(seconds: 30),
+        const Duration(seconds: 90),
+        1,
+      );
+      await resume.record(
+        _videos[1].key,
+        const Duration(seconds: 120),
+        const Duration(seconds: 120),
+        2,
+      );
+      container.invalidate(continueWatchingProvider);
+      container.invalidate(playedKeysProvider);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.filter_list));
+      await tester.pumpAndSettle();
+      final captureDirectory = Platform.environment['KIVO_SCREENSHOT_DIR'];
+      if (captureDirectory != null) {
+        final boundary = tester.renderObject<RenderRepaintBoundary>(
+          find.byKey(const Key('watch-filter-capture')),
+        );
+        await tester.runAsync(() async {
+          final image = await boundary.toImage(pixelRatio: 1);
+          final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+          final directory = Directory(captureDirectory)
+            ..createSync(recursive: true);
+          await File(
+            '${directory.path}/watch-status-menu.png',
+          ).writeAsBytes(bytes!.buffer.asUint8List());
+          image.dispose();
+        });
+      }
+      await tester.tap(find.text('En curso'));
+      await tester.pumpAndSettle();
+      expect(find.text('Inception.mp4'), findsOneWidget);
+      expect(find.text('Avatar.mp4'), findsNothing);
+      await tester.tap(find.byIcon(Icons.filter_list_alt));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Terminados'));
+      await tester.pumpAndSettle();
+      expect(find.text('Inception.mp4'), findsNothing);
+      expect(find.text('Avatar.mp4'), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.search));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'inception');
+      await tester.pumpAndSettle();
+      expect(find.text('Quitar filtro'), findsOneWidget);
+      await tester.tap(find.text('Quitar filtro'));
+      await tester.pumpAndSettle();
+      expect(find.text('Inception.mp4'), findsOneWidget);
+      expect(find.text('Avatar.mp4'), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('open file allows video containers with non-video MIME types', (
     tester,
   ) async {
@@ -275,12 +383,12 @@ void main() {
 
   testWidgets('"No vistos" chip is hidden on the Carpetas tab', (tester) async {
     await _buildApp(tester);
-    expect(find.byIcon(Icons.visibility_off_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.filter_list), findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.folder_outlined));
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(Icons.visibility_off_outlined), findsNothing);
+    expect(find.byIcon(Icons.filter_list), findsNothing);
   });
 
   testWidgets(

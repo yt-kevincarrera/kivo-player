@@ -3,6 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../platform/app_installer_provider.dart';
 import '../../player/bookmarks/bookmark_store.dart';
 import '../../player/library/played.dart';
+import '../../player/library/media_index.dart';
+import '../../player/library/continue_watching.dart';
+import '../../player/library/video_history_migration.dart';
+import '../../player/library/history_names.dart';
+import '../../player/library/media_permission.dart';
+import '../../platform/interfaces/media_permission.dart';
+import '../../player/resume/resume_store.dart';
 import '../../player/open/video_source.dart'; // resumeServiceProvider
 import '../../player/playlists/playlist_store.dart';
 import '../../player/tracks/track_prefs_store.dart';
@@ -25,6 +32,15 @@ class BackupService {
     final vaultEntries = _ref.read(vaultStoreProvider).readAll();
     final trackPrefs = _ref.read(trackPrefsStoreProvider).all();
     final bookmarks = _ref.read(bookmarkStoreProvider).all();
+    final completed = _ref.read(resumeServiceProvider).completedKeys;
+    final historyKeys = {
+      ...resumeEntries.map((e) => e.key),
+      ...playedKeys,
+      ...completed,
+      ...bookmarks.keys,
+      ...trackPrefs.keys,
+      ...vaultEntries.map((v) => v.key),
+    };
     final appVersion = await _ref.read(appInstallerProvider).appVersion();
 
     final backup = BackupFile(
@@ -36,6 +52,11 @@ class BackupService {
           e.key: ResumeBackupEntry(e.seconds, e.updatedAtMs),
       },
       played: playedKeys,
+      completed: completed,
+      historyNames: {
+        for (final e in _ref.read(historyNamesProvider).all().entries)
+          if (historyKeys.contains(e.key)) e.key: e.value,
+      },
       trackPrefs: trackPrefs,
       playlists: playlists,
       bookmarks: bookmarks,
@@ -49,10 +70,16 @@ class BackupService {
   /// parse exception — when [json] isn't a readable Kivo backup.
   Future<RestorePlan> plan(String json) async {
     final backup = BackupFile.fromJson(json);
+    try {
+      KivoSettings.fromMap(backup.settings);
+    } on TypeError {
+      throw const BackupFormatException('invalid settings');
+    }
     final resumeEntries = _ref.read(resumeServiceProvider).entries();
 
     final current = CurrentBackupData(
       played: _ref.read(playedStoreProvider).keys(),
+      completed: _ref.read(resumeServiceProvider).completedKeys,
       bookmarks: _ref.read(bookmarkStoreProvider).all(),
       playlists: _ref.read(playlistStoreProvider).all(),
       trackPrefs: _ref.read(trackPrefsStoreProvider).all(),
@@ -66,9 +93,19 @@ class BackupService {
     return buildRestorePlan(backup: backup, current: current);
   }
 
-  /// Writes [plan]'s merged data back through each store's own public
+  /// Writes [requested]'s merged data back through each store's own public
   /// methods — nothing here reaches into a box directly.
-  Future<void> apply(RestorePlan plan) async {
+  Future<void> apply(RestorePlan requested) async {
+    // Playback or an earlier failed restore may have changed the stores while
+    // the confirmation dialog was open. Re-merge before writing.
+    final plan = await this.plan(requested.backup.toJson());
+    final names = _ref.read(historyNamesProvider);
+    final currentNames = names.all();
+    for (final entry in plan.backup.historyNames.entries) {
+      if (!currentNames.containsKey(entry.key)) {
+        await names.put(entry.key, entry.value);
+      }
+    }
     if (plan.settingsWillReplace) {
       await _ref
           .read(settingsProvider.notifier)
@@ -80,24 +117,15 @@ class BackupService {
       await playedStore.markPlayed(key);
     }
 
-    // Restoring a saved position is not "the video just finished" — record()
-    // applies live thresholds (min-seconds, finished-tail) meant for that
-    // event. Passing Duration.zero as the total skips the finished check
-    // (see ResumeService.record), and updatedAtMs is passed through as
-    // nowMs so the restored entry keeps its original timestamp rather than
-    // being stamped with "now". The one live threshold that still applies
-    // is resumeMinSeconds — a short saved position can be dropped if the
-    // device's current setting is stricter than whatever it was when the
-    // backup was made; ResumeService has no raw "put" to bypass that, and
-    // this service doesn't own that file.
+    // A backup is an exact saved position, not a live playback event.
     final resumeService = _ref.read(resumeServiceProvider);
     for (final entry in plan.resumeToWrite.entries) {
-      await resumeService.record(
-        entry.key,
-        Duration(seconds: entry.value.seconds),
-        Duration.zero,
-        entry.value.updatedAtMs,
+      await resumeService.restore(
+        ResumeEntry(entry.key, entry.value.seconds, entry.value.updatedAtMs),
       );
+    }
+    for (final key in plan.completedToAdd) {
+      await resumeService.markCompleted(key);
     }
 
     final playlistStore = _ref.read(playlistStoreProvider);
@@ -120,8 +148,18 @@ class BackupService {
       final merged = [...vaultStore.readAll(), ...plan.vaultToAdd];
       await vaultStore.writeAll(merged);
     }
+    final index = _ref.exists(mediaIndexProvider)
+        ? _ref.read(mediaIndexProvider).valueOrNull
+        : null;
+    if (index != null &&
+        _ref.read(mediaPermissionProvider).valueOrNull == MediaAccess.granted) {
+      await _ref.read(videoHistoryMigrationProvider)?.migrate(index);
+    }
+    _ref.invalidate(playedKeysProvider);
+    _ref.invalidate(continueWatchingProvider);
   }
 }
 
-final backupServiceProvider =
-    Provider<BackupService>((ref) => BackupService(ref));
+final backupServiceProvider = Provider<BackupService>(
+  (ref) => BackupService(ref),
+);

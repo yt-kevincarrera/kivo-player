@@ -16,6 +16,7 @@ Future<void> pumpLocalized(
   Locale locale = const Locale('es'),
   ProviderContainer? container,
   ThemeData? theme,
+  Key? captureKey,
 }) async {
   final app = MaterialApp(
     locale: locale,
@@ -24,10 +25,13 @@ Future<void> pumpLocalized(
     theme: theme,
     home: child,
   );
+  final surface = captureKey == null
+      ? app
+      : RepaintBoundary(key: captureKey, child: app);
   await tester.pumpWidget(
     container == null
-        ? app
-        : UncontrolledProviderScope(container: container, child: app),
+        ? surface
+        : UncontrolledProviderScope(container: container, child: surface),
   );
 }
 

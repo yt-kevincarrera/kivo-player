@@ -10,10 +10,12 @@ import '../tracks/track_prefs_store.dart';
 import 'continue_watching.dart';
 import 'media_index.dart';
 import 'played.dart';
+import 'history_names.dart';
+import '../../core/media/video_identity.dart';
 
 /// Orchestrates a library video's file operations and their side effects:
 /// refreshing the media index, and keeping the resume, played, subtitle
-/// prefs, and playlist stores (keyed by file name) consistent — migrating
+/// prefs, and playlist stores consistent — migrating location identities
 /// them on rename, clearing them on delete. Playlists and bookmarks are the
 /// exception: delete deliberately does NOT touch them, so a video's entry
 /// (or its bookmarks) survives its own deletion — an SD card unplugged for
@@ -32,14 +34,15 @@ class VideoActionsController {
     if (status != FileOpStatus.ok) return status;
     // A trashed file is not gone: it can come back from the system trash for
     // 30 days, and it should come back WHOLE — position, played mark, the
-    // subtitle it had. Only a permanent delete clears the name-keyed stores.
-    if (!ops.movesToTrash) await _forgetVideo(v.name);
+    // subtitle it had. Only a permanent delete clears the history stores.
+    if (!ops.movesToTrash) await _forgetVideo(v.key);
     await _refreshLibrary();
     return status;
   }
 
   Future<void> _forgetVideo(String name) async {
     await _ref.read(resumeServiceProvider).clear(name);
+    await _ref.read(resumeServiceProvider).markUnfinished(name);
     await _ref.read(playedStoreProvider).remove(name);
     await _discardImportedSubtitle(name);
     await _ref.read(trackPrefsStoreProvider).remove(name);
@@ -68,16 +71,23 @@ class VideoActionsController {
       return outcome;
     }
     final newName = outcome.newName!;
-    await _ref.read(resumeServiceProvider).rename(v.name, newName);
-    await _ref.read(trackPrefsStoreProvider).rename(v.name, newName);
+    final newKey = v.filePath.isEmpty
+        ? videoIdentity(v.uri, newName, path: v.path)
+        : videoIdentity(
+            '${v.filePath.substring(0, v.filePath.lastIndexOf('/') + 1)}$newName',
+            newName,
+          );
+    await rememberHistoryName(_ref.read(historyNamesProvider), newKey, newName);
+    await _ref.read(resumeServiceProvider).rename(v.key, newKey);
+    await _ref.read(trackPrefsStoreProvider).rename(v.key, newKey);
     await _ref
         .read(playlistsProvider.notifier)
         .renameEntry(v.id, v.name, newName);
-    await _ref.read(bookmarkStoreProvider).rename(v.name, newName);
+    await _ref.read(bookmarkStoreProvider).rename(v.key, newKey);
     final played = _ref.read(playedStoreProvider);
-    if (played.isPlayed(v.name)) {
-      await played.markPlayed(newName);
-      await played.remove(v.name);
+    if (played.isPlayed(v.key)) {
+      await played.markPlayed(newKey);
+      await played.remove(v.key);
     }
     await _refreshLibrary();
     return outcome;
@@ -90,7 +100,7 @@ class VideoActionsController {
     // Same rule as delete(): trashed videos keep everything.
     if (!ops.movesToTrash) {
       for (final v in videos) {
-        await _forgetVideo(v.name);
+        await _forgetVideo(v.key);
       }
     }
     await _refreshLibrary();
@@ -107,9 +117,11 @@ class VideoActionsController {
   Future<void> setPlayed(VideoItem v, bool played) async {
     final store = _ref.read(playedStoreProvider);
     if (played) {
-      await store.markPlayed(v.name);
+      await rememberHistoryName(_ref.read(historyNamesProvider), v.key, v.name);
+      await store.markPlayed(v.key);
     } else {
-      await store.remove(v.name);
+      await store.remove(v.key);
+      await _ref.read(resumeServiceProvider).markUnfinished(v.key);
     }
     _ref.invalidate(playedKeysProvider);
   }
@@ -118,7 +130,7 @@ class VideoActionsController {
   /// and shouldn't linger in "Continuar viendo". Invalidates
   /// [continueWatchingProvider] so the carousel drops the card at once.
   Future<void> clearResume(VideoItem v) async {
-    await _ref.read(resumeServiceProvider).clear(v.name);
+    await _ref.read(resumeServiceProvider).clear(v.key);
     _ref.invalidate(continueWatchingProvider);
   }
 

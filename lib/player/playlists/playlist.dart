@@ -184,7 +184,7 @@ int playlistStartIndex(List<ResolvedEntry> resolved, Set<String> playedNames) {
   for (var i = 0; i < resolved.length; i++) {
     if (!resolved[i].available) continue;
     if (firstAvailable < 0) firstAvailable = i;
-    if (!playedNames.contains(resolved[i].video!.name)) return i;
+    if (!playedNames.contains(resolved[i].video!.key)) return i;
   }
   return firstAvailable;
 }

@@ -19,6 +19,8 @@ void main() {
     expect(added.map((e) => e.id), ['1', '2']);
     expect(repo.entries.length, 2);
     expect(ops.hiddenUris, ['content://1', 'content://2']);
+    expect(added.first.key, _v('1').key);
+    expect(store.readAll().first.key, _v('1').key);
   });
 
   test('hide only persists entries the native side actually returned (reconcile)', () async {

@@ -2798,25 +2798,25 @@ abstract class AppLocalizations {
   /// **'Permite instalar apps para continuar, luego pulsa Instalar.'**
   String get updateInstallNeedsPermissionSnackbar;
 
-  /// No description provided for @updateStatusPreparing.
+  /// Update download progress state shown in the update dialog.
   ///
   /// In es, this message translates to:
   /// **'Preparando actualización…'**
   String get updateStatusPreparing;
 
-  /// No description provided for @updatePreparingHint.
+  /// Update download progress state shown in the update dialog.
   ///
   /// In es, this message translates to:
   /// **'Puedes ocultar este aviso. La instalación estará disponible cuando termine.'**
   String get updatePreparingHint;
 
-  /// No description provided for @updatePartialDownloadHint.
+  /// Update download progress state shown in the update dialog.
   ///
   /// In es, this message translates to:
   /// **'Solo se descargan los cambios. Puedes salir de Kivo.'**
   String get updatePartialDownloadHint;
 
-  /// No description provided for @updateFullDownloadFallbackHint.
+  /// Update download progress state shown in the update dialog.
   ///
   /// In es, this message translates to:
   /// **'Esta actualización necesita la descarga completa. Puedes salir de Kivo.'**
@@ -2828,55 +2828,55 @@ abstract class AppLocalizations {
   /// **'En cola…'**
   String get updateStatusQueued;
 
-  /// No description provided for @updateStatusQueuedHot.
+  /// Update download progress state shown in the update dialog.
   ///
   /// In es, this message translates to:
   /// **'En cola · temperatura elevada'**
   String get updateStatusQueuedHot;
 
-  /// No description provided for @updateQueuedHotHint.
+  /// Update download progress state shown in the update dialog.
   ///
   /// In es, this message translates to:
   /// **'Deja enfriar el teléfono. Android puede retrasar la descarga mientras está caliente.'**
   String get updateQueuedHotHint;
 
-  /// No description provided for @updateQueuedHint.
+  /// Update download progress state shown in the update dialog.
   ///
   /// In es, this message translates to:
   /// **'Android aún no ha iniciado la descarga y no ha indicado el motivo. Puedes dejarla en cola o cancelarla.'**
   String get updateQueuedHint;
 
-  /// No description provided for @updateStatusPausedWifi.
+  /// Update download progress state shown in the update dialog.
   ///
   /// In es, this message translates to:
   /// **'En pausa · esperando Wi-Fi'**
   String get updateStatusPausedWifi;
 
-  /// No description provided for @updatePausedWifiHint.
+  /// Update download progress state shown in the update dialog.
   ///
   /// In es, this message translates to:
   /// **'Conéctate a una red Wi-Fi para continuar.'**
   String get updatePausedWifiHint;
 
-  /// No description provided for @updateStatusPausedUnknown.
+  /// Update download progress state shown in the update dialog.
   ///
   /// In es, this message translates to:
   /// **'En pausa · esperando a Android'**
   String get updateStatusPausedUnknown;
 
-  /// No description provided for @updatePausedUnknownHint.
+  /// Update download progress state shown in the update dialog.
   ///
   /// In es, this message translates to:
   /// **'Android ha pausado la descarga sin indicar el motivo. Puedes dejarla en cola o cancelarla.'**
   String get updatePausedUnknownHint;
 
-  /// No description provided for @updatePausedNetworkHint.
+  /// Update download progress state shown in the update dialog.
   ///
   /// In es, this message translates to:
   /// **'Comprueba la conexión a Internet. La descarga continuará cuando Android permita usar la red.'**
   String get updatePausedNetworkHint;
 
-  /// No description provided for @updatePausedRetryHint.
+  /// Update download progress state shown in the update dialog.
   ///
   /// In es, this message translates to:
   /// **'Hubo un problema de conexión. Android volverá a intentarlo automáticamente.'**
@@ -4364,67 +4364,67 @@ abstract class AppLocalizations {
   /// **'bóveda, ocultos, privado'**
   String get settingsSearchKwVault;
 
-  /// No description provided for @endActionsGlobal.
+  /// End-of-video action label or explanation.
   ///
   /// In es, this message translates to:
   /// **'Aplicar a todos los videos'**
   String get endActionsGlobal;
 
-  /// No description provided for @endActionsGlobalHint.
+  /// End-of-video action label or explanation.
   ///
   /// In es, this message translates to:
   /// **'Conserva estas opciones al cambiar de video y cerrar Kivo. Los cambios aquí también serán globales.'**
   String get endActionsGlobalHint;
 
-  /// No description provided for @endActionsSessionHint.
+  /// End-of-video action label or explanation.
   ///
   /// In es, this message translates to:
   /// **'Desactivado: los cambios del reproductor solo afectan a la cola actual.'**
   String get endActionsSessionHint;
 
-  /// No description provided for @endActionsSavedHint.
+  /// End-of-video action label or explanation.
   ///
   /// In es, this message translates to:
   /// **'Guarda tus opciones aquí y activa el interruptor cuando quieras aplicarlas a todos los videos.'**
   String get endActionsSavedHint;
 
-  /// No description provided for @endActionsSettingsHint.
+  /// End-of-video action label or explanation.
   ///
   /// In es, this message translates to:
   /// **'Elige qué hacer al terminar cada video, para todos los videos.'**
   String get endActionsSettingsHint;
 
-  /// No description provided for @endActionsDefaultsHint.
+  /// End-of-video action label or explanation.
   ///
   /// In es, this message translates to:
   /// **'Elige qué hacer al terminar cada video. Se aplica a todos los videos y se guarda al instante.'**
   String get endActionsDefaultsHint;
 
-  /// No description provided for @endActionsDefaultTrashHint.
+  /// End-of-video action label or explanation.
   ///
   /// In es, this message translates to:
   /// **'Solo para videos de la biblioteca. No se aplica al repetir un video.'**
   String get endActionsDefaultTrashHint;
 
-  /// No description provided for @endActionsDefaultRestartHint.
+  /// End-of-video action label or explanation.
   ///
   /// In es, this message translates to:
   /// **'Reproduce cada video desde cero, sin borrarlo ni pasar al siguiente.'**
   String get endActionsDefaultRestartHint;
 
-  /// No description provided for @endActionsRestart.
+  /// End-of-video action label or explanation.
   ///
   /// In es, this message translates to:
   /// **'Volver a empezar'**
   String get endActionsRestart;
 
-  /// No description provided for @endActionsRestartHint.
+  /// End-of-video action label or explanation.
   ///
   /// In es, this message translates to:
   /// **'Reproduce este video desde cero. No se borrará al terminar.'**
   String get endActionsRestartHint;
 
-  /// No description provided for @endActionsTrashRestart.
+  /// End-of-video action label or explanation.
   ///
   /// In es, this message translates to:
   /// **'No disponible con Volver a empezar'**
@@ -4640,41 +4640,107 @@ abstract class AppLocalizations {
   /// **'Al terminar: {summary}'**
   String endActionsChipSemantics(String summary);
 
-  /// No description provided for @libraryDensityLabel.
+  /// Library video watch-status filter and recovery text.
   ///
   /// In es, this message translates to:
   /// **'Vista de biblioteca'**
   String get libraryDensityLabel;
 
-  /// No description provided for @libraryDensityComfortable.
+  /// Library video watch-status filter and recovery text.
   ///
   /// In es, this message translates to:
   /// **'Cómoda'**
   String get libraryDensityComfortable;
 
-  /// No description provided for @libraryDensityBalanced.
+  /// Library video watch-status filter and recovery text.
   ///
   /// In es, this message translates to:
   /// **'Equilibrada'**
   String get libraryDensityBalanced;
 
-  /// No description provided for @libraryDensityCompact.
+  /// Library video watch-status filter and recovery text.
   ///
   /// In es, this message translates to:
   /// **'Compacta'**
   String get libraryDensityCompact;
 
-  /// No description provided for @libraryDensityList.
+  /// Library video watch-status filter and recovery text.
   ///
   /// In es, this message translates to:
   /// **'Lista'**
   String get libraryDensityList;
 
-  /// No description provided for @libraryWideDensitySetting.
+  /// Library video watch-status filter and recovery text.
   ///
   /// In es, this message translates to:
   /// **'Biblioteca en pantallas anchas'**
   String get libraryWideDensitySetting;
+
+  /// Library video watch-status filter and recovery text.
+  ///
+  /// In es, this message translates to:
+  /// **'Todos los estados'**
+  String get libraryWatchFilterAll;
+
+  /// Library video watch-status filter and recovery text.
+  ///
+  /// In es, this message translates to:
+  /// **'En curso'**
+  String get libraryWatchFilterInProgress;
+
+  /// Library video watch-status filter and recovery text.
+  ///
+  /// In es, this message translates to:
+  /// **'Terminados'**
+  String get libraryWatchFilterCompleted;
+
+  /// Library video watch-status filter and recovery text.
+  ///
+  /// In es, this message translates to:
+  /// **'Filtrar videos: {status}'**
+  String libraryWatchFilterTooltip(String status);
+
+  /// Library video watch-status filter and recovery text.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay videos con este estado'**
+  String get libraryEmptyWatchFilterTitle;
+
+  /// Library video watch-status filter and recovery text.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige otro estado o quita el filtro para ver todos los videos.'**
+  String get libraryEmptyWatchFilterSubtitle;
+
+  /// Backup operation status, recovery guidance, or restore summary.
+  ///
+  /// In es, this message translates to:
+  /// **'Procesando copia de seguridad'**
+  String get settingsBackupWorking;
+
+  /// Backup operation status, recovery guidance, or restore summary.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo guardar la copia. Comprueba el espacio y elige una ubicación accesible.'**
+  String get errorBackupExport;
+
+  /// Backup operation status, recovery guidance, or restore summary.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo leer la copia. Vuelve a seleccionar un archivo accesible.'**
+  String get errorBackupRead;
+
+  /// Backup operation status, recovery guidance, or restore summary.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo completar la restauración. Puede haberse aplicado una parte. Reintenta para revisar lo que falta.'**
+  String get errorBackupRestore;
+
+  /// Backup operation status, recovery guidance, or restore summary.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 video terminado} other{{count} videos terminados}}'**
+  String settingsBackupRestoreItemCompletedVideos(int count);
 }
 
 class _AppLocalizationsDelegate

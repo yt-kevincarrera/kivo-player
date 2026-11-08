@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kivo_player/core/media/video_identity.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kivo_player/player/bookmarks/bookmark_store.dart';
 import 'package:kivo_player/core/settings/settings_provider.dart';
@@ -57,12 +58,12 @@ void main() {
     final l10n = l10nFor(const Locale('es'));
     expect(find.text(l10n.playerDecoderFallbackSnack), findsOneWidget);
     expect(engine.openedPath, '/v/ep1.mkv');
-    expect(prefs.forKey('ep1.mkv')!.decoder, 'sw');
+    expect(prefs.forKey(videoIdentity('/v/ep1.mkv', 'ep1.mkv'))!.decoder, 'sw');
 
     await tester.pump(const Duration(milliseconds: 600)); // slide-in
     await tester.tap(find.text(l10n.commonUndo));
     await tester.pump();
-    expect(prefs.forKey('ep1.mkv')!.decoder, 'hw');
+    expect(prefs.forKey(videoIdentity('/v/ep1.mkv', 'ep1.mkv'))!.decoder, 'hw');
     expect(engine.hwdecWrites.last, 'auto-safe');
 
     await tester.pump(const Duration(seconds: 6)); // drain timers
