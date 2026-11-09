@@ -1,0 +1,4 @@
+Separate history for same-named videos in different locations.
+Unwatched, in-progress and completed filters, with natural episode ordering.
+Backups now validate data, show progress and offer retries; completed videos are included.
+Ambiguous legacy history is preserved without automatic assignment.

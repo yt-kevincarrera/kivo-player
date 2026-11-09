@@ -1,0 +1,4 @@
+Historial independiente para videos con el mismo nombre en distintas ubicaciones.
+Filtros No vistos, En curso y Terminados, con orden natural de episodios.
+Copias de seguridad con validación, progreso y reintentos; incluyen videos terminados.
+Los registros antiguos ambiguos se conservan sin asignarlos automáticamente.
