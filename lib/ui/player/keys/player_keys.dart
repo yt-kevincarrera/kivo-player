@@ -13,6 +13,9 @@ import '../state/queue_strip_state.dart';
 import '../state/skip_feedback.dart';
 import '../tracks/track_sync_hud.dart';
 import '../../../player/cast/cast_controller.dart';
+import '../../../platform/television_provider.dart';
+import '../../../player/control/remote_seek.dart';
+import '../seek/seek_preview.dart';
 
 /// Media keys do the same whatever is on screen, locked included.
 final _mediaKeys = <LogicalKeyboardKey, PlayerKeyAction>{
@@ -107,11 +110,44 @@ class PlayerKeys extends ConsumerStatefulWidget {
   ConsumerState<PlayerKeys> createState() => _PlayerKeysState();
 }
 
-class _PlayerKeysState extends ConsumerState<PlayerKeys> {
+class _PlayerKeysState extends ConsumerState<PlayerKeys>
+    with WidgetsBindingObserver {
   final _node = FocusNode(debugLabel: 'player-keys');
+  late final RemoteSeek _remoteSeek;
+  LogicalKeyboardKey? _heldSeekKey;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _remoteSeek = RemoteSeek(
+      position: () =>
+          ref.read(pendingSeekProvider) ??
+          ref.read(positionProvider).valueOrNull ??
+          Duration.zero,
+      duration: () => ref.read(durationProvider).valueOrNull ?? Duration.zero,
+      onSeek: (target, delta) {
+        ref.read(playerControllerProvider).seekTo(target);
+        ref.read(pendingSeekProvider.notifier).state = target;
+        ref.read(skipFeedbackProvider).bump(delta);
+      },
+    );
+  }
+
+  void _stopSeeking() {
+    _heldSeekKey = null;
+    _remoteSeek.stop();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) _stopSeeking();
+  }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _remoteSeek.stop();
     _node.dispose();
     super.dispose();
   }
@@ -171,7 +207,13 @@ class _PlayerKeysState extends ConsumerState<PlayerKeys> {
   }
 
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
-    if (event is KeyUpEvent) return KeyEventResult.ignored;
+    if (event is KeyUpEvent) {
+      if (event.logicalKey == _heldSeekKey) {
+        _stopSeeking();
+        return KeyEventResult.handled;
+      }
+      return KeyEventResult.ignored;
+    }
     if (_castingThis) return _onCastKey(node, event);
     final key = event.logicalKey;
     final controls = ref.read(controlsVisibleProvider.notifier);
@@ -185,6 +227,23 @@ class _PlayerKeysState extends ConsumerState<PlayerKeys> {
       controlsVisible: shown || syncOpen,
       locked: locked,
     );
+    if (ref.read(isTelevisionProvider) &&
+        (action == PlayerKeyAction.seekBack ||
+            action == PlayerKeyAction.seekForward)) {
+      // OEM repeat events never multiply timer-driven seeks. Only a physical
+      // down starts a hold; key-up stops it immediately.
+      if (event is KeyDownEvent) {
+        final settings = ref.read(settingsProvider);
+        _heldSeekKey = key;
+        _remoteSeek.start(
+          action == PlayerKeyAction.seekForward ? 1 : -1,
+          seconds: settings.tvRemoteSeekSeconds,
+          progressive: settings.tvRemoteProgressiveSeek,
+        );
+      }
+      return KeyEventResult.handled;
+    }
+    if (event is KeyDownEvent) _stopSeeking();
     if (action == PlayerKeyAction.pass) {
       if (!_navigates(key)) {
         if (shown) controls.show();
@@ -235,11 +294,24 @@ class _PlayerKeysState extends ConsumerState<PlayerKeys> {
     // from focus while hidden): bring it back here, or the next key would
     // go nowhere — and an invisible button must not keep it.
     ref.listen<bool>(controlsVisibleProvider, (_, visible) {
+      if (visible) _stopSeeking();
       if (!visible && !_node.hasPrimaryFocus) _node.requestFocus();
+    });
+    ref.listen(currentVideoProvider, (before, after) {
+      _stopSeeking();
+      if (before?.resumeKey != after?.resumeKey) {
+        ref.read(pendingSeekProvider.notifier).state = null;
+      }
+    });
+    ref.listen(syncHudProvider, (_, next) {
+      if (next != null) _stopSeeking();
     });
     return Focus(
       focusNode: _node,
       autofocus: true,
+      onFocusChange: (focused) {
+        if (!focused) _stopSeeking();
+      },
       onKeyEvent: _onKey,
       child: widget.child,
     );

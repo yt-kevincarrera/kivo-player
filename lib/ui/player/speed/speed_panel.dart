@@ -8,9 +8,10 @@ import '../../../l10n/l10n.dart';
 import '../../../player/control/gesture_math.dart';
 import '../../../player/control/player_controller.dart';
 import '../../widgets/kivo_focusable.dart';
+import '../../tv/tv_modal.dart';
 
 Future<void> showSpeedPanel(BuildContext context) {
-  return showModalBottomSheet(
+  return showTvAwareBottomSheet(
     context: context,
     backgroundColor: KivoColors.panel,
     shape: const RoundedRectangleBorder(

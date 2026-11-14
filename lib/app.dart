@@ -15,6 +15,9 @@ import 'ui/update/update_dialog.dart';
 import 'ui/widgets/playback_failure_listener.dart';
 import 'core/diagnostics/open_trace.dart';
 import 'package:flutter/scheduler.dart';
+import 'platform/television_provider.dart';
+import 'ui/tv/tv_library_screen.dart';
+import 'ui/tv/tv_input_mode.dart';
 import 'package:media_kit_video/media_kit_video.dart'
     show kivoTrace, kivoFixedSurface;
 
@@ -63,6 +66,7 @@ class _KivoAppState extends ConsumerState<KivoApp> {
 
   @override
   Widget build(BuildContext context) {
+    final television = ref.watch(isTelevisionProvider);
     ref.watch(backgroundPlaybackProvider);
     ref.watch(autoplayCoordinatorProvider);
     // The media_kit_video patch reads this when it sizes the surface: kept in
@@ -78,12 +82,13 @@ class _KivoAppState extends ConsumerState<KivoApp> {
       debugShowCheckedModeBanner: false,
       theme: KivoTheme.light(accent: accent),
       darkTheme: KivoTheme.dark(accent: accent),
-      themeMode: themeModeFor(mode),
+      themeMode: television ? ThemeMode.dark : themeModeFor(mode),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: localeSetting == 'system' ? null : Locale(localeSetting),
-      builder: (context, child) => PlaybackFailureListener(child: child!),
-      home: const HomeShell(),
+      builder: (context, child) => TvInputMode(enabled: television,
+        child: PlaybackFailureListener(child: television ? TvRemoteShortcuts(child: child!) : child!)),
+      home: television ? const TvLibraryScreen() : const HomeShell(),
     );
   }
 }

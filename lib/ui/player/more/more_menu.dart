@@ -35,6 +35,7 @@ import '../../widgets/press_bounce.dart';
 import '../tracks/track_sync_hud.dart';
 import '../../widgets/kivo_focusable.dart';
 import '../cast/cast_flow.dart';
+import '../../tv/tv_modal.dart';
 
 /// Mini menu behind the top bar's "Más opciones" button.
 ///
@@ -66,7 +67,7 @@ String _decoderSubtitle(AppLocalizations l10n, DecoderStatus s) {
 Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
   // Re-read what mpv is decoding with now; the row fills in when it lands.
   ref.read(decoderControllerProvider).refreshStatus();
-  return showModalBottomSheet(
+  return showTvAwareBottomSheet(
     context: context,
     backgroundColor: KivoColors.panel,
     shape: const RoundedRectangleBorder(

@@ -13,7 +13,7 @@ class ThumbnailImage extends ConsumerWidget {
     final bytes = async.valueOrNull;
     final cs = Theme.of(context).colorScheme;
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 180),
+      duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 180),
       child: bytes == null
           ? Container(key: const ValueKey('ph'), color: cs.surfaceContainerHigh)
           : Image.memory(bytes, key: ValueKey(id), fit: fit, gaplessPlayback: true),

@@ -9,6 +9,7 @@
 .pub-cache/
 .pub/
 build/
+android/.kotlin/
 
 # IDE
 .idea/

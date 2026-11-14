@@ -24,12 +24,13 @@ import '../../widgets/failure_snack_bar.dart';
 import '../subtitles/subtitle_text.dart';
 import 'track_sync_hud.dart';
 import '../../widgets/kivo_focusable.dart';
+import '../../tv/tv_modal.dart';
 
 part 'subtitle_encoding_sheet.dart';
 part 'subtitle_style_controls.dart';
 
 Future<void> showSubtitlePicker(BuildContext context, WidgetRef ref) {
-  return showModalBottomSheet(
+  return showTvAwareBottomSheet(
     context: context,
     backgroundColor: KivoColors.panel,
     shape: const RoundedRectangleBorder(
@@ -41,7 +42,7 @@ Future<void> showSubtitlePicker(BuildContext context, WidgetRef ref) {
 }
 
 Future<void> showAudioPicker(BuildContext context, WidgetRef ref) {
-  return showModalBottomSheet(
+  return showTvAwareBottomSheet(
     context: context,
     backgroundColor: KivoColors.panel,
     shape: const RoundedRectangleBorder(

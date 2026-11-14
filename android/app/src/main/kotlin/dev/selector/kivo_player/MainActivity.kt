@@ -180,6 +180,8 @@ class MainActivity : FlutterFragmentActivity() {
     private fun configureChannels(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
+        TvStorageBrowser.attach(applicationContext, flutterEngine.dartExecutor.binaryMessenger, ioExecutor) { runOnUiThread(it) }
+
         // ── kivo/subtitles ── (its own file: this one is big enough already)
         SubtitleCharsets.attach(flutterEngine.dartExecutor.binaryMessenger, applicationContext, ioExecutor)
 
@@ -191,7 +193,8 @@ class MainActivity : FlutterFragmentActivity() {
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "kivo/orientation")
             .setMethodCallHandler { call, result ->
                 if (call.method == "set") {
-                    requestedOrientation = when (call.argument<String>("mode")) {
+                    requestedOrientation = if (TvStorageBrowser.isTelevision(this)) ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                    else when (call.argument<String>("mode")) {
                         "sensorLandscape" -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
                         "sensorPortrait"  -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
                         else              -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED

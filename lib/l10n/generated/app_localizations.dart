@@ -98,6 +98,294 @@ abstract class AppLocalizations {
     Locale('es'),
   ];
 
+  /// No description provided for @tvHome.
+  ///
+  /// In es, this message translates to:
+  /// **'Inicio'**
+  String get tvHome;
+
+  /// No description provided for @tvUsb.
+  ///
+  /// In es, this message translates to:
+  /// **'Memoria USB'**
+  String get tvUsb;
+
+  /// No description provided for @tvSettings.
+  ///
+  /// In es, this message translates to:
+  /// **'Ajustes'**
+  String get tvSettings;
+
+  /// No description provided for @tvContinueWatching.
+  ///
+  /// In es, this message translates to:
+  /// **'Continuar viendo'**
+  String get tvContinueWatching;
+
+  /// No description provided for @tvYourVideos.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu videoteca'**
+  String get tvYourVideos;
+
+  /// No description provided for @tvFromLibrary.
+  ///
+  /// In es, this message translates to:
+  /// **'DE TU BIBLIOTECA'**
+  String get tvFromLibrary;
+
+  /// No description provided for @tvMoreInfo.
+  ///
+  /// In es, this message translates to:
+  /// **'Más información'**
+  String get tvMoreInfo;
+
+  /// No description provided for @tvRemoteGuide.
+  ///
+  /// In es, this message translates to:
+  /// **'Guía del mando'**
+  String get tvRemoteGuide;
+
+  /// No description provided for @tvRemoteGuideBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Izquierda y derecha: retroceder o avanzar el salto configurado. Mantén la flecha para buscar más rápido.\nOK: pausar o reproducir. Arriba o abajo: mostrar controles.\nCon los controles abiertos, las flechas mueven el foco y OK activa el botón.\nAtrás: cierra primero el panel o los controles; después vuelve a la biblioteca.'**
+  String get tvRemoteGuideBody;
+
+  /// No description provided for @tvNavigationHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Flechas · Explorar     OK · Abrir     Atrás · Volver'**
+  String get tvNavigationHint;
+
+  /// No description provided for @tvPlaybackHint.
+  ///
+  /// In es, this message translates to:
+  /// **'← → · Buscar     Mantener · Buscar más rápido     OK · Pausar/reproducir     ↑ ↓ · Controles'**
+  String get tvPlaybackHint;
+
+  /// No description provided for @tvRemoteStep.
+  ///
+  /// In es, this message translates to:
+  /// **'Salto con las flechas del mando'**
+  String get tvRemoteStep;
+
+  /// No description provided for @tvProgressiveSeek.
+  ///
+  /// In es, this message translates to:
+  /// **'Búsqueda progresiva al mantener'**
+  String get tvProgressiveSeek;
+
+  /// No description provided for @tvProgressiveSeekHint.
+  ///
+  /// In es, this message translates to:
+  /// **'La búsqueda acelera después de 2 y 4 segundos. Al soltar se detiene.'**
+  String get tvProgressiveSeekHint;
+
+  /// No description provided for @tvImage.
+  ///
+  /// In es, this message translates to:
+  /// **'Tamaño de imagen'**
+  String get tvImage;
+
+  /// No description provided for @tvFitHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Imagen completa, sin deformar. Puede dejar bandas.'**
+  String get tvFitHint;
+
+  /// No description provided for @tvFillHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Llena la pantalla recortando los bordes.'**
+  String get tvFillHint;
+
+  /// No description provided for @tvStretchHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Llena la pantalla deformando la imagen.'**
+  String get tvStretchHint;
+
+  /// No description provided for @tvNoUsb.
+  ///
+  /// In es, this message translates to:
+  /// **'Conecta una memoria USB'**
+  String get tvNoUsb;
+
+  /// No description provided for @tvNoUsbBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Las memorias que Android monte aparecerán aquí. Puedes explorar también el almacenamiento interno.'**
+  String get tvNoUsbBody;
+
+  /// No description provided for @tvStorageAccess.
+  ///
+  /// In es, this message translates to:
+  /// **'Permitir acceso al almacenamiento'**
+  String get tvStorageAccess;
+
+  /// No description provided for @tvStorageAccessBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Kivo necesita permiso para leer esta carpeta. Abre los permisos, permite el acceso y vuelve a intentarlo.'**
+  String get tvStorageAccessBody;
+
+  /// No description provided for @tvStorageUnavailable.
+  ///
+  /// In es, this message translates to:
+  /// **'No se puede abrir esta carpeta'**
+  String get tvStorageUnavailable;
+
+  /// No description provided for @tvStorageUnavailableBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Comprueba que la memoria siga conectada y que Kivo tenga permiso para leerla.'**
+  String get tvStorageUnavailableBody;
+
+  /// No description provided for @tvPermissionStillMissing.
+  ///
+  /// In es, this message translates to:
+  /// **'Android no concedió el acceso. Revisa los permisos de Kivo en los ajustes del televisor.'**
+  String get tvPermissionStillMissing;
+
+  /// No description provided for @tvEmptyFolder.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay videos en esta carpeta'**
+  String get tvEmptyFolder;
+
+  /// No description provided for @tvInternalStorage.
+  ///
+  /// In es, this message translates to:
+  /// **'Almacenamiento interno'**
+  String get tvInternalStorage;
+
+  /// No description provided for @tvAdvanced.
+  ///
+  /// In es, this message translates to:
+  /// **'Más ajustes'**
+  String get tvAdvanced;
+
+  /// No description provided for @tvAccessibility.
+  ///
+  /// In es, this message translates to:
+  /// **'Accesibilidad y mando'**
+  String get tvAccessibility;
+
+  /// No description provided for @tvFocusHint.
+  ///
+  /// In es, this message translates to:
+  /// **'El borde resaltado indica dónde estás. Se respetan el tamaño de texto, el lector de pantalla y la reducción de movimiento del sistema.'**
+  String get tvFocusHint;
+
+  /// No description provided for @tvQueue.
+  ///
+  /// In es, this message translates to:
+  /// **'Cola de reproducción'**
+  String get tvQueue;
+
+  /// No description provided for @tvPrevious.
+  ///
+  /// In es, this message translates to:
+  /// **'Video anterior'**
+  String get tvPrevious;
+
+  /// No description provided for @tvNext.
+  ///
+  /// In es, this message translates to:
+  /// **'Video siguiente'**
+  String get tvNext;
+
+  /// No description provided for @tvMoveEarlier.
+  ///
+  /// In es, this message translates to:
+  /// **'Mover antes'**
+  String get tvMoveEarlier;
+
+  /// No description provided for @tvMoveLater.
+  ///
+  /// In es, this message translates to:
+  /// **'Mover después'**
+  String get tvMoveLater;
+
+  /// No description provided for @tvLibraryComplete.
+  ///
+  /// In es, this message translates to:
+  /// **'Gestionar biblioteca y listas'**
+  String get tvLibraryComplete;
+
+  /// No description provided for @tvUnknownDuration.
+  ///
+  /// In es, this message translates to:
+  /// **'Video local'**
+  String get tvUnknownDuration;
+
+  /// No description provided for @tvConnectedStorage.
+  ///
+  /// In es, this message translates to:
+  /// **'Almacenamiento conectado'**
+  String get tvConnectedStorage;
+
+  /// No description provided for @tvGoToLibrary.
+  ///
+  /// In es, this message translates to:
+  /// **'Volver a la biblioteca'**
+  String get tvGoToLibrary;
+
+  /// No description provided for @tvContinue.
+  ///
+  /// In es, this message translates to:
+  /// **'Continuar'**
+  String get tvContinue;
+
+  /// No description provided for @tvPlayback.
+  ///
+  /// In es, this message translates to:
+  /// **'Reproducción'**
+  String get tvPlayback;
+
+  /// No description provided for @tvRefresh.
+  ///
+  /// In es, this message translates to:
+  /// **'Volver a buscar'**
+  String get tvRefresh;
+
+  /// No description provided for @tvOptions.
+  ///
+  /// In es, this message translates to:
+  /// **'Opciones'**
+  String get tvOptions;
+
+  /// No description provided for @tvRememberPosition.
+  ///
+  /// In es, this message translates to:
+  /// **'Recordar dónde lo dejaste'**
+  String get tvRememberPosition;
+
+  /// No description provided for @tvFolder.
+  ///
+  /// In es, this message translates to:
+  /// **'Carpeta'**
+  String get tvFolder;
+
+  /// No description provided for @tvAudioSettings.
+  ///
+  /// In es, this message translates to:
+  /// **'Ajustes de audio'**
+  String get tvAudioSettings;
+
+  /// No description provided for @tvSubtitleSettings.
+  ///
+  /// In es, this message translates to:
+  /// **'Ajustes de subtítulos'**
+  String get tvSubtitleSettings;
+
+  /// No description provided for @tvMorePlayback.
+  ///
+  /// In es, this message translates to:
+  /// **'Más opciones de reproducción'**
+  String get tvMorePlayback;
+
   /// Título de la fila selectora de idioma en Ajustes → General.
   ///
   /// In es, this message translates to:

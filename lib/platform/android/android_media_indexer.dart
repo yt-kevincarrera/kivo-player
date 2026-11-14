@@ -3,6 +3,7 @@ import '../../core/errors/error_log.dart';
 import '../../core/errors/kivo_failure.dart';
 import '../interfaces/media_indexer.dart';
 import 'media_kit_thumbnailer.dart';
+import 'android_storage_browser.dart';
 
 class AndroidMediaIndexer implements MediaIndexer {
   AndroidMediaIndexer(
@@ -64,6 +65,7 @@ class AndroidMediaIndexer implements MediaIndexer {
   /// not blank out a grid of two hundred tiles.
   @override
   Future<Uint8List?> thumbnail(String id) {
+    if (id.startsWith('tv:')) return _storageThumbnail(id.substring(3));
     final version = _versions[id];
     if (version == null) return _thumbnail(id, null);
     final cached = _thumbnails.remove(version);
@@ -105,5 +107,14 @@ class AndroidMediaIndexer implements MediaIndexer {
       }
     }
     return null;
+  }
+
+  Future<Uint8List?> _storageThumbnail(String path) async {
+    try {
+      return await AndroidStorageBrowser().thumbnail(path);
+    } catch (e) {
+      _log.record(KivoFailure(KivoOp.thumbnail, e));
+      return null;
+    }
   }
 }

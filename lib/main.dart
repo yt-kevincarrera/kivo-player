@@ -58,9 +58,17 @@ import 'vault/vault_auth.dart';
 import 'vault/vault_providers.dart';
 import 'platform/android/android_cast_platform.dart';
 import 'platform/cast_platform_provider.dart';
+import 'platform/television_provider.dart';
+import 'package:flutter/services.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final isTelevision = await detectTelevision();
+  if (isTelevision) {
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight,
+    ]);
+  }
   // libmpv, FFmpeg & co. on the licenses page (Flutter only knows Dart packages).
   registerNativeLicenses();
   MediaKit.ensureInitialized();
@@ -124,6 +132,7 @@ Future<void> main() async {
   runApp(
     ProviderScope(
       overrides: [
+        isTelevisionProvider.overrideWithValue(isTelevision),
         settingsServiceProvider.overrideWithValue(settingsService),
         playbackEngineProvider.overrideWithValue(engine),
         resumeServiceProvider.overrideWithValue(resumeService),

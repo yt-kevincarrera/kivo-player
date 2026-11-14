@@ -5,6 +5,10 @@ import '../../platform/interfaces/media_permission.dart';
 import '../../platform/media_indexer_provider.dart';
 import 'media_permission.dart';
 import 'video_history_migration.dart';
+import '../../platform/television_provider.dart';
+import '../../platform/storage_browser_provider.dart';
+import '../../core/errors/error_log_provider.dart';
+import '../../core/errors/kivo_failure.dart';
 
 final mediaIndexProvider =
     AsyncNotifierProvider<MediaIndexNotifier, List<VideoItem>>(
@@ -15,12 +19,32 @@ class MediaIndexNotifier extends AsyncNotifier<List<VideoItem>> {
   @override
   Future<List<VideoItem>> build() async {
     final access = await ref.watch(mediaPermissionProvider.future);
-    if (access == MediaAccess.denied) return const [];
+    if (access == MediaAccess.denied && !ref.read(isTelevisionProvider)) {
+      return const [];
+    }
     return _scan();
   }
 
   Future<List<VideoItem>> _scan() async {
-    final videos = await ref.read(mediaIndexerProvider).scan();
+    final television = ref.read(isTelevisionProvider);
+    final allowed =
+        ref.read(mediaPermissionProvider).valueOrNull != MediaAccess.denied;
+    final videos = allowed
+        ? List<VideoItem>.of(await ref.read(mediaIndexerProvider).scan())
+        : <VideoItem>[];
+    if (television) {
+      final seen = videos.map((v) => v.key).toSet();
+      try {
+        final removable = await ref.read(storageBrowserProvider).scanRemovable();
+        for (final item in removable) {
+          if (seen.add(item.key)) videos.add(item);
+        }
+      } catch (error) {
+        // Losing a USB drive must not blank out the device's indexed videos.
+        // The browser provides access/disconnection recovery for that drive.
+        ref.read(errorLogProvider).record(KivoFailure(KivoOp.libraryScan, error));
+      }
+    }
     // A partial grant cannot establish that a filename is unique: another
     // same-named video may simply be outside the selected media set.
     if (ref.read(mediaPermissionProvider).valueOrNull == MediaAccess.granted) {

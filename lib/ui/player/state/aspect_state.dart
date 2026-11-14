@@ -40,6 +40,7 @@ class AspectNotifier extends Notifier<AspectMode> {
   @override
   AspectMode build() => aspectFromSetting(ref.read(settingsProvider).defaultAspectMode);
   void cycle() => state = nextAspect(state);
+  void set(AspectMode value) => state = value;
 }
 
 final aspectModeProvider =

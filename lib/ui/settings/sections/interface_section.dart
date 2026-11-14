@@ -9,6 +9,7 @@ import '../widgets/setting_choice.dart';
 import '../widgets/setting_corner_picker.dart';
 import '../../widgets/readable_width.dart';
 import '../../home/library_layout.dart';
+import '../../../platform/television_provider.dart';
 
 class InterfaceSettingsSection extends ConsumerWidget {
   const InterfaceSettingsSection({super.key});
@@ -34,7 +35,7 @@ class InterfaceSettingsSection extends ConsumerWidget {
                 min: 1, max: 10, step: 1, label: (v) => '$v s',
                 onChanged: (v) => n.set(s.copyWith(controlsAutoHideMs: v * 1000))),
             ),
-            SettingAnchor(
+            if (!ref.watch(isTelevisionProvider)) SettingAnchor(
               id: SettingIds.rememberOrientation,
               child: SettingSwitch(
                 title: l10n.settingsInterfaceRememberOrientation, value: s.rememberOrientationLock,
