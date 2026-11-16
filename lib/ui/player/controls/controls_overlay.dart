@@ -12,6 +12,8 @@ import '../tracks/track_sync_hud.dart';
 import '../keys/player_keys.dart';
 import '../../../player/cast/cast_controller.dart';
 import '../../../player/open/video_source.dart';
+import '../../../platform/television_provider.dart';
+import '../../tv/tv_player_controls.dart';
 
 class ControlsOverlay extends ConsumerWidget {
   const ControlsOverlay({super.key});
@@ -32,6 +34,9 @@ class ControlsOverlay extends ConsumerWidget {
             ) ==
             key;
     final accent = Color(ref.watch(settingsProvider).accentColor);
+    if (ref.watch(isTelevisionProvider) && !locked && !castingHere) {
+      return TvPlayerControls(visible: visible);
+    }
     return AnimatedOpacity(
       opacity: visible ? 1 : 0,
       duration: const Duration(milliseconds: 200),

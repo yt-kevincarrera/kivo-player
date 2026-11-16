@@ -13,6 +13,7 @@ import '../open/video_source.dart';
 import '../tracks/track_prefs_store.dart';
 import 'decoder_mode.dart';
 import 'decoder_stall_watchdog.dart';
+import 'video_progress_watchdog.dart';
 
 /// What the player's decoder row shows.
 @immutable
@@ -63,8 +64,9 @@ class DecoderFallbackEvent {
 
 final decoderStatusProvider = StateProvider<DecoderStatus?>((ref) => null);
 
-final decoderFallbackEventProvider =
-    StateProvider<DecoderFallbackEvent?>((ref) => null);
+final decoderFallbackEventProvider = StateProvider<DecoderFallbackEvent?>(
+  (ref) => null,
+);
 
 /// Owns which decoder each video plays with: writes `hwdec` on every open,
 /// runs the stall watchdog in automatic mode, and switches to software (and
@@ -82,6 +84,10 @@ class DecoderController {
   late final DecoderStallWatchdog _watchdog;
   final List<StreamSubscription<dynamic>> _subs = [];
   bool _listening = false;
+  bool _playing = false;
+  bool _opening = false;
+  bool _recovering = false;
+  final _progressWatchdog = VideoProgressWatchdog();
   Duration _lastPosition = Duration.zero;
 
   /// The video [open] last set up. Also guards async work against a newer
@@ -98,30 +104,71 @@ class DecoderController {
     _listening = true;
     final e = _engine;
     _subs.add(e.positionStream.listen((p) => _lastPosition = p));
-    _subs.add(e.playingStream.listen((v) => _watchdog.update(playing: v)));
+    _subs.add(
+      e.playingStream.listen((v) {
+        _playing = v;
+        _watchdog.update(playing: v);
+        if (!v) _progressWatchdog.reset();
+      }),
+    );
+    _subs.add(
+      e.videoProgressStream.listen((sample) {
+        final session = _session;
+        final enabled =
+            session != null &&
+            !_recovering &&
+            !_opening &&
+            _playing &&
+            e.videoOutputEnabled &&
+            e.hasVideoTrack &&
+            _modeFor(session.resumeKey).watched &&
+            _ref.read(settingsProvider).decoderAutoFallback;
+        if (_progressWatchdog.update(
+          sample,
+          timeout: Duration(
+            seconds: _ref
+                .read(settingsProvider)
+                .decoderStallSeconds
+                .clamp(1, 10),
+          ),
+          enabled: enabled,
+        )) {
+          unawaited(_recoverFrozenPicture());
+        }
+      }),
+    );
     _subs.add(e.hasVideoFrameStream.listen((v) => _watchdog.update(frame: v)));
     // Its own stream, not a read piggybacking on other events: the output
     // goes off (Home, audio-only) and back on without any playing/frame event
     // to carry the change.
-    _subs.add(e.videoOutputEnabledStream
-        .listen((v) => _watchdog.update(outputEnabled: v)));
+    _subs.add(
+      e.videoOutputEnabledStream.listen(
+        (v) => _watchdog.update(outputEnabled: v),
+      ),
+    );
     // No buffering subscription on purpose — see DecoderStallWatchdog.
   }
 
   DecoderMode _modeFor(String resumeKey) => resolveDecoderMode(
-        global: _ref.read(settingsProvider).decoderMode,
-        perVideo: _prefs.forKey(resumeKey)?.decoder,
-      );
+    global: _ref.read(settingsProvider).decoderMode,
+    perVideo: _prefs.forKey(resumeKey)?.decoder,
+  );
 
   /// Opens [session] with its decoder. Throws the same [KivoFailure]
   /// (KV-501) as [guardedOpen] when the file cannot be opened at all.
   ///
   /// [play] false loads it paused (see [PlaybackEngine.open]); the caller
   /// starts it once the video's own settings are in.
-  Future<void> open(VideoSession session,
-      {Duration startAt = Duration.zero, bool play = true}) async {
+  Future<void> open(
+    VideoSession session, {
+    Duration startAt = Duration.zero,
+    bool play = true,
+  }) async {
     _ensureListening();
     _watchdog.disarm();
+    _progressWatchdog.reset();
+    _recovering = false;
+    _opening = true;
     _session = session;
     // Where a switch should seek back to until the first position event: a
     // stalled decoder may never produce one, and seeking to the previous
@@ -150,44 +197,80 @@ class DecoderController {
         // Hardware could not even open it. One retry in software before this
         // becomes a KV-501; the retry is the one that gets logged if it fails.
         await _setHwdec(DecoderMode.software.mpvHwdec);
-        await guardedOpen(engine, session.playbackPath, log,
-            startAt: startAt, play: play);
+        await guardedOpen(
+          engine,
+          session.playbackPath,
+          log,
+          startAt: startAt,
+          play: play,
+        );
         if (seq != _openSeq) return;
+        _opening = false;
         await _fallBack(session, 'open failed with hwdec=${mode.mpvHwdec}: $e');
         return;
       }
       if (seq != _openSeq) return;
+      _opening = false;
       _rearm();
     } else {
-      await guardedOpen(engine, session.playbackPath, log,
-          startAt: startAt, play: play);
+      await guardedOpen(
+        engine,
+        session.playbackPath,
+        log,
+        startAt: startAt,
+        play: play,
+      );
     }
-    if (seq == _openSeq) unawaited(refreshStatus());
+    if (seq == _openSeq) {
+      _opening = false;
+      unawaited(refreshStatus());
+    }
   }
 
-  Future<void> _onStall() async {
+  Future<void> _onStall() => _recoverPicture(startup: true);
+
+  Future<void> _recoverFrozenPicture() => _recoverPicture(startup: false);
+
+  bool _mayRecover(int seq, VideoSession session) =>
+      seq == _openSeq &&
+      !_opening &&
+      _playing &&
+      _engine.videoOutputEnabled &&
+      _engine.hasVideoTrack &&
+      _modeFor(session.resumeKey).watched &&
+      _ref.read(settingsProvider).decoderAutoFallback;
+
+  Future<void> _recoverPicture({required bool startup}) async {
     final session = _session;
-    if (session == null) return;
+    if (session == null || _recovering) return;
     final seq = _openSeq;
-    final engine = _engine;
-    // Re-check at fire time: anything that makes "no frame" expected means
-    // this is not the decoder's fault.
-    if (!engine.hasVideoTrack) return;
-    if (!engine.videoOutputEnabled) {
-      // Went to the background just as the clock ran out: not a verdict on
-      // the decoder. Keep watching; the output coming back restarts the clock.
-      _rearm();
+    if (!_engine.videoOutputEnabled) {
+      if (startup) _rearm();
       return;
     }
-    if (engine.videoSize != null) return;
-    final active = await engine.activeHwdec();
-    if (!isHardwareActive(active)) return;
-    if (seq != _openSeq) return;
-    await _setHwdec(DecoderMode.software.mpvHwdec);
-    await _kickFrame();
-    await _fallBack(session,
-        'no frame after ${_ref.read(settingsProvider).decoderStallSeconds}s '
-        '(hwdec-current=$active)');
+    if (!_mayRecover(seq, session) || (startup && _engine.videoSize != null)) {
+      return;
+    }
+    _recovering = true;
+    try {
+      final active = await _engine.activeHwdec();
+      if (!_mayRecover(seq, session) || !isHardwareActive(active)) return;
+      _watchdog.disarm();
+      await _setHwdec(DecoderMode.software.mpvHwdec);
+      if (!_mayRecover(seq, session)) return;
+      await _kickFrame();
+      if (!_mayRecover(seq, session)) return;
+      await _fallBack(
+        session,
+        startup
+            ? 'no frame after ${_ref.read(settingsProvider).decoderStallSeconds}s (hwdec-current=$active)'
+            : 'video timestamp stopped while playback clock advanced (hwdec-current=$active)',
+      );
+    } catch (e) {
+      debugPrint('DecoderController picture recovery failed: $e');
+    } finally {
+      if (seq == _openSeq) _recovering = false;
+    }
   }
 
   /// Arms for the current video. Seeds the output state, since the watchdog
@@ -196,7 +279,8 @@ class DecoderController {
     final engine = _engine;
     _watchdog.arm(
       Duration(
-          seconds: _ref.read(settingsProvider).decoderStallSeconds.clamp(1, 10)),
+        seconds: _ref.read(settingsProvider).decoderStallSeconds.clamp(1, 10),
+      ),
       frameAlreadyShown: engine.videoSize != null,
     );
     _watchdog.update(outputEnabled: engine.videoOutputEnabled);
@@ -204,13 +288,20 @@ class DecoderController {
 
   /// Remembers software for [session], logs KV-504 and tells the screen.
   Future<void> _fallBack(VideoSession session, String reason) async {
+    final seq = _openSeq;
     // overrideFor, not a bare 'sw': with a software default the video simply
     // goes back to following it, instead of gaining a redundant override.
     await _storeOverride(
-        session.resumeKey,
-        overrideFor(DecoderMode.software,
-            global: _ref.read(settingsProvider).decoderMode));
-    _ref.read(errorLogProvider).record(KivoFailure(KivoOp.decoderFallback, reason));
+      session.resumeKey,
+      overrideFor(
+        DecoderMode.software,
+        global: _ref.read(settingsProvider).decoderMode,
+      ),
+    );
+    if (seq != _openSeq) return;
+    _ref
+        .read(errorLogProvider)
+        .record(KivoFailure(KivoOp.decoderFallback, reason));
     _ref.read(decoderFallbackEventProvider.notifier).state =
         DecoderFallbackEvent(session.resumeKey, ++_fallbackSeq);
     await refreshStatus();
@@ -223,6 +314,7 @@ class DecoderController {
     final global = _ref.read(settingsProvider).decoderMode;
     // Their explicit pick: the watchdog must not second-guess it.
     _watchdog.disarm();
+    _progressWatchdog.reset();
     await _storeOverride(session.resumeKey, overrideFor(mode, global: global));
     await _switchLive(mode.mpvHwdec);
   }
@@ -238,8 +330,11 @@ class DecoderController {
     if (session == null || session.resumeKey != resumeKey) return;
     final global = _ref.read(settingsProvider).decoderMode;
     _watchdog.disarm();
+    _progressWatchdog.reset();
     await _storeOverride(
-        session.resumeKey, overrideFor(DecoderMode.hardware, global: global));
+      session.resumeKey,
+      overrideFor(DecoderMode.hardware, global: global),
+    );
     await _switchLive(DecoderMode.hardware.mpvHwdec);
   }
 
@@ -311,6 +406,9 @@ class DecoderController {
   }
 
   void dispose() {
+    ++_openSeq;
+    _session = null;
+    _progressWatchdog.reset();
     _watchdog.dispose();
     for (final s in _subs) {
       s.cancel();

@@ -303,6 +303,7 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
       case DragIntent.seek:
         final gesture = ref.read(gestureSeekProvider);
         if (gesture == null) return; // never engaged (dead zone / seek off)
+        ref.read(seekPreviewControllerProvider).cancel();
         ref.read(playerControllerProvider).seekTo(gesture.target);
         // Hold the seek bar (if visible) at the target until real position
         // catches up, mirroring the bar's own release path.
@@ -329,6 +330,7 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
       case DragIntent.dismiss:
         _cancelDismiss(ref.read(playerDismissProvider));
       case DragIntent.seek:
+        ref.read(seekPreviewControllerProvider).cancel();
         ref.read(gestureSeekProvider.notifier).state = null;
         ref.read(seekPreviewFrameProvider.notifier).state = null;
       default:

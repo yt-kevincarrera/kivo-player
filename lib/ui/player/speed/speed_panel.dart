@@ -8,9 +8,23 @@ import '../../../l10n/l10n.dart';
 import '../../../player/control/gesture_math.dart';
 import '../../../player/control/player_controller.dart';
 import '../../widgets/kivo_focusable.dart';
+import '../../tv/tv_modal.dart';
+import '../../tv/tv_panel.dart';
+import '../../../platform/television_provider.dart';
 
 Future<void> showSpeedPanel(BuildContext context) {
-  return showModalBottomSheet(
+  if (ProviderScope.containerOf(
+    context,
+    listen: false,
+  ).read(isTelevisionProvider)) {
+    return showTvPanel<void>(
+      context: context,
+      title: context.l10n.playerSpeedTooltip,
+      builder: (_) => const _TvSpeedPanel(),
+    );
+  }
+
+  return showTvAwareBottomSheet(
     context: context,
     backgroundColor: KivoColors.panel,
     shape: const RoundedRectangleBorder(
@@ -21,6 +35,73 @@ Future<void> showSpeedPanel(BuildContext context) {
       child: SpeedPanel(),
     ),
   );
+}
+
+class _TvSpeedPanel extends ConsumerWidget {
+  const _TvSpeedPanel();
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final rate = ref.watch(rateProvider);
+    final settings = ref.watch(settingsProvider);
+    final controller = ref.read(playerControllerProvider);
+    final rates = {
+      0.25,
+      0.5,
+      0.75,
+      1.0,
+      1.25,
+      1.5,
+      2.0,
+      3.0,
+      4.0,
+      ...settings.speedPresets,
+      rate,
+    }.where((v) => v <= settings.holdRightMax).toList()..sort();
+    return ListView(
+      padding: const EdgeInsets.all(5),
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: TvOptionRow(
+                label: '−${settings.speedFineStep}×',
+                onPressed: () =>
+                    controller.setRate(round2(rate - settings.speedFineStep)),
+              ),
+            ),
+            Expanded(
+              child: TvOptionRow(
+                label: '+${settings.speedFineStep}×',
+                onPressed: () =>
+                    controller.setRate(round2(rate + settings.speedFineStep)),
+              ),
+            ),
+          ],
+        ),
+        for (final value in rates)
+          TvOptionRow(
+            label: '${value.toStringAsFixed(2)}×',
+            selected: (value - rate).abs() < .005,
+            autofocus: (value - rate).abs() < .005,
+            onPressed: () => controller.setRate(value),
+          ),
+        if (!settings.speedPresets.any((p) => (p - round2(rate)).abs() < .005))
+          TvOptionRow(
+            label: context.l10n.tvSaveSpeedPreset,
+            value: '${round2(rate)}×',
+            icon: Icons.add,
+            onPressed: () {
+              final latest = ref.read(settingsProvider);
+              final presets = {...latest.speedPresets, round2(rate)}.toList()
+                ..sort();
+              ref
+                  .read(settingsProvider.notifier)
+                  .set(latest.copyWith(speedPresets: presets));
+            },
+          ),
+      ],
+    );
+  }
 }
 
 class SpeedPanel extends ConsumerStatefulWidget {
@@ -40,7 +121,9 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
 
     // Compare against the value we'd actually save (round2) at half the 0.01
     // rounding granularity, so a near-duplicate rate can't surface the chip.
-    final isCustomRate = !st.speedPresets.any((p) => (p - round2(rate)).abs() < 0.005);
+    final isCustomRate = !st.speedPresets.any(
+      (p) => (p - round2(rate)).abs() < 0.005,
+    );
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -48,7 +131,8 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
       children: [
         Center(
           child: Container(
-            width: 40, height: 4,
+            width: 40,
+            height: 4,
             margin: const EdgeInsets.only(bottom: 16),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.25),
@@ -63,8 +147,14 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
               icon: KivoIcon(KivoIcons.minus, size: 24, color: Colors.white),
               onStep: () => ctrl.setRate(round2(rate - st.speedFineStep)),
             ),
-            Text('${rate.toStringAsFixed(2)}x',
-                style: TextStyle(color: accent, fontSize: 40, fontWeight: FontWeight.bold)),
+            Text(
+              '${rate.toStringAsFixed(2)}x',
+              style: TextStyle(
+                color: accent,
+                fontSize: 40,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             _RepeatButton(
               icon: KivoIcon(KivoIcons.plus, size: 24, color: Colors.white),
               onStep: () => ctrl.setRate(round2(rate + st.speedFineStep)),
@@ -87,7 +177,10 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
               FocusableTap(
                 onTap: () => ctrl.setRate(p),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: (p - rate).abs() < 0.001
                         ? accent.withValues(alpha: 0.22)
@@ -97,32 +190,51 @@ class _SpeedPanelState extends ConsumerState<SpeedPanel> {
                     ),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Text('${p}x',
-                      style: TextStyle(
-                        color: (p - rate).abs() < 0.001 ? accent : Colors.white70,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                      )),
+                  child: Text(
+                    '${p}x',
+                    style: TextStyle(
+                      color: (p - rate).abs() < 0.001 ? accent : Colors.white70,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
                 ),
               ),
             if (isCustomRate)
               FocusableTap(
                 onTap: () {
-                  final next = {...st.speedPresets, round2(rate)}.toList()..sort();
-                  ref.read(settingsProvider.notifier).set(st.copyWith(speedPresets: next));
+                  final next = {...st.speedPresets, round2(rate)}.toList()
+                    ..sort();
+                  ref
+                      .read(settingsProvider.notifier)
+                      .set(st.copyWith(speedPresets: next));
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     border: Border.all(color: accent),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    KivoIcon(KivoIcons.plus, size: 16, color: accent),
-                    const SizedBox(width: 4),
-                    Text(context.l10n.playerSpeedSavePreset(round2(rate).toString()),
-                        style: TextStyle(color: accent, fontWeight: FontWeight.w600, fontSize: 13)),
-                  ]),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      KivoIcon(KivoIcons.plus, size: 16, color: accent),
+                      const SizedBox(width: 4),
+                      Text(
+                        context.l10n.playerSpeedSavePreset(
+                          round2(rate).toString(),
+                        ),
+                        style: TextStyle(
+                          color: accent,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
           ],
@@ -166,6 +278,7 @@ class _RepeatButtonState extends State<_RepeatButton> {
         schedule();
       });
     }
+
     schedule();
   }
 
@@ -182,10 +295,10 @@ class _RepeatButtonState extends State<_RepeatButton> {
 
   @override
   Widget build(BuildContext context) => FocusableTap(
-        onTap: widget.onStep,
-        onLongPress: _start,
-        onLongPressUp: _stop,
-        onLongPressCancel: _stop,
-        child: Padding(padding: const EdgeInsets.all(12), child: widget.icon),
-      );
+    onTap: widget.onStep,
+    onLongPress: _start,
+    onLongPressUp: _stop,
+    onLongPressCancel: _stop,
+    child: Padding(padding: const EdgeInsets.all(12), child: widget.icon),
+  );
 }

@@ -9,6 +9,223 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get tvHome => 'Home';
+
+  @override
+  String get tvUsbShort => 'USB';
+
+  @override
+  String get tvUsb => 'USB storage';
+
+  @override
+  String get tvSettings => 'Settings';
+
+  @override
+  String get tvContinueWatching => 'Continue watching';
+
+  @override
+  String get tvYourVideos => 'Your library';
+
+  @override
+  String get tvFromLibrary => 'FROM YOUR LIBRARY';
+
+  @override
+  String get tvMoreInfo => 'More information';
+
+  @override
+  String get tvRemoteGuide => 'Remote guide';
+
+  @override
+  String get tvRemoteGuideBody =>
+      'Left and right: seek by your configured step. Hold an arrow to seek faster.\nOK: pause or play. Up or down: show controls.\nWith controls visible, arrows move focus and OK activates the focused button.\nBack: closes the panel or controls first; then returns to the library.';
+
+  @override
+  String get tvNavigationHint =>
+      'Arrows · Browse     OK · Open     Back · Return';
+
+  @override
+  String get tvPlaybackHint =>
+      'Arrows · Seek     Hold · Seek faster     OK · Pause/play     Up/down · Controls';
+
+  @override
+  String get tvRemoteStep => 'Remote arrow seek step';
+
+  @override
+  String get tvProgressiveSeek => 'Progressive seeking when holding';
+
+  @override
+  String get tvProgressiveSeekHint =>
+      'Seeking speeds up after 2 and 4 seconds. Release the arrow to stop seeking.';
+
+  @override
+  String get tvImage => 'Picture size';
+
+  @override
+  String get tvFitHint =>
+      'Shows the whole picture without distortion. May leave black bars.';
+
+  @override
+  String get tvFillHint => 'Fills the screen by cropping the edges.';
+
+  @override
+  String get tvStretchHint => 'Fills the screen by stretching the picture.';
+
+  @override
+  String get tvNoUsb => 'Connect a USB drive';
+
+  @override
+  String get tvNoUsbBody =>
+      'Drives mounted by Android appear here. You can also browse internal storage.';
+
+  @override
+  String get tvStorageAccess => 'Allow storage access';
+
+  @override
+  String get tvStorageAccessBody =>
+      'Kivo needs permission to read this folder. Open permissions, allow access, then try again.';
+
+  @override
+  String get tvStorageUnavailable => 'Cannot open this folder';
+
+  @override
+  String get tvStorageUnavailableBody =>
+      'Check that the drive is still connected and Kivo has permission to read it.';
+
+  @override
+  String get tvPermissionStillMissing =>
+      'Android did not grant access. Check Kivo\'s permissions in your TV settings.';
+
+  @override
+  String get tvEmptyFolder => 'No videos in this folder';
+
+  @override
+  String get tvStorageLimitedTitle => 'Android is limiting access';
+
+  @override
+  String get tvStorageLimitedBody =>
+      'Android may be hiding videos on this drive. Review Kivo\'s permission and scan again.';
+
+  @override
+  String get tvScanVideos => 'Find videos in this folder';
+
+  @override
+  String get tvScanningVideos => 'Android is scanning for videos…';
+
+  @override
+  String get tvAllFilesStillMissing =>
+      'Video permission is enabled, but Android has not granted full file access.';
+
+  @override
+  String get tvAllFilesUnavailable =>
+      'Video permission is enabled. This TV has no screen for granting full file access. Try Find videos.';
+
+  @override
+  String get tvInternalStorage => 'Internal storage';
+
+  @override
+  String get tvAdvanced => 'More settings';
+
+  @override
+  String get tvAccessibility => 'Accessibility and remote';
+
+  @override
+  String get tvFocusHint =>
+      'The highlighted border shows your current focus. System text size, screen reader and reduced motion preferences are respected.';
+
+  @override
+  String get tvQueue => 'Playback queue';
+
+  @override
+  String get tvEditQueue => 'Edit queue';
+
+  @override
+  String get tvSaveSpeedPreset => 'Save this speed';
+
+  @override
+  String get tvResetSync => 'Reset synchronization';
+
+  @override
+  String get tvPrevious => 'Previous video';
+
+  @override
+  String get tvNext => 'Next video';
+
+  @override
+  String get tvMoveEarlier => 'Move earlier';
+
+  @override
+  String get tvMoveLater => 'Move later';
+
+  @override
+  String get tvLibraryComplete => 'Library';
+
+  @override
+  String get tvLibraryConnectHint =>
+      'Connect your drive and your videos will appear here. If it is already connected, refresh the library.';
+
+  @override
+  String get tvAdjustValueHint =>
+      'Use left and right to adjust. Press OK to save and return.';
+
+  @override
+  String get tvPlayerControlsHint =>
+      'Arrows · Move focus   OK · Select   Back · Hide controls';
+
+  @override
+  String get tvNoMatchingVideos => 'No videos match these filters';
+
+  @override
+  String get tvClearFilters => 'Clear filters';
+
+  @override
+  String get tvCornerTopLeft => 'Top left';
+
+  @override
+  String get tvCornerTopRight => 'Top right';
+
+  @override
+  String get tvCornerBottomLeft => 'Bottom left';
+
+  @override
+  String get tvCornerBottomRight => 'Bottom right';
+
+  @override
+  String get tvUnknownDuration => 'Local video';
+
+  @override
+  String get tvConnectedStorage => 'Connected storage';
+
+  @override
+  String get tvGoToLibrary => 'Back to library';
+
+  @override
+  String get tvContinue => 'Continue';
+
+  @override
+  String get tvPlayback => 'Playback';
+
+  @override
+  String get tvRefresh => 'Scan again';
+
+  @override
+  String get tvOptions => 'Options';
+
+  @override
+  String get tvRememberPosition => 'Remember where you left off';
+
+  @override
+  String get tvFolder => 'Folder';
+
+  @override
+  String get tvAudioSettings => 'Audio settings';
+
+  @override
+  String get tvSubtitleSettings => 'Subtitle settings';
+
+  @override
+  String get tvMorePlayback => 'More playback options';
+
+  @override
   String get settingsLanguage => 'Language';
 
   @override

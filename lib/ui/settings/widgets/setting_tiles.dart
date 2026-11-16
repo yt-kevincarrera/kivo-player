@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'color_picker_sheet.dart';
+import '../../../l10n/l10n.dart';
+import 'setting_choice.dart';
+import '../../tv/tv_input_mode.dart';
+import '../../tv/tv_panel.dart';
+import '../../tv/tv_setting_value.dart';
 import '../../widgets/kivo_focusable.dart';
 
 /// The scrolling body of a settings section. Builds every row up front (a
@@ -10,13 +15,22 @@ import '../../widgets/kivo_focusable.dart';
 class SettingsScrollBody extends StatelessWidget {
   final EdgeInsetsGeometry padding;
   final List<Widget> children;
-  const SettingsScrollBody({super.key, required this.padding, required this.children});
+  const SettingsScrollBody({
+    super.key,
+    required this.padding,
+    required this.children,
+  });
 
   @override
   Widget build(BuildContext context) => SingleChildScrollView(
-        padding: padding,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children),
-      );
+    padding: TvInputMode.of(context)
+        ? const EdgeInsets.fromLTRB(120, 6, 120, 28)
+        : padding,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: children,
+    ),
+  );
 }
 
 /// Rounded card that groups setting rows with hairline dividers between them.
@@ -29,15 +43,25 @@ class SettingsCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final rows = <Widget>[];
     for (var i = 0; i < children.length; i++) {
-      if (i > 0) rows.add(Divider(height: 1, thickness: 1, color: cs.outlineVariant.withValues(alpha: 0.5)));
+      if (i > 0) {
+        rows.add(
+          Divider(
+            height: 1,
+            thickness: 1,
+            color: cs.outlineVariant.withValues(alpha: 0.5),
+          ),
+        );
+      }
       rows.add(children[i]);
     }
     return Container(
       decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest,
+        color: TvInputMode.of(context)
+            ? Colors.transparent
+            : cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(13),
       ),
-      clipBehavior: Clip.antiAlias,
+      clipBehavior: TvInputMode.of(context) ? Clip.none : Clip.antiAlias,
       child: Column(mainAxisSize: MainAxisSize.min, children: rows),
     );
   }
@@ -48,10 +72,24 @@ class SettingNavRow extends StatelessWidget {
   final String title;
   final String? subtitle;
   final VoidCallback onTap;
-  const SettingNavRow({super.key, required this.icon, required this.title, this.subtitle, required this.onTap});
+  const SettingNavRow({
+    super.key,
+    required this.icon,
+    required this.title,
+    this.subtitle,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (TvInputMode.of(context)) {
+      return TvOptionRow(
+        label: title,
+        subtitle: subtitle,
+        icon: icon,
+        onPressed: onTap,
+      );
+    }
     final cs = Theme.of(context).colorScheme;
     return InkWell(
       onTap: onTap,
@@ -60,7 +98,8 @@ class SettingNavRow extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 34, height: 34,
+              width: 34,
+              height: 34,
               decoration: BoxDecoration(
                 color: cs.secondary.withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(9),
@@ -73,11 +112,24 @@ class SettingNavRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(title, style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600, color: cs.onSurface)),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w600,
+                      color: cs.onSurface,
+                    ),
+                  ),
                   if (subtitle != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 2),
-                      child: Text(subtitle!, style: TextStyle(fontSize: 11.5, color: cs.onSurfaceVariant)),
+                      child: Text(
+                        subtitle!,
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ),
                     ),
                 ],
               ),
@@ -95,17 +147,35 @@ class SettingSwitch extends StatelessWidget {
   final String? subtitle;
   final bool value;
   final ValueChanged<bool> onChanged;
-  const SettingSwitch({super.key, required this.title, this.subtitle, required this.value, required this.onChanged});
+  const SettingSwitch({
+    super.key,
+    required this.title,
+    this.subtitle,
+    required this.value,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (TvInputMode.of(context)) {
+      return TvOptionRow(
+        label: title,
+        subtitle: subtitle,
+        toggled: value,
+        onPressed: () => onChanged(!value),
+      );
+    }
     final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(15, 6, 10, 6),
       child: Row(
         children: [
           Expanded(child: _titleBlock(context, title, subtitle)),
-          Switch(value: value, activeThumbColor: cs.secondary, onChanged: onChanged),
+          Switch(
+            value: value,
+            activeThumbColor: cs.secondary,
+            onChanged: onChanged,
+          ),
         ],
       ),
     );
@@ -118,28 +188,74 @@ class SettingSlider extends StatelessWidget {
   final int? divisions;
   final String Function(double) label;
   final ValueChanged<double> onChanged;
-  const SettingSlider({super.key, required this.title, required this.value, required this.min,
-      required this.max, this.divisions, required this.label, required this.onChanged});
+  const SettingSlider({
+    super.key,
+    required this.title,
+    required this.value,
+    required this.min,
+    required this.max,
+    this.divisions,
+    required this.label,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (TvInputMode.of(context)) {
+      return TvSettingValue(
+        title: title,
+        value: value,
+        min: min,
+        max: max,
+        step: divisions != null && divisions! > 0
+            ? (max - min) / divisions!
+            : (max - min) / 100,
+        label: label,
+        onChanged: onChanged,
+      );
+    }
     final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(15, 10, 15, 8),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(children: [
-            Expanded(child: Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: cs.onSurface))),
-            Text(label(value), style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700,
-                color: cs.secondary, fontFeatures: const [FontFeature.tabularFigures()])),
-          ]),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: cs.onSurface,
+                  ),
+                ),
+              ),
+              Text(
+                label(value),
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                  color: cs.secondary,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ],
+          ),
           SliderTheme(
-            data: SliderTheme.of(context).copyWith(overlayShape: SliderComponentShape.noOverlay),
+            data: SliderTheme.of(
+              context,
+            ).copyWith(overlayShape: SliderComponentShape.noOverlay),
             child: Slider(
-              value: value.clamp(min, max), min: min, max: max, divisions: divisions,
-              activeColor: cs.secondary, inactiveColor: cs.onSurfaceVariant.withValues(alpha: 0.3),
-              onChanged: onChanged),
+              value: value.clamp(min, max),
+              min: min,
+              max: max,
+              divisions: divisions,
+              activeColor: cs.secondary,
+              inactiveColor: cs.onSurfaceVariant.withValues(alpha: 0.3),
+              onChanged: onChanged,
+            ),
           ),
         ],
       ),
@@ -153,11 +269,32 @@ class SettingStepper extends StatelessWidget {
   final int value, min, max, step;
   final String Function(int) label;
   final ValueChanged<int> onChanged;
-  const SettingStepper({super.key, required this.title, this.subtitle, required this.value,
-      required this.min, required this.max, this.step = 1, required this.label, required this.onChanged});
+  const SettingStepper({
+    super.key,
+    required this.title,
+    this.subtitle,
+    required this.value,
+    required this.min,
+    required this.max,
+    this.step = 1,
+    required this.label,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (TvInputMode.of(context)) {
+      return TvSettingValue(
+        title: title,
+        subtitle: subtitle,
+        value: value.toDouble(),
+        min: min.toDouble(),
+        max: max.toDouble(),
+        step: step.toDouble(),
+        label: (v) => label(v.round()),
+        onChanged: (v) => onChanged(v.round()),
+      );
+    }
     final cs = Theme.of(context).colorScheme;
     final canDown = value - step >= min;
     final canUp = value + step <= max;
@@ -167,17 +304,38 @@ class SettingStepper extends StatelessWidget {
         children: [
           Expanded(child: _titleBlock(context, title, subtitle)),
           Container(
-            decoration: BoxDecoration(color: cs.surface, borderRadius: BorderRadius.circular(9)),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              _stepBtn(context, '−', canDown ? () => onChanged(value - step) : null),
-              SizedBox(
-                width: 44,
-                child: Text(label(value), textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: cs.onSurface,
-                        fontFeatures: const [FontFeature.tabularFigures()])),
-              ),
-              _stepBtn(context, '+', canUp ? () => onChanged(value + step) : null),
-            ]),
+            decoration: BoxDecoration(
+              color: cs.surface,
+              borderRadius: BorderRadius.circular(9),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _stepBtn(
+                  context,
+                  '−',
+                  canDown ? () => onChanged(value - step) : null,
+                ),
+                SizedBox(
+                  width: 44,
+                  child: Text(
+                    label(value),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                      color: cs.onSurface,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ),
+                _stepBtn(
+                  context,
+                  '+',
+                  canUp ? () => onChanged(value + step) : null,
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -189,9 +347,20 @@ class SettingStepper extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: SizedBox(
-        width: 34, height: 32,
-        child: Center(child: Text(glyph, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700,
-            color: onTap == null ? cs.onSurfaceVariant.withValues(alpha: 0.35) : cs.secondary))),
+        width: 34,
+        height: 32,
+        child: Center(
+          child: Text(
+            glyph,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: onTap == null
+                  ? cs.onSurfaceVariant.withValues(alpha: 0.35)
+                  : cs.secondary,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -203,11 +372,26 @@ class SettingSegmented<T> extends StatelessWidget {
   final List<(T, String)> options;
   final T value;
   final ValueChanged<T> onChanged;
-  const SettingSegmented({super.key, required this.title, this.subtitle,
-      required this.options, required this.value, required this.onChanged});
+  const SettingSegmented({
+    super.key,
+    required this.title,
+    this.subtitle,
+    required this.options,
+    required this.value,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (TvInputMode.of(context)) {
+      return SettingChoice<T>(
+        title: title,
+        subtitle: subtitle,
+        options: options,
+        value: value,
+        onChanged: onChanged,
+      );
+    }
     final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(15, 11, 15, 11),
@@ -219,26 +403,39 @@ class SettingSegmented<T> extends StatelessWidget {
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(3),
-            decoration: BoxDecoration(color: cs.surface, borderRadius: BorderRadius.circular(10)),
-            child: Row(children: [
-              for (final (v, lbl) in options)
-                Expanded(
-                  child: FocusableTap(
-                    onTap: () => onChanged(v),
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 1.5),
-                      padding: const EdgeInsets.symmetric(vertical: 7),
-                      decoration: BoxDecoration(
-                        color: v == value ? cs.secondary : Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
+            decoration: BoxDecoration(
+              color: cs.surface,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              children: [
+                for (final (v, lbl) in options)
+                  Expanded(
+                    child: FocusableTap(
+                      onTap: () => onChanged(v),
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                        padding: const EdgeInsets.symmetric(vertical: 7),
+                        decoration: BoxDecoration(
+                          color: v == value ? cs.secondary : Colors.transparent,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          lbl,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: v == value
+                                ? cs.onSecondary
+                                : cs.onSurfaceVariant,
+                          ),
+                        ),
                       ),
-                      child: Text(lbl, textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600,
-                              color: v == value ? cs.onSecondary : cs.onSurfaceVariant)),
                     ),
                   ),
-                ),
-            ]),
+              ],
+            ),
           ),
         ],
       ),
@@ -252,26 +449,75 @@ Widget _titleBlock(BuildContext context, String title, String? subtitle) {
     crossAxisAlignment: CrossAxisAlignment.start,
     mainAxisSize: MainAxisSize.min,
     children: [
-      Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: cs.onSurface)),
+      Text(
+        title,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: cs.onSurface,
+        ),
+      ),
       if (subtitle != null)
         Padding(
           padding: const EdgeInsets.only(top: 3, right: 8),
-          child: Text(subtitle, style: TextStyle(fontSize: 11.5, color: cs.onSurfaceVariant, height: 1.35)),
+          child: Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 11.5,
+              color: cs.onSurfaceVariant,
+              height: 1.35,
+            ),
+          ),
         ),
     ],
   );
 }
 
-const kAccentPresets = <int>[0xFFC7A15A, 0xFF5B9BE8, 0xFFE86B6B, 0xFF57C08A, 0xFFB77BE8];
+const kAccentPresets = <int>[
+  0xFFC7A15A,
+  0xFF5B9BE8,
+  0xFFE86B6B,
+  0xFF57C08A,
+  0xFFB77BE8,
+];
 
 class SettingColor extends StatelessWidget {
   final String title;
   final int value;
   final ValueChanged<int> onChanged;
-  const SettingColor({super.key, required this.title, required this.value, required this.onChanged});
+  const SettingColor({
+    super.key,
+    required this.title,
+    required this.value,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (TvInputMode.of(context)) {
+      return TvOptionRow(
+        label: title,
+        value:
+            '#${(value & 0xffffff).toRadixString(16).padLeft(6, '0').toUpperCase()}',
+        onPressed: () async {
+          final picked = await showTvPanelChoices<int>(context, title, [
+            for (final color in kAccentPresets)
+              (
+                color,
+                '#${(color & 0xffffff).toRadixString(16).padLeft(6, '0').toUpperCase()}',
+                null,
+              ),
+            (-1, context.l10n.settingsColorPickerTitle, null),
+          ], selected: value);
+          if (picked == -1 && context.mounted) {
+            final custom = await showColorPickerSheet(context, value);
+            if (custom != null) onChanged(custom);
+          } else if (picked != null) {
+            onChanged(picked);
+          }
+        },
+      );
+    }
     final cs = Theme.of(context).colorScheme;
     final onPreset = kAccentPresets.contains(value);
     return Padding(
@@ -280,50 +526,77 @@ class SettingColor extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: cs.onSurface)),
-          const SizedBox(height: 12),
-          Row(children: [
-            for (var i = 0; i < kAccentPresets.length; i++)
-              Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: _dot(
-                  key: ValueKey('accent-preset-$i'),
-                  color: Color(kAccentPresets[i]),
-                  selected: value == kAccentPresets[i],
-                  ring: cs.onSurface,
-                  onTap: () => onChanged(kAccentPresets[i]),
-                ),
-              ),
-            // Custom: a color-wheel-ish gradient dot that opens the HSV sheet.
-            _dot(
-              key: const ValueKey('accent-custom'),
-              gradient: const SweepGradient(colors: [
-                Color(0xFFE86B6B), Color(0xFFE8B84B), Color(0xFF57C08A),
-                Color(0xFF5B9BE8), Color(0xFFB77BE8), Color(0xFFE86B6B),
-              ]),
-              selected: !onPreset,
-              ring: cs.onSurface,
-              onTap: () async {
-                final picked = await showColorPickerSheet(context, value);
-                if (picked != null) onChanged(picked);
-              },
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: cs.onSurface,
             ),
-          ]),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              for (var i = 0; i < kAccentPresets.length; i++)
+                Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: _dot(
+                    key: ValueKey('accent-preset-$i'),
+                    color: Color(kAccentPresets[i]),
+                    selected: value == kAccentPresets[i],
+                    ring: cs.onSurface,
+                    onTap: () => onChanged(kAccentPresets[i]),
+                  ),
+                ),
+              // Custom: a color-wheel-ish gradient dot that opens the HSV sheet.
+              _dot(
+                key: const ValueKey('accent-custom'),
+                gradient: const SweepGradient(
+                  colors: [
+                    Color(0xFFE86B6B),
+                    Color(0xFFE8B84B),
+                    Color(0xFF57C08A),
+                    Color(0xFF5B9BE8),
+                    Color(0xFFB77BE8),
+                    Color(0xFFE86B6B),
+                  ],
+                ),
+                selected: !onPreset,
+                ring: cs.onSurface,
+                onTap: () async {
+                  final picked = await showColorPickerSheet(context, value);
+                  if (picked != null) onChanged(picked);
+                },
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  Widget _dot({Key? key, Color? color, Gradient? gradient, required bool selected,
-      required Color ring, required VoidCallback onTap}) {
+  Widget _dot({
+    Key? key,
+    Color? color,
+    Gradient? gradient,
+    required bool selected,
+    required Color ring,
+    required VoidCallback onTap,
+  }) {
     return FocusableTap(
       key: key,
       onTap: onTap,
       child: Container(
-        width: 30, height: 30,
+        width: 30,
+        height: 30,
         decoration: BoxDecoration(
-          color: color, gradient: gradient, shape: BoxShape.circle,
-          border: Border.all(color: selected ? ring : Colors.transparent, width: 2.5),
+          color: color,
+          gradient: gradient,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: selected ? ring : Colors.transparent,
+            width: 2.5,
+          ),
         ),
       ),
     );

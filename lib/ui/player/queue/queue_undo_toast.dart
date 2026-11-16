@@ -6,6 +6,7 @@ import '../../../player/open/video_source.dart';
 import '../../../player/queue/queue_undo.dart';
 import '../../widgets/swipe_dismiss_toast.dart';
 import '../controls/resume_prompt.dart';
+import '../../tv/tv_input_mode.dart';
 
 /// Undo feedback for removals and shuffle resets. Same shell as the resume
 /// toast; sits just above it when both are up.
@@ -16,6 +17,11 @@ class QueueUndoToast extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final undo = ref.watch(queueUndoProvider);
     if (undo == null) return const SizedBox.shrink();
+    // TV dialogs have their own focus scope. Keep undo available rather than
+    // expiring it behind a panel the remote user is still operating.
+    if (TvInputMode.of(context) && !(ModalRoute.isCurrentOf(context) ?? true)) {
+      return const SizedBox.shrink();
+    }
     final resumeUp = ref.watch(resumePromptProvider) != null;
     final accent = Color(ref.watch(settingsProvider).accentColor);
     final l10n = context.l10n;

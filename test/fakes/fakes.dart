@@ -1,3 +1,4 @@
+import 'package:kivo_player/player/engine/video_progress.dart';
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:kivo_player/core/errors/error_log.dart';
@@ -53,6 +54,11 @@ class FakePlaybackEngine implements PlaybackEngine {
   final _currentAudio = StreamController<MediaTrack?>.broadcast();
   final _currentSubtitle = StreamController<MediaTrack?>.broadcast();
   final _frame = StreamController<bool>.broadcast();
+  final _videoProgress = StreamController<VideoProgress>.broadcast();
+  @override
+  Stream<VideoProgress> get videoProgressStream => _videoProgress.stream;
+  void emitVideoProgress(VideoProgress progress) =>
+      _videoProgress.add(progress);
   String? currentAudioTrackId;
   String? currentSubtitleTrackId; // null = off
   String? externalSubtitleUri;
@@ -153,6 +159,7 @@ class FakePlaybackEngine implements PlaybackEngine {
     _currentAudio.close();
     _currentSubtitle.close();
     _frame.close();
+    _videoProgress.close();
   }
 
   @override
@@ -445,7 +452,7 @@ class FakeFileSystemLister implements FileSystemLister {
   List<String> listFiles(String dir) => dirs[dir] ?? const [];
 }
 
-class FakeFrameExtractor implements FrameExtractor {
+class FakeFrameExtractor extends FrameExtractor {
   final List<Duration> requested = [];
   final List<String> prepared = [];
   String? preparedPath;
@@ -460,6 +467,12 @@ class FakeFrameExtractor implements FrameExtractor {
   /// Simulates MediaMetadataRetriever throwing on a broken file.
   bool throwOnFrame = false;
   bool released = false;
+  int suspendCount = 0;
+  @override
+  Future<void> suspend() async {
+    suspendCount++;
+  }
+
   bool autoComplete = true;
   final List<Completer<Uint8List?>> _pending = [];
 
@@ -602,6 +615,7 @@ class FakeResumeService implements ResumeService {
     completedKeys.add(key);
     positions.remove(key);
   }
+
   @override
   final Set<String> completedKeys = {};
   @override

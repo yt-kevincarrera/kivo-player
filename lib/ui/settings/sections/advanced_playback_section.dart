@@ -1,4 +1,7 @@
+import '../../tv/tv_input_mode.dart';
+import '../widgets/settings_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
 import '../../../l10n/l10n.dart';
@@ -26,9 +29,9 @@ class AdvancedPlaybackSection extends ConsumerWidget {
     final l10n = context.l10n;
 
     List<(String?, String)> langOptions(String? current) => [
-          (null, l10n.settingsAdvancedAutomaticOption),
-          if (current != null) (current, l10n.settingsAdvancedLangChosen(current)),
-        ];
+      (null, l10n.settingsAdvancedAutomaticOption),
+      if (current != null) (current, l10n.settingsAdvancedLangChosen(current)),
+    ];
 
     final levelOptions = [
       (EnhancementLevel.soft.id, l10n.settingsLevelSoft),
@@ -36,248 +39,333 @@ class AdvancedPlaybackSection extends ConsumerWidget {
       (EnhancementLevel.strong.id, l10n.settingsLevelStrong),
     ];
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.settingsAdvancedPlaybackTitle)),
+    return SettingsSectionPage(
+      title: l10n.settingsAdvancedPlaybackTitle,
       body: SettingsScrollBody(
-        padding: readablePadding(context, const EdgeInsets.fromLTRB(14, 12, 14, 28)),
+        padding: readablePadding(
+          context,
+          const EdgeInsets.fromLTRB(14, 12, 14, 28),
+        ),
         children: [
           _label(context, l10n.settingsAdvancedGroupContinueWatching),
-          SettingsCard(children: [
-            SettingAnchor(
-              id: SettingIds.resumeBehavior,
-              child: SettingChoice<String>(
-                title: l10n.settingsAdvancedResumeBehavior, value: s.resumeBehavior,
-                options: [
-                  ('auto', l10n.settingsAdvancedAutomaticOption),
-                  ('ask', l10n.settingsAdvancedResumeAsk),
-                  ('off', l10n.settingsAdvancedResumeOff),
-                ],
-                onChanged: (v) => n.set(s.copyWith(resumeBehavior: v))),
-            ),
-            SettingAnchor(
-              id: SettingIds.resumeMinSeconds,
-              child: SettingStepper(
-                title: l10n.settingsAdvancedResumeMinSeconds, value: s.resumeMinSeconds,
-                min: 0, max: 120, step: 5, label: (v) => '$v s',
-                onChanged: (v) => n.set(s.copyWith(resumeMinSeconds: v))),
-            ),
-            SettingAnchor(
-              id: SettingIds.incognito,
-              child: SettingSwitch(
-                title: l10n.settingsAdvancedIncognito,
-                subtitle: l10n.settingsAdvancedIncognitoSubtitle,
-                value: s.incognito,
-                onChanged: (v) => n.set(s.copyWith(incognito: v))),
-            ),
-            SettingAnchor(
-              id: SettingIds.incognitoTaps,
-              child: SettingSegmented<int>(
-                title: l10n.settingsAdvancedIncognitoTaps,
-                subtitle: l10n.settingsAdvancedIncognitoTapsSubtitle,
-                options: [
-                  (0, l10n.settingsAdvancedIncognitoTapsOff),
-                  for (final c in const [2, 3, 4, 5, 6]) (c, '$c'),
-                ],
-                value: s.incognitoTapCount,
-                onChanged: (v) => n.set(s.copyWith(incognitoTapCount: v))),
-            ),
-            SettingAnchor(
-              id: SettingIds.classicSurface,
-              child: SettingSwitch(
-                title: l10n.settingsAdvancedClassicSurface,
-                subtitle: l10n.settingsAdvancedClassicSurfaceSubtitle,
-                value: s.classicVideoSurface,
-                onChanged: (v) => n.set(s.copyWith(classicVideoSurface: v))),
-            ),
-          ]),
+          SettingsCard(
+            children: [
+              SettingAnchor(
+                id: SettingIds.resumeBehavior,
+                child: SettingChoice<String>(
+                  title: l10n.settingsAdvancedResumeBehavior,
+                  value: s.resumeBehavior,
+                  options: [
+                    ('auto', l10n.settingsAdvancedAutomaticOption),
+                    ('ask', l10n.settingsAdvancedResumeAsk),
+                    ('off', l10n.settingsAdvancedResumeOff),
+                  ],
+                  onChanged: (v) => n.set(s.copyWith(resumeBehavior: v)),
+                ),
+              ),
+              SettingAnchor(
+                id: SettingIds.resumeMinSeconds,
+                child: SettingStepper(
+                  title: l10n.settingsAdvancedResumeMinSeconds,
+                  value: s.resumeMinSeconds,
+                  min: 0,
+                  max: 120,
+                  step: 5,
+                  label: (v) => '$v s',
+                  onChanged: (v) => n.set(s.copyWith(resumeMinSeconds: v)),
+                ),
+              ),
+              SettingAnchor(
+                id: SettingIds.incognito,
+                child: SettingSwitch(
+                  title: l10n.settingsAdvancedIncognito,
+                  subtitle: l10n.settingsAdvancedIncognitoSubtitle,
+                  value: s.incognito,
+                  onChanged: (v) => n.set(s.copyWith(incognito: v)),
+                ),
+              ),
+              SettingAnchor(
+                id: SettingIds.incognitoTaps,
+                child: SettingSegmented<int>(
+                  title: l10n.settingsAdvancedIncognitoTaps,
+                  subtitle: l10n.settingsAdvancedIncognitoTapsSubtitle,
+                  options: [
+                    (0, l10n.settingsAdvancedIncognitoTapsOff),
+                    for (final c in const [2, 3, 4, 5, 6]) (c, '$c'),
+                  ],
+                  value: s.incognitoTapCount,
+                  onChanged: (v) => n.set(s.copyWith(incognitoTapCount: v)),
+                ),
+              ),
+              SettingAnchor(
+                id: SettingIds.classicSurface,
+                child: SettingSwitch(
+                  title: l10n.settingsAdvancedClassicSurface,
+                  subtitle: l10n.settingsAdvancedClassicSurfaceSubtitle,
+                  value: s.classicVideoSurface,
+                  onChanged: (v) => n.set(s.copyWith(classicVideoSurface: v)),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
           _label(context, l10n.settingsAdvancedGroupPlayback),
-          SettingsCard(children: [
-            SettingAnchor(
-              id: SettingIds.endActions,
-              child: SettingNavRow(
-                icon: Icons.task_alt_rounded,
-                title: l10n.endActionsTitle,
-                subtitle: s.endActionsGlobal
-                    ? endActionsSummary(l10n, EndActions.defaults(s),
-                        toTrash: !s.endActionsTrash ||
-                            ref.watch(mediaFileOpsProvider).movesToTrash)
-                    : l10n.endActionsAfterKeepGoing,
-                onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
-                  builder: (_) => const EndActionsSettingsScreen(),
-                )),
+          SettingsCard(
+            children: [
+              SettingAnchor(
+                id: SettingIds.endActions,
+                child: SettingNavRow(
+                  icon: Icons.task_alt_rounded,
+                  title: l10n.endActionsTitle,
+                  subtitle: s.endActionsGlobal
+                      ? endActionsSummary(
+                          l10n,
+                          EndActions.defaults(s),
+                          toTrash:
+                              !s.endActionsTrash ||
+                              ref.watch(mediaFileOpsProvider).movesToTrash,
+                        )
+                      : l10n.endActionsAfterKeepGoing,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const EndActionsSettingsScreen(),
+                    ),
+                  ),
+                ),
               ),
-            ),
-            SettingAnchor(
-              id: SettingIds.autoplayNext,
-              child: SettingSwitch(
-                title: l10n.settingsAdvancedAutoplayNext, value: s.autoplayNext,
-                onChanged: (v) => n.set(s.copyWith(autoplayNext: v))),
-            ),
-            SettingAnchor(
-              id: SettingIds.pipAutoOnHome,
-              child: SettingSwitch(
-                title: l10n.settingsAdvancedPipAutoOnHome, value: s.pipAutoOnHome,
-                onChanged: (v) => n.set(s.copyWith(pipAutoOnHome: v))),
-            ),
-            SettingAnchor(
-              id: SettingIds.minimizeKeepsPlaying,
-              child: SettingSwitch(
-                title: l10n.settingsAdvancedMinimizeKeepsPlaying,
-                subtitle: l10n.settingsAdvancedMinimizeKeepsPlayingSubtitle,
-                value: s.minimizeKeepsPlaying,
-                onChanged: (v) => n.set(s.copyWith(minimizeKeepsPlaying: v))),
-            ),
-          ]),
+              SettingAnchor(
+                id: SettingIds.autoplayNext,
+                child: SettingSwitch(
+                  title: l10n.settingsAdvancedAutoplayNext,
+                  value: s.autoplayNext,
+                  onChanged: (v) => n.set(s.copyWith(autoplayNext: v)),
+                ),
+              ),
+              SettingAnchor(
+                id: SettingIds.pipAutoOnHome,
+                child: SettingSwitch(
+                  title: l10n.settingsAdvancedPipAutoOnHome,
+                  value: s.pipAutoOnHome,
+                  onChanged: (v) => n.set(s.copyWith(pipAutoOnHome: v)),
+                ),
+              ),
+              SettingAnchor(
+                id: SettingIds.minimizeKeepsPlaying,
+                child: SettingSwitch(
+                  title: l10n.settingsAdvancedMinimizeKeepsPlaying,
+                  subtitle: l10n.settingsAdvancedMinimizeKeepsPlayingSubtitle,
+                  value: s.minimizeKeepsPlaying,
+                  onChanged: (v) => n.set(s.copyWith(minimizeKeepsPlaying: v)),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
           _label(context, l10n.settingsAdvancedGroupDecoder),
-          SettingsCard(children: [
-            SettingAnchor(
-              id: SettingIds.decoderMode,
-              child: SettingChoice<String>(
-                title: l10n.settingsDecoderMode,
-                subtitle: l10n.settingsDecoderModeSubtitle,
-                value: s.decoderMode,
-                options: [
-                  (DecoderMode.auto.id, l10n.settingsDecoderAuto),
-                  (DecoderMode.hardware.id, l10n.settingsDecoderHardware),
-                  (DecoderMode.software.id, l10n.settingsDecoderSoftware),
-                ],
-                onChanged: (v) => n.set(s.copyWith(decoderMode: v))),
-            ),
-            // Both only mean something in Automático: Hardware and Software
-            // never switch on their own.
-            if (s.decoderMode == DecoderMode.auto.id) ...[
+          SettingsCard(
+            children: [
               SettingAnchor(
-                id: SettingIds.decoderAutoFallback,
-                child: SettingSwitch(
-                  title: l10n.settingsDecoderAutoFallback,
-                  subtitle: l10n.settingsDecoderAutoFallbackSubtitle,
-                  value: s.decoderAutoFallback,
-                  onChanged: (v) => n.set(s.copyWith(decoderAutoFallback: v))),
-              ),
-              if (s.decoderAutoFallback)
-                SettingAnchor(
-                  id: SettingIds.decoderStallSeconds,
-                  child: SettingStepper(
-                    title: l10n.settingsDecoderStallSeconds,
-                    value: s.decoderStallSeconds,
-                    min: 1, max: 10, step: 1, label: (v) => '$v s',
-                    onChanged: (v) => n.set(s.copyWith(decoderStallSeconds: v))),
+                id: SettingIds.decoderMode,
+                child: SettingChoice<String>(
+                  title: l10n.settingsDecoderMode,
+                  subtitle: l10n.settingsDecoderModeSubtitle,
+                  value: s.decoderMode,
+                  options: [
+                    (DecoderMode.auto.id, l10n.settingsDecoderAuto),
+                    (DecoderMode.hardware.id, l10n.settingsDecoderHardware),
+                    (DecoderMode.software.id, l10n.settingsDecoderSoftware),
+                  ],
+                  onChanged: (v) => n.set(s.copyWith(decoderMode: v)),
                 ),
-            ],
-            SettingAnchor(
-              id: SettingIds.decoderForget,
-              child: SettingNavRow(
-                icon: Icons.restart_alt_rounded,
-                title: l10n.settingsDecoderForget,
-                subtitle: l10n.settingsDecoderForgetSubtitle,
-                onTap: () async {
-                  final messenger = ScaffoldMessenger.of(context);
-                  final count =
-                      await ref.read(decoderControllerProvider).forgetAll();
-                  messenger
-                    ..hideCurrentSnackBar()
-                    ..showSnackBar(SnackBar(
-                        content: Text(l10n.settingsDecoderForgotSnackbar(count))));
-                },
               ),
-            ),
-          ]),
+              // Both only mean something in Automático: Hardware and Software
+              // never switch on their own.
+              if (s.decoderMode == DecoderMode.auto.id) ...[
+                SettingAnchor(
+                  id: SettingIds.decoderAutoFallback,
+                  child: SettingSwitch(
+                    title: l10n.settingsDecoderAutoFallback,
+                    subtitle: l10n.settingsDecoderAutoFallbackSubtitle,
+                    value: s.decoderAutoFallback,
+                    onChanged: (v) => n.set(s.copyWith(decoderAutoFallback: v)),
+                  ),
+                ),
+                if (s.decoderAutoFallback)
+                  SettingAnchor(
+                    id: SettingIds.decoderStallSeconds,
+                    child: SettingStepper(
+                      title: l10n.settingsDecoderStallSeconds,
+                      value: s.decoderStallSeconds,
+                      min: 1,
+                      max: 10,
+                      step: 1,
+                      label: (v) => '$v s',
+                      onChanged: (v) =>
+                          n.set(s.copyWith(decoderStallSeconds: v)),
+                    ),
+                  ),
+              ],
+              SettingAnchor(
+                id: SettingIds.decoderForget,
+                child: SettingNavRow(
+                  icon: Icons.restart_alt_rounded,
+                  title: l10n.settingsDecoderForget,
+                  subtitle: l10n.settingsDecoderForgetSubtitle,
+                  onTap: () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    final count = await ref
+                        .read(decoderControllerProvider)
+                        .forgetAll();
+                    messenger
+                      ..hideCurrentSnackBar()
+                      ..showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            l10n.settingsDecoderForgotSnackbar(count),
+                          ),
+                        ),
+                      );
+                  },
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
           _label(context, l10n.settingsAdvancedGroupAudio),
-          SettingsCard(children: [
-            SettingAnchor(
-              id: SettingIds.nightMode,
-              child: SettingSwitch(
-                title: l10n.settingsNightMode,
-                subtitle: l10n.settingsNightModeSubtitle,
-                value: s.nightMode,
-                onChanged: (v) => n.set(s.copyWith(nightMode: v))),
-            ),
-            if (s.nightMode)
+          SettingsCard(
+            children: [
               SettingAnchor(
-                id: SettingIds.nightModeLevel,
-                child: SettingChoice<String>(
-                  title: l10n.settingsNightModeLevel,
-                  value: s.nightModeLevel,
-                  options: levelOptions,
-                  onChanged: (v) => n.set(s.copyWith(nightModeLevel: v))),
+                id: SettingIds.nightMode,
+                child: SettingSwitch(
+                  title: l10n.settingsNightMode,
+                  subtitle: l10n.settingsNightModeSubtitle,
+                  value: s.nightMode,
+                  onChanged: (v) => n.set(s.copyWith(nightMode: v)),
+                ),
               ),
-            SettingAnchor(
-              id: SettingIds.voiceBoost,
-              child: SettingSwitch(
-                title: l10n.settingsVoiceBoost,
-                subtitle: l10n.settingsVoiceBoostSubtitle,
-                value: s.voiceBoost,
-                onChanged: (v) => n.set(s.copyWith(voiceBoost: v))),
-            ),
-            if (s.voiceBoost)
+              if (s.nightMode)
+                SettingAnchor(
+                  id: SettingIds.nightModeLevel,
+                  child: SettingChoice<String>(
+                    title: l10n.settingsNightModeLevel,
+                    value: s.nightModeLevel,
+                    options: levelOptions,
+                    onChanged: (v) => n.set(s.copyWith(nightModeLevel: v)),
+                  ),
+                ),
               SettingAnchor(
-                id: SettingIds.voiceBoostLevel,
-                child: SettingChoice<String>(
-                  title: l10n.settingsVoiceBoostLevel,
-                  value: s.voiceBoostLevel,
-                  options: levelOptions,
-                  onChanged: (v) => n.set(s.copyWith(voiceBoostLevel: v))),
+                id: SettingIds.voiceBoost,
+                child: SettingSwitch(
+                  title: l10n.settingsVoiceBoost,
+                  subtitle: l10n.settingsVoiceBoostSubtitle,
+                  value: s.voiceBoost,
+                  onChanged: (v) => n.set(s.copyWith(voiceBoost: v)),
+                ),
               ),
-          ]),
+              if (s.voiceBoost)
+                SettingAnchor(
+                  id: SettingIds.voiceBoostLevel,
+                  child: SettingChoice<String>(
+                    title: l10n.settingsVoiceBoostLevel,
+                    value: s.voiceBoostLevel,
+                    options: levelOptions,
+                    onChanged: (v) => n.set(s.copyWith(voiceBoostLevel: v)),
+                  ),
+                ),
+            ],
+          ),
           const SizedBox(height: 16),
           _label(context, l10n.settingsAdvancedGroupSubtitlesAudio),
-          SettingsCard(children: [
-            SettingAnchor(
-              id: SettingIds.subtitlesDefault,
-              child: SettingSwitch(
-                title: l10n.settingsAdvancedSubtitlesDefault, value: s.subtitlesEnabledByDefault,
-                onChanged: (v) => n.set(s.copyWith(subtitlesEnabledByDefault: v))),
-            ),
-            SettingAnchor(
-              id: SettingIds.preferredSubtitleLang,
-              child: SettingChoice<String?>(
-                title: l10n.settingsAdvancedPreferredSubtitleLang,
-                subtitle: l10n.settingsAdvancedPreferredLangSubtitle,
-                value: s.preferredSubtitleLanguage, options: langOptions(s.preferredSubtitleLanguage),
-                onChanged: (v) => n.set(s.copyWith(preferredSubtitleLanguage: v))),
-            ),
-            SettingAnchor(
-              id: SettingIds.preferredAudioLang,
-              child: SettingChoice<String?>(
-                title: l10n.settingsAdvancedPreferredAudioLang,
-                subtitle: l10n.settingsAdvancedPreferredLangSubtitle,
-                value: s.preferredAudioLanguage, options: langOptions(s.preferredAudioLanguage),
-                onChanged: (v) => n.set(s.copyWith(preferredAudioLanguage: v))),
-            ),
-          ]),
+          SettingsCard(
+            children: [
+              SettingAnchor(
+                id: SettingIds.subtitlesDefault,
+                child: SettingSwitch(
+                  title: l10n.settingsAdvancedSubtitlesDefault,
+                  value: s.subtitlesEnabledByDefault,
+                  onChanged: (v) =>
+                      n.set(s.copyWith(subtitlesEnabledByDefault: v)),
+                ),
+              ),
+              SettingAnchor(
+                id: SettingIds.preferredSubtitleLang,
+                child: SettingChoice<String?>(
+                  title: l10n.settingsAdvancedPreferredSubtitleLang,
+                  subtitle: l10n.settingsAdvancedPreferredLangSubtitle,
+                  value: s.preferredSubtitleLanguage,
+                  options: langOptions(s.preferredSubtitleLanguage),
+                  onChanged: (v) =>
+                      n.set(s.copyWith(preferredSubtitleLanguage: v)),
+                ),
+              ),
+              SettingAnchor(
+                id: SettingIds.preferredAudioLang,
+                child: SettingChoice<String?>(
+                  title: l10n.settingsAdvancedPreferredAudioLang,
+                  subtitle: l10n.settingsAdvancedPreferredLangSubtitle,
+                  value: s.preferredAudioLanguage,
+                  options: langOptions(s.preferredAudioLanguage),
+                  onChanged: (v) =>
+                      n.set(s.copyWith(preferredAudioLanguage: v)),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
           _label(context, l10n.settingsAdvancedGroupStorage),
-          SettingsCard(children: [
-            SettingAnchor(
-              id: SettingIds.allFilesAccess,
-              child: Builder(builder: (context) {
-                final granted = ref.watch(allFilesAccessGrantedProvider).valueOrNull ?? false;
-                return SettingNavRow(
-                  icon: Icons.folder_open_outlined,
-                  title: l10n.settingsAdvancedAllFilesAccess,
-                  subtitle: granted
-                      ? l10n.settingsAdvancedAllFilesAccessGranted
-                      : l10n.settingsAdvancedAllFilesAccessPrompt,
-                  onTap: () async {
-                    await ref.read(allFilesAccessProvider).request();
-                    ref.invalidate(allFilesAccessGrantedProvider);
+          SettingsCard(
+            children: [
+              SettingAnchor(
+                id: SettingIds.allFilesAccess,
+                child: Builder(
+                  builder: (context) {
+                    final granted =
+                        ref.watch(allFilesAccessGrantedProvider).valueOrNull ??
+                        false;
+                    return SettingNavRow(
+                      icon: Icons.folder_open_outlined,
+                      title: l10n.settingsAdvancedAllFilesAccess,
+                      subtitle: granted
+                          ? l10n.settingsAdvancedAllFilesAccessGranted
+                          : l10n.settingsAdvancedAllFilesAccessPrompt,
+                      onTap: () async {
+                        try {
+                          await ref.read(allFilesAccessProvider).request();
+                          ref.invalidate(allFilesAccessGrantedProvider);
+                        } on PlatformException catch (error) {
+                          if (!context.mounted ||
+                              !TvInputMode.of(context) ||
+                              error.code != 'ALL_FILES_SETTINGS_UNAVAILABLE') {
+                            rethrow;
+                          }
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(context.l10n.tvAllFilesUnavailable),
+                            ),
+                          );
+                        }
+                      },
+                    );
                   },
-                );
-              }),
-            ),
-          ]),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 
   Widget _label(BuildContext context, String text) => Padding(
-        padding: const EdgeInsets.fromLTRB(6, 8, 6, 8),
-        child: Text(text.toUpperCase(),
-            style: TextStyle(fontSize: 10.5, letterSpacing: 1.4, fontWeight: FontWeight.w700,
-                color: Theme.of(context).colorScheme.secondary)),
-      );
+    padding: const EdgeInsets.fromLTRB(6, 8, 6, 8),
+    child: Text(
+      text.toUpperCase(),
+      style: TextStyle(
+        fontSize: TvInputMode.of(context) ? 18 : 10.5,
+        letterSpacing: 1.4,
+        fontWeight: FontWeight.w700,
+        color: Theme.of(context).colorScheme.secondary,
+      ),
+    ),
+  );
 }

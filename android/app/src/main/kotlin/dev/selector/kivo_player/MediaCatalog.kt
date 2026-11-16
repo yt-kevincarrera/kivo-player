@@ -11,16 +11,17 @@ import java.io.File
 
 /** Video rows plus accessible RealMedia files Android classified as audio/data. */
 internal class MediaCatalog(private val resolver: ContentResolver) {
-    fun scan(): ArrayList<HashMap<String, Any>> {
+    fun scan(fileFilter: ((String) -> Boolean)? = null): ArrayList<HashMap<String, Any>> {
         val rows = ArrayList<HashMap<String, Any>>()
         val seen = HashSet<Long>()
-        append(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, rows, seen)
+        append(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, rows, seen, fileFilter = fileFilter)
         try {
             append(
                 MediaStore.Files.getContentUri("external"), rows, seen,
                 "LOWER(${MediaStore.MediaColumns.DISPLAY_NAME}) LIKE ? OR " +
                     "LOWER(${MediaStore.MediaColumns.DISPLAY_NAME}) LIKE ?",
                 arrayOf("%.rm", "%.rmvb"),
+                fileFilter,
             )
         } catch (e: RuntimeException) {
             // Scoped storage can hide audio/data rows when only video access
@@ -37,6 +38,7 @@ internal class MediaCatalog(private val resolver: ContentResolver) {
         seen: MutableSet<Long>,
         selection: String? = null,
         args: Array<String>? = null,
+        fileFilter: ((String) -> Boolean)? = null,
     ) {
         val columns = arrayOf(
             MediaStore.Video.Media._ID,
@@ -66,6 +68,7 @@ internal class MediaCatalog(private val resolver: ContentResolver) {
                 val id = c.getLong(idC)
                 if (!seen.add(id)) continue
                 val data = if (dataC >= 0) c.getString(dataC) else null
+                if (fileFilter != null && (data == null || !fileFilter(data))) continue
                 val uri = ContentUris.withAppendedId(collection, id)
                 val name = c.getString(nameC) ?: ""
                 var duration = c.getLong(durC)

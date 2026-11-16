@@ -19,6 +19,8 @@ class KivoSettings {
   final List<double> speedPresets;
   final bool rememberSpeed;
   final int centerSkipSeconds;
+  final int tvRemoteSeekSeconds;
+  final bool tvRemoteProgressiveSeek;
   final int controlsAutoHideMs;
   final bool showInfoOverlay;
   final String infoOverlayContent; // 'name_time' | 'name' | 'remaining' | 'clock'
@@ -199,6 +201,8 @@ class KivoSettings {
     required this.incognito,
     required this.incognitoTapCount,
     required this.classicVideoSurface,
+    this.tvRemoteSeekSeconds = 3,
+    this.tvRemoteProgressiveSeek = true,
   });
 
   factory KivoSettings.defaults() => const KivoSettings(
@@ -309,6 +313,8 @@ class KivoSettings {
     List<double>? speedPresets,
     bool? rememberSpeed,
     int? centerSkipSeconds,
+    int? tvRemoteSeekSeconds,
+    bool? tvRemoteProgressiveSeek,
     int? controlsAutoHideMs,
     bool? showInfoOverlay,
     String? infoOverlayContent,
@@ -395,6 +401,8 @@ class KivoSettings {
       speedPresets: speedPresets ?? this.speedPresets,
       rememberSpeed: rememberSpeed ?? this.rememberSpeed,
       centerSkipSeconds: centerSkipSeconds ?? this.centerSkipSeconds,
+      tvRemoteSeekSeconds: tvRemoteSeekSeconds ?? this.tvRemoteSeekSeconds,
+      tvRemoteProgressiveSeek: tvRemoteProgressiveSeek ?? this.tvRemoteProgressiveSeek,
       controlsAutoHideMs: controlsAutoHideMs ?? this.controlsAutoHideMs,
       showInfoOverlay: showInfoOverlay ?? this.showInfoOverlay,
       infoOverlayContent: infoOverlayContent ?? this.infoOverlayContent,
@@ -495,6 +503,8 @@ class KivoSettings {
         'speedPresets': speedPresets,
         'rememberSpeed': rememberSpeed,
         'centerSkipSeconds': centerSkipSeconds,
+        'tvRemoteSeekSeconds': tvRemoteSeekSeconds,
+        'tvRemoteProgressiveSeek': tvRemoteProgressiveSeek,
         'controlsAutoHideMs': controlsAutoHideMs,
         'showInfoOverlay': showInfoOverlay,
         'infoOverlayContent': infoOverlayContent,
@@ -584,6 +594,8 @@ class KivoSettings {
       speedPresets: (m['speedPresets'] as List?)?.map((e) => (e as num).toDouble()).toList() ?? d.speedPresets,
       rememberSpeed: m['rememberSpeed'] ?? d.rememberSpeed,
       centerSkipSeconds: m['centerSkipSeconds'] ?? d.centerSkipSeconds,
+      tvRemoteSeekSeconds: (m['tvRemoteSeekSeconds'] as num?)?.toInt().clamp(1, 60) ?? d.tvRemoteSeekSeconds,
+      tvRemoteProgressiveSeek: m['tvRemoteProgressiveSeek'] as bool? ?? d.tvRemoteProgressiveSeek,
       controlsAutoHideMs: m['controlsAutoHideMs'] ?? d.controlsAutoHideMs,
       showInfoOverlay: m['showInfoOverlay'] ?? d.showInfoOverlay,
       infoOverlayContent: m['infoOverlayContent'] ?? d.infoOverlayContent,

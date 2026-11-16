@@ -5,6 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/errors/error_log.dart';
 import '../../../core/errors/error_log_provider.dart';
 import '../../../l10n/l10n.dart';
+import '../../tv/tv_input_mode.dart';
+import '../../tv/tv_page.dart';
+import '../../tv/tv_panel.dart';
+import '../../tv/tv_focusable.dart';
 
 /// The last failures Kivo recorded, so a reported code can be traced back to
 /// what actually went wrong on that device.
@@ -20,8 +24,9 @@ class _ErrorLogSectionState extends ConsumerState<ErrorLogSection> {
 
   String _age(BuildContext context, int timestampMs) {
     final l10n = context.l10n;
-    final d = DateTime.now()
-        .difference(DateTime.fromMillisecondsSinceEpoch(timestampMs));
+    final d = DateTime.now().difference(
+      DateTime.fromMillisecondsSinceEpoch(timestampMs),
+    );
     if (d.inMinutes < 1) return l10n.settingsErrorLogAgeJustNow;
     if (d.inHours < 1) return l10n.settingsErrorLogAgeMinutes(d.inMinutes);
     if (d.inDays < 1) return l10n.settingsErrorLogAgeHours(d.inHours);
@@ -31,13 +36,16 @@ class _ErrorLogSectionState extends ConsumerState<ErrorLogSection> {
   Future<void> _copyAll(List<ErrorLogEntry> entries) async {
     final l10n = context.l10n;
     final text = entries
-        .map((e) =>
-            '${e.code} ${e.op} · ${l10n.settingsErrorLogDetailLine(e.appVersion, e.androidSdk)}\n${e.detail}')
+        .map(
+          (e) =>
+              '${e.code} ${e.op} · ${l10n.settingsErrorLogDetailLine(e.appVersion, e.androidSdk)}\n${e.detail}',
+        )
         .join('\n\n');
     await Clipboard.setData(ClipboardData(text: text));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.settingsErrorLogCopiedSnackbar)));
+      SnackBar(content: Text(context.l10n.settingsErrorLogCopiedSnackbar)),
+    );
   }
 
   @override
@@ -47,6 +55,55 @@ class _ErrorLogSectionState extends ConsumerState<ErrorLogSection> {
     final log = ref.watch(errorLogProvider);
     final entries = log.entries();
 
+    if (TvInputMode.of(context)) {
+      return TvPage(
+        title: l10n.settingsAboutErrorLogTitle,
+        actions: [
+          if (entries.isNotEmpty) ...[
+            TvButton(
+              label: l10n.settingsErrorLogCopyAllTooltip,
+              icon: Icons.copy,
+              onPressed: () => _copyAll(entries),
+            ),
+            const SizedBox(width: 14),
+            TvButton(
+              label: l10n.settingsErrorLogClearTooltip,
+              icon: Icons.delete_outline,
+              onPressed: () async {
+                await log.clear();
+                if (mounted) setState(() => _expanded.clear());
+              },
+            ),
+          ],
+        ],
+        child: ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 120, vertical: 8),
+          children: [
+            if (entries.isEmpty)
+              Text(
+                l10n.settingsErrorLogEmpty,
+                style: const TextStyle(fontSize: 22),
+              ),
+            for (final entry in entries)
+              TvOptionRow(
+                label: '${entry.code} ${entry.op}',
+                subtitle: _age(context, entry.timestampMs),
+                onPressed: () => showTvPanel<void>(
+                  context: context,
+                  title: entry.code,
+                  builder: (_) => SingleChildScrollView(
+                    padding: const EdgeInsets.all(6),
+                    child: SelectableText(
+                      entry.detail,
+                      style: const TextStyle(fontSize: 20, height: 1.5),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.settingsAboutErrorLogTitle),
@@ -70,8 +127,10 @@ class _ErrorLogSectionState extends ConsumerState<ErrorLogSection> {
       ),
       body: entries.isEmpty
           ? Center(
-              child: Text(l10n.settingsErrorLogEmpty,
-                  style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant)),
+              child: Text(
+                l10n.settingsErrorLogEmpty,
+                style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant),
+              ),
             )
           : ListView.separated(
               padding: const EdgeInsets.fromLTRB(14, 16, 14, 28),
@@ -82,12 +141,18 @@ class _ErrorLogSectionState extends ConsumerState<ErrorLogSection> {
     );
   }
 
-  Widget _entryTile(BuildContext context, ErrorLogEntry e, int i, ColorScheme cs) {
+  Widget _entryTile(
+    BuildContext context,
+    ErrorLogEntry e,
+    int i,
+    ColorScheme cs,
+  ) {
     final open = _expanded.contains(i);
     return Container(
       decoration: BoxDecoration(
-          color: cs.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(13)),
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(13),
+      ),
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -99,19 +164,29 @@ class _ErrorLogSectionState extends ConsumerState<ErrorLogSection> {
               padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
               child: Row(
                 children: [
-                  Text(e.code,
-                      style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w700,
-                          color: cs.secondary)),
+                  Text(
+                    e.code,
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                      color: cs.secondary,
+                    ),
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Text('${e.op} · ${_age(context, e.timestampMs)}',
-                        style: TextStyle(
-                            fontSize: 11.5, color: cs.onSurfaceVariant)),
+                    child: Text(
+                      '${e.op} · ${_age(context, e.timestampMs)}',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: cs.onSurfaceVariant,
+                      ),
+                    ),
                   ),
-                  Icon(open ? Icons.expand_less : Icons.expand_more,
-                      size: 20, color: cs.onSurfaceVariant),
+                  Icon(
+                    open ? Icons.expand_less : Icons.expand_more,
+                    size: 20,
+                    color: cs.onSurfaceVariant,
+                  ),
                 ],
               ),
             ),
@@ -122,23 +197,29 @@ class _ErrorLogSectionState extends ConsumerState<ErrorLogSection> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(context.l10n.settingsErrorLogDetailLine(e.appVersion, e.androidSdk),
-                      style:
-                          TextStyle(fontSize: 11, color: cs.onSurfaceVariant)),
+                  Text(
+                    context.l10n.settingsErrorLogDetailLine(
+                      e.appVersion,
+                      e.androidSdk,
+                    ),
+                    style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant),
+                  ),
                   const SizedBox(height: 8),
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(11),
                     decoration: BoxDecoration(
-                        color: cs.surface,
-                        borderRadius: BorderRadius.circular(9)),
+                      color: cs.surface,
+                      borderRadius: BorderRadius.circular(9),
+                    ),
                     child: SelectableText(
                       e.detail,
                       style: TextStyle(
-                          fontSize: 11,
-                          fontFamily: 'monospace',
-                          height: 1.4,
-                          color: cs.onSurfaceVariant),
+                        fontSize: 11,
+                        fontFamily: 'monospace',
+                        height: 1.4,
+                        color: cs.onSurfaceVariant,
+                      ),
                     ),
                   ),
                 ],

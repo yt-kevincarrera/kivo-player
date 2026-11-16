@@ -1,3 +1,6 @@
+import '../../tv/tv_modal.dart';
+import '../../tv/tv_input_mode.dart';
+import '../../tv/tv_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,8 +14,9 @@ import '../../../player/control/player_controller.dart';
 import '../../../player/open/video_source.dart';
 
 Future<void> showBookmarksSheet(BuildContext context) {
-  return showModalBottomSheet(
+  return showTvAwareBottomSheet(
     context: context,
+    title: context.l10n.playerBookmarksTitle,
     backgroundColor: KivoColors.panel,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -35,8 +39,77 @@ class _BookmarksSheet extends ConsumerWidget {
     // video, shuffle). Every callback wired up in this build must keep
     // writing to the video this build is showing, never whatever happens to
     // be open when the callback actually runs.
-    final videoKey = ref.watch(currentVideoProvider.select((s) => s?.resumeKey));
+    final videoKey = ref.watch(
+      currentVideoProvider.select((s) => s?.resumeKey),
+    );
 
+    if (TvInputMode.of(context)) {
+      return ListView(
+        padding: const EdgeInsets.all(6),
+        children: [
+          if (bookmarks.isEmpty)
+            Text(
+              context.l10n.playerBookmarksEmpty,
+              style: const TextStyle(fontSize: 22),
+            ),
+          for (var i = 0; i < bookmarks.length; i++)
+            TvOptionRow(
+              label: bookmarks[i].name.isEmpty
+                  ? fmtDuration(Duration(milliseconds: bookmarks[i].positionMs))
+                  : bookmarks[i].name,
+              value: fmtDuration(
+                Duration(milliseconds: bookmarks[i].positionMs),
+              ),
+              icon: Icons.bookmark_outline,
+              onPressed: () => showTvPanel<void>(
+                context: context,
+                title: bookmarks[i].name.isEmpty
+                    ? context.l10n.playerBookmarksTitle
+                    : bookmarks[i].name,
+                builder: (ctx) => ListView(
+                  padding: const EdgeInsets.all(6),
+                  children: [
+                    TvOptionRow(
+                      label: ctx.l10n.playerPlayTooltip,
+                      icon: Icons.play_arrow,
+                      autofocus: true,
+                      onPressed: () {
+                        Navigator.of(ctx).pop();
+                        Navigator.of(context).pop();
+                        ref
+                            .read(playerControllerProvider)
+                            .seekTo(
+                              Duration(milliseconds: bookmarks[i].positionMs),
+                            );
+                      },
+                    ),
+                    TvOptionRow(
+                      label: ctx.l10n.commonRename,
+                      icon: Icons.edit_outlined,
+                      onPressed: () =>
+                          _renameBookmark(ctx, ref, videoKey, i, bookmarks[i]),
+                    ),
+                    TvOptionRow(
+                      label: ctx.l10n.commonDelete,
+                      icon: Icons.delete_outline,
+                      onPressed: () {
+                        _deleteBookmark(
+                          context,
+                          ref,
+                          videoKey,
+                          i,
+                          bookmarks[i],
+                        );
+                        Navigator.of(ctx).pop();
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      );
+    }
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
@@ -93,14 +166,26 @@ class _BookmarksSheet extends ConsumerWidget {
                     accent: accent,
                     onTap: () {
                       Navigator.of(context).pop();
-                      ref.read(playerControllerProvider).seekTo(
+                      ref
+                          .read(playerControllerProvider)
+                          .seekTo(
                             Duration(milliseconds: bookmarks[i].positionMs),
                           );
                     },
-                    onRename: () =>
-                        _renameBookmark(context, ref, videoKey, i, bookmarks[i]),
-                    onDelete: () =>
-                        _deleteBookmark(context, ref, videoKey, i, bookmarks[i]),
+                    onRename: () => _renameBookmark(
+                      context,
+                      ref,
+                      videoKey,
+                      i,
+                      bookmarks[i],
+                    ),
+                    onDelete: () => _deleteBookmark(
+                      context,
+                      ref,
+                      videoKey,
+                      i,
+                      bookmarks[i],
+                    ),
                   ),
                 ),
               ),
@@ -115,7 +200,17 @@ class _BookmarksSheet extends ConsumerWidget {
 /// same rule the playlist rename dialog uses (see `_rename` in
 /// playlist_screen.dart). Shared by the sheet's rename row and the "Nombrar"
 /// SnackBar action in more_menu.dart, so the two never drift apart.
-Future<String?> promptBookmarkName(BuildContext context, {String initial = ''}) async {
+Future<String?> promptBookmarkName(
+  BuildContext context, {
+  String initial = '',
+}) async {
+  if (TvInputMode.of(context)) {
+    return showTvTextInput(
+      context,
+      context.l10n.playerBookmarksTitle,
+      initial: initial,
+    );
+  }
   final controller = TextEditingController(text: initial);
   try {
     return await showDialog<String>(

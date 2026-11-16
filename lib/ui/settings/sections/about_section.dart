@@ -1,3 +1,6 @@
+import '../widgets/settings_page.dart';
+import '../../tv/tv_input_mode.dart';
+import '../../tv/tv_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/errors/kivo_failure.dart';
@@ -85,6 +88,21 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
     // The version is missing only if settings were cleared under a live
     // download, so it belongs in the subtitle rather than the title.
     final v = pending.version;
+    if (TvInputMode.of(context)) {
+      return [
+        if (pending.phase == DownloadPhase.downloading ||
+            pending.phase == DownloadPhase.ready)
+          TvOptionRow(
+            label: pending.phase == DownloadPhase.ready
+                ? l10n.settingsAboutReady
+                : l10n.settingsAboutDownloading,
+            subtitle: v ?? l10n.settingsAboutDownloadingSubtitleNoVersion,
+            icon: Icons.system_update,
+            onPressed: () => showPendingUpdateDialog(context),
+          ),
+        _checkTile(context, cs),
+      ];
+    }
     return [
       switch (pending.phase) {
         DownloadPhase.downloading => ListTile(
@@ -122,6 +140,13 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
   }
 
   Widget _checkListTile(BuildContext context, ColorScheme cs) {
+    if (TvInputMode.of(context)) {
+      return TvOptionRow(
+        label: context.l10n.settingsAboutCheckForUpdates,
+        icon: Icons.system_update_outlined,
+        onPressed: _checking ? null : _check,
+      );
+    }
     return ListTile(
       leading: _checking
           ? SizedBox(
@@ -143,10 +168,13 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
     final cs = Theme.of(context).colorScheme;
     final l10n = context.l10n;
     final auto = ref.watch(settingsProvider.select((s) => s.autoCheckUpdates));
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.settingsAboutTitle)),
+    return SettingsSectionPage(
+      title: l10n.settingsAboutTitle,
       body: SettingsScrollBody(
-        padding: readablePadding(context, const EdgeInsets.fromLTRB(14, 20, 14, 28)),
+        padding: readablePadding(
+          context,
+          const EdgeInsets.fromLTRB(14, 20, 14, 28),
+        ),
         children: [
           Center(
             child: Column(
@@ -164,19 +192,25 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
                   future: _versionFuture,
                   builder: (_, snap) => Text(
                     l10n.settingsAboutVersion(snap.data ?? '…'),
-                    style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant),
+                    style: TextStyle(
+                      fontSize: TvInputMode.of(context) ? 20 : 14,
+                      color: cs.onSurfaceVariant,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   l10n.settingsAboutTagline,
-                  style: TextStyle(fontSize: 12.5, color: cs.onSurfaceVariant),
+                  style: TextStyle(
+                    fontSize: TvInputMode.of(context) ? 20 : 12.5,
+                    color: cs.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 20),
                 Text(
                   l10n.settingsAboutByAuthor,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: TvInputMode.of(context) ? 20 : 13,
                     fontWeight: FontWeight.w600,
                     color: cs.onSurface,
                   ),
@@ -184,7 +218,10 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
                 const SizedBox(height: 2),
                 SelectableText(
                   'kevin.ccdo@gmail.com',
-                  style: TextStyle(fontSize: 12.5, color: cs.secondary),
+                  style: TextStyle(
+                    fontSize: TvInputMode.of(context) ? 20 : 12.5,
+                    color: cs.secondary,
+                  ),
                 ),
               ],
             ),
@@ -200,7 +237,9 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
               value: auto,
               onChanged: (v) => ref
                   .read(settingsProvider.notifier)
-                  .set(ref.read(settingsProvider).copyWith(autoCheckUpdates: v)),
+                  .set(
+                    ref.read(settingsProvider).copyWith(autoCheckUpdates: v),
+                  ),
             ),
           ),
           const SizedBox(height: 20),
@@ -213,7 +252,9 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
                   title: l10n.settingsAboutReportProblem,
                   subtitle: l10n.settingsAboutReportProblemSubtitle,
                   onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const ProblemReportScreen()),
+                    MaterialPageRoute(
+                      builder: (_) => const ProblemReportScreen(),
+                    ),
                   ),
                 ),
               ),
@@ -254,9 +295,10 @@ class _AboutSectionState extends ConsumerState<AboutSection> {
                     final version = await _versionFuture;
                     if (!context.mounted) return;
                     showLicensePage(
-                        context: context,
-                        applicationName: 'Kivo',
-                        applicationVersion: version);
+                      context: context,
+                      applicationName: 'Kivo',
+                      applicationVersion: version,
+                    );
                   },
                 ),
               ),

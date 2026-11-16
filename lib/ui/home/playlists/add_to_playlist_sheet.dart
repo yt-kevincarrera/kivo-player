@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../l10n/l10n.dart';
+import '../../tv/tv_input_mode.dart';
+import '../../tv/tv_modal.dart';
+import '../../tv/tv_panel.dart';
 import '../../../platform/interfaces/media_indexer.dart';
 import '../../../player/playlists/playlist.dart';
 import '../../../player/playlists/playlist_controller.dart';
@@ -25,6 +28,33 @@ class _AddToPlaylistSheet extends ConsumerWidget {
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
 
+    if (TvInputMode.of(context)) {
+      return ListView(
+        padding: const EdgeInsets.all(6),
+        children: [
+          if (playlists.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 18),
+              child: Text(
+                context.l10n.playlistAddSheetEmpty,
+                style: const TextStyle(fontSize: 21),
+              ),
+            ),
+          for (final p in playlists)
+            TvOptionRow(
+              label: p.name,
+              value: '${p.entries.length}',
+              icon: Icons.playlist_play,
+              onPressed: () => _addTo(context, ref, messenger, navigator, p),
+            ),
+          TvOptionRow(
+            label: context.l10n.playlistNewListLabel,
+            icon: Icons.add,
+            onPressed: () => _createAndAdd(context, ref, messenger, navigator),
+          ),
+        ],
+      );
+    }
     return SafeArea(
       // Scroll-controlled and height-bounded, as more_menu.dart had to be: a
       // dozen playlists must scroll instead of overflowing the sheet. Only the
@@ -41,9 +71,14 @@ class _AddToPlaylistSheet extends ConsumerWidget {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-              child: Text(context.l10n.playlistAddToListLabel,
-                  style: TextStyle(
-                      color: cs.onSurface, fontSize: 15, fontWeight: FontWeight.w700)),
+              child: Text(
+                context.l10n.playlistAddToListLabel,
+                style: TextStyle(
+                  color: cs.onSurface,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
             if (playlists.isEmpty)
               Padding(
@@ -100,18 +135,25 @@ class _AddToPlaylistSheet extends ConsumerWidget {
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        child: Row(children: [
-          Icon(icon, size: 22, color: color),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(label,
+        child: Row(
+          children: [
+            Icon(icon, size: 22, color: color),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: color, fontSize: 15)),
-          ),
-          if (trailing != null)
-            Text(trailing, style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13)),
-        ]),
+                style: TextStyle(color: color, fontSize: 15),
+              ),
+            ),
+            if (trailing != null)
+              Text(
+                trailing,
+                style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -128,7 +170,9 @@ class _AddToPlaylistSheet extends ConsumerWidget {
     ref.read(playlistsProvider.notifier).addVideos(playlist.id, videos);
     navigator.pop();
     messenger.showSnackBar(
-      SnackBar(content: Text(context.l10n.playlistAddedSnackbar(playlist.name))),
+      SnackBar(
+        content: Text(context.l10n.playlistAddedSnackbar(playlist.name)),
+      ),
     );
   }
 
@@ -148,30 +192,32 @@ class _AddToPlaylistSheet extends ConsumerWidget {
     final controller = TextEditingController();
     String? name;
     try {
-      name = await showDialog<String>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: Text(l10n.playlistNewListLabel),
-          content: TextField(controller: controller, autofocus: true),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: Text(l10n.commonCancel),
-            ),
-            TextButton(
-              onPressed: () {
-                final trimmed = controller.text.trim();
-                // Blank (including whitespace-only) is refused by NOT popping:
-                // the dialog stays open so the user sees why nothing happened,
-                // rather than a silent no-op that just closes it.
-                if (trimmed.isEmpty) return;
-                Navigator.pop(dialogContext, trimmed);
-              },
-              child: Text(l10n.commonCreate),
-            ),
-          ],
-        ),
-      );
+      name = TvInputMode.of(context)
+          ? await showTvTextInput(context, l10n.playlistNewListLabel)
+          : await showDialog<String>(
+              context: context,
+              builder: (dialogContext) => AlertDialog(
+                title: Text(l10n.playlistNewListLabel),
+                content: TextField(controller: controller, autofocus: true),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    child: Text(l10n.commonCancel),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      final trimmed = controller.text.trim();
+                      // Blank (including whitespace-only) is refused by NOT popping:
+                      // the dialog stays open so the user sees why nothing happened,
+                      // rather than a silent no-op that just closes it.
+                      if (trimmed.isEmpty) return;
+                      Navigator.pop(dialogContext, trimmed);
+                    },
+                    child: Text(l10n.commonCreate),
+                  ),
+                ],
+              ),
+            );
     } finally {
       // Deferred for the same reason as rename_dialog.dart: the dialog's
       // exit transition still reads the controller for a frame or two.
@@ -197,8 +243,9 @@ Future<void> showAddToPlaylistSheet(
   WidgetRef ref,
   List<VideoItem> videos,
 ) {
-  return showModalBottomSheet<void>(
+  return showTvAwareBottomSheet<void>(
     context: context,
+    title: context.l10n.playlistAddToListLabel,
     isScrollControlled: true,
     backgroundColor: Theme.of(context).colorScheme.surface,
     builder: (sheetContext) => _AddToPlaylistSheet(videos: videos),

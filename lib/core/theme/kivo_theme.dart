@@ -46,6 +46,15 @@ Color accessibleAccent(Color accent, Color surface, Brightness brightness) {
 }
 
 class KivoTheme {
+  static ThemeData television({Color accent = KivoColors.gold}) => _build(
+    brightness: Brightness.dark,
+    accent: accent,
+    bg: const Color(0xFF0C0D0F),
+    surface: const Color(0xFF0C0D0F),
+    onBg: const Color(0xFFF5F5F2),
+    onSurfaceVariant: const Color(0xFFB2B7BF),
+  );
+
   static ThemeData dark({Color accent = KivoColors.gold}) => _build(
     brightness: Brightness.dark,
     accent: accent,

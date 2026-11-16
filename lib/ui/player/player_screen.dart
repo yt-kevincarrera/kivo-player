@@ -68,6 +68,7 @@ import 'keys/player_keys.dart';
 import '../../player/cast/cast_controller.dart';
 import 'cast/cast_screen.dart';
 import '../../core/diagnostics/open_trace.dart';
+import '../../platform/television_provider.dart';
 
 class PlayerScreen extends ConsumerStatefulWidget {
   const PlayerScreen({super.key});
@@ -254,6 +255,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   /// must not cost the user the tutorial forever.
   Future<void> _maybeShowGestureMap() async {
     if (!mounted) return;
+    if (ref.read(isTelevisionProvider)) return;
     if (ref.read(settingsProvider).gestureMapShown) return;
     _engine.pause();
     await Navigator.of(context).push(gestureMapRoute());
@@ -577,6 +579,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     } catch (_) {
       // Extraction can fail (e.g. no keyframe near this position); the
       // mini-bar falls back to a placeholder icon when the bytes are null.
+    } finally {
+      await _frames.suspend().catchError((Object _) {});
     }
   }
 
@@ -780,6 +784,21 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
+        if (ref.read(isTelevisionProvider)) {
+          if (ref.read(syncHudProvider) != null) {
+            ref.read(syncHudProvider.notifier).hide();
+            return;
+          }
+          if (ref.read(controlsVisibleProvider)) {
+            ref.read(controlsVisibleProvider.notifier).hide();
+            return;
+          }
+          _engine.pause();
+          _saveProgress();
+          ref.read(playerMinimizedProvider.notifier).state = false;
+          Navigator.of(context).pop();
+          return;
+        }
         final api = ref.read(playerDismissProvider);
         if (api != null) {
           api.complete();
@@ -879,7 +898,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                   child: Stack(
                     children: [
                       Positioned.fill(child: videoBox),
-                      if (!ref.watch(pipModeProvider))
+                      if (!ref.watch(pipModeProvider) && !ref.watch(isTelevisionProvider))
                         const Positioned.fill(child: PlayerGestures(child: SizedBox.expand())),
                       // Above the gestures so a long press on the text can pick
                       // it up (only the text itself takes touches; everywhere

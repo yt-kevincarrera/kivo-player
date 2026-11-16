@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../tv/tv_input_mode.dart';
 
 /// Opens what a long press would (options, selection) from a keyboard or a
 /// remote: the menu key, or a long-press-less "secondary" button.
@@ -37,6 +38,7 @@ class KivoFocusable extends StatefulWidget {
 
 class _KivoFocusableState extends State<KivoFocusable> {
   bool _highlight = false;
+  bool _focused = false;
 
   static const _shortcuts = <ShortcutActivator, Intent>{
     SingleActivator(LogicalKeyboardKey.contextMenu): SecondaryActionIntent(),
@@ -49,11 +51,24 @@ class _KivoFocusableState extends State<KivoFocusable> {
   Widget build(BuildContext context) {
     // The accent: Kivo's theme carries it as the secondary colour.
     final accent = Theme.of(context).colorScheme.secondary;
+    final television = TvInputMode.of(context);
+    final highlight = television ? _focused : _highlight;
     return FocusableActionDetector(
       focusNode: widget.focusNode,
       enabled: widget.onActivate != null,
-      shortcuts: widget.onSecondary == null ? null : _shortcuts,
+      shortcuts: television ? {
+        ...TvRemoteShortcuts.bindings,
+        if (widget.onSecondary != null) ...{
+          const SingleActivator(LogicalKeyboardKey.contextMenu, includeRepeats: false): const SecondaryActionIntent(),
+          const SingleActivator(LogicalKeyboardKey.contextMenu): const TvIgnoreRepeatIntent(),
+          const SingleActivator(LogicalKeyboardKey.gameButtonX, includeRepeats: false): const SecondaryActionIntent(),
+          const SingleActivator(LogicalKeyboardKey.gameButtonX): const TvIgnoreRepeatIntent(),
+          const SingleActivator(LogicalKeyboardKey.enter, shift: true, includeRepeats: false): const SecondaryActionIntent(),
+          const SingleActivator(LogicalKeyboardKey.enter, shift: true): const TvIgnoreRepeatIntent(),
+        },
+      } : widget.onSecondary == null ? null : _shortcuts,
       actions: {
+        if (television) TvIgnoreRepeatIntent: CallbackAction<TvIgnoreRepeatIntent>(onInvoke: (_) => null),
         ActivateIntent: CallbackAction<ActivateIntent>(
             onInvoke: (_) => widget.onActivate?.call()),
         if (widget.onSecondary != null)
@@ -61,11 +76,12 @@ class _KivoFocusableState extends State<KivoFocusable> {
               onInvoke: (_) => widget.onSecondary!()),
       },
       onShowFocusHighlight: (v) => setState(() => _highlight = v),
+      onFocusChange: (v) => setState(() => _focused = v),
       child: DecoratedBox(
         position: DecorationPosition.foreground,
         decoration: BoxDecoration(
           borderRadius: widget.borderRadius,
-          border: _highlight
+          border: highlight
               ? Border.all(color: accent, width: 3)
               : const Border.fromBorderSide(BorderSide.none),
         ),

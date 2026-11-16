@@ -1,22 +1,22 @@
 part of 'track_picker.dart';
 
 String _familyLabel(AppLocalizations l10n, EncodingFamily f) => switch (f) {
-      EncodingFamily.unicode => l10n.encodingUnicode,
-      EncodingFamily.western => l10n.encodingWestern,
-      EncodingFamily.central => l10n.encodingCentral,
-      EncodingFamily.cyrillic => l10n.encodingCyrillic,
-      EncodingFamily.greek => l10n.encodingGreek,
-      EncodingFamily.turkish => l10n.encodingTurkish,
-      EncodingFamily.hebrew => l10n.encodingHebrew,
-      EncodingFamily.arabic => l10n.encodingArabic,
-      EncodingFamily.baltic => l10n.encodingBaltic,
-      EncodingFamily.vietnamese => l10n.encodingVietnamese,
-      EncodingFamily.thai => l10n.encodingThai,
-      EncodingFamily.chineseSimplified => l10n.encodingChineseSimplified,
-      EncodingFamily.chineseTraditional => l10n.encodingChineseTraditional,
-      EncodingFamily.japanese => l10n.encodingJapanese,
-      EncodingFamily.korean => l10n.encodingKorean,
-    };
+  EncodingFamily.unicode => l10n.encodingUnicode,
+  EncodingFamily.western => l10n.encodingWestern,
+  EncodingFamily.central => l10n.encodingCentral,
+  EncodingFamily.cyrillic => l10n.encodingCyrillic,
+  EncodingFamily.greek => l10n.encodingGreek,
+  EncodingFamily.turkish => l10n.encodingTurkish,
+  EncodingFamily.hebrew => l10n.encodingHebrew,
+  EncodingFamily.arabic => l10n.encodingArabic,
+  EncodingFamily.baltic => l10n.encodingBaltic,
+  EncodingFamily.vietnamese => l10n.encodingVietnamese,
+  EncodingFamily.thai => l10n.encodingThai,
+  EncodingFamily.chineseSimplified => l10n.encodingChineseSimplified,
+  EncodingFamily.chineseTraditional => l10n.encodingChineseTraditional,
+  EncodingFamily.japanese => l10n.encodingJapanese,
+  EncodingFamily.korean => l10n.encodingKorean,
+};
 
 /// "Cirílico" for any spelling of a Cyrillic charset; the raw name for one
 /// outside every family.
@@ -35,7 +35,7 @@ String encodingSummary(AppLocalizations l10n, ActiveExternalSubtitle a) {
 
 /// Opens on top of the track picker, so back returns to it.
 Future<void> showSubtitleEncodingSheet(BuildContext context) {
-  return showModalBottomSheet(
+  return showTvAwareBottomSheet(
     context: context,
     backgroundColor: KivoColors.panel,
     shape: const RoundedRectangleBorder(
@@ -68,9 +68,12 @@ class _EncodingSheetState extends ConsumerState<_EncodingSheet> {
     final accent = Color(ref.watch(settingsProvider).accentColor);
     final active = ref.watch(activeExternalSubtitleProvider);
     // What the user chose for this video; null = automatic.
-    final chosen = (active != null && !active.detected) ? active.encoding : null;
-    final detected =
-        (active != null && active.detected) ? active.encoding : null;
+    final chosen = (active != null && !active.detected)
+        ? active.encoding
+        : null;
+    final detected = (active != null && active.detected)
+        ? active.encoding
+        : null;
 
     return SafeArea(
       child: Padding(
@@ -92,7 +95,8 @@ class _EncodingSheetState extends ConsumerState<_EncodingSheet> {
                       sublabel: detected == null
                           ? l10n.playerTracksEncodingAutoHint
                           : l10n.playerTracksEncodingAutoDetected(
-                              encodingDisplayName(l10n, detected)),
+                              encodingDisplayName(l10n, detected),
+                            ),
                       active: chosen == null,
                       accent: accent,
                       onTap: () => _pick(null),

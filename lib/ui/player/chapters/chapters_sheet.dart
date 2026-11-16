@@ -1,3 +1,6 @@
+import '../../tv/tv_modal.dart';
+import '../../tv/tv_input_mode.dart';
+import '../../tv/tv_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,8 +14,9 @@ import '../../../player/control/player_controller.dart';
 import '../../../player/engine/playback_provider.dart';
 
 Future<void> showChaptersSheet(BuildContext context) {
-  return showModalBottomSheet(
+  return showTvAwareBottomSheet(
     context: context,
+    title: context.l10n.playerChaptersTitle,
     backgroundColor: KivoColors.panel,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -31,6 +35,47 @@ class _ChaptersSheet extends ConsumerWidget {
     final current = ref.watch(currentChapterProvider);
     final accent = Color(ref.watch(settingsProvider).accentColor);
 
+    if (TvInputMode.of(context)) {
+      final position = ref.watch(positionProvider).valueOrNull ?? Duration.zero;
+      final back = previousChapterStart(chapters, position),
+          next = nextChapterStart(chapters, position);
+      return ListView(
+        padding: const EdgeInsets.all(6),
+        children: [
+          if (chapters.isEmpty)
+            Text(
+              context.l10n.playerChaptersEmpty,
+              style: const TextStyle(fontSize: 22),
+            ),
+          if (chapters.isNotEmpty) ...[
+            TvOptionRow(
+              label: context.l10n.playerChaptersPrevious,
+              icon: Icons.skip_previous,
+              onPressed: back == null
+                  ? null
+                  : () => ref.read(playerControllerProvider).seekTo(back),
+            ),
+            TvOptionRow(
+              label: context.l10n.playerChaptersNext,
+              icon: Icons.skip_next,
+              onPressed: next == null
+                  ? null
+                  : () => ref.read(playerControllerProvider).seekTo(next),
+            ),
+            for (var i = 0; i < chapters.length; i++)
+              TvOptionRow(
+                label: chapters[i].title,
+                value: fmtDuration(chapters[i].start),
+                selected: chapters[i] == current,
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  ref.read(playerControllerProvider).seekTo(chapters[i].start);
+                },
+              ),
+          ],
+        ],
+      );
+    }
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),

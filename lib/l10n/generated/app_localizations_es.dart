@@ -9,6 +9,222 @@ class AppLocalizationsEs extends AppLocalizations {
   AppLocalizationsEs([String locale = 'es']) : super(locale);
 
   @override
+  String get tvHome => 'Inicio';
+
+  @override
+  String get tvUsbShort => 'USB';
+
+  @override
+  String get tvUsb => 'Memoria USB';
+
+  @override
+  String get tvSettings => 'Ajustes';
+
+  @override
+  String get tvContinueWatching => 'Continuar viendo';
+
+  @override
+  String get tvYourVideos => 'Tu videoteca';
+
+  @override
+  String get tvFromLibrary => 'DE TU BIBLIOTECA';
+
+  @override
+  String get tvMoreInfo => 'Más información';
+
+  @override
+  String get tvRemoteGuide => 'Guía del mando';
+
+  @override
+  String get tvRemoteGuideBody =>
+      'Izquierda y derecha: retroceder o avanzar el salto configurado. Mantén la flecha para buscar más rápido.\nOK: pausar o reproducir. Arriba o abajo: mostrar controles.\nCon los controles abiertos, las flechas mueven el foco y OK activa el botón.\nAtrás: cierra primero el panel o los controles; después vuelve a la biblioteca.';
+
+  @override
+  String get tvNavigationHint =>
+      'Flechas · Explorar     OK · Abrir     Atrás · Volver';
+
+  @override
+  String get tvPlaybackHint =>
+      'Flechas · Saltar     Mantener · Avanzar más rápido     OK · Pausar/reproducir     Arriba/abajo · Controles';
+
+  @override
+  String get tvRemoteStep => 'Salto con las flechas del mando';
+
+  @override
+  String get tvProgressiveSeek => 'Búsqueda progresiva al mantener';
+
+  @override
+  String get tvProgressiveSeekHint =>
+      'La búsqueda acelera después de 2 y 4 segundos. Al soltar se detiene.';
+
+  @override
+  String get tvImage => 'Tamaño de imagen';
+
+  @override
+  String get tvFitHint => 'Imagen completa, sin deformar. Puede dejar bandas.';
+
+  @override
+  String get tvFillHint => 'Llena la pantalla recortando los bordes.';
+
+  @override
+  String get tvStretchHint => 'Llena la pantalla deformando la imagen.';
+
+  @override
+  String get tvNoUsb => 'Conecta una memoria USB';
+
+  @override
+  String get tvNoUsbBody =>
+      'Las memorias que Android monte aparecerán aquí. Puedes explorar también el almacenamiento interno.';
+
+  @override
+  String get tvStorageAccess => 'Permitir acceso al almacenamiento';
+
+  @override
+  String get tvStorageAccessBody =>
+      'Kivo necesita permiso para leer esta carpeta. Abre los permisos, permite el acceso y vuelve a intentarlo.';
+
+  @override
+  String get tvStorageUnavailable => 'No se puede abrir esta carpeta';
+
+  @override
+  String get tvStorageUnavailableBody =>
+      'Comprueba que la memoria siga conectada y que Kivo tenga permiso para leerla.';
+
+  @override
+  String get tvPermissionStillMissing =>
+      'Android no concedió el acceso. Revisa los permisos de Kivo en los ajustes del televisor.';
+
+  @override
+  String get tvEmptyFolder => 'No hay videos en esta carpeta';
+
+  @override
+  String get tvStorageLimitedTitle => 'Android está limitando el acceso';
+
+  @override
+  String get tvStorageLimitedBody =>
+      'Puede que Android esté ocultando videos de esta memoria. Revisa el permiso de Kivo y vuelve a buscar.';
+
+  @override
+  String get tvScanVideos => 'Buscar videos en esta carpeta';
+
+  @override
+  String get tvScanningVideos => 'Android está buscando videos…';
+
+  @override
+  String get tvAllFilesStillMissing =>
+      'El permiso de videos está activo, pero Android todavía no concedió acceso completo a archivos.';
+
+  @override
+  String get tvAllFilesUnavailable =>
+      'El permiso de videos está activo. Este televisor no ofrece una pantalla para conceder acceso completo a archivos. Prueba Buscar videos.';
+
+  @override
+  String get tvInternalStorage => 'Almacenamiento interno';
+
+  @override
+  String get tvAdvanced => 'Más ajustes';
+
+  @override
+  String get tvAccessibility => 'Accesibilidad y mando';
+
+  @override
+  String get tvFocusHint =>
+      'El borde resaltado indica dónde estás. Se respetan el tamaño de texto, el lector de pantalla y la reducción de movimiento del sistema.';
+
+  @override
+  String get tvQueue => 'Cola de reproducción';
+
+  @override
+  String get tvEditQueue => 'Editar tira';
+
+  @override
+  String get tvSaveSpeedPreset => 'Guardar esta velocidad';
+
+  @override
+  String get tvResetSync => 'Restablecer sincronización';
+
+  @override
+  String get tvPrevious => 'Video anterior';
+
+  @override
+  String get tvNext => 'Video siguiente';
+
+  @override
+  String get tvMoveEarlier => 'Mover antes';
+
+  @override
+  String get tvMoveLater => 'Mover después';
+
+  @override
+  String get tvLibraryComplete => 'Biblioteca';
+
+  @override
+  String get tvLibraryConnectHint =>
+      'Conecta tu memoria y tus videos aparecerán aquí. Si ya está conectada, actualiza la biblioteca.';
+
+  @override
+  String get tvAdjustValueHint =>
+      'Izquierda y derecha para ajustar. OK para guardar y volver.';
+
+  @override
+  String get tvPlayerControlsHint =>
+      'Flechas · Mover el foco   OK · Elegir   Atrás · Ocultar controles';
+
+  @override
+  String get tvNoMatchingVideos => 'No hay videos con estos filtros';
+
+  @override
+  String get tvClearFilters => 'Quitar filtros';
+
+  @override
+  String get tvCornerTopLeft => 'Arriba a la izquierda';
+
+  @override
+  String get tvCornerTopRight => 'Arriba a la derecha';
+
+  @override
+  String get tvCornerBottomLeft => 'Abajo a la izquierda';
+
+  @override
+  String get tvCornerBottomRight => 'Abajo a la derecha';
+
+  @override
+  String get tvUnknownDuration => 'Video local';
+
+  @override
+  String get tvConnectedStorage => 'Almacenamiento conectado';
+
+  @override
+  String get tvGoToLibrary => 'Volver a la biblioteca';
+
+  @override
+  String get tvContinue => 'Continuar';
+
+  @override
+  String get tvPlayback => 'Reproducción';
+
+  @override
+  String get tvRefresh => 'Volver a buscar';
+
+  @override
+  String get tvOptions => 'Opciones';
+
+  @override
+  String get tvRememberPosition => 'Recordar dónde lo dejaste';
+
+  @override
+  String get tvFolder => 'Carpeta';
+
+  @override
+  String get tvAudioSettings => 'Ajustes de audio';
+
+  @override
+  String get tvSubtitleSettings => 'Ajustes de subtítulos';
+
+  @override
+  String get tvMorePlayback => 'Más opciones de reproducción';
+
+  @override
   String get settingsLanguage => 'Idioma';
 
   @override

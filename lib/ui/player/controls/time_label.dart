@@ -9,6 +9,8 @@ import '../../../l10n/spoken.dart';
 import '../../../player/control/player_controller.dart';
 import '../../../player/open/video_source.dart';
 import '../../../player/queue/queue_order.dart';
+import '../../tv/tv_input_mode.dart';
+import '../../tv/tv_focusable.dart';
 
 /// What the time right of the seek bar shows; a tap moves to the next one.
 enum TimeLabelMode { total, remaining, endsAt }
@@ -125,6 +127,11 @@ class _TimeLabelState extends ConsumerState<TimeLabel> {
             : l10n.playerEndsAtLabel(shownHour, clock);
     }
 
+    if (TvInputMode.of(context)) {
+      return TvFocusable(label: '$label. ${l10n.playerTimeToggleHint}', onPressed: _next,
+        child: Padding(padding: const EdgeInsets.all(10), child: Text(text,
+          style: const TextStyle(color: Colors.white, fontSize: 18))));
+    }
     return Semantics(
       button: true,
       label: label,
@@ -136,7 +143,7 @@ class _TimeLabelState extends ConsumerState<TimeLabel> {
         behavior: HitTestBehavior.opaque,
         child: Text(
           text,
-          style: const TextStyle(color: Colors.white, fontSize: 12),
+          style: TextStyle(color: Colors.white, fontSize: TvInputMode.of(context) ? 18 : 12),
         ),
       ),
     );

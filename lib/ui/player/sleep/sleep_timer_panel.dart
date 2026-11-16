@@ -1,3 +1,8 @@
+import '../../tv/tv_modal.dart';
+import '../../tv/tv_input_mode.dart';
+import '../../tv/tv_panel.dart';
+import '../../tv/tv_focusable.dart';
+import '../../tv/tv_setting_value.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/format.dart';
@@ -9,9 +14,14 @@ import '../../../player/sleep/sleep_timer.dart';
 /// [onBack] renders a back arrow in the header that closes this panel and
 /// runs the callback (the more-menu passes "reopen me") — sheet-to-sheet
 /// navigation without a real Navigator stack.
-Future<void> showSleepTimerPanel(BuildContext context, WidgetRef ref, {VoidCallback? onBack}) {
-  return showModalBottomSheet(
+Future<void> showSleepTimerPanel(
+  BuildContext context,
+  WidgetRef ref, {
+  VoidCallback? onBack,
+}) {
+  return showTvAwareBottomSheet(
     context: context,
+    title: context.l10n.playerSleepPanelTitle,
     backgroundColor: KivoColors.panel,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -49,7 +59,9 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
     } else {
       n.startFixed(Duration(minutes: _minutes));
       final s = ref.read(settingsProvider);
-      ref.read(settingsProvider.notifier).set(s.copyWith(sleepTimerLastMinutes: _minutes));
+      ref
+          .read(settingsProvider.notifier)
+          .set(s.copyWith(sleepTimerLastMinutes: _minutes));
     }
     Navigator.of(context).pop();
   }
@@ -58,6 +70,84 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
   Widget build(BuildContext context) {
     final active = ref.watch(sleepTimerProvider);
     final accent = Color(ref.watch(settingsProvider).accentColor);
+    if (TvInputMode.of(context)) {
+      final l = context.l10n;
+      return ListView(
+        padding: const EdgeInsets.all(6),
+        children: [
+          if (active == null) ...[
+            TvSettingValue(
+              title: l.playerSleepDurationLabel,
+              value: _minutes.toDouble(),
+              min: 5,
+              max: 120,
+              step: 5,
+              label: (v) => l.playerSleepMinutesValue(v.round()),
+              onChanged: (v) => setState(() {
+                _minutes = v.round();
+                _episodeSelected = false;
+                _episodesSelected = false;
+              }),
+            ),
+            TvOptionRow(
+              label: l.playerSleepEpisodeCardTitle,
+              subtitle: l.playerSleepEpisodeCardSubtitle,
+              selected: _episodeSelected,
+              onPressed: () => setState(() {
+                _episodeSelected = !_episodeSelected;
+                _episodesSelected = false;
+              }),
+            ),
+            TvOptionRow(
+              label: l.playerSleepEpisodesCardTitle,
+              subtitle: l.playerSleepEpisodesCardSubtitle,
+              selected: _episodesSelected,
+              onPressed: () => setState(() {
+                _episodesSelected = !_episodesSelected;
+                _episodeSelected = false;
+              }),
+            ),
+            if (_episodesSelected)
+              TvSettingValue(
+                title: l.playerSleepEpisodesCardTitle,
+                value: _episodes.toDouble(),
+                min: 1,
+                max: 10,
+                step: 1,
+                label: (v) => '${v.round()}',
+                onChanged: (v) => setState(() => _episodes = v.round()),
+              ),
+            const SizedBox(height: 26),
+            TvButton(
+              primary: true,
+              label: _episodesSelected
+                  ? l.playerSleepStartAfterEpisodes(_episodes)
+                  : _episodeSelected
+                  ? l.playerSleepStartAtEpisodeEnd
+                  : l.playerSleepStartFixedMinutes(_minutes),
+              onPressed: _start,
+            ),
+          ] else ...[
+            Text(
+              active.mode == SleepTimerMode.episodes
+                  ? l.playerSleepEpisodesRemaining(active.episodesLeft)
+                  : fmtDuration(active.remaining),
+              style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 24),
+            TvOptionRow(
+              label: l.playerSleepDeactivate,
+              onPressed: () => ref.read(sleepTimerProvider.notifier).cancel(),
+            ),
+            if (active.mode == SleepTimerMode.fixed)
+              TvOptionRow(
+                label: l.playerSleepExtendByMinutes(active.original.inMinutes),
+                onPressed: () => ref.read(sleepTimerProvider.notifier).extend(),
+              ),
+          ],
+        ],
+      );
+    }
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
@@ -92,13 +182,23 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
                         color: Colors.white.withValues(alpha: 0.06),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.arrow_back_rounded, size: 15, color: Colors.white70),
+                      child: const Icon(
+                        Icons.arrow_back_rounded,
+                        size: 15,
+                        color: Colors.white70,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
                 ],
-                Text(context.l10n.playerSleepPanelTitle,
-                    style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800)),
+                Text(
+                  context.l10n.playerSleepPanelTitle,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
                 const Spacer(),
                 InkWell(
                   borderRadius: BorderRadius.circular(8),
@@ -110,13 +210,20 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
                       color: Colors.white.withValues(alpha: 0.06),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.close_rounded, size: 15, color: Colors.white70),
+                    child: const Icon(
+                      Icons.close_rounded,
+                      size: 15,
+                      color: Colors.white70,
+                    ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 10),
-            if (active == null) ..._selectorChildren(accent) else ..._activeChildren(active, accent),
+            if (active == null)
+              ..._selectorChildren(accent)
+            else
+              ..._activeChildren(active, accent),
           ],
         ),
       ),
@@ -131,26 +238,34 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _StepButton(label: '−', onTap: () => setState(() {
-            _minutes = (_minutes - 5).clamp(5, 120);
-            _episodeSelected = false;
-            _episodesSelected = false;
-          })),
+          _StepButton(
+            label: '−',
+            onTap: () => setState(() {
+              _minutes = (_minutes - 5).clamp(5, 120);
+              _episodeSelected = false;
+              _episodesSelected = false;
+            }),
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(l10n.playerSleepMinutesValue(_minutes),
-                style: TextStyle(
-                  color: durationActive ? accent : Colors.white38,
-                  fontSize: 34,
-                  fontWeight: FontWeight.w800,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                )),
+            child: Text(
+              l10n.playerSleepMinutesValue(_minutes),
+              style: TextStyle(
+                color: durationActive ? accent : Colors.white38,
+                fontSize: 34,
+                fontWeight: FontWeight.w800,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
           ),
-          _StepButton(label: '+', onTap: () => setState(() {
-            _minutes = (_minutes + 5).clamp(5, 120);
-            _episodeSelected = false;
-            _episodesSelected = false;
-          })),
+          _StepButton(
+            label: '+',
+            onTap: () => setState(() {
+              _minutes = (_minutes + 5).clamp(5, 120);
+              _episodeSelected = false;
+              _episodesSelected = false;
+            }),
+          ),
         ],
       ),
       const SizedBox(height: 8),
@@ -197,8 +312,8 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
         label: _episodesSelected
             ? l10n.playerSleepStartAfterEpisodes(_episodes)
             : _episodeSelected
-                ? l10n.playerSleepStartAtEpisodeEnd
-                : l10n.playerSleepStartFixedMinutes(_minutes),
+            ? l10n.playerSleepStartAtEpisodeEnd
+            : l10n.playerSleepStartFixedMinutes(_minutes),
         accent: accent,
         onTap: _start,
       ),
@@ -208,25 +323,31 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
   List<Widget> _activeChildren(SleepTimerState st, Color accent) {
     final l10n = context.l10n;
     final total = st.original.inMilliseconds;
-    final frac = total == 0 ? 0.0 : (st.remaining.inMilliseconds / total).clamp(0.0, 1.0);
+    final frac = total == 0
+        ? 0.0
+        : (st.remaining.inMilliseconds / total).clamp(0.0, 1.0);
     return [
       const SizedBox(height: 4),
       Center(
         child: st.mode == SleepTimerMode.episodes
-            ? Text('${st.episodesLeft}',
+            ? Text(
+                '${st.episodesLeft}',
                 style: TextStyle(
                   color: accent,
                   fontSize: 34,
                   fontWeight: FontWeight.w800,
                   fontFeatures: const [FontFeature.tabularFigures()],
-                ))
-            : Text(fmtDuration(st.remaining),
+                ),
+              )
+            : Text(
+                fmtDuration(st.remaining),
                 style: TextStyle(
                   color: accent,
                   fontSize: 34,
                   fontWeight: FontWeight.w800,
                   fontFeatures: const [FontFeature.tabularFigures()],
-                )),
+                ),
+              ),
       ),
       Center(
         child: Padding(
@@ -235,8 +356,8 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
             st.mode == SleepTimerMode.fixed
                 ? l10n.playerSleepRemainingOfMinutes(st.original.inMinutes)
                 : st.mode == SleepTimerMode.episodes
-                    ? l10n.playerSleepEpisodesRemaining(st.episodesLeft)
-                    : l10n.playerSleepUntilEpisodeEnd,
+                ? l10n.playerSleepEpisodesRemaining(st.episodesLeft)
+                : l10n.playerSleepUntilEpisodeEnd,
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.42),
               fontSize: 10,
@@ -252,7 +373,12 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
       if (st.mode == SleepTimerMode.fixed)
         Row(
           children: [
-            Expanded(child: _GhostButton(label: l10n.playerSleepDeactivate, onTap: () => ref.read(sleepTimerProvider.notifier).cancel())),
+            Expanded(
+              child: _GhostButton(
+                label: l10n.playerSleepDeactivate,
+                onTap: () => ref.read(sleepTimerProvider.notifier).cancel(),
+              ),
+            ),
             const SizedBox(width: 8),
             Expanded(
               child: _PrimaryButton(
@@ -264,7 +390,10 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
           ],
         )
       else
-        _GhostButton(label: l10n.playerSleepDeactivate, onTap: () => ref.read(sleepTimerProvider.notifier).cancel()),
+        _GhostButton(
+          label: l10n.playerSleepDeactivate,
+          onTap: () => ref.read(sleepTimerProvider.notifier).cancel(),
+        ),
     ];
   }
 }
@@ -274,15 +403,17 @@ class _Eyebrow extends StatelessWidget {
   const _Eyebrow(this.label);
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(2, 12, 2, 8),
-        child: Text(label.toUpperCase(),
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.4),
-              fontSize: 10.5,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.8,
-            )),
-      );
+    padding: const EdgeInsets.fromLTRB(2, 12, 2, 8),
+    child: Text(
+      label.toUpperCase(),
+      style: TextStyle(
+        color: Colors.white.withValues(alpha: 0.4),
+        fontSize: 10.5,
+        fontWeight: FontWeight.w800,
+        letterSpacing: 0.8,
+      ),
+    ),
+  );
 }
 
 class _StepButton extends StatelessWidget {
@@ -291,20 +422,26 @@ class _StepButton extends StatelessWidget {
   const _StepButton({required this.label, required this.onTap});
   @override
   Widget build(BuildContext context) => InkWell(
+    borderRadius: BorderRadius.circular(10),
+    onTap: onTap,
+    child: Container(
+      width: 34,
+      height: 34,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(10),
-        onTap: onTap,
-        child: Container(
-          width: 34,
-          height: 34,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.06),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          alignment: Alignment.center,
-          child: Text(label,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
+          fontSize: 16,
         ),
-      );
+      ),
+    ),
+  );
 }
 
 /// The signature segmented meter: 8 segments × 15 min. Tapping segment i sets
@@ -314,7 +451,11 @@ class _SegmentMeter extends StatelessWidget {
   final double litFraction; // 0..1
   final Color accent;
   final ValueChanged<int>? onSegmentTap;
-  const _SegmentMeter({required this.litFraction, required this.accent, required this.onSegmentTap});
+  const _SegmentMeter({
+    required this.litFraction,
+    required this.accent,
+    required this.onSegmentTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -349,13 +490,15 @@ class _SegmentMeter extends StatelessWidget {
               children: [
                 for (var i = 0; i < 8; i++)
                   Expanded(
-                    child: Text('${(i + 1) * 15}',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.42),
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w700,
-                        )),
+                    child: Text(
+                      '${(i + 1) * 15}',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.42),
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
               ],
             ),
@@ -369,7 +512,11 @@ class _EpisodeCard extends StatelessWidget {
   final bool selected;
   final Color accent;
   final VoidCallback onTap;
-  const _EpisodeCard({required this.selected, required this.accent, required this.onTap});
+  const _EpisodeCard({
+    required this.selected,
+    required this.accent,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -379,10 +526,15 @@ class _EpisodeCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: selected ? accent.withValues(alpha: 0.16) : const Color(0xFF182036),
+          color: selected
+              ? accent.withValues(alpha: 0.16)
+              : const Color(0xFF182036),
           borderRadius: BorderRadius.circular(13),
           border: Border.all(
-              color: selected ? accent.withValues(alpha: 0.5) : Colors.transparent),
+            color: selected
+                ? accent.withValues(alpha: 0.5)
+                : Colors.transparent,
+          ),
         ),
         child: Row(
           children: [
@@ -395,8 +547,11 @@ class _EpisodeCard extends StatelessWidget {
                     : Colors.white.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(9),
               ),
-              child: Icon(Icons.movie_outlined,
-                  size: 16, color: selected ? accent : Colors.white70),
+              child: Icon(
+                Icons.movie_outlined,
+                size: 16,
+                color: selected ? accent : Colors.white70,
+              ),
             ),
             const SizedBox(width: 11),
             Expanded(
@@ -404,15 +559,22 @@ class _EpisodeCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(context.l10n.playerSleepEpisodeCardTitle,
-                      style: TextStyle(
-                        color: selected ? accent : Colors.white,
-                        fontSize: 13,
-                        fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                      )),
+                  Text(
+                    context.l10n.playerSleepEpisodeCardTitle,
+                    style: TextStyle(
+                      color: selected ? accent : Colors.white,
+                      fontSize: 13,
+                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    ),
+                  ),
                   const SizedBox(height: 1),
-                  Text(context.l10n.playerSleepEpisodeCardSubtitle,
-                      style: TextStyle(color: Colors.white.withValues(alpha: 0.42), fontSize: 11)),
+                  Text(
+                    context.l10n.playerSleepEpisodeCardSubtitle,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.42),
+                      fontSize: 11,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -448,10 +610,15 @@ class _EpisodesCountCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: selected ? accent.withValues(alpha: 0.16) : const Color(0xFF182036),
+          color: selected
+              ? accent.withValues(alpha: 0.16)
+              : const Color(0xFF182036),
           borderRadius: BorderRadius.circular(13),
           border: Border.all(
-              color: selected ? accent.withValues(alpha: 0.5) : Colors.transparent),
+            color: selected
+                ? accent.withValues(alpha: 0.5)
+                : Colors.transparent,
+          ),
         ),
         child: Row(
           children: [
@@ -464,8 +631,11 @@ class _EpisodesCountCard extends StatelessWidget {
                     : Colors.white.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(9),
               ),
-              child: Icon(Icons.playlist_play_rounded,
-                  size: 16, color: selected ? accent : Colors.white70),
+              child: Icon(
+                Icons.playlist_play_rounded,
+                size: 16,
+                color: selected ? accent : Colors.white70,
+              ),
             ),
             const SizedBox(width: 11),
             Expanded(
@@ -473,15 +643,22 @@ class _EpisodesCountCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(context.l10n.playerSleepEpisodesCardTitle,
-                      style: TextStyle(
-                        color: selected ? accent : Colors.white,
-                        fontSize: 13,
-                        fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                      )),
+                  Text(
+                    context.l10n.playerSleepEpisodesCardTitle,
+                    style: TextStyle(
+                      color: selected ? accent : Colors.white,
+                      fontSize: 13,
+                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    ),
+                  ),
                   const SizedBox(height: 1),
-                  Text(context.l10n.playerSleepEpisodesCardSubtitle,
-                      style: TextStyle(color: Colors.white.withValues(alpha: 0.42), fontSize: 11)),
+                  Text(
+                    context.l10n.playerSleepEpisodesCardSubtitle,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.42),
+                      fontSize: 11,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -489,13 +666,15 @@ class _EpisodesCountCard extends StatelessWidget {
             _StepButton(label: '−', onTap: onDecrement),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Text('$episodes',
-                  style: TextStyle(
-                    color: selected ? accent : Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  )),
+              child: Text(
+                '$episodes',
+                style: TextStyle(
+                  color: selected ? accent : Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
             ),
             _StepButton(label: '+', onTap: onIncrement),
           ],
@@ -509,23 +688,32 @@ class _PrimaryButton extends StatelessWidget {
   final String label;
   final Color accent;
   final VoidCallback onTap;
-  const _PrimaryButton({required this.label, required this.accent, required this.onTap});
+  const _PrimaryButton({
+    required this.label,
+    required this.accent,
+    required this.onTap,
+  });
   @override
   Widget build(BuildContext context) => InkWell(
+    borderRadius: BorderRadius.circular(12),
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        color: accent,
         borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: accent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          alignment: Alignment.center,
-          child: Text(label,
-              style: TextStyle(
-                  color: onAccent(accent), fontWeight: FontWeight.w800, fontSize: 13.5)),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        label,
+        style: TextStyle(
+          color: onAccent(accent),
+          fontWeight: FontWeight.w800,
+          fontSize: 13.5,
         ),
-      );
+      ),
+    ),
+  );
 }
 
 class _GhostButton extends StatelessWidget {
@@ -534,20 +722,23 @@ class _GhostButton extends StatelessWidget {
   const _GhostButton({required this.label, required this.onTap});
   @override
   Widget build(BuildContext context) => InkWell(
+    borderRadius: BorderRadius.circular(12),
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 11),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
         borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 11),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          alignment: Alignment.center,
-          child: Text(label,
-              style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.7),
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13)),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        label,
+        style: TextStyle(
+          color: Colors.white.withValues(alpha: 0.7),
+          fontWeight: FontWeight.w700,
+          fontSize: 13,
         ),
-      );
+      ),
+    ),
+  );
 }

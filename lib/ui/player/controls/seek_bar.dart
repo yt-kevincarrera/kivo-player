@@ -13,6 +13,8 @@ import '../loop/ab_range_layer.dart';
 import '../seek/seek_preview.dart';
 import '../state/controls_visibility.dart';
 import 'time_label.dart';
+import '../../../platform/television_provider.dart';
+import '../../tv/tv_input_mode.dart';
 
 class _GrowingThumbShape extends SliderComponentShape {
   final Animation<double> anim; // 0 = rest, 1 = scrubbing
@@ -110,7 +112,9 @@ class _SeekBarState extends ConsumerState<SeekBar>
     // A screen reader steps the bar by the same jump as the skip buttons —
     // the slider's own 5 % would be six minutes of a two-hour film.
     final step = Duration(
-      seconds: ref.watch(settingsProvider).centerSkipSeconds,
+      seconds: ref.watch(isTelevisionProvider)
+          ? ref.watch(settingsProvider).tvRemoteSeekSeconds
+          : ref.watch(settingsProvider).centerSkipSeconds,
     );
     final hasTotal = total > Duration.zero;
     void stepTo(Duration target) {
@@ -125,7 +129,10 @@ class _SeekBarState extends ConsumerState<SeekBar>
         ExcludeSemantics(
           child: Text(
             fmtDuration(shownPos),
-            style: const TextStyle(color: Colors.white, fontSize: 12),
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: ref.watch(isTelevisionProvider) ? 18 : 12,
+            ),
           ),
         ),
         Expanded(
@@ -191,6 +198,7 @@ class _SeekBarState extends ConsumerState<SeekBar>
                         },
                         onChangeEnd: (v) {
                           final target = Duration(milliseconds: v.round());
+                          ref.read(seekPreviewControllerProvider).cancel();
                           ref.read(playerControllerProvider).seekTo(target);
                           ref.read(pendingSeekProvider.notifier).state =
                               target; // hold slider until pos catches up
@@ -247,8 +255,9 @@ class _SeekKeys extends StatelessWidget {
         builder: (context) {
           final ring =
               Focus.of(context).hasPrimaryFocus &&
-              FocusManager.instance.highlightMode ==
-                  FocusHighlightMode.traditional;
+              (TvInputMode.of(context) ||
+                  FocusManager.instance.highlightMode ==
+                      FocusHighlightMode.traditional);
           return DecoratedBox(
             position: DecorationPosition.foreground,
             decoration: BoxDecoration(

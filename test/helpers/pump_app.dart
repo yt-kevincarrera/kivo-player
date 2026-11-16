@@ -17,12 +17,15 @@ Future<void> pumpLocalized(
   ProviderContainer? container,
   ThemeData? theme,
   Key? captureKey,
+  TransitionBuilder? appBuilder,
 }) async {
   final app = MaterialApp(
+    debugShowCheckedModeBanner: false,
     locale: locale,
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     theme: theme,
+    builder: appBuilder,
     home: child,
   );
   final surface = captureKey == null

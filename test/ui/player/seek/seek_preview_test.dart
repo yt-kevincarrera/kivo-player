@@ -6,7 +6,7 @@ import '../../../fakes/fakes.dart';
 
 /// Throws on the first frameAt call, succeeds after — to prove a failed
 /// extraction doesn't permanently strand the controller's in-flight flag.
-class _FlakyExtractor implements FrameExtractor {
+class _FlakyExtractor extends FrameExtractor {
   int calls = 0;
   @override
   Future<void> prepare(String path) async {}
@@ -27,7 +27,10 @@ void main() {
     fake = FakeFrameExtractor();
     shown = [];
     return SeekPreviewController(
-        extractor: fake, onFrame: shown.add, capacity: capacity);
+      extractor: fake,
+      onFrame: shown.add,
+      capacity: capacity,
+    );
   }
 
   test('an extraction failure does not deadlock the controller', () async {
@@ -42,15 +45,22 @@ void main() {
     expect(shown.last, Uint8List.fromList([6]));
   });
 
-  test('buckets sub-second positions to the same 1s bucket (one extraction)', () async {
-    final c = make();
-    c.request(const Duration(milliseconds: 1200));
-    await Future<void>.delayed(Duration.zero);
-    c.request(const Duration(milliseconds: 1800)); // same 1s bucket -> cache hit
-    await Future<void>.delayed(Duration.zero);
-    expect(fake.requested.map((d) => d.inSeconds), [1]); // only one extraction
-    expect(shown.last, isNotNull);
-  });
+  test(
+    'buckets sub-second positions to the same 1s bucket (one extraction)',
+    () async {
+      final c = make();
+      c.request(const Duration(milliseconds: 1200));
+      await Future<void>.delayed(Duration.zero);
+      c.request(
+        const Duration(milliseconds: 1800),
+      ); // same 1s bucket -> cache hit
+      await Future<void>.delayed(Duration.zero);
+      expect(fake.requested.map((d) => d.inSeconds), [
+        1,
+      ]); // only one extraction
+      expect(shown.last, isNotNull);
+    },
+  );
 
   test('LRU evicts the oldest beyond capacity', () async {
     final c = make(capacity: 2);
@@ -74,12 +84,74 @@ void main() {
     c.request(const Duration(seconds: 10)); // in flight (bucket 10)
     c.request(const Duration(seconds: 11)); // pending
     c.request(const Duration(seconds: 12)); // replaces pending -> 12
-    expect(fake.requested.map((d) => d.inSeconds), [10]); // only first in flight
+    expect(fake.requested.map((d) => d.inSeconds), [
+      10,
+    ]); // only first in flight
     fake.completeNext(10);
     await Future<void>.delayed(Duration.zero);
-    expect(fake.requested.map((d) => d.inSeconds), [10, 12]); // drained latest, skipped 11
+    expect(fake.requested.map((d) => d.inSeconds), [
+      10,
+      12,
+    ]); // drained latest, skipped 11
     fake.completeNext(12);
     await Future<void>.delayed(Duration.zero);
     expect(shown.last, Uint8List.fromList([12])); // shows the latest frame
+  });
+  test(
+    'cancel drops queued decoding and late frames, then a new drag works',
+    () async {
+      final c = make();
+      fake.autoComplete = false;
+      c.request(const Duration(seconds: 10));
+      c.request(const Duration(seconds: 12));
+      c.cancel();
+      expect(fake.suspendCount, 1);
+      fake.completeNext(10);
+      await Future<void>.delayed(Duration.zero);
+      expect(fake.requested.map((p) => p.inSeconds), [10]);
+      expect(shown, [null]);
+      c.request(const Duration(seconds: 10));
+      fake.completeNext(10);
+      await Future<void>.delayed(Duration.zero);
+      expect(
+        fake.requested.map((p) => p.inSeconds),
+        [10, 10],
+        reason: 'cancelled frame was not cached',
+      );
+      expect(shown.last, Uint8List.fromList([10]));
+      c.dispose();
+    },
+  );
+
+  test(
+    'cached latest target supersedes pending and in-flight previews',
+    () async {
+      final c = make();
+      c.request(const Duration(seconds: 2));
+      await Future<void>.delayed(Duration.zero);
+      fake.autoComplete = false;
+      c.request(const Duration(seconds: 10));
+      c.request(const Duration(seconds: 12));
+      c.request(const Duration(seconds: 2));
+      fake.completeNext(10);
+      await Future<void>.delayed(Duration.zero);
+      expect(fake.requested.map((p) => p.inSeconds), [2, 10]);
+      expect(shown.last, Uint8List.fromList([2]));
+      c.dispose();
+    },
+  );
+
+  test('disposed controller cannot publish or continue decoding', () async {
+    final c = make();
+    fake.autoComplete = false;
+    c.request(const Duration(seconds: 10));
+    c.request(const Duration(seconds: 12));
+    c.dispose();
+    fake.completeNext(10);
+    await Future<void>.delayed(Duration.zero);
+    c.request(const Duration(seconds: 20));
+    expect(fake.requested.map((p) => p.inSeconds), [10]);
+    expect(shown, isEmpty);
+    expect(fake.suspendCount, 1);
   });
 }

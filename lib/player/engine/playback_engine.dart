@@ -1,4 +1,5 @@
 import '../chapters/chapter.dart';
+import 'video_progress.dart';
 
 /// A single audio or subtitle track, decoupled from media_kit's own
 /// [AudioTrack]/[SubtitleTrack] types so they never leak past this file.
@@ -32,6 +33,10 @@ abstract class PlaybackEngine {
   Stream<bool> get playingStream;
   Stream<bool> get bufferingStream;
   Stream<bool> get completedStream;
+
+  /// Actual video timestamps, independent of audio progress. Unsupported
+  /// platforms may expose an empty stream; dimensions are not frame progress.
+  Stream<VideoProgress> get videoProgressStream;
 
   /// A terminal open failure reported after the native load command returned.
   /// Recoverable decoder errors (which can trigger software fallback) are not
@@ -71,8 +76,9 @@ abstract class PlaybackEngine {
   /// local file cannot announce its tracks before anyone listens), and
   /// gives up after [timeout] with whatever is known — for a file with no
   /// audio at all.
-  Future<List<MediaTrack>> loadedAudioTracks(
-      {Duration timeout = const Duration(milliseconds: 1500)});
+  Future<List<MediaTrack>> loadedAudioTracks({
+    Duration timeout = const Duration(milliseconds: 1500),
+  });
   Stream<List<MediaTrack>> get subtitleTracksStream;
   Stream<MediaTrack?> get currentAudioTrackStream;
   Stream<MediaTrack?> get currentSubtitleTrackStream; // null = off
@@ -92,8 +98,11 @@ abstract class PlaybackEngine {
   /// same external file (e.g. in another encoding) without the track list
   /// growing one duplicate per attempt. Only pass it when the current track is
   /// an external one: mpv removes whatever is selected.
-  Future<void> setExternalSubtitle(String uri,
-      {String? title, bool replaceCurrent = false});
+  Future<void> setExternalSubtitle(
+    String uri, {
+    String? title,
+    bool replaceCurrent = false,
+  });
 
   /// Sets mpv's `hwdec` (e.g. `auto-safe`, `no`). A global option on the
   /// process-lifetime player that survives `loadfile`, so the caller writes it
@@ -160,7 +169,10 @@ abstract class PlaybackEngine {
   /// `audio-swresample-o` list ('' = swresample defaults). Both reload mpv's
   /// audio chain, so only `AudioPipelineController` writes them, and only
   /// when they change.
-  Future<void> setAudioDownmix({required bool forceStereo, required String swresample});
+  Future<void> setAudioDownmix({
+    required bool forceStereo,
+    required String swresample,
+  });
 
   /// Dolby dynamic range compression scale for AC-3/E-AC-3 (mpv
   /// `ad-lavc-ac3drc`, 0 = off). Read by the decoder at init only — see
@@ -205,7 +217,10 @@ abstract class PlaybackEngine {
   /// Gives libass the one font it can use on Android (no font provider in this
   /// build): `sub-fonts-dir` + `sub-font`, and turns ASS styling on
   /// (`sub-ass=yes`, `sub-ass-override=no`, i.e. the file's own style).
-  Future<void> configureSubtitleFonts({required String dir, required String family});
+  Future<void> configureSubtitleFonts({
+    required String dir,
+    required String family,
+  });
 
   /// Selects the secondary subtitle track (`secondary-sid`), or turns it off
   /// with null. A global mpv option that survives loadfile: write it on every

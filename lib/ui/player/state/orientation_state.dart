@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../platform/device_controls_provider.dart';
 import '../../../platform/interfaces/device_controls.dart';
+import '../../../platform/television_provider.dart';
 
 DeviceOrientationLock nextOrientation(DeviceOrientationLock c) =>
     c == DeviceOrientationLock.portrait
@@ -25,7 +26,8 @@ DeviceOrientationLock? swipeRotateTarget(
 
 class OrientationNotifier extends Notifier<DeviceOrientationLock> {
   @override
-  DeviceOrientationLock build() => DeviceOrientationLock.portrait;
+  DeviceOrientationLock build() => ref.read(isTelevisionProvider)
+      ? DeviceOrientationLock.landscape : DeviceOrientationLock.portrait;
 
   void apply() => ref.read(deviceControlsProvider).setOrientation([state]);
 
@@ -36,7 +38,7 @@ class OrientationNotifier extends Notifier<DeviceOrientationLock> {
   /// [cycle] — a downward swipe in landscape must land on portrait, never flip
   /// back to landscape.
   void rotateTo(DeviceOrientationLock next) {
-    state = next;
+    state = ref.read(isTelevisionProvider) ? DeviceOrientationLock.landscape : next;
     apply();
   }
 
@@ -44,7 +46,8 @@ class OrientationNotifier extends Notifier<DeviceOrientationLock> {
   /// previous video. Call before [apply] on every fresh player entry so
   /// each video always opens in portrait by default (a future setting will
   /// make this configurable).
-  void reset() => state = DeviceOrientationLock.portrait;
+  void reset() => state = ref.read(isTelevisionProvider)
+      ? DeviceOrientationLock.landscape : DeviceOrientationLock.portrait;
 }
 
 final orientationProvider =
