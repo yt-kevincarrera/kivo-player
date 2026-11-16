@@ -35,8 +35,49 @@ class MainActivity : FlutterFragmentActivity() {
     private val frameExecutor = Executors.newSingleThreadExecutor()
     // --- kivo/media ---
     private val ioExecutor = Executors.newSingleThreadExecutor()
-    private var retriever: MediaMetadataRetriever? = null
-    private var retrieverPath: String? = null
+    private val previewFrames = PreviewFrameSession(::openPreviewReader)
+    private fun openPreviewReader(path: String): PreviewFrameReader {
+        val retriever = MediaMetadataRetriever()
+        try {
+            if (path.startsWith("content://")) {
+                retriever.setDataSource(this, Uri.parse(path))
+            } else {
+                retriever.setDataSource(path)
+            }
+        } catch (e: Exception) {
+            runCatching { retriever.release() }
+            throw e
+        }
+        return object : PreviewFrameReader {
+            override fun frameAt(ms: Long): ByteArray? {
+                val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                    // Android preserves aspect within both positive bounds.
+                    // Do not allocate a full 4K/8K Java bitmap just to shrink it.
+                    retriever.getScaledFrameAtTime(
+                        ms * 1_000L, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, 240, 240)
+                } else {
+                    // Preserve previews/captures on older Android, where the
+                    // scaled extraction API is unavailable. Decoding is still
+                    // lazy and its decoder is released after the interaction.
+                    val full = retriever.getFrameAtTime(
+                        ms * 1_000L, MediaMetadataRetriever.OPTION_CLOSEST_SYNC) ?: return null
+                    val size = PreviewFrameSize.fit(full.width, full.height)
+                    val scaled = Bitmap.createScaledBitmap(full, size.first, size.second, true)
+                    if (scaled !== full) full.recycle()
+                    scaled
+                } ?: return null
+                try {
+                    val output = ByteArrayOutputStream()
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 75, output)
+                    return output.toByteArray()
+                } finally {
+                    bitmap.recycle()
+                }
+            }
+            override fun close() { retriever.release() }
+        }
+    }
+
     // --- kivo/volume ---
     // When true (player active), hardware volume keys are handled here and the
     // OS volume panel is suppressed; the library leaves this false.
@@ -217,32 +258,7 @@ class MainActivity : FlutterFragmentActivity() {
                         }
                         frameExecutor.submit {
                             try {
-                                if (retrieverPath != path) {
-                                    retriever?.release()
-                                    retriever = null
-                                    retrieverPath = null
-                                    val r = MediaMetadataRetriever()
-                                    // content:// URIs (MediaStore library) need the
-                                    // Context+Uri overload; setDataSource(String) only
-                                    // handles file paths/URLs.
-                                    try {
-                                        if (path.startsWith("content://")) {
-                                            r.setDataSource(this@MainActivity, Uri.parse(path))
-                                        } else {
-                                            r.setDataSource(path)
-                                        }
-                                    } catch (e: Exception) {
-                                        runCatching { r.release() }
-                                        throw e
-                                    }
-                                    // Warm the decoder so the first scrub frame isn't a
-                                    // ~half-second cold-start (discard the result).
-                                    try {
-                                        r.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)?.recycle()
-                                    } catch (_: Exception) {}
-                                    retriever = r
-                                    retrieverPath = path
-                                }
+                                previewFrames.prepare(path)
                                 runOnUiThread { result.success(null) }
                             } catch (e: Exception) {
                                 runOnUiThread {
@@ -262,39 +278,7 @@ class MainActivity : FlutterFragmentActivity() {
                         }
                         frameExecutor.submit {
                             try {
-                                val r = retriever
-                                if (r == null) {
-                                    runOnUiThread {
-                                        result.error("NOT_PREPARED", "call prepare first", null)
-                                    }
-                                    return@submit
-                                }
-                                val us = ms * 1_000L
-                                // Grab the full frame (already in display orientation) and
-                                // scale from the real bitmap dims — aspect- and rotation-
-                                // correct. getScaledFrameAtTime is avoided: it requires a
-                                // POSITIVE height, so there's no clean "preserve aspect" call.
-                                val full = r.getFrameAtTime(
-                                    us,
-                                    MediaMetadataRetriever.OPTION_CLOSEST_SYNC,
-                                )
-                                val raw: Bitmap? = if (full != null && full.width > 0) {
-                                    val targetW = 240
-                                    val targetH = (full.height * targetW / full.width).coerceAtLeast(1)
-                                    val scaled = Bitmap.createScaledBitmap(full, targetW, targetH, true)
-                                    if (scaled !== full) full.recycle()
-                                    scaled
-                                } else {
-                                    full
-                                }
-                                if (raw == null) {
-                                    runOnUiThread { result.success(null) }
-                                    return@submit
-                                }
-                                val bos = ByteArrayOutputStream()
-                                raw.compress(Bitmap.CompressFormat.JPEG, 75, bos)
-                                raw.recycle()
-                                val bytes = bos.toByteArray()
+                                val bytes = previewFrames.frameAt(ms)
                                 runOnUiThread { result.success(bytes) }
                             } catch (e: Exception) {
                                 runOnUiThread {
@@ -304,12 +288,21 @@ class MainActivity : FlutterFragmentActivity() {
                         }
                     }
 
+                    "suspend" -> {
+                        frameExecutor.submit {
+                            try {
+                                previewFrames.suspend()
+                                runOnUiThread { result.success(null) }
+                            } catch (e: Exception) {
+                                runOnUiThread { result.error("RELEASE_FAILED", e.message, null) }
+                            }
+                        }
+                    }
+
                     "release" -> {
                         frameExecutor.submit {
                             try {
-                                retriever?.release()
-                                retriever = null
-                                retrieverPath = null
+                                previewFrames.release()
                                 runOnUiThread { result.success(null) }
                             } catch (e: Exception) {
                                 runOnUiThread {
@@ -1013,9 +1006,7 @@ class MainActivity : FlutterFragmentActivity() {
         // Release on the executor thread so it can't race an in-flight frameAt;
         // shutdown() still lets this already-submitted task run to completion.
         frameExecutor.submit {
-            retriever?.release()
-            retriever = null
-            retrieverPath = null
+            previewFrames.release()
         }
         frameExecutor.shutdown()
         ioExecutor.shutdown()

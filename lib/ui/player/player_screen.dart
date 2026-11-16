@@ -579,6 +579,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     } catch (_) {
       // Extraction can fail (e.g. no keyframe near this position); the
       // mini-bar falls back to a placeholder icon when the bytes are null.
+    } finally {
+      await _frames.suspend().catchError((Object _) {});
     }
   }
 

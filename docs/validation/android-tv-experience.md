@@ -111,8 +111,11 @@ The APK SHA-256 is
 `32141d12285c9a9e3cb097af2e3a586936ee6f2bf76c7bf51639253be799dc2b`.
 It is retained outside the repository as
 `kivo-android-tv-preview6-armeabi-v7a.apk` with metadata and actual widget
-captures. It has not been installed on the TV. No CI was triggered for this
-private preview.
+captures. On November 15 it was installed in place over preview 5; package
+version 3075 and UID 10073 were read back, and a cold launch returned Status:
+ok. A physical screenshot showed the unified home with real drive videos.
+This installation/startup evidence does not validate AVI recovery or the full
+remote/lifecycle matrix. No CI was triggered for this private preview.
 
 ## Physical evidence and remaining acceptance
 
@@ -143,8 +146,11 @@ phone/sample before changing decoder policy.
 
 After capturing the current TV failure, control was returned to the owner at
 their request. Further TV input and installation wait for renewed availability.
-The unified-library/focus preview is a separate artifact from installed preview
-5. It must be physically checked for source discovery, D-pad traversal,
-submenus, queue editing, fullscreen output, drive removal and reinsertion.
+Preview 6 subsequently installed the unified library/focus changes. Playback
+resource/recovery changes are recorded in
+[the November 16 validation notes](playback-recovery-2026-11-16.md) and a separate
+preview 7, which remains uninstalled until the TV is available again. Further
+acceptance includes D-pad traversal, submenus, queue editing, fullscreen output,
+drive removal/reinsertion and the original AVI and high-resolution samples.
 
 No public version bump, release tag or public release is part of this preview.

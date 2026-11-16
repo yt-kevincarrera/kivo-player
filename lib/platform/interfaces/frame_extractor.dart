@@ -11,6 +11,10 @@ abstract class FrameExtractor {
   /// Nearest (keyframe) frame to [position] as JPEG bytes, or null.
   Future<Uint8List?> frameAt(Duration position);
 
+  /// Free thumbnail decoder resources after an interaction, keeping the source
+  /// selected so a later preview/capture can open it lazily again.
+  Future<void> suspend() async {}
+
   /// Release native resources (call on close or when switching videos).
   Future<void> release();
 }

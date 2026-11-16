@@ -5,6 +5,11 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'frame_ready.dart';
 import 'playback_engine.dart';
+import 'video_progress.dart';
+import 'native_video_probe.dart';
+// The probe shares the exact library already loaded by media_kit 1.2.6.
+// ignore: implementation_imports
+import 'package:media_kit/src/player/native/core/native_library.dart';
 import '../../core/diagnostics/open_trace.dart';
 
 /// Process-lifetime singleton engine.
@@ -26,11 +31,16 @@ class MediaKitEngine implements PlaybackEngine {
     _player.stream.playing.listen((p) => t.mark('mpv playing=$p'));
     _player.stream.buffering.listen((b) => t.mark('mpv buffering=$b'));
     _player.stream.videoParams.listen((p) {
-      if (p.dw != null) t.mark('mpv video ${p.dw}x${p.dh} rotate ${p.rotate} ${p.hwPixelformat ?? p.pixelformat ?? ''}');
+      if (p.dw != null) {
+        t.mark(
+          'mpv video ${p.dw}x${p.dh} rotate ${p.rotate} ${p.hwPixelformat ?? p.pixelformat ?? ''}',
+        );
+      }
     });
     _player.stream.width.listen((w) => t.mark('mpv width=$w'));
     kivoSurfaceBusy.addListener(
-        () => t.mark('surface ${kivoSurfaceBusy.value ? 'busy' : 'ready'}'));
+      () => t.mark('surface ${kivoSurfaceBusy.value ? 'busy' : 'ready'}'),
+    );
   }
 
   // Every call into mpv is synchronous on this isolate: timed, for the
@@ -59,7 +69,8 @@ class MediaKitEngine implements PlaybackEngine {
   @override
   Stream<Duration> get durationStream => _player.stream.duration;
   @override
-  Stream<bool> get playingStream => _player.stream.playing
+  Stream<bool> get playingStream =>
+      _player.stream.playing
       // mpv 0.36 unpauses for one frame on a forward frame-step, then pauses
       // again: to the app the video never started — no icon flicker, no
       // audio-focus grab, no notification update per step.
@@ -70,13 +81,45 @@ class MediaKitEngine implements PlaybackEngine {
   Stream<bool> get bufferingStream => _player.stream.buffering;
   @override
   Stream<bool> get completedStream => _player.stream.completed;
+  @override
+  Stream<VideoProgress> get videoProgressStream => _videoProgress.stream;
+  final _videoProgress = StreamController<VideoProgress>.broadcast();
+  NativeVideoProbe? _videoProbe;
+  Future<void>? _probeStart;
+  bool _disposed = false;
+
+  Future<void> _ensureVideoProbe() => _probeStart ??= () async {
+    if (defaultTargetPlatform != TargetPlatform.android) return;
+    final native = _player.platform;
+    if (native is! NativePlayer) return;
+    NativeVideoProbe? probe;
+    try {
+      probe = NativeVideoProbe(
+        library: NativeLibrary.path,
+        handle: await native.handle,
+      );
+      await probe.start();
+      if (_disposed) {
+        await probe.dispose();
+        return;
+      }
+      _videoProbe = probe;
+      probe.stream.listen((sample) {
+        if (!_videoProgress.isClosed) _videoProgress.add(sample);
+      });
+    } catch (e) {
+      unawaited(probe?.dispose());
+      debugPrint('Video progress unavailable: $e');
+    }
+  }();
 
   @override
   Stream<String> get unplayableStream => _player.stream.error.where(
-      (message) => const {
-        'No video or audio streams selected.',
-        'Failed to recognize file format.',
-      }.contains(message.trim()));
+    (message) => const {
+      'No video or audio streams selected.',
+      'Failed to recognize file format.',
+    }.contains(message.trim()),
+  );
 
   /// Mirrors our own `vid` intent so [hasVideoFrameStream] can ignore the width
   /// events that `vid=no` produces (see [frameReadyStream]).
@@ -112,7 +155,9 @@ class MediaKitEngine implements PlaybackEngine {
         return;
       }
       final now = frameShowable(
-          width: _player.state.width, surfaceBusy: kivoSurfaceBusy.value);
+        width: _player.state.width,
+        surfaceBusy: kivoSurfaceBusy.value,
+      );
       if (now == last) return;
       if (!now) {
         last = false;
@@ -150,12 +195,20 @@ class MediaKitEngine implements PlaybackEngine {
   }
 
   @override
-  Future<void> open(String path,
-      {Duration startAt = Duration.zero, bool play = true}) async {
+  Future<void> open(
+    String path, {
+    Duration startAt = Duration.zero,
+    bool play = true,
+  }) async {
     _stepped = false;
+    // Optional health observation must not delay playback startup.
+    unawaited(_ensureVideoProbe());
+    _videoProbe?.beginSession();
     _armLoaded();
-    await OpenTrace.instance.timed('media_kit open (start ${startAt.inSeconds}s)',
-        () => _player.open(Media(path, start: startAt), play: play));
+    await OpenTrace.instance.timed(
+      'media_kit open (start ${startAt.inSeconds}s)',
+      () => _player.open(Media(path, start: startAt), play: play),
+    );
   }
 
   // "The file just opened has been read": armed BEFORE loadfile, so the
@@ -192,25 +245,34 @@ class MediaKitEngine implements PlaybackEngine {
     // open() first unloads the previous file (duration 0, pseudo-tracks
     // only): those do not count.
     _loadedSubs
-      ..add(_player.stream.duration.listen((d) {
-        if (d > Duration.zero) done();
-      }))
-      ..add(_player.stream.tracks.listen((t) {
-        bool real(String id) => id != 'auto' && id != 'no';
-        if (t.audio.any((a) => real(a.id)) || t.video.any((v) => real(v.id))) {
-          done();
-        }
-      }))
-      ..add(_player.stream.buffering.listen((b) {
-        if (b) {
-          sawBuffering = true;
-        } else if (sawBuffering) {
-          start();
-        }
-      }))
-      ..add(_player.stream.width.listen((w) {
-        if ((w ?? 0) > 0) start();
-      }));
+      ..add(
+        _player.stream.duration.listen((d) {
+          if (d > Duration.zero) done();
+        }),
+      )
+      ..add(
+        _player.stream.tracks.listen((t) {
+          bool real(String id) => id != 'auto' && id != 'no';
+          if (t.audio.any((a) => real(a.id)) ||
+              t.video.any((v) => real(v.id))) {
+            done();
+          }
+        }),
+      )
+      ..add(
+        _player.stream.buffering.listen((b) {
+          if (b) {
+            sawBuffering = true;
+          } else if (sawBuffering) {
+            start();
+          }
+        }),
+      )
+      ..add(
+        _player.stream.width.listen((w) {
+          if ((w ?? 0) > 0) start();
+        }),
+      );
   }
 
   Completer<void>? _started;
@@ -224,8 +286,9 @@ class MediaKitEngine implements PlaybackEngine {
   }
 
   @override
-  Future<List<MediaTrack>> loadedAudioTracks(
-      {Duration timeout = const Duration(milliseconds: 1500)}) async {
+  Future<List<MediaTrack>> loadedAudioTracks({
+    Duration timeout = const Duration(milliseconds: 1500),
+  }) async {
     final loaded = _loaded;
     if (loaded != null) {
       await loaded.future.timeout(timeout, onTimeout: () {});
@@ -267,6 +330,7 @@ class MediaKitEngine implements PlaybackEngine {
     }
     await _player.play();
   }
+
   @override
   Future<void> pause() => _player.pause();
   @override
@@ -276,7 +340,13 @@ class MediaKitEngine implements PlaybackEngine {
   @override
   Future<void> setVolume(double percent) => _player.setVolume(percent);
   @override
-  Future<void> dispose() => _player.dispose();
+  Future<void> dispose() async {
+    _disposed = true;
+    await _probeStart;
+    await _videoProbe?.dispose();
+    await _videoProgress.close();
+    await _player.dispose();
+  }
 
   MediaTrack _audioToMedia(AudioTrack t) => MediaTrack(
     id: t.id,
@@ -367,8 +437,11 @@ class MediaKitEngine implements PlaybackEngine {
   }
 
   @override
-  Future<void> setExternalSubtitle(String uri,
-      {String? title, bool replaceCurrent = false}) async {
+  Future<void> setExternalSubtitle(
+    String uri, {
+    String? title,
+    bool replaceCurrent = false,
+  }) async {
     if (replaceCurrent) {
       final native = _player.platform as NativePlayer?;
       try {
@@ -423,8 +496,8 @@ class MediaKitEngine implements PlaybackEngine {
   }
 
   @override
-  bool get hasVideoTrack => _player.state.tracks.video
-      .any((v) => v.id != 'auto' && v.id != 'no');
+  bool get hasVideoTrack =>
+      _player.state.tracks.video.any((v) => v.id != 'auto' && v.id != 'no');
 
   @override
   bool get videoOutputEnabled => _videoOutputEnabled;
@@ -458,8 +531,10 @@ class MediaKitEngine implements PlaybackEngine {
   }
 
   @override
-  Future<void> configureSubtitleFonts(
-      {required String dir, required String family}) async {
+  Future<void> configureSubtitleFonts({
+    required String dir,
+    required String family,
+  }) async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;
     await _setProp(native, 'sub-fonts-dir', dir);
@@ -484,7 +559,9 @@ class MediaKitEngine implements PlaybackEngine {
     try {
       final actual = (await _getProp(native, 'secondary-sid')).trim();
       _secondarySubtitleId =
-          (actual.isEmpty || actual == 'no' || actual == 'auto') ? null : actual;
+          (actual.isEmpty || actual == 'no' || actual == 'auto')
+          ? null
+          : actual;
     } catch (_) {
       _secondarySubtitleId = id;
     }
@@ -524,9 +601,7 @@ class MediaKitEngine implements PlaybackEngine {
     try {
       // A file with no chapters costs exactly this one read — the loop below
       // never runs. Only files that actually have chapters pay for them.
-      final count = int.tryParse(
-        await _getProp(native, 'chapter-list/count'),
-      );
+      final count = int.tryParse(await _getProp(native, 'chapter-list/count'));
       if (count == null || count <= 0) return const [];
 
       final out = <MediaChapter>[];
@@ -581,24 +656,35 @@ class MediaKitEngine implements PlaybackEngine {
   }
 
   @override
-  Future<void> setAudioDownmix(
-      {required bool forceStereo, required String swresample}) async {
+  Future<void> setAudioDownmix({
+    required bool forceStereo,
+    required String swresample,
+  }) async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;
     await _setProp(native, 'audio-swresample-o', swresample);
-    await _setProp(native, 
-        'audio-channels', forceStereo ? 'stereo' : 'auto-safe');
+    await _setProp(
+      native,
+      'audio-channels',
+      forceStereo ? 'stereo' : 'auto-safe',
+    );
   }
 
   @override
-  Future<void> setDolbyDrc(double scale, {bool heavyCompression = false}) async {
+  Future<void> setDolbyDrc(
+    double scale, {
+    bool heavyCompression = false,
+  }) async {
     final native = _player.platform as NativePlayer?;
     if (native == null) return;
     await _setProp(native, 'ad-lavc-ac3drc', scale.toStringAsFixed(2));
     // Every decoder gets ad-lavc-o; one without heavy_compr just logs that it
     // could not set it.
-    await _setProp(native, 
-        'ad-lavc-o', heavyCompression ? 'heavy_compr=1' : '');
+    await _setProp(
+      native,
+      'ad-lavc-o',
+      heavyCompression ? 'heavy_compr=1' : '',
+    );
   }
 
   @override
@@ -617,10 +703,16 @@ class MediaKitEngine implements PlaybackEngine {
     if (native == null) return null;
     await _untilStarted();
     try {
-      final codec = (await _getProp(native, 'current-tracks/audio/codec')).trim();
+      final codec = (await _getProp(
+        native,
+        'current-tracks/audio/codec',
+      )).trim();
       final channels = int.tryParse(
-          (await _getProp(native, 'current-tracks/audio/demux-channel-count'))
-              .trim());
+        (await _getProp(
+          native,
+          'current-tracks/audio/demux-channel-count',
+        )).trim(),
+      );
       if (codec.isEmpty && channels == null) return null;
       return (codec: codec.isEmpty ? null : codec, channels: channels);
     } catch (e) {

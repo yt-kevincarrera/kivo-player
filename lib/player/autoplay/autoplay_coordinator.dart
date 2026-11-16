@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'dart:async';
 import '../../core/errors/error_log_provider.dart';
 import '../../core/errors/kivo_failure.dart';
@@ -59,10 +60,13 @@ class AutoplayCoordinator {
     if (session == null || identical(_endHandledFor, session)) return;
     if (!sleepStopped && !_ref.read(settingsProvider).incognito) {
       final log = _ref.read(errorLogProvider);
-      unawaited(_ref.read(resumeServiceProvider).finish(session.resumeKey)
-          .catchError((Object error) {
-        log.record(KivoFailure(KivoOp.unknown, error));
-      }));
+      unawaited(
+        _ref.read(resumeServiceProvider).finish(session.resumeKey).catchError((
+          Object error,
+        ) {
+          log.record(KivoFailure(KivoOp.unknown, error));
+        }),
+      );
     }
     _endHandledFor = session;
     final d = decideEnd(
@@ -186,7 +190,12 @@ class AutoplayCoordinator {
     try {
       final frames = _ref.read(frameExtractorProvider);
       await frames.prepare(path);
-      final bytes = await frames.frameAt(Duration.zero);
+      Uint8List? bytes;
+      try {
+        bytes = await frames.frameAt(Duration.zero);
+      } finally {
+        await frames.suspend().catchError((Object _) {});
+      }
       _ref.read(miniPlayerThumbnailProvider.notifier).state = bytes;
     } catch (_) {
       // Best-effort — a failed capture just leaves the previous/placeholder art.

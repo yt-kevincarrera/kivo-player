@@ -7,7 +7,7 @@ import '../interfaces/frame_extractor.dart';
 /// Call [prepare] once per video, [frameAt] for each thumbnail, [release] on
 /// close. [prepare] is idempotent for the same path (the Kotlin side reuses the
 /// same retriever when the path hasn't changed).
-class AndroidFrameExtractor implements FrameExtractor {
+class AndroidFrameExtractor extends FrameExtractor {
   static const MethodChannel _channel = MethodChannel('kivo/frames');
   bool _prepared = false;
   int _generation = 0;
@@ -30,12 +30,14 @@ class AndroidFrameExtractor implements FrameExtractor {
   Future<Uint8List?> frameAt(Duration position) async {
     if (!_prepared) return null;
     final generation = _generation;
-    final bytes = await _channel.invokeMethod<Uint8List>(
-      'frameAt',
-      {'ms': position.inMilliseconds},
-    );
+    final bytes = await _channel.invokeMethod<Uint8List>('frameAt', {
+      'ms': position.inMilliseconds,
+    });
     return generation == _generation && _prepared ? bytes : null;
   }
+
+  @override
+  Future<void> suspend() => _channel.invokeMethod<void>('suspend');
 
   @override
   Future<void> release() async {

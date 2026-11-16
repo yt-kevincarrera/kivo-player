@@ -29,11 +29,11 @@ class FakeImageSaver implements ImageSaver {
 }
 
 VideoSession _session() => const VideoSession(
-      playbackPath: '/v/ep1.mkv',
-      displayName: 'ep1.mkv',
-      queue: ['/v/ep1.mkv'],
-      index: 0,
-    );
+  playbackPath: '/v/ep1.mkv',
+  displayName: 'ep1.mkv',
+  queue: ['/v/ep1.mkv'],
+  index: 0,
+);
 
 Future<ProviderContainer> _c({
   required FakeFrameExtractor extractor,
@@ -41,19 +41,23 @@ Future<ProviderContainer> _c({
   FakePlaybackEngine? engine,
   ErrorLog? log,
 }) async {
-  return ProviderContainer(overrides: [
-    playbackEngineProvider.overrideWithValue(engine ?? FakePlaybackEngine()),
-    frameExtractorProvider.overrideWithValue(extractor),
-    imageSaverProvider.overrideWithValue(saver),
-    if (log != null) errorLogProvider.overrideWithValue(log),
-  ]);
+  return ProviderContainer(
+    overrides: [
+      playbackEngineProvider.overrideWithValue(engine ?? FakePlaybackEngine()),
+      frameExtractorProvider.overrideWithValue(extractor),
+      imageSaverProvider.overrideWithValue(saver),
+      if (log != null) errorLogProvider.overrideWithValue(log),
+    ],
+  );
 }
 
 void main() {
-  testWidgets('captures the current frame and hands back what it saved',
-      (tester) async {
+  testWidgets('captures the current frame and hands back what it saved', (
+    tester,
+  ) async {
     final engine = FakePlaybackEngine();
-    final extractor = FakeFrameExtractor()..bytes = Uint8List.fromList([1, 2, 3]);
+    final extractor = FakeFrameExtractor()
+      ..bytes = Uint8List.fromList([1, 2, 3]);
     final saver = FakeImageSaver();
     final c = await _c(extractor: extractor, saver: saver, engine: engine);
     addTearDown(c.dispose);
@@ -71,6 +75,11 @@ void main() {
     // The extractor is prepared for the open video before asking for a frame;
     // prepare() is idempotent so doing it again costs nothing.
     expect(extractor.prepared.last, '/v/ep1.mkv');
+    expect(
+      extractor.suspendCount,
+      1,
+      reason: 'capture must not hold a second decoder while playback continues',
+    );
   });
 
   test('refuses when no video is open', () async {
@@ -85,24 +94,34 @@ void main() {
     expect(saver.saved, isEmpty);
   });
 
-  test('a frame that cannot be decoded reports KV-503 and saves nothing',
-      () async {
-    final log = ErrorLog(InMemoryErrorLogStore(), appVersion: '1', androidSdk: 1);
-    final extractor = FakeFrameExtractor()..returnsNull = true;
-    final saver = FakeImageSaver();
-    final c = await _c(extractor: extractor, saver: saver, log: log);
-    addTearDown(c.dispose);
-    c.read(currentVideoProvider.notifier).open(_session());
+  test(
+    'a frame that cannot be decoded reports KV-503 and saves nothing',
+    () async {
+      final log = ErrorLog(
+        InMemoryErrorLogStore(),
+        appVersion: '1',
+        androidSdk: 1,
+      );
+      final extractor = FakeFrameExtractor()..returnsNull = true;
+      final saver = FakeImageSaver();
+      final c = await _c(extractor: extractor, saver: saver, log: log);
+      addTearDown(c.dispose);
+      c.read(currentVideoProvider.notifier).open(_session());
 
-    final result = await c.read(frameCaptureProvider).capture();
+      final result = await c.read(frameCaptureProvider).capture();
 
-    expect(result.ok, false);
-    expect(saver.saved, isEmpty);
-    expect(log.entries().single.code, 'KV-503');
-  });
+      expect(result.ok, false);
+      expect(saver.saved, isEmpty);
+      expect(log.entries().single.code, 'KV-503');
+    },
+  );
 
   test('a gallery write that fails reports KV-503', () async {
-    final log = ErrorLog(InMemoryErrorLogStore(), appVersion: '1', androidSdk: 1);
+    final log = ErrorLog(
+      InMemoryErrorLogStore(),
+      appVersion: '1',
+      androidSdk: 1,
+    );
     final extractor = FakeFrameExtractor()..bytes = Uint8List.fromList([1]);
     final saver = FakeImageSaver()..result = null;
     final c = await _c(extractor: extractor, saver: saver, log: log);
@@ -116,7 +135,11 @@ void main() {
   });
 
   test('an extractor that throws is caught, not propagated', () async {
-    final log = ErrorLog(InMemoryErrorLogStore(), appVersion: '1', androidSdk: 1);
+    final log = ErrorLog(
+      InMemoryErrorLogStore(),
+      appVersion: '1',
+      androidSdk: 1,
+    );
     final extractor = FakeFrameExtractor()..throwOnFrame = true;
     final c = await _c(extractor: extractor, saver: FakeImageSaver(), log: log);
     addTearDown(c.dispose);

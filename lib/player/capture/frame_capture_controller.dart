@@ -45,7 +45,12 @@ class FrameCaptureController {
       await extractor.prepare(session.playbackPath);
 
       final at = _ref.read(positionProvider).value ?? Duration.zero;
-      final bytes = await extractor.frameAt(at);
+      Uint8List? bytes;
+      try {
+        bytes = await extractor.frameAt(at);
+      } finally {
+        await extractor.suspend().catchError((Object _) {});
+      }
       if (bytes == null) {
         throw StateError('no decodable frame at $at');
       }
@@ -69,5 +74,6 @@ class FrameCaptureController {
   Future<void> view(String uri) => _ref.read(imageSaverProvider).view(uri);
 }
 
-final frameCaptureProvider =
-    Provider<FrameCaptureController>((ref) => FrameCaptureController(ref));
+final frameCaptureProvider = Provider<FrameCaptureController>(
+  (ref) => FrameCaptureController(ref),
+);

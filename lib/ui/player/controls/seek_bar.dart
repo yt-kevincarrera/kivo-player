@@ -112,7 +112,8 @@ class _SeekBarState extends ConsumerState<SeekBar>
     // A screen reader steps the bar by the same jump as the skip buttons —
     // the slider's own 5 % would be six minutes of a two-hour film.
     final step = Duration(
-      seconds: ref.watch(isTelevisionProvider) ? ref.watch(settingsProvider).tvRemoteSeekSeconds
+      seconds: ref.watch(isTelevisionProvider)
+          ? ref.watch(settingsProvider).tvRemoteSeekSeconds
           : ref.watch(settingsProvider).centerSkipSeconds,
     );
     final hasTotal = total > Duration.zero;
@@ -128,7 +129,10 @@ class _SeekBarState extends ConsumerState<SeekBar>
         ExcludeSemantics(
           child: Text(
             fmtDuration(shownPos),
-            style: TextStyle(color: Colors.white, fontSize: ref.watch(isTelevisionProvider) ? 18 : 12),
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: ref.watch(isTelevisionProvider) ? 18 : 12,
+            ),
           ),
         ),
         Expanded(
@@ -194,6 +198,7 @@ class _SeekBarState extends ConsumerState<SeekBar>
                         },
                         onChangeEnd: (v) {
                           final target = Duration(milliseconds: v.round());
+                          ref.read(seekPreviewControllerProvider).cancel();
                           ref.read(playerControllerProvider).seekTo(target);
                           ref.read(pendingSeekProvider.notifier).state =
                               target; // hold slider until pos catches up
@@ -250,8 +255,9 @@ class _SeekKeys extends StatelessWidget {
         builder: (context) {
           final ring =
               Focus.of(context).hasPrimaryFocus &&
-              (TvInputMode.of(context) || FocusManager.instance.highlightMode ==
-                  FocusHighlightMode.traditional);
+              (TvInputMode.of(context) ||
+                  FocusManager.instance.highlightMode ==
+                      FocusHighlightMode.traditional);
           return DecoratedBox(
             position: DecorationPosition.foreground,
             decoration: BoxDecoration(
