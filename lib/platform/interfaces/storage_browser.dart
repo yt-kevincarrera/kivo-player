@@ -25,11 +25,23 @@ class StorageEntry {
   });
 }
 
+class StorageListing {
+  const StorageListing({required this.entries, this.accessLimited = false});
+  final List<StorageEntry> entries;
+
+  /// Android may return an empty filtered view even when files exist. Only a
+  /// complete read can establish that a directory contains no videos.
+  final bool accessLimited;
+}
+
 /// Read-only browsing of mounted volumes. No dependency on a document-picker
 /// app, and no permission bypass: Android can refuse each read independently.
 abstract class StorageBrowser {
   Future<List<StorageVolume>> volumes();
   Future<List<StorageEntry>> list(String path);
+  Future<StorageListing> browse(String path) async =>
+      StorageListing(entries: await list(path));
+  Future<void> rescan(String path) async {}
   Future<List<VideoItem>> scanRemovable();
   Future<Uint8List?> thumbnail(String path);
 }

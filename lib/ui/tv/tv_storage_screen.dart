@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/l10n.dart';
 import '../../platform/all_files_access_provider.dart';
 import '../../platform/interfaces/storage_browser.dart';
+import '../../platform/interfaces/media_permission.dart';
 import '../../platform/storage_browser_provider.dart';
 import '../../player/library/media_index.dart';
 import '../../player/library/media_permission.dart';
@@ -11,7 +12,9 @@ import 'tv_focusable.dart';
 import 'tv_library_screen.dart';
 
 class TvStorageScreen extends ConsumerStatefulWidget {
-  const TvStorageScreen({super.key});
+  const TvStorageScreen({super.key, this.asHome = false, this.onHome});
+  final bool asHome;
+  final VoidCallback? onHome;
   @override
   ConsumerState<TvStorageScreen> createState() => _TvStorageScreenState();
 }
@@ -19,11 +22,14 @@ class TvStorageScreen extends ConsumerStatefulWidget {
 class _TvStorageScreenState extends ConsumerState<TvStorageScreen>
     with WidgetsBindingObserver {
   late Future<AsyncValue<List<StorageVolume>>> _volumes;
-  Future<AsyncValue<List<StorageEntry>>>? _entries;
+  Future<AsyncValue<StorageListing>>? _entries;
   final _parents = <String>[];
   String? _path;
   String? _volumeName;
   bool _requesting = false;
+  bool _autoOpen = true;
+  bool _scanning = false;
+  final _scannedPaths = <String>{};
 
   @override
   void initState() {
@@ -49,7 +55,7 @@ class _TvStorageScreenState extends ConsumerState<TvStorageScreen>
     );
     if (_path != null) {
       _entries = AsyncValue.guard(
-        () => ref.read(storageBrowserProvider).list(_path!),
+        () => ref.read(storageBrowserProvider).browse(_path!),
       );
     }
   }
@@ -57,24 +63,27 @@ class _TvStorageScreenState extends ConsumerState<TvStorageScreen>
   void _enter(String path, {String? volumeName}) {
     if (_path != null) _parents.add(_path!);
     setState(() {
+      _scanning = false;
       _path = path;
       _volumeName = volumeName ?? _volumeName;
       _entries = AsyncValue.guard(
-        () => ref.read(storageBrowserProvider).list(path),
+        () => ref.read(storageBrowserProvider).browse(path),
       );
     });
   }
 
   void _back() {
     setState(() {
+      _scanning = false;
       if (_parents.isEmpty) {
+        _autoOpen = false;
         _path = null;
         _entries = null;
         _volumeName = null;
       } else {
         _path = _parents.removeLast();
         _entries = AsyncValue.guard(
-          () => ref.read(storageBrowserProvider).list(_path!),
+          () => ref.read(storageBrowserProvider).browse(_path!),
         );
       }
     });
@@ -83,9 +92,12 @@ class _TvStorageScreenState extends ConsumerState<TvStorageScreen>
   Future<void> _access() async {
     setState(() => _requesting = true);
     var granted = false;
+    var unsupported = false;
     try {
       await ref.read(mediaPermissionProvider.notifier).request();
       granted = await ref.read(allFilesAccessProvider).request();
+    } on PlatformException catch (error) {
+      unsupported = error.code == 'ALL_FILES_SETTINGS_UNAVAILABLE';
     } catch (_) {
       /* OEM may have no permission activity. Recovery remains visible. */
     }
@@ -98,10 +110,44 @@ class _TvStorageScreenState extends ConsumerState<TvStorageScreen>
     if (!granted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(context.l10n.tvPermissionStillMissing),
+          content: Text(
+            unsupported
+                ? context.l10n.tvAllFilesUnavailable
+                : ref.read(mediaPermissionProvider).valueOrNull ==
+                      MediaAccess.granted
+                ? context.l10n.tvAllFilesStillMissing
+                : context.l10n.tvPermissionStillMissing,
+          ),
           duration: const Duration(seconds: 8),
         ),
       );
+    }
+  }
+
+  Future<void> _scanFolder() async {
+    final path = _path;
+    if (path == null || _scanning) return;
+    _scannedPaths.add(path);
+    setState(() => _scanning = true);
+    try {
+      await ref.read(mediaPermissionProvider.notifier).request();
+      if (!mounted || _path != path) return;
+      if (ref.read(mediaPermissionProvider).valueOrNull != MediaAccess.denied) {
+        await ref
+            .read(storageBrowserProvider)
+            .rescan(path)
+            .timeout(const Duration(seconds: 30));
+      }
+    } catch (_) {
+      // Keep permission recovery visible; a scanner failure never means empty.
+    } finally {
+      if (mounted && _path == path) {
+        setState(() {
+          _scanning = false;
+          _reload();
+        });
+        ref.read(mediaIndexProvider.notifier).refresh();
+      }
     }
   }
 
@@ -113,6 +159,9 @@ class _TvStorageScreenState extends ConsumerState<TvStorageScreen>
           _path = null;
           _entries = null;
           _parents.clear();
+          _autoOpen = true;
+          _scanning = false;
+          _scannedPaths.clear();
           _volumeName = null;
           _reload();
         });
@@ -138,11 +187,19 @@ class _TvStorageScreenState extends ConsumerState<TvStorageScreen>
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     TvButton(
-                      label: l.commonGoBack,
-                      icon: Icons.arrow_back,
+                      label: widget.asHome && _path == null
+                          ? l.tvHome
+                          : l.commonGoBack,
+                      icon: widget.asHome && _path == null
+                          ? Icons.home_outlined
+                          : Icons.arrow_back,
                       onPressed: () {
                         if (_path == null) {
-                          Navigator.of(context).pop();
+                          if (widget.asHome) {
+                            widget.onHome?.call();
+                          } else {
+                            Navigator.of(context).pop();
+                          }
                         } else {
                           _back();
                         }
@@ -158,7 +215,16 @@ class _TvStorageScreenState extends ConsumerState<TvStorageScreen>
                     TvButton(
                       label: l.tvRefresh,
                       icon: Icons.refresh,
-                      onPressed: () => setState(_reload),
+                      autofocus: widget.asHome && _path == null,
+                      onPressed: _scanning
+                          ? null
+                          : () {
+                              if (_path == null) {
+                                setState(_reload);
+                              } else {
+                                _scanFolder();
+                              }
+                            },
                     ),
                   ],
                 ),
@@ -201,7 +267,19 @@ class _TvStorageScreenState extends ConsumerState<TvStorageScreen>
       }
       if (snapshot.data?.hasError ?? false) return _error(snapshot.data!.error);
       final volumes = snapshot.data?.valueOrNull ?? [];
-      final removable = volumes.where((v) => v.removable);
+      final removable = volumes.where((v) => v.removable).toList();
+      if (widget.asHome && _autoOpen && removable.length == 1) {
+        _autoOpen = false;
+        final drive = removable.single;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _path == null) {
+            _enter(drive.path, volumeName: drive.name);
+          }
+        });
+      }
+      final shown = widget.asHome
+          ? removable
+          : [...removable, ...volumes.where((v) => !v.removable)];
       return ListView(
         padding: const EdgeInsets.all(6),
         children: [
@@ -217,7 +295,7 @@ class _TvStorageScreenState extends ConsumerState<TvStorageScreen>
             ),
             const SizedBox(height: 26),
           ],
-          ...volumes.indexed.map(
+          ...shown.indexed.map(
             (e) => Padding(
               padding: const EdgeInsets.only(bottom: 15),
               child: TvButton(
@@ -238,6 +316,19 @@ class _TvStorageScreenState extends ConsumerState<TvStorageScreen>
               ),
             ),
           ),
+          if (widget.asHome)
+            ...volumes
+                .where((v) => !v.removable)
+                .map(
+                  (volume) => TvButton(
+                    label: context.l10n.tvInternalStorage,
+                    icon: Icons.storage_outlined,
+                    onPressed: () => _enter(
+                      volume.path,
+                      volumeName: context.l10n.tvInternalStorage,
+                    ),
+                  ),
+                ),
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: TvButton(
@@ -251,7 +342,7 @@ class _TvStorageScreenState extends ConsumerState<TvStorageScreen>
     },
   );
 
-  Widget _directory() => FutureBuilder<AsyncValue<List<StorageEntry>>>(
+  Widget _directory() => FutureBuilder<AsyncValue<StorageListing>>(
     key: ValueKey(_path),
     future: _entries,
     builder: (context, snapshot) {
@@ -259,12 +350,37 @@ class _TvStorageScreenState extends ConsumerState<TvStorageScreen>
         return const Center(child: CircularProgressIndicator());
       }
       if (snapshot.data?.hasError ?? false) return _error(snapshot.data!.error);
-      final entries = snapshot.data?.valueOrNull ?? [];
+      final listing = snapshot.data?.valueOrNull;
+      final entries = listing?.entries ?? [];
       final videos = entries
           .where((e) => e.video != null)
           .map((e) => e.video!)
           .toList();
       if (entries.isEmpty) {
+        if (listing?.accessLimited == true) {
+          final path = _path;
+          if (path != null && _scannedPaths.add(path)) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted && _path == path) _scanFolder();
+            });
+          }
+          if (_scanning) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 24),
+                  Text(
+                    context.l10n.tvScanningVideos,
+                    style: const TextStyle(fontSize: 24),
+                  ),
+                ],
+              ),
+            );
+          }
+          return _limitedAccess();
+        }
         return Center(
           child: Text(
             context.l10n.tvEmptyFolder,
@@ -272,7 +388,7 @@ class _TvStorageScreenState extends ConsumerState<TvStorageScreen>
           ),
         );
       }
-      return ListView.separated(
+      final files = ListView.separated(
         key: PageStorageKey(_path),
         padding: const EdgeInsets.all(6),
         itemCount: entries.length,
@@ -300,7 +416,63 @@ class _TvStorageScreenState extends ConsumerState<TvStorageScreen>
           );
         },
       );
+      if (listing?.accessLimited != true) return files;
+      return Column(
+        children: [
+          Expanded(child: files),
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TvButton(
+              label: _scanning
+                  ? context.l10n.tvScanningVideos
+                  : context.l10n.tvScanVideos,
+              icon: Icons.refresh,
+              onPressed: _scanning ? null : _scanFolder,
+            ),
+          ),
+        ],
+      );
     },
+  );
+
+  Widget _limitedAccess({bool compact = false}) => Center(
+    child: SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!compact) ...[
+            const Icon(Icons.folder_off_outlined, size: 52),
+            const SizedBox(height: 18),
+            Text(
+              context.l10n.tvStorageLimitedTitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 14),
+          ],
+          Text(
+            context.l10n.tvStorageLimitedBody,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: compact ? 18 : 21),
+          ),
+          const SizedBox(height: 16),
+          if (_path != null)
+            TvButton(
+              label: context.l10n.tvScanVideos,
+              icon: Icons.video_library_outlined,
+              autofocus: !compact,
+              onPressed: _scanning ? null : _scanFolder,
+            ),
+          const SizedBox(height: 10),
+          TvButton(
+            label: context.l10n.tvStorageAccess,
+            icon: Icons.folder_open_outlined,
+            onPressed: _requesting ? null : _access,
+          ),
+        ],
+      ),
+    ),
   );
 
   Widget _error(Object? error) {
@@ -346,7 +518,11 @@ class _TvStorageScreenState extends ConsumerState<TvStorageScreen>
                     if (_path != null) {
                       _back();
                     } else {
-                      Navigator.of(context).pop();
+                      if (widget.asHome) {
+                        widget.onHome?.call();
+                      } else {
+                        Navigator.of(context).pop();
+                      }
                     }
                   },
                 ),

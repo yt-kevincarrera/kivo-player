@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui' show SemanticsFlag;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -86,8 +87,8 @@ void main() {
         container: c,
       );
       await t.tap(find.text('Open'));
-    await t.pump();
-    await t.pump(const Duration(milliseconds: 500));
+      await t.pump();
+      await t.pump(const Duration(milliseconds: 500));
       expect(find.byType(PlayerScreen), findsOneWidget);
       expect(device.orientations.first, [DeviceOrientationLock.landscape]);
       expect(
@@ -99,6 +100,27 @@ void main() {
       await t.sendKeyEvent(LogicalKeyboardKey.arrowUp);
       await t.pump();
       expect(c.read(controlsVisibleProvider), true);
+      await t.pump();
+      for (var i = 0; i < 4; i++) {
+        await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+        await t.pump(const Duration(milliseconds: 250));
+      }
+      expect(
+        t
+            .getSemantics(find.byKey(const Key('tv-player-more')))
+            .hasFlag(SemanticsFlag.isFocused),
+        isTrue,
+      );
+      await t.sendKeyEvent(LogicalKeyboardKey.select);
+      await t.pump(const Duration(milliseconds: 250));
+      await t.binding.handlePopRoute();
+      await t.pump(const Duration(milliseconds: 250));
+      expect(
+        t
+            .getSemantics(find.byKey(const Key('tv-player-more')))
+            .hasFlag(SemanticsFlag.isFocused),
+        isTrue,
+      );
       await t.binding.handlePopRoute();
       await t.pump();
       expect(c.read(controlsVisibleProvider), false);

@@ -104,6 +104,12 @@ abstract class AppLocalizations {
   /// **'Inicio'**
   String get tvHome;
 
+  /// No description provided for @tvUsbShort.
+  ///
+  /// In es, this message translates to:
+  /// **'USB'**
+  String get tvUsbShort;
+
   /// No description provided for @tvUsb.
   ///
   /// In es, this message translates to:
@@ -161,7 +167,7 @@ abstract class AppLocalizations {
   /// No description provided for @tvPlaybackHint.
   ///
   /// In es, this message translates to:
-  /// **'← → · Buscar     Mantener · Buscar más rápido     OK · Pausar/reproducir     ↑ ↓ · Controles'**
+  /// **'Flechas · Saltar     Mantener · Avanzar más rápido     OK · Pausar/reproducir     Arriba/abajo · Controles'**
   String get tvPlaybackHint;
 
   /// No description provided for @tvRemoteStep.
@@ -254,6 +260,42 @@ abstract class AppLocalizations {
   /// **'No hay videos en esta carpeta'**
   String get tvEmptyFolder;
 
+  /// No description provided for @tvStorageLimitedTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Android está limitando el acceso'**
+  String get tvStorageLimitedTitle;
+
+  /// No description provided for @tvStorageLimitedBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Puede que Android esté ocultando videos de esta memoria. Revisa el permiso de Kivo y vuelve a buscar.'**
+  String get tvStorageLimitedBody;
+
+  /// No description provided for @tvScanVideos.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar videos en esta carpeta'**
+  String get tvScanVideos;
+
+  /// No description provided for @tvScanningVideos.
+  ///
+  /// In es, this message translates to:
+  /// **'Android está buscando videos…'**
+  String get tvScanningVideos;
+
+  /// No description provided for @tvAllFilesStillMissing.
+  ///
+  /// In es, this message translates to:
+  /// **'El permiso de videos está activo, pero Android todavía no concedió acceso completo a archivos.'**
+  String get tvAllFilesStillMissing;
+
+  /// No description provided for @tvAllFilesUnavailable.
+  ///
+  /// In es, this message translates to:
+  /// **'El permiso de videos está activo. Este televisor no ofrece una pantalla para conceder acceso completo a archivos. Prueba Buscar videos.'**
+  String get tvAllFilesUnavailable;
+
   /// No description provided for @tvInternalStorage.
   ///
   /// In es, this message translates to:
@@ -284,6 +326,24 @@ abstract class AppLocalizations {
   /// **'Cola de reproducción'**
   String get tvQueue;
 
+  /// No description provided for @tvEditQueue.
+  ///
+  /// In es, this message translates to:
+  /// **'Editar tira'**
+  String get tvEditQueue;
+
+  /// No description provided for @tvSaveSpeedPreset.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar esta velocidad'**
+  String get tvSaveSpeedPreset;
+
+  /// No description provided for @tvResetSync.
+  ///
+  /// In es, this message translates to:
+  /// **'Restablecer sincronización'**
+  String get tvResetSync;
+
   /// No description provided for @tvPrevious.
   ///
   /// In es, this message translates to:
@@ -311,8 +371,62 @@ abstract class AppLocalizations {
   /// No description provided for @tvLibraryComplete.
   ///
   /// In es, this message translates to:
-  /// **'Gestionar biblioteca y listas'**
+  /// **'Biblioteca'**
   String get tvLibraryComplete;
+
+  /// No description provided for @tvLibraryConnectHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Conecta tu memoria y tus videos aparecerán aquí. Si ya está conectada, actualiza la biblioteca.'**
+  String get tvLibraryConnectHint;
+
+  /// No description provided for @tvAdjustValueHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Izquierda y derecha para ajustar. OK para guardar y volver.'**
+  String get tvAdjustValueHint;
+
+  /// No description provided for @tvPlayerControlsHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Flechas · Mover el foco   OK · Elegir   Atrás · Ocultar controles'**
+  String get tvPlayerControlsHint;
+
+  /// No description provided for @tvNoMatchingVideos.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay videos con estos filtros'**
+  String get tvNoMatchingVideos;
+
+  /// No description provided for @tvClearFilters.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar filtros'**
+  String get tvClearFilters;
+
+  /// No description provided for @tvCornerTopLeft.
+  ///
+  /// In es, this message translates to:
+  /// **'Arriba a la izquierda'**
+  String get tvCornerTopLeft;
+
+  /// No description provided for @tvCornerTopRight.
+  ///
+  /// In es, this message translates to:
+  /// **'Arriba a la derecha'**
+  String get tvCornerTopRight;
+
+  /// No description provided for @tvCornerBottomLeft.
+  ///
+  /// In es, this message translates to:
+  /// **'Abajo a la izquierda'**
+  String get tvCornerBottomLeft;
+
+  /// No description provided for @tvCornerBottomRight.
+  ///
+  /// In es, this message translates to:
+  /// **'Abajo a la derecha'**
+  String get tvCornerBottomRight;
 
   /// No description provided for @tvUnknownDuration.
   ///

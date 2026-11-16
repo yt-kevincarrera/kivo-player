@@ -10,6 +10,7 @@ import 'package:kivo_player/platform/storage_browser_provider.dart';
 import 'package:kivo_player/platform/television_provider.dart';
 import 'package:kivo_player/player/library/continue_watching.dart';
 import 'package:kivo_player/player/library/media_index.dart';
+import 'package:kivo_player/player/library/tv_library.dart';
 import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import '../../fakes/fakes.dart';
@@ -21,7 +22,7 @@ class _Permission implements MediaPermission {
   Future<MediaAccess> request() => status();
 }
 
-class _Usb implements StorageBrowser {
+class _Usb extends StorageBrowser {
   _Usb(this.items, {this.fail = false});
   final List<VideoItem> items;
   final bool fail;
@@ -53,6 +54,35 @@ VideoItem _video(String id, String path, {int duration = 0}) => VideoItem(
 );
 
 void main() {
+  test(
+    'TV source uses mounted removable roots with path boundaries and decoded file URIs',
+    () {
+      const volumes = [
+        StorageVolume(path: '/storage/usb', name: 'Drive', removable: true),
+        StorageVolume(
+          path: '/storage/emulated/0',
+          name: 'Internal',
+          removable: false,
+        ),
+      ];
+      final videos = [
+        _video('a', '/storage/usb/Aida 11/episode.avi'),
+        _video('b', '/storage/usba/other.avi'),
+        _video('c', '/storage/emulated/0/internal.mp4'),
+        const VideoItem(
+          id: 'd',
+          uri: 'file:///storage/usb/Series%20A/episode.mkv',
+          name: 'episode.mkv',
+          folder: 'Series A',
+          durationMs: 0,
+          sizeBytes: 1,
+          dateAddedMs: 0,
+        ),
+      ];
+      expect(videosOnVolumes(videos, volumes).map((v) => v.id), ['a', 'd']);
+      expect(videosOnVolumes(videos, []), isEmpty);
+    },
+  );
   test(
     'TV merges unindexed USB videos without duplicating MediaStore identities',
     () async {

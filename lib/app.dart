@@ -71,23 +71,32 @@ class _KivoAppState extends ConsumerState<KivoApp> {
     ref.watch(autoplayCoordinatorProvider);
     // The media_kit_video patch reads this when it sizes the surface: kept in
     // step with the setting (its escape hatch), before any video opens.
-    kivoFixedSurface =
-        !ref.watch(settingsProvider.select((s) => s.classicVideoSurface));
+    kivoFixedSurface = !ref.watch(
+      settingsProvider.select((s) => s.classicVideoSurface),
+    );
     final mode = ref.watch(settingsProvider.select((s) => s.themeMode));
-    final accent = Color(ref.watch(settingsProvider.select((s) => s.accentColor)));
+    final accent = Color(
+      ref.watch(settingsProvider.select((s) => s.accentColor)),
+    );
     final localeSetting = ref.watch(settingsProvider.select((s) => s.locale));
     return MaterialApp(
       navigatorKey: kivoNavigatorKey,
       title: 'Kivo',
       debugShowCheckedModeBanner: false,
       theme: KivoTheme.light(accent: accent),
-      darkTheme: KivoTheme.dark(accent: accent),
+      darkTheme: television
+          ? KivoTheme.television(accent: accent)
+          : KivoTheme.dark(accent: accent),
       themeMode: television ? ThemeMode.dark : themeModeFor(mode),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: localeSetting == 'system' ? null : Locale(localeSetting),
-      builder: (context, child) => TvInputMode(enabled: television,
-        child: PlaybackFailureListener(child: television ? TvRemoteShortcuts(child: child!) : child!)),
+      builder: (context, child) => TvInputMode(
+        enabled: television,
+        child: PlaybackFailureListener(
+          child: television ? TvRemoteShortcuts(child: child!) : child!,
+        ),
+      ),
       home: television ? const TvLibraryScreen() : const HomeShell(),
     );
   }

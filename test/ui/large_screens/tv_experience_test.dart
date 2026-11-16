@@ -1,5 +1,5 @@
+import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -11,6 +11,8 @@ import 'package:kivo_player/core/settings/settings_service.dart';
 import 'package:kivo_player/core/theme/kivo_theme.dart';
 import 'package:kivo_player/platform/interfaces/media_indexer.dart';
 import 'package:kivo_player/platform/interfaces/storage_browser.dart';
+import 'package:kivo_player/platform/interfaces/media_permission.dart';
+import 'package:kivo_player/platform/media_permission_provider.dart';
 import 'package:kivo_player/platform/media_indexer_provider.dart';
 import 'package:kivo_player/platform/storage_browser_provider.dart';
 import 'package:kivo_player/platform/television_provider.dart';
@@ -20,7 +22,10 @@ import 'package:kivo_player/player/open/video_source.dart';
 import 'package:kivo_player/player/resume/resume_service.dart';
 import 'package:kivo_player/ui/tv/tv_library_screen.dart';
 import 'package:kivo_player/ui/tv/tv_settings_screen.dart';
+import 'package:kivo_player/ui/tv/tv_panel.dart';
+import 'package:kivo_player/ui/tv/tv_input_mode.dart';
 import 'package:kivo_player/ui/tv/tv_storage_screen.dart';
+import 'package:kivo_player/ui/home/home_shell.dart';
 import '../../fakes/fakes.dart';
 import '../../helpers/pump_app.dart';
 
@@ -43,15 +48,28 @@ final _videos = List.generate(
 );
 
 class _Storage extends StorageBrowser {
-  bool denied = false;
+  int rescans = 0;
+  bool revealOnRescan = false;
+  bool indexed = false;
   @override
-  Future<List<StorageVolume>> volumes() async => [
-    const StorageVolume(
-      path: '/storage/usb',
-      name: 'Kingston USB',
-      removable: true,
-    ),
-  ];
+  Future<void> rescan(String path) async {
+    rescans++;
+    if (revealOnRescan) indexed = true;
+  }
+
+  List<StorageVolume>? drives;
+  bool denied = false;
+  bool limited = false;
+  @override
+  Future<List<StorageVolume>> volumes() async =>
+      drives ??
+      [
+        const StorageVolume(
+          path: '/storage/usb',
+          name: 'Kingston USB',
+          removable: true,
+        ),
+      ];
   @override
   Future<List<StorageEntry>> list(String path) async {
     if (denied) throw PlatformException(code: 'ACCESS_DENIED');
@@ -76,7 +94,26 @@ class _Storage extends StorageBrowser {
   @override
   Future<List<VideoItem>> scanRemovable() async => [];
   @override
+  Future<StorageListing> browse(String path) async => StorageListing(
+    entries: limited && !indexed ? [] : await list(path),
+    accessLimited: limited,
+  );
+  @override
   Future<Uint8List?> thumbnail(String path) async => null;
+}
+
+class _Index extends MediaIndexNotifier {
+  @override
+  Future<List<VideoItem>> build() async => _videos;
+  @override
+  Future<void> refresh() async {}
+}
+
+class _MediaPermission extends MediaPermission {
+  @override
+  Future<MediaAccess> status() async => MediaAccess.granted;
+  @override
+  Future<MediaAccess> request() async => MediaAccess.granted;
 }
 
 class _Artwork extends FakeMediaIndexer {
@@ -124,6 +161,7 @@ void main() {
     Widget screen, {
     double scale = 1,
     _Storage? storage,
+    Stream<Object?>? changes,
   }) async {
     t.view.physicalSize = const Size(1280, 720);
     t.view.devicePixelRatio = 1;
@@ -142,9 +180,13 @@ void main() {
         settingsServiceProvider.overrideWithValue(settings),
         isTelevisionProvider.overrideWithValue(true),
         libraryIndexProvider.overrideWithValue(AsyncData(_videos)),
+        mediaIndexProvider.overrideWith(_Index.new),
+        mediaPermissionImplProvider.overrideWithValue(_MediaPermission()),
         mediaIndexerProvider.overrideWithValue(_Artwork()),
         storageBrowserProvider.overrideWithValue(storage ?? _Storage()),
-        storageChangesProvider.overrideWith((ref) => const Stream.empty()),
+        storageChangesProvider.overrideWith(
+          (ref) => changes ?? const Stream.empty(),
+        ),
         resumeServiceProvider.overrideWithValue(resume),
         playedStoreProvider.overrideWithValue(InMemoryPlayedStore()),
       ],
@@ -158,11 +200,12 @@ void main() {
             textScaler: TextScaler.linear(scale),
             disableAnimations: true,
           ),
-          child: screen,
+          child: TvInputMode(enabled: true, child: screen),
         ),
       ),
       container: c,
-      theme: KivoTheme.dark().copyWith(
+      appBuilder: (_, child) => TvInputMode(enabled: true, child: child!),
+      theme: KivoTheme.television().copyWith(
         textTheme: KivoTheme.dark().textTheme.apply(fontFamily: 'Roboto'),
       ),
       captureKey: captureKey,
@@ -215,24 +258,81 @@ void main() {
   );
 
   testWidgets(
-    'D-pad reaches USB, restores its focus on Back, then reaches settings',
+    'D-pad reaches the regular library and restores its focus after settings',
     (t) async {
       await pump(t, const TvLibraryScreen());
-      await t.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+      await t.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
       await t.pumpAndSettle();
-      await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await t.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await t.sendKeyEvent(LogicalKeyboardKey.arrowDown);
       await t.pumpAndSettle();
       await t.sendKeyEvent(LogicalKeyboardKey.select);
       await t.pumpAndSettle();
-      expect(find.byType(TvStorageScreen), findsOneWidget);
-      await t.binding.handlePopRoute();
-      await t.pumpAndSettle();
-      expect(find.byType(TvLibraryScreen), findsOneWidget);
-      await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      expect(find.byKey(const Key('tv-all-videos')), findsOneWidget);
+      expect(find.byType(TvStorageScreen), findsNothing);
+      await t.sendKeyEvent(LogicalKeyboardKey.arrowDown);
       await t.pumpAndSettle();
       await t.sendKeyEvent(LogicalKeyboardKey.select);
       await t.pumpAndSettle();
       expect(find.byType(TvSettingsScreen), findsOneWidget);
+      await t.binding.handlePopRoute();
+      await t.pumpAndSettle();
+      expect(find.byKey(const Key('tv-all-videos')), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'a mounted drive opens in the normal streaming library and indexes automatically',
+    (t) async {
+      final storage = _Storage();
+      await pump(t, const TvLibraryScreen(), storage: storage);
+      expect(storage.rescans, 1);
+      expect(find.byKey(const Key('tv-hero-play')), findsOneWidget);
+      expect(find.byType(TvStorageScreen), findsNothing);
+      expect(find.byIcon(Icons.usb), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'the normal library waits for a drive and follows mounting without showing internal media',
+    (t) async {
+      final storage = _Storage()
+        ..drives = [
+          const StorageVolume(
+            path: '/storage/emulated/0',
+            name: 'Internal',
+            removable: false,
+          ),
+        ];
+      final changes = StreamController<Object?>();
+      addTearDown(changes.close);
+      await pump(
+        t,
+        const TvLibraryScreen(),
+        storage: storage,
+        changes: changes.stream,
+      );
+      expect(find.textContaining('Conecta tu memoria'), findsOneWidget);
+      expect(find.byKey(const Key('tv-hero-play')), findsNothing);
+      storage.drives = null;
+      changes.add('android.intent.action.MEDIA_MOUNTED');
+      await t.pumpAndSettle();
+      expect(find.byKey(const Key('tv-hero-play')), findsOneWidget);
+      expect(find.byType(TvStorageScreen), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'resuming refreshes the source without switching out of the library',
+    (t) async {
+      await pump(t, const TvLibraryScreen());
+      await t.tap(find.byKey(const Key('tv-complete-library')));
+      await t.pumpAndSettle();
+      t.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      t.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await t.pumpAndSettle();
+      expect(find.byKey(const Key('tv-all-videos')), findsOneWidget);
+      expect(find.byType(TvStorageScreen), findsNothing);
     },
   );
 
@@ -241,7 +341,7 @@ void main() {
   ) async {
     await pump(t, const TvSettingsScreen());
     final interval = t
-        .getSemantics(find.byKey(const Key('tv-seek-setting')))
+        .getSemantics(find.bySemanticsLabel('Salto con las flechas del mando'))
         .getSemanticsData();
     expect(interval.value, '3 s');
     final progressive = find.bySemanticsLabel(
@@ -282,6 +382,38 @@ void main() {
     await capture(t, 'usb-permission');
   });
 
+  testWidgets(
+    'a filtered empty USB read offers access recovery instead of claiming no videos',
+    (t) async {
+      await pump(
+        t,
+        const TvStorageScreen(),
+        storage: _Storage()..limited = true,
+      );
+      await t.sendKeyEvent(LogicalKeyboardKey.select);
+      await t.pumpAndSettle();
+      expect(find.text('No hay videos en esta carpeta'), findsNothing);
+      expect(find.text('Permitir acceso al almacenamiento'), findsWidgets);
+    },
+  );
+
+  testWidgets(
+    'a limited empty folder asks Android to index videos before requesting full access',
+    (t) async {
+      final storage = _Storage()
+        ..limited = true
+        ..revealOnRescan = true;
+      await pump(t, const TvStorageScreen(), storage: storage);
+      await t.sendKeyEvent(LogicalKeyboardKey.select);
+      await t.pumpAndSettle();
+      expect(storage.rescans, 1);
+      expect(storage.limited, isTrue);
+      expect(find.text('Películas'), findsOneWidget);
+      expect(find.text('Android está limitando el acceso'), findsNothing);
+      expect(find.text('No hay videos en esta carpeta'), findsNothing);
+    },
+  );
+
   testWidgets('TV seek interval can be changed entirely with a D-pad', (
     t,
   ) async {
@@ -291,7 +423,7 @@ void main() {
     await t.pumpAndSettle();
     await t.sendKeyEvent(LogicalKeyboardKey.select);
     await t.pumpAndSettle();
-    expect(find.byType(Dialog), findsOneWidget);
+    expect(find.byType(TvOptionRow), findsWidgets);
     await c
         .read(settingsProvider.notifier)
         .set(c.read(settingsProvider).copyWith(centerSkipSeconds: 30));
@@ -306,7 +438,9 @@ void main() {
 
   testWidgets('closing TV search restores the full video shelf', (t) async {
     await pump(t, const TvLibraryScreen());
-    await t.tap(find.byKey(const Key('tv-search')));
+    await t.tap(find.byKey(const Key('tv-complete-library')));
+    await t.pumpAndSettle();
+    await t.tap(find.byKey(const Key('tv-search-nav')));
     await t.pumpAndSettle();
     await t.enterText(find.byType(TextField), 'bosque');
     await t.pumpAndSettle();
@@ -314,7 +448,7 @@ void main() {
       find.byWidgetPredicate((w) => w is TvVideoCard && w.video.id == '7'),
       findsNothing,
     );
-    await t.tap(find.byKey(const Key('tv-search')));
+    await t.binding.handlePopRoute();
     await t.pumpAndSettle();
     expect(find.byType(TextField), findsNothing);
     expect(
@@ -322,6 +456,30 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets(
+    'complete library stays on TV and Back returns to the home library',
+    (t) async {
+      await pump(t, const TvLibraryScreen());
+      final complete = find.byKey(const Key('tv-complete-library'));
+      await t.ensureVisible(complete);
+      await t.pumpAndSettle();
+      await t.tap(complete);
+      await t.pump();
+      expect(
+        find.byType(HomeShell),
+        findsNothing,
+        reason: 'A TV action must never enter the phone navigation shell',
+      );
+      await t.pumpAndSettle();
+      expect(find.byKey(const Key('tv-all-videos')), findsOneWidget);
+      await capture(t, 'catalog');
+      await t.binding.handlePopRoute();
+      await t.pumpAndSettle();
+      expect(find.byKey(const Key('tv-all-videos')), findsNothing);
+      expect(find.byKey(const Key('tv-hero-play')), findsOneWidget);
+    },
+  );
 
   testWidgets('library and settings remain usable at twice the text size', (
     t,

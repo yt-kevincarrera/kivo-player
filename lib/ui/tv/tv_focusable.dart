@@ -41,6 +41,23 @@ class TvFocusable extends StatefulWidget {
 
 class _TvFocusableState extends State<TvFocusable> {
   bool _focused = false;
+  late final _internalNode = FocusNode(debugLabel: widget.label);
+  FocusNode get _node => widget.focusNode ?? _internalNode;
+  void _activate() {
+    if (widget.onPressed == null) return;
+    _node.requestFocus();
+    // Pointer-shaped TV remotes and accessibility activation must establish
+    // the same return target as a D-pad press before a modal captures it.
+    FocusManager.instance.applyFocusChangesIfNeeded();
+    widget.onPressed!();
+  }
+
+  @override
+  void dispose() {
+    _internalNode.dispose();
+    super.dispose();
+  }
+
   void _focus(bool value) {
     setState(() => _focused = value);
     widget.onFocus?.call(value);
@@ -70,10 +87,10 @@ class _TvFocusableState extends State<TvFocusable> {
       value: widget.value,
       enabled: widget.onPressed != null,
       focused: _focused,
-      onTap: widget.onPressed,
+      onTap: widget.onPressed == null ? null : _activate,
       child: FocusableActionDetector(
         autofocus: widget.autofocus,
-        focusNode: widget.focusNode,
+        focusNode: _node,
         enabled: widget.onPressed != null,
         onFocusChange: _focus,
         shortcuts: const {
@@ -91,7 +108,7 @@ class _TvFocusableState extends State<TvFocusable> {
           ),
           ActivateIntent: CallbackAction<ActivateIntent>(
             onInvoke: (_) {
-              widget.onPressed?.call();
+              _activate();
               return null;
             },
           ),
@@ -108,7 +125,7 @@ class _TvFocusableState extends State<TvFocusable> {
               ? SystemMouseCursors.basic
               : SystemMouseCursors.click,
           child: GestureDetector(
-            onTap: widget.onPressed,
+            onTap: widget.onPressed == null ? null : _activate,
             child: AnimatedScale(
               scale: _focused && !reduce ? widget.scale : 1,
               duration: reduce
@@ -118,12 +135,14 @@ class _TvFocusableState extends State<TvFocusable> {
                 duration: reduce
                     ? Duration.zero
                     : const Duration(milliseconds: 120),
-                foregroundDecoration: BoxDecoration(
+                decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: _focused ? accent : Colors.transparent,
-                    width: 3,
-                  ),
+                  boxShadow: _focused
+                      ? [
+                          BoxShadow(color: accent, spreadRadius: 5),
+                          const BoxShadow(color: Colors.black, spreadRadius: 3),
+                        ]
+                      : const [],
                 ),
                 child: ExcludeSemantics(child: widget.child),
               ),
@@ -181,10 +200,10 @@ class TvButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         decoration: BoxDecoration(
           color: primary
-              ? colors.primary
+              ? colors.onSurface
               : selected == true
-              ? colors.primary.withValues(alpha: .14)
-              : colors.surfaceContainerHigh,
+              ? colors.onSurface.withValues(alpha: .07)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -194,7 +213,7 @@ class TvButton extends StatelessWidget {
               Icon(
                 icon,
                 size: 24,
-                color: primary ? colors.onPrimary : colors.onSurface,
+                color: primary ? colors.surface : colors.onSurface,
               ),
               const SizedBox(width: 12),
             ],
@@ -208,7 +227,7 @@ class TvButton extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 19,
                       fontWeight: FontWeight.w600,
-                      color: primary ? colors.onPrimary : colors.onSurface,
+                      color: primary ? colors.surface : colors.onSurface,
                     ),
                   ),
                   if (subtitle != null)

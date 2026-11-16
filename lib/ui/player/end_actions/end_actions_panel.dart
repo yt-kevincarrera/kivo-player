@@ -1,3 +1,6 @@
+import '../../tv/tv_modal.dart';
+import '../../tv/tv_input_mode.dart';
+import '../../tv/tv_panel.dart';
 // Flutter's animation package also has a RepeatMode; the queue's is meant.
 import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -54,8 +57,9 @@ Future<void> showEndActionsPanel(
   VoidCallback? onBack,
   bool globalSettings = false,
 }) {
-  return showModalBottomSheet(
+  return showTvAwareBottomSheet(
     context: context,
+    title: context.l10n.endActionsTitle,
     backgroundColor: KivoColors.panel,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -101,6 +105,80 @@ class EndActionsPanel extends ConsumerWidget {
 
     void close() => Navigator.of(context).pop();
 
+    if (TvInputMode.of(context)) {
+      return ListView(
+        padding: const EdgeInsets.all(6),
+        children: [
+          TvOptionRow(
+            label: l10n.endActionsGlobal,
+            subtitle: settings.endActionsGlobal
+                ? l10n.endActionsGlobalHint
+                : globalSettings
+                ? l10n.endActionsSavedHint
+                : l10n.endActionsSessionHint,
+            toggled: settings.endActionsGlobal,
+            onPressed: () => notifier.setGlobal(
+              !settings.endActionsGlobal,
+              useCurrent: !globalSettings,
+            ),
+          ),
+          TvOptionRow(
+            key: const Key('end-trash-switch'),
+            label: toTrash
+                ? l10n.endActionsTrashTitle
+                : l10n.endActionsDeleteTitle,
+            subtitle: trashBlockedReason ?? l10n.endActionsTrashSubtitle,
+            toggled: actions.trash && trashUsable,
+            onPressed: !trashUsable
+                ? null
+                : () => globalSettings
+                      ? notifier.setSavedTrash(!actions.trash)
+                      : notifier.setTrash(!actions.trash),
+          ),
+          const SizedBox(height: 22),
+          for (final a in AfterEnd.values)
+            TvOptionRow(
+              key: Key('end-after-${a.name}'),
+              label: afterEndLabel(l10n, a),
+              icon: afterEndIcon(a),
+              selected: actions.after == a,
+              subtitle: a == AfterEnd.screenOff
+                  ? l10n.endActionsAfterScreenOffHint
+                  : a == AfterEnd.restart
+                  ? l10n.endActionsRestartHint
+                  : null,
+              onPressed: () => globalSettings
+                  ? notifier.setSavedAfter(a)
+                  : notifier.setAfter(a),
+            ),
+          if (!globalSettings) ...[
+            if (!actions.trash && trashUsable)
+              TvOptionRow(
+                key: const Key('end-trash-and-next'),
+                label: toTrash
+                    ? l10n.endActionsTrashAndNext
+                    : l10n.endActionsDeleteAndNext,
+                icon: Icons.delete_sweep_outlined,
+                onPressed: () {
+                  close();
+                  ref.read(trashAndNextProvider.notifier).state++;
+                },
+              ),
+            TvOptionRow(
+              key: const Key('end-finish-now'),
+              label: l10n.endActionsFinishNow,
+              icon: Icons.skip_next,
+              onPressed: actions.isActive
+                  ? () {
+                      close();
+                      ref.read(finishNowProvider.notifier).state++;
+                    }
+                  : null,
+            ),
+          ],
+        ],
+      );
+    }
     return SafeArea(
       child: ConstrainedBox(
         constraints: BoxConstraints(

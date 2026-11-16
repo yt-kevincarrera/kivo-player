@@ -12,6 +12,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tvHome => 'Home';
 
   @override
+  String get tvUsbShort => 'USB';
+
+  @override
   String get tvUsb => 'USB storage';
 
   @override
@@ -42,7 +45,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tvPlaybackHint =>
-      '← → · Seek     Hold · Seek faster     OK · Pause/play     ↑ ↓ · Controls';
+      'Arrows · Seek     Hold · Seek faster     OK · Pause/play     Up/down · Controls';
 
   @override
   String get tvRemoteStep => 'Remote arrow seek step';
@@ -96,6 +99,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tvEmptyFolder => 'No videos in this folder';
 
   @override
+  String get tvStorageLimitedTitle => 'Android is limiting access';
+
+  @override
+  String get tvStorageLimitedBody =>
+      'Android may be hiding videos on this drive. Review Kivo\'s permission and scan again.';
+
+  @override
+  String get tvScanVideos => 'Find videos in this folder';
+
+  @override
+  String get tvScanningVideos => 'Android is scanning for videos…';
+
+  @override
+  String get tvAllFilesStillMissing =>
+      'Video permission is enabled, but Android has not granted full file access.';
+
+  @override
+  String get tvAllFilesUnavailable =>
+      'Video permission is enabled. This TV has no screen for granting full file access. Try Find videos.';
+
+  @override
   String get tvInternalStorage => 'Internal storage';
 
   @override
@@ -112,6 +136,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tvQueue => 'Playback queue';
 
   @override
+  String get tvEditQueue => 'Edit queue';
+
+  @override
+  String get tvSaveSpeedPreset => 'Save this speed';
+
+  @override
+  String get tvResetSync => 'Reset synchronization';
+
+  @override
   String get tvPrevious => 'Previous video';
 
   @override
@@ -124,7 +157,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tvMoveLater => 'Move later';
 
   @override
-  String get tvLibraryComplete => 'Manage library and playlists';
+  String get tvLibraryComplete => 'Library';
+
+  @override
+  String get tvLibraryConnectHint =>
+      'Connect your drive and your videos will appear here. If it is already connected, refresh the library.';
+
+  @override
+  String get tvAdjustValueHint =>
+      'Use left and right to adjust. Press OK to save and return.';
+
+  @override
+  String get tvPlayerControlsHint =>
+      'Arrows · Move focus   OK · Select   Back · Hide controls';
+
+  @override
+  String get tvNoMatchingVideos => 'No videos match these filters';
+
+  @override
+  String get tvClearFilters => 'Clear filters';
+
+  @override
+  String get tvCornerTopLeft => 'Top left';
+
+  @override
+  String get tvCornerTopRight => 'Top right';
+
+  @override
+  String get tvCornerBottomLeft => 'Bottom left';
+
+  @override
+  String get tvCornerBottomRight => 'Bottom right';
 
   @override
   String get tvUnknownDuration => 'Local video';

@@ -11,6 +11,9 @@ import '../state/controls_visibility.dart';
 import '../../../player/tracks/track_delay.dart';
 import '../../../player/tracks/track_delay_controller.dart';
 import '../../widgets/kivo_focusable.dart';
+import '../../../platform/television_provider.dart';
+import '../../tv/tv_focusable.dart';
+import '../../tv/tv_panel.dart';
 
 /// Which stream the sync capsule is currently adjusting.
 enum SyncTarget { subtitles, audio }
@@ -90,6 +93,7 @@ class _TrackSyncHudState extends ConsumerState<TrackSyncHud> {
   // after the widget is torn down mid-frame.
   void _touch() {
     _idle?.cancel();
+    if (ref.read(isTelevisionProvider)) return;
     _idle = Timer(_idleTimeout, () {
       if (!mounted) return;
       // Push the last nudge through before the capsule goes away.
@@ -134,6 +138,9 @@ class _TrackSyncHudState extends ConsumerState<TrackSyncHud> {
       ref.watch(settingsProvider.select((s) => s.accentColor)),
     );
     final sync = _notifierFor(target);
+    if (ref.watch(isTelevisionProvider)) {
+      return _tvPanel(context, target, ms, sync);
+    }
 
     return SafeArea(
       child: Align(
@@ -252,6 +259,131 @@ class _TrackSyncHudState extends ConsumerState<TrackSyncHud> {
                   ],
                 ),
               ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _tvPanel(
+    BuildContext context,
+    SyncTarget target,
+    int ms,
+    TrackDelayNotifier sync,
+  ) {
+    final l = context.l10n;
+    final c = Theme.of(context).colorScheme;
+    return Align(
+      alignment: Alignment.centerRight,
+      child: SizedBox(
+        width: (MediaQuery.sizeOf(context).width * .38).clamp(440, 620),
+        child: Material(
+          color: c.surface,
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(28, 24, 28, 24),
+              child: FocusTraversalGroup(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      TvOptionRow(
+                        label: l.commonGoBack,
+                        icon: Icons.arrow_back,
+                        onPressed: () {
+                          sync.flush();
+                          ref.read(syncHudProvider.notifier).hide();
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        l.playerMenuSync,
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      TvOptionRow(
+                        label: target == SyncTarget.audio
+                            ? l.playerAudioTooltip
+                            : l.playerSubtitlesTooltip,
+                        icon: Icons.compare_arrows,
+                        onPressed: () {
+                          sync.flush();
+                          ref
+                              .read(syncHudProvider.notifier)
+                              .show(
+                                target == SyncTarget.audio
+                                    ? SyncTarget.subtitles
+                                    : SyncTarget.audio,
+                              );
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      Semantics(
+                        liveRegion: true,
+                        child: Text(
+                          formatDelay(ms),
+                          key: const Key('tv-sync-value'),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 44,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TvButton(
+                              key: const Key('tv-sync-minus'),
+                              label: '−$trackDelayStepMs ms',
+                              autofocus: true,
+                              onPressed: () => sync.nudge(-1),
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: TvButton(
+                              key: const Key('tv-sync-plus'),
+                              label: '+$trackDelayStepMs ms',
+                              onPressed: () => sync.nudge(1),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TvButton(
+                              label: '−${trackDelayStepMs * 10} ms',
+                              onPressed: () => sync.nudge(-10),
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: TvButton(
+                              label: '+${trackDelayStepMs * 10} ms',
+                              onPressed: () => sync.nudge(10),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+                      TvOptionRow(
+                        key: const Key('tv-sync-reset'),
+                        label: l.tvResetSync,
+                        icon: Icons.restart_alt,
+                        onPressed: sync.reset,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ),

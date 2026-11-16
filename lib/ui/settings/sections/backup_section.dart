@@ -1,3 +1,4 @@
+import '../widgets/settings_page.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -33,8 +34,8 @@ class _BackupSectionState extends ConsumerState<BackupSection> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.settingsBackupTitle)),
+    return SettingsSectionPage(
+      title: l10n.settingsBackupTitle,
       body: SettingsScrollBody(
         padding: readablePadding(
           context,

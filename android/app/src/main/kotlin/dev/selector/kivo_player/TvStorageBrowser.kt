@@ -1,6 +1,8 @@
 package dev.selector.kivo_player
 
 import android.app.UiModeManager
+import android.Manifest
+import android.content.pm.PackageManager
 import android.content.Context
 import android.content.BroadcastReceiver
 import android.content.Intent
@@ -8,6 +10,8 @@ import android.content.IntentFilter
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
+import android.media.MediaScannerConnection
+import android.util.Log
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -75,20 +79,38 @@ internal class TvStorageBrowser(private val context: Context) {
         "dateAddedMs" to file.lastModified(), "filePath" to file.path,
     )
 
-    private fun children(directory: File): List<File> {
-        check(directory.isDirectory) { "Storage is disconnected or the folder no longer exists" }
-        val files = directory.listFiles() ?: throw SecurityException("Storage access is required")
-        return files.filter { file ->
-            !file.name.startsWith(".") && file.name != "Android" &&
-                (file.isDirectory || file.extension.lowercase() in videoExtensions) &&
-                // Do not follow a symlink outside the selected volume or recurse
-                // into an ancestor through one. Normal files keep their identity.
-                file.canonicalPath == file.absolutePath
-        }.sortedWith(compareBy<File> { !it.isDirectory }.thenBy(String.CASE_INSENSITIVE_ORDER) { it.name })
-    }
+    private fun children(directory: File): List<File> = TvStorageFiles.children(directory)
 
     fun list(path: String): List<Map<String, Any>> = children(checked(path)).map {
         video(it) + ("directory" to it.isDirectory)
+    }
+
+    fun browse(path: String): Map<String, Any> {
+        val directory = checked(path)
+        val limited = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+            !Environment.isExternalStorageManager()
+        else context.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+        val direct = try { children(directory).map { video(it) + ("directory" to it.isDirectory) } }
+            catch (e: SecurityException) { if (!limited) throw e else emptyList() }
+        val indexed = if (!limited) emptyList() else try {
+            MediaCatalog(context.contentResolver).scan { path ->
+                File(path).canonicalPath.startsWith(directory.path + File.separator)
+            }
+        } catch (e: RuntimeException) {
+            Log.w("kivo/storage", "Media query unavailable: ${e.javaClass.simpleName}")
+            emptyList()
+        }
+        Log.i("kivo/storage", "Browse limited=$limited direct=${direct.size} indexed=${indexed.size}")
+        return mapOf("entries" to TvStorageFiles.merge(directory, direct, indexed), "accessLimited" to limited)
+    }
+
+    fun rescan(path: String, done: () -> Unit) {
+        val directory = checked(path)
+        require(directory.isDirectory) { "Storage is disconnected" }
+        MediaScannerConnection.scanFile(context, arrayOf(directory.path), null) { _, uri ->
+            Log.i("kivo/storage", "Media scan completed indexed=${uri != null}")
+            done()
+        }
     }
 
     fun scanRemovable(): List<Map<String, Any>> {
@@ -130,9 +152,6 @@ internal class TvStorageBrowser(private val context: Context) {
     }
 
     companion object {
-        val videoExtensions = setOf("mkv", "mp4", "avi", "mov", "webm", "flv", "wmv", "m4v",
-            "mpg", "mpeg", "ts", "m2ts", "3gp", "ogv", "rm", "rmvb")
-
         fun isTelevision(context: Context): Boolean =
             (context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager).currentModeType ==
                 Configuration.UI_MODE_TYPE_TELEVISION
@@ -169,15 +188,22 @@ internal class TvStorageBrowser(private val context: Context) {
                 }
             })
             MethodChannel(messenger, "kivo/storage").setMethodCallHandler { call, result ->
-                if (call.method !in setOf("volumes", "list", "scanRemovable", "thumbnail")) {
+                if (call.method !in setOf("volumes", "list", "browse", "rescan", "scanRemovable", "thumbnail")) {
                     result.notImplemented()
                     return@setMethodCallHandler
                 }
                 executor.execute {
                     try {
+                        if (call.method == "rescan") {
+                            browser.rescan(requireNotNull(call.argument<String>("path"))) {
+                                post { result.success(null) }
+                            }
+                            return@execute
+                        }
                         val value = when (call.method) {
                             "volumes" -> browser.volumes()
                             "list" -> browser.list(requireNotNull(call.argument<String>("path")))
+                            "browse" -> browser.browse(requireNotNull(call.argument<String>("path")))
                             "scanRemovable" -> browser.scanRemovable()
                             else -> browser.thumbnail(requireNotNull(call.argument<String>("path")))
                         }

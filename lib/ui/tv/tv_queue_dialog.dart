@@ -5,125 +5,105 @@ import '../../l10n/l10n.dart';
 import '../../player/open/video_source.dart';
 import '../../player/queue/queue_undo.dart';
 import '../player/state/queue_strip_state.dart';
+import '../player/state/controls_visibility.dart';
 import 'tv_focusable.dart';
-import 'tv_settings_screen.dart';
+import 'tv_panel.dart';
 
-/// Queue editing never requires dragging or a remote's optional Menu key.
-Future<void> showTvQueue(BuildContext context) => showDialog<void>(
+Future<void> showTvQueue(BuildContext context) => showTvPanel<void>(
   context: context,
-  builder: (ctx) => Dialog(
-    child: SizedBox(
-      width: 900,
-      height: MediaQuery.sizeOf(ctx).height * .8,
-      child: Consumer(
-        builder: (context, ref, _) {
-          final session = ref.watch(currentVideoProvider);
-          final order = session?.playOrder ?? [];
-          final l = context.l10n;
-          return Padding(
-            padding: const EdgeInsets.all(26),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+  title: context.l10n.tvEditQueue,
+  builder: (_) => Consumer(
+    builder: (context, ref, _) {
+      final session = ref.watch(currentVideoProvider);
+      final order = session?.playOrder ?? [];
+      return ListView(
+        padding: const EdgeInsets.all(5),
+        children: [
+          for (final i in order)
+            Row(
+              key: ValueKey('queue-$i'),
               children: [
-                Text(
-                  l.tvQueue,
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 20),
                 Expanded(
-                  child: ListView.separated(
-                    padding: const EdgeInsets.all(5),
-                    itemCount: order.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 14),
-                    itemBuilder: (context, position) {
-                      final index = order[position];
-                      final current = index == session!.index;
-                      final name = index < session.queueNames.length
-                          ? session.queueNames[index]
-                          : basenameOf(session.queue[index]);
-                      return Row(
-                        children: [
-                          Expanded(
-                            child: TvButton(
-                              key: ValueKey('queue-$index'),
-                              label: name,
-                              autofocus: current,
-                              selected: current,
-                              subtitle: current ? l.playerQueueNowBadge : null,
-                              icon: current
-                                  ? Icons.play_arrow
-                                  : Icons.video_file_outlined,
-                              onPressed: () {
-                                Navigator.of(ctx).pop();
-                                if (!current) {
-                                  ref.read(queueJumpProvider.notifier).state =
-                                      index;
-                                }
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          TvButton(
-                            label: l.tvOptions,
-                            icon: Icons.more_horiz,
-                            onPressed: () async {
-                              final choice =
-                                  await showTvChoices<String>(context, name, [
-                                    if (!current)
-                                      ('next', l.playerQueuePlayNext, null),
-                                    if (position > 0)
-                                      ('earlier', l.tvMoveEarlier, null),
-                                    if (position < order.length - 1)
-                                      ('later', l.tvMoveLater, null),
-                                    if (!current)
-                                      ('remove', l.playerQueueRemove, null),
-                                  ]);
-                              if (!context.mounted || choice == null) return;
-                              final controller = ref.read(
-                                currentVideoProvider.notifier,
-                              );
-                              switch (choice) {
-                                case 'next':
-                                  controller.playNext(index);
-                                case 'earlier':
-                                  controller.reorder(position, position - 1);
-                                case 'later':
-                                  controller.reorder(position, position + 1);
-                                case 'remove':
-                                  controller.remove(index);
-                              }
-                            },
-                          ),
-                        ],
-                      );
+                  child: TvOptionRow(
+                    label: _name(session!, i),
+                    selected: i == session.index,
+                    autofocus: i == session.index,
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      if (i != session.index) {
+                        ref.read(queueJumpProvider.notifier).state = i;
+                      }
                     },
                   ),
                 ),
-                const SizedBox(height: 18),
-                if (ref.watch(queueUndoProvider) != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: TvButton(
-                      label: l.commonUndo,
-                      icon: Icons.undo,
-                      onPressed: () => ref
-                          .read(currentVideoProvider.notifier)
-                          .undoQueueEdit(),
-                    ),
+                TvFocusable(
+                  label: '${context.l10n.tvOptions}: ${_name(session, i)}',
+                  scale: 1,
+                  onPressed: () => showTvQueueActions(context, i),
+                  child: const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Icon(Icons.more_horiz, size: 28),
                   ),
-                TvButton(
-                  label: l.commonGoBack,
-                  icon: Icons.arrow_back,
-                  onPressed: () => Navigator.of(ctx).pop(),
                 ),
               ],
             ),
-          );
-        },
-      ),
-    ),
+          if (ref.watch(queueUndoProvider) != null)
+            TvOptionRow(
+              label: context.l10n.commonUndo,
+              icon: Icons.undo,
+              onPressed: () =>
+                  ref.read(currentVideoProvider.notifier).undoQueueEdit(),
+            ),
+        ],
+      );
+    },
   ),
 );
+
+String _name(VideoSession session, int i) => i < session.queueNames.length
+    ? session.queueNames[i]
+    : basenameOf(session.queue[i]);
+
+Future<void> showTvQueueActions(BuildContext context, int index) async {
+  final container = ProviderScope.containerOf(context, listen: false);
+  final session = container.read(currentVideoProvider);
+  if (session == null || index >= session.queue.length) return;
+  final order = session.playOrder, position = session.playOrder.indexOf(index);
+  if (position < 0) return;
+  final current = index == session.index;
+  final path = session.queue[index];
+  final l = context.l10n;
+  final controls = container.read(controlsVisibleProvider.notifier);
+  controls.hold();
+  try {
+    final choice =
+        await showTvPanelChoices<String>(context, _name(session, index), [
+          if (!current) ('next', l.playerQueuePlayNext, null),
+          if (position > 0) ('earlier', l.tvMoveEarlier, null),
+          if (position < order.length - 1) ('later', l.tvMoveLater, null),
+          if (!current) ('remove', l.playerQueueRemove, null),
+        ]);
+    if (!context.mounted || choice == null) return;
+    final latest = container.read(currentVideoProvider);
+    if (latest == null ||
+        index >= latest.queue.length ||
+        latest.queue[index] != path) {
+      return;
+    }
+    final at = latest.playOrder.indexOf(index);
+    if (at < 0) return;
+    final controller = container.read(currentVideoProvider.notifier);
+    switch (choice) {
+      case 'next':
+        if (index != latest.index) controller.playNext(index);
+      case 'earlier':
+        if (at > 0) controller.reorder(at, at - 1);
+      case 'later':
+        if (at < latest.playOrder.length - 1) controller.reorder(at, at + 1);
+      case 'remove':
+        if (index != latest.index) controller.remove(index);
+    }
+  } finally {
+    controls.release();
+  }
+}

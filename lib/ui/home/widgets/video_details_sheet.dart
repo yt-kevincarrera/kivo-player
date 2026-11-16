@@ -1,28 +1,69 @@
 import 'package:flutter/material.dart';
+import '../../tv/tv_input_mode.dart';
+import '../../tv/tv_modal.dart';
 import '../../../core/format.dart';
 import '../../../l10n/l10n.dart';
 import '../../../platform/interfaces/media_indexer.dart';
 
 void showVideoDetails(BuildContext context, VideoItem v) {
-  showModalBottomSheet<void>(
+  showTvAwareBottomSheet<void>(
     context: context,
+    title: context.l10n.videoSheetDetails,
     backgroundColor: Theme.of(context).colorScheme.surface,
     builder: (ctx) {
-      final res = (v.width > 0 && v.height > 0) ? '${v.width}×${v.height}' : '—';
+      final res = (v.width > 0 && v.height > 0)
+          ? '${v.width}×${v.height}'
+          : '—';
       final date = v.dateAddedMs > 0
-          ? DateTime.fromMillisecondsSinceEpoch(v.dateAddedMs).toString().split('.').first
+          ? DateTime.fromMillisecondsSinceEpoch(
+              v.dateAddedMs,
+            ).toString().split('.').first
           : '—';
       final folder = v.path.isNotEmpty ? v.path : v.folder;
       final rows = <(String, String)>[
         (ctx.l10n.detailsLabelName, v.name),
         (ctx.l10n.detailsLabelFolder, folder),
         (ctx.l10n.detailsLabelSize, fmtSize(v.sizeBytes)),
-        (ctx.l10n.detailsLabelDuration, fmtDuration(Duration(milliseconds: v.durationMs))),
+        (
+          ctx.l10n.detailsLabelDuration,
+          fmtDuration(Duration(milliseconds: v.durationMs)),
+        ),
         (ctx.l10n.detailsLabelResolution, res),
         (ctx.l10n.detailsLabelAdded, date),
         (ctx.l10n.detailsLabelUri, v.uri),
       ];
       final cs = Theme.of(ctx).colorScheme;
+      if (TvInputMode.of(ctx)) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(6),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (final (label, value) in rows)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 7),
+                      SelectableText(
+                        value,
+                        style: TextStyle(fontSize: 22, color: cs.onSurface),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        );
+      }
       return SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
@@ -30,21 +71,39 @@ void showVideoDetails(BuildContext context, VideoItem v) {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(ctx.l10n.videoSheetDetails,
-                  style: TextStyle(color: cs.onSurface, fontSize: 16, fontWeight: FontWeight.w700)),
+              Text(
+                ctx.l10n.videoSheetDetails,
+                style: TextStyle(
+                  color: cs.onSurface,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
               const SizedBox(height: 12),
               for (final (label, value) in rows)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
-                  child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    SizedBox(
-                      width: 92,
-                      child: Text(label, style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13)),
-                    ),
-                    Expanded(
-                      child: SelectableText(value, style: TextStyle(color: cs.onSurface, fontSize: 13)),
-                    ),
-                  ]),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 92,
+                        child: Text(
+                          label,
+                          style: TextStyle(
+                            color: cs.onSurfaceVariant,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: SelectableText(
+                          value,
+                          style: TextStyle(color: cs.onSurface, fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
             ],
           ),

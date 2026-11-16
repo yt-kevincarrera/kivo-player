@@ -1,3 +1,4 @@
+import '../widgets/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -61,8 +62,8 @@ class _ProblemReportScreenState extends ConsumerState<ProblemReportScreen> {
     final entries = ref.read(errorLogProvider).entries();
     final locale = Localizations.localeOf(context).toLanguageTag();
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.reportTitle)),
+    return SettingsSectionPage(
+      title: l10n.reportTitle,
       body: FutureBuilder(
         future: _device,
         builder: (context, snap) {
@@ -106,8 +107,10 @@ class _ProblemReportScreenState extends ConsumerState<ProblemReportScreen> {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
-                child: Text(l10n.reportGithubPublicHint,
-                    style: TextStyle(fontSize: 11.5, color: cs.onSurfaceVariant)),
+                child: Text(
+                  l10n.reportGithubPublicHint,
+                  style: TextStyle(fontSize: 11.5, color: cs.onSurfaceVariant),
+                ),
               ),
               const SizedBox(height: 8),
               TextButton.icon(
@@ -127,10 +130,11 @@ class _ProblemReportScreenState extends ConsumerState<ProblemReportScreen> {
               Text(
                 l10n.reportPreviewLabel.toUpperCase(),
                 style: TextStyle(
-                    fontSize: 10.5,
-                    letterSpacing: 1.4,
-                    fontWeight: FontWeight.w700,
-                    color: cs.secondary),
+                  fontSize: 10.5,
+                  letterSpacing: 1.4,
+                  fontWeight: FontWeight.w700,
+                  color: cs.secondary,
+                ),
               ),
               const SizedBox(height: 8),
               Container(
@@ -143,15 +147,18 @@ class _ProblemReportScreenState extends ConsumerState<ProblemReportScreen> {
                   report,
                   key: const Key('report-preview'),
                   style: TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 11.5,
-                      height: 1.4,
-                      color: cs.onSurface),
+                    fontFamily: 'monospace',
+                    fontSize: 11.5,
+                    height: 1.4,
+                    color: cs.onSurface,
+                  ),
                 ),
               ),
               const SizedBox(height: 8),
-              Text(l10n.reportPreviewHint,
-                  style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
+              Text(
+                l10n.reportPreviewHint,
+                style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+              ),
             ],
           );
         },

@@ -9,9 +9,15 @@ import '../settings/sections/about_section.dart';
 import '../settings/sections/backup_section.dart';
 import '../settings/sections/end_actions_settings_screen.dart';
 import '../settings/sections/general_section.dart';
+import '../settings/sections/hidden_folders_section.dart';
+import '../settings/widgets/setting_choice.dart';
+import '../player/tracks/track_picker.dart';
+import '../../platform/storage_browser_provider.dart';
+import '../../player/library/media_index.dart';
 import '../settings/sections/interface_section.dart';
 import '../vault/vault_entry_actions.dart';
 import 'tv_focusable.dart';
+import 'tv_panel.dart';
 import '../player/state/aspect_state.dart';
 
 Future<T?> showTvChoices<T>(
@@ -20,68 +26,7 @@ Future<T?> showTvChoices<T>(
   List<(T, String, String?)> choices, {
   T? selected,
 }) {
-  final hasSelection = choices.any((choice) => choice.$1 == selected);
-  return showDialog<T>(
-    context: context,
-    builder: (dialogContext) => Dialog(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: 720,
-          maxHeight: MediaQuery.sizeOf(dialogContext).height * .82,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 22),
-              Flexible(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: choices.indexed
-                        .map(
-                          (e) => Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: TvButton(
-                              label: e.$2.$2,
-                              subtitle: e.$2.$3,
-                              autofocus: !hasSelection
-                                  ? e.$1 == 0
-                                  : e.$2.$1 == selected,
-                              selected: e.$2.$1 == selected,
-                              trailing: e.$2.$1 == selected
-                                  ? const Icon(Icons.check)
-                                  : null,
-                              onPressed: () =>
-                                  Navigator.of(dialogContext).pop(e.$2.$1),
-                            ),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              TvButton(
-                label: context.l10n.commonGoBack,
-                icon: Icons.arrow_back,
-                onPressed: () => Navigator.of(dialogContext).pop(),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ),
-  );
+  return showTvPanelChoices<T>(context, title, choices, selected: selected);
 }
 
 Future<void> showTvRemoteGuide(BuildContext context) => showDialog<void>(
@@ -133,9 +78,13 @@ class TvSettingsScreen extends ConsumerStatefulWidget {
 
 class _TvSettingsScreenState extends ConsumerState<TvSettingsScreen> {
   int _category = 0;
-  void _page(Widget child) => Navigator.of(
-    context,
-  ).push(MaterialPageRoute<void>(builder: (_) => child));
+  Future<void> _page(Widget child) async {
+    final invoker = FocusManager.instance.primaryFocus;
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => child));
+    if (mounted && invoker?.context != null) invoker!.requestFocus();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -147,6 +96,7 @@ class _TvSettingsScreenState extends ConsumerState<TvSettingsScreen> {
       (Icons.volume_up_outlined, l.playerAudioTooltip),
       (Icons.subtitles_outlined, l.playerSubtitlesTooltip),
       (Icons.settings_remote_outlined, l.tvAccessibility),
+      (Icons.video_library_outlined, l.tvLibraryComplete),
       (Icons.tune, l.tvAdvanced),
     ];
     Widget toggle(
@@ -154,31 +104,18 @@ class _TvSettingsScreenState extends ConsumerState<TvSettingsScreen> {
       bool value,
       VoidCallback change, {
       String? subtitle,
-    }) => TvButton(
+    }) => TvOptionRow(
       label: title,
       subtitle: subtitle,
       onPressed: change,
       toggled: value,
-      trailing: ExcludeFocus(
-        child: Switch(
-          value: value,
-          onChanged: null,
-          thumbColor: WidgetStatePropertyAll(
-            value ? Theme.of(context).colorScheme.primary : null,
-          ),
-        ),
-      ),
     );
     final rows = switch (_category) {
       0 => <Widget>[
-        TvButton(
+        TvOptionRow(
           key: const Key('tv-seek-setting'),
           label: l.tvRemoteStep,
           value: '${s.tvRemoteSeekSeconds} s',
-          trailing: Text(
-            '${s.tvRemoteSeekSeconds} s',
-            style: const TextStyle(fontSize: 21),
-          ),
           onPressed: () async {
             final value = await showTvChoices<int>(
               context,
@@ -201,13 +138,9 @@ class _TvSettingsScreenState extends ConsumerState<TvSettingsScreen> {
           ),
           subtitle: l.tvProgressiveSeekHint,
         ),
-        TvButton(
+        TvOptionRow(
           label: l.tvImage,
           value: aspectLabelFor(l, aspectFromSetting(s.defaultAspectMode)),
-          trailing: Text(
-            aspectLabelFor(l, aspectFromSetting(s.defaultAspectMode)),
-            style: const TextStyle(fontSize: 20),
-          ),
           onPressed: () async {
             final value = await showTvChoices<String>(context, l.tvImage, [
               ('fit', l.playerAspectFit, l.tvFitHint),
@@ -235,17 +168,32 @@ class _TvSettingsScreenState extends ConsumerState<TvSettingsScreen> {
           s.autoplayNext,
           () => n.set(s.copyWith(autoplayNext: !s.autoplayNext)),
         ),
-        TvButton(
+        TvOptionRow(
           label: l.tvMorePlayback,
           icon: Icons.tune,
           onPressed: () => _page(const AdvancedPlaybackSection()),
         ),
-        TvButton(
+        TvOptionRow(
           label: l.endActionsTitle,
           onPressed: () => _page(const EndActionsSettingsScreen()),
         ),
       ],
       1 => <Widget>[
+        SettingChoice<String?>(
+          title: l.settingsAdvancedPreferredAudioLang,
+          value: s.preferredAudioLanguage,
+          options: [
+            (null, l.settingsAdvancedAutomaticOption),
+            if (s.preferredAudioLanguage != null)
+              (
+                s.preferredAudioLanguage,
+                l.settingsAdvancedLangChosen(s.preferredAudioLanguage!),
+              ),
+          ],
+          onChanged: (value) => n.set(
+            ref.read(settingsProvider).copyWith(preferredAudioLanguage: value),
+          ),
+        ),
         toggle(
           l.settingsVoiceBoost,
           s.voiceBoost,
@@ -256,17 +204,39 @@ class _TvSettingsScreenState extends ConsumerState<TvSettingsScreen> {
           s.nightMode,
           () => n.set(s.copyWith(nightMode: !s.nightMode)),
         ),
-        TvButton(
+        TvOptionRow(
           label: l.settingsEqualizerTitle,
           icon: Icons.equalizer,
           onPressed: () => _page(const EqualizerSection()),
         ),
-        TvButton(
+        TvOptionRow(
           label: l.tvAudioSettings,
           onPressed: () => _page(const AdvancedPlaybackSection()),
         ),
       ],
       2 => <Widget>[
+        TvOptionRow(
+          label: l.playerTracksStyleTabLabel,
+          icon: Icons.format_size,
+          onPressed: () => showTvSubtitleStyle(context),
+        ),
+        SettingChoice<String?>(
+          title: l.settingsAdvancedPreferredSubtitleLang,
+          value: s.preferredSubtitleLanguage,
+          options: [
+            (null, l.settingsAdvancedAutomaticOption),
+            if (s.preferredSubtitleLanguage != null)
+              (
+                s.preferredSubtitleLanguage,
+                l.settingsAdvancedLangChosen(s.preferredSubtitleLanguage!),
+              ),
+          ],
+          onChanged: (value) => n.set(
+            ref
+                .read(settingsProvider)
+                .copyWith(preferredSubtitleLanguage: value),
+          ),
+        ),
         toggle(
           l.settingsAdvancedSubtitlesDefault,
           s.subtitlesEnabledByDefault,
@@ -274,27 +244,27 @@ class _TvSettingsScreenState extends ConsumerState<TvSettingsScreen> {
             s.copyWith(subtitlesEnabledByDefault: !s.subtitlesEnabledByDefault),
           ),
         ),
-        TvButton(
+        TvOptionRow(
           label: l.tvSubtitleSettings,
           icon: Icons.subtitles_outlined,
           onPressed: () => _page(const AdvancedPlaybackSection()),
         ),
       ],
       3 => <Widget>[
-        TvButton(
+        TvOptionRow(
           label: l.tvRemoteGuide,
           subtitle: l.tvFocusHint,
           icon: Icons.settings_remote_outlined,
           onPressed: () => showTvRemoteGuide(context),
         ),
-        TvButton(
+        TvOptionRow(
           label: l.tvRemoteStep,
-          trailing: Text('${s.tvRemoteSeekSeconds} s'),
+          value: '${s.tvRemoteSeekSeconds} s',
           onPressed: () => setState(() => _category = 0),
         ),
-        TvButton(
+        TvOptionRow(
           label: l.settingsInterfaceAutoHide,
-          trailing: Text('${(s.controlsAutoHideMs / 1000).round()} s'),
+          value: '${(s.controlsAutoHideMs / 1000).round()} s',
           onPressed: () async {
             final value = await showTvChoices<int>(
               context,
@@ -311,30 +281,52 @@ class _TvSettingsScreenState extends ConsumerState<TvSettingsScreen> {
           },
         ),
       ],
+      4 => <Widget>[
+        TvOptionRow(
+          label: l.tvRefresh,
+          icon: Icons.refresh,
+          onPressed: () async {
+            final browser = ref.read(storageBrowserProvider);
+            final index = ref.read(mediaIndexProvider.notifier);
+            final volumes = await browser.volumes();
+            for (final volume in volumes.where((v) => v.removable)) {
+              await browser
+                  .rescan(volume.path)
+                  .timeout(const Duration(seconds: 30));
+            }
+            await index.refresh();
+          },
+        ),
+        TvOptionRow(
+          label: l.settingsHiddenFoldersTitle,
+          icon: Icons.folder_off_outlined,
+          onPressed: () => _page(const HiddenFoldersSection()),
+        ),
+      ],
       _ => <Widget>[
-        TvButton(
+        TvOptionRow(
           label: l.settingsGeneralTitle,
           onPressed: () => _page(const GeneralSettingsSection()),
         ),
-        TvButton(
+        TvOptionRow(
           label: l.settingsInterfaceTitle,
           onPressed: () => _page(const InterfaceSettingsSection()),
         ),
-        TvButton(
+        TvOptionRow(
           label: l.settingsAdvancedPlaybackTitle,
           onPressed: () => _page(const AdvancedPlaybackSection()),
         ),
-        TvButton(
+        TvOptionRow(
           label: l.settingsBackupTitle,
           onPressed: () => _page(const BackupSection()),
         ),
         if (!s.vaultEntranceHidden)
-          TvButton(
+          TvOptionRow(
             label: 'Vault',
             icon: Icons.lock_outline,
             onPressed: () => openVault(context),
           ),
-        TvButton(
+        TvOptionRow(
           label: l.settingsAboutTitle,
           onPressed: () => _page(const AboutSection()),
         ),
@@ -367,7 +359,7 @@ class _TvSettingsScreenState extends ConsumerState<TvSettingsScreen> {
         ),
         const SizedBox(height: 24),
         ...rows.map(
-          (w) => Padding(padding: const EdgeInsets.only(bottom: 14), child: w),
+          (w) => Padding(padding: const EdgeInsets.only(bottom: 6), child: w),
         ),
       ],
     );

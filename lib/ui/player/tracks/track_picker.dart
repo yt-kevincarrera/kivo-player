@@ -25,11 +25,17 @@ import '../subtitles/subtitle_text.dart';
 import 'track_sync_hud.dart';
 import '../../widgets/kivo_focusable.dart';
 import '../../tv/tv_modal.dart';
+import '../../tv/tv_panel.dart';
+import '../../tv/tv_input_mode.dart';
+import '../../settings/widgets/setting_tiles.dart';
+import '../../settings/widgets/setting_choice.dart';
+import '../../../platform/television_provider.dart';
 
 part 'subtitle_encoding_sheet.dart';
 part 'subtitle_style_controls.dart';
 
 Future<void> showSubtitlePicker(BuildContext context, WidgetRef ref) {
+  if (ref.read(isTelevisionProvider)) return _showTvTracks(context, true);
   return showTvAwareBottomSheet(
     context: context,
     backgroundColor: KivoColors.panel,
@@ -42,6 +48,7 @@ Future<void> showSubtitlePicker(BuildContext context, WidgetRef ref) {
 }
 
 Future<void> showAudioPicker(BuildContext context, WidgetRef ref) {
+  if (ref.read(isTelevisionProvider)) return _showTvTracks(context, false);
   return showTvAwareBottomSheet(
     context: context,
     backgroundColor: KivoColors.panel,
@@ -51,6 +58,174 @@ Future<void> showAudioPicker(BuildContext context, WidgetRef ref) {
     isScrollControlled: true,
     builder: (_) => const _TrackPickerSheet(isSubtitles: false),
   );
+}
+
+Future<void> _showTvTracks(BuildContext context, bool subtitles) =>
+    showTvPanel<void>(
+      context: context,
+      title: subtitles
+          ? context.l10n.playerSubtitlesTooltip
+          : context.l10n.playerAudioTooltip,
+      builder: (_) => _TvTrackList(subtitles: subtitles),
+    );
+
+class _TvTrackList extends ConsumerWidget {
+  const _TvTrackList({required this.subtitles});
+  final bool subtitles;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final engine = ref.watch(playbackEngineProvider);
+    final l = context.l10n;
+    return StreamBuilder<List<MediaTrack>>(
+      stream: subtitles
+          ? engine.subtitleTracksStream
+          : engine.audioTracksStream,
+      initialData: subtitles
+          ? engine.currentSubtitleTracks
+          : engine.currentAudioTracks,
+      builder: (context, tracksSnapshot) => StreamBuilder<MediaTrack?>(
+        stream: subtitles
+            ? engine.currentSubtitleTrackStream
+            : engine.currentAudioTrackStream,
+        initialData: subtitles
+            ? engine.currentSubtitleTrack
+            : engine.currentAudioTrack,
+        builder: (context, currentSnapshot) {
+          final tracks = tracksSnapshot.data ?? const <MediaTrack>[];
+          final current = currentSnapshot.data;
+          return ListView(
+            padding: const EdgeInsets.all(5),
+            children: [
+              if (subtitles)
+                TvOptionRow(
+                  label: l.playerTracksSecondaryOff,
+                  selected: current == null,
+                  autofocus: current == null,
+                  onPressed: () {
+                    _disableSubtitles(ref, engine);
+                    Navigator.of(context).pop();
+                  },
+                ),
+              for (var i = 0; i < tracks.length; i++)
+                TvOptionRow(
+                  label: tracks[i].title ?? tracks[i].language ?? tracks[i].id,
+                  subtitle: [
+                    tracks[i].language,
+                    tracks[i].codec,
+                  ].whereType<String>().where((s) => s.isNotEmpty).join(' · '),
+                  selected: tracks[i].id == current?.id,
+                  autofocus: current == null
+                      ? !subtitles && i == 0
+                      : tracks[i].id == current.id,
+                  onPressed: () => _selectMediaTrack(
+                    context,
+                    ref,
+                    engine,
+                    subtitles,
+                    tracks[i],
+                  ),
+                ),
+              const SizedBox(height: 22),
+              TvOptionRow(
+                label: subtitles ? l.tvSubtitleSettings : l.tvAudioSettings,
+                icon: Icons.tune,
+                onPressed: () => showTvPanel<void>(
+                  context: context,
+                  title: subtitles ? l.tvSubtitleSettings : l.tvAudioSettings,
+                  builder: (_) => _TvTrackSettings(subtitles: subtitles),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+Future<void> showTvSubtitleStyle(BuildContext context) => showTvPanel<void>(
+  context: context,
+  title: context.l10n.playerTracksStyleTabLabel,
+  builder: (_) => const SingleChildScrollView(
+    padding: EdgeInsets.all(6),
+    child: _StyleSection(),
+  ),
+);
+
+class _TvTrackSettings extends ConsumerWidget {
+  const _TvTrackSettings({required this.subtitles});
+  final bool subtitles;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final engine = ref.watch(playbackEngineProvider);
+    return ListView(
+      padding: const EdgeInsets.all(6),
+      children: [
+        if (subtitles)
+          TvOptionRow(
+            label: context.l10n.playerTracksStyleTabLabel,
+            icon: Icons.format_size,
+            onPressed: () => showTvSubtitleStyle(context),
+          ),
+        _TracksSection(
+          isSubtitles: subtitles,
+          tracks: subtitles
+              ? engine.currentSubtitleTracks
+              : engine.currentAudioTracks,
+          current: subtitles
+              ? engine.currentSubtitleTrack
+              : engine.currentAudioTrack,
+          session: ref.watch(currentVideoProvider),
+          engine: engine,
+        ),
+      ],
+    );
+  }
+}
+
+void _disableSubtitles(WidgetRef ref, PlaybackEngine engine) {
+  engine.setSubtitleTrack(null);
+  clearSecondarySubtitle(ref);
+  ref.read(subtitleLoaderProvider).clear();
+  final s = ref.read(settingsProvider);
+  ref
+      .read(settingsProvider.notifier)
+      .set(s.copyWith(subtitlesEnabledByDefault: false));
+}
+
+void _selectMediaTrack(
+  BuildContext context,
+  WidgetRef ref,
+  PlaybackEngine engine,
+  bool isSubtitles,
+  MediaTrack t,
+) {
+  if (isSubtitles) {
+    if (t.id == engine.secondarySubtitleTrackId) clearSecondarySubtitle(ref);
+    engine.setSubtitleTrack(t.id);
+    ref.read(subtitleLoaderProvider).clear();
+    final s = ref.read(settingsProvider);
+    ref
+        .read(settingsProvider.notifier)
+        .set(
+          s.copyWith(
+            subtitlesEnabledByDefault: true,
+            preferredSubtitleLanguage:
+                t.language ?? s.preferredSubtitleLanguage,
+          ),
+        );
+  } else {
+    engine.setAudioTrack(t.id);
+    final s = ref.read(settingsProvider);
+    ref
+        .read(settingsProvider.notifier)
+        .set(
+          s.copyWith(
+            preferredAudioLanguage: t.language ?? s.preferredAudioLanguage,
+          ),
+        );
+  }
+  Navigator.of(context).pop();
 }
 
 /// Subtitles get two tabs ("Pistas" / "Estilo"); audio has no style tab,
@@ -150,7 +325,8 @@ class _TrackPickerSheetState extends ConsumerState<_TrackPickerSheet> {
                               MediaQuery.textScalerOf(context).scale(14) / 14;
                           // Keep a useful options viewport below the preview.
                           // With little height or large text, let it scroll away.
-                          final pinPreview = showStyle &&
+                          final pinPreview =
+                              showStyle &&
                               constraints.maxHeight >= 360 * textScale;
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -181,7 +357,8 @@ class _TrackPickerSheetState extends ConsumerState<_TrackPickerSheet> {
             // sonido" cards it no longer fits a landscape phone's height.
             : ConstrainedBox(
                 constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(context).size.height * 0.85),
+                  maxHeight: MediaQuery.of(context).size.height * 0.85,
+                ),
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -349,7 +526,7 @@ class _SectionEyebrow extends StatelessWidget {
         label.toUpperCase(),
         style: TextStyle(
           color: Colors.white.withValues(alpha: 0.4),
-          fontSize: 10.5,
+          fontSize: TvInputMode.of(context) ? 18 : 10.5,
           fontWeight: FontWeight.w800,
           letterSpacing: 0.8,
         ),
@@ -373,16 +550,7 @@ class _TracksSection extends ConsumerWidget {
     required this.engine,
   });
 
-  void _turnOff(WidgetRef ref) {
-    engine.setSubtitleTrack(null);
-    // No lone top line once the subtitles are off.
-    clearSecondarySubtitle(ref);
-    ref.read(subtitleLoaderProvider).clear();
-    final s = ref.read(settingsProvider);
-    ref
-        .read(settingsProvider.notifier)
-        .set(s.copyWith(subtitlesEnabledByDefault: false));
-  }
+  void _turnOff(WidgetRef ref) => _disableSubtitles(ref, engine);
 
   void _turnOn(WidgetRef ref) {
     final s = ref.read(settingsProvider);
@@ -397,36 +565,8 @@ class _TracksSection extends ConsumerWidget {
         .set(s.copyWith(subtitlesEnabledByDefault: true));
   }
 
-  void _pickTrack(BuildContext context, WidgetRef ref, MediaTrack t) {
-    if (isSubtitles) {
-      // mpv refuses a track already held as the secondary: free it first.
-      if (t.id == engine.secondarySubtitleTrackId) clearSecondarySubtitle(ref);
-      engine.setSubtitleTrack(t.id);
-      // An embedded track now: the encoding card no longer applies.
-      ref.read(subtitleLoaderProvider).clear();
-      final s = ref.read(settingsProvider);
-      ref
-          .read(settingsProvider.notifier)
-          .set(
-            s.copyWith(
-              subtitlesEnabledByDefault: true,
-              preferredSubtitleLanguage:
-                  t.language ?? s.preferredSubtitleLanguage,
-            ),
-          );
-    } else {
-      engine.setAudioTrack(t.id);
-      final s = ref.read(settingsProvider);
-      ref
-          .read(settingsProvider.notifier)
-          .set(
-            s.copyWith(
-              preferredAudioLanguage: t.language ?? s.preferredAudioLanguage,
-            ),
-          );
-    }
-    Navigator.of(context).pop();
-  }
+  void _pickTrack(BuildContext context, WidgetRef ref, MediaTrack t) =>
+      _selectMediaTrack(context, ref, engine, isSubtitles, t);
 
   Future<void> _pickManualSubtitle(BuildContext context, WidgetRef ref) async {
     // Both captured before the await, because the sheet is popped on every
@@ -493,15 +633,20 @@ class _TracksSection extends ConsumerWidget {
     final subsOn = s.subtitlesEnabledByDefault;
     final accent = Color(s.accentColor);
     final l10n = context.l10n;
-    final activeExternal =
-        isSubtitles ? ref.watch(activeExternalSubtitleProvider) : null;
-    final audioSource =
-        isSubtitles ? null : ref.watch(currentAudioSourceProvider);
+    final activeExternal = isSubtitles
+        ? ref.watch(activeExternalSubtitleProvider)
+        : null;
+    final audioSource = isSubtitles
+        ? null
+        : ref.watch(currentAudioSourceProvider);
     if (isSubtitles) ref.watch(secondarySubtitleRevisionProvider);
     final secondaryId = isSubtitles ? engine.secondarySubtitleTrackId : null;
     final secondaryChoices = isSubtitles
-        ? secondaryCandidates(tracks, current,
-            primaryMpvId: ref.watch(currentSubtitleMpvIdProvider))
+        ? secondaryCandidates(
+            tracks,
+            current,
+            primaryMpvId: ref.watch(currentSubtitleMpvIdProvider),
+          )
         : const <MediaTrack>[];
 
     return FutureBuilder<List<ExternalSubtitle>>(
@@ -514,7 +659,13 @@ class _TracksSection extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (isSubtitles) ...[
+            if (isSubtitles && TvInputMode.of(context))
+              TvOptionRow(
+                label: l10n.playerTracksShowSubtitles,
+                toggled: subsOn,
+                onPressed: () => subsOn ? _turnOff(ref) : _turnOn(ref),
+              ),
+            if (isSubtitles && !TvInputMode.of(context)) ...[
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 14,
@@ -546,7 +697,8 @@ class _TracksSection extends ConsumerWidget {
               ),
             ],
             if (tracks.isNotEmpty) ...[
-              if (isSubtitles) _SectionEyebrow(label: l10n.playerTracksSectionInVideo),
+              if (isSubtitles)
+                _SectionEyebrow(label: l10n.playerTracksSectionInVideo),
               for (final t in tracks)
                 _TrackCard(
                   icon: isSubtitles
@@ -578,9 +730,18 @@ class _TracksSection extends ConsumerWidget {
               enabled: !isSubtitles || current != null,
               accent: accent,
               onTap: () {
-                Navigator.of(context).pop();
-                ref.read(syncHudProvider.notifier).show(
-                    isSubtitles ? SyncTarget.subtitles : SyncTarget.audio);
+                if (TvInputMode.of(context)) {
+                  Navigator.of(
+                    context,
+                  ).popUntil((route) => route is! PopupRoute);
+                } else {
+                  Navigator.of(context).pop();
+                }
+                ref
+                    .read(syncHudProvider.notifier)
+                    .show(
+                      isSubtitles ? SyncTarget.subtitles : SyncTarget.audio,
+                    );
               },
             ),
             if (!isSubtitles) ...[
@@ -599,10 +760,10 @@ class _TracksSection extends ConsumerWidget {
                 sublabel: audioSource == null
                     ? l10n.playerTracksReadingTrack
                     : !audioSource.isDolby
-                        ? l10n.playerTracksNightModeNoEffect
-                        : s.nightMode
-                            ? l10n.playerTracksNightModeDolby
-                            : l10n.playerTracksNightModeOffHint,
+                    ? l10n.playerTracksNightModeNoEffect
+                    : s.nightMode
+                    ? l10n.playerTracksNightModeDolby
+                    : l10n.playerTracksNightModeOffHint,
                 active: s.nightMode && (audioSource?.isDolby ?? false),
                 enabled: audioSource?.isDolby ?? false,
                 accent: accent,
@@ -616,10 +777,10 @@ class _TracksSection extends ConsumerWidget {
                 sublabel: !s.voiceBoost
                     ? l10n.playerTracksVoiceBoostOffHint
                     : audioSource == null
-                        ? l10n.playerTracksEnhancePending
-                        : audioSource.isMultichannel
-                        ? l10n.playerTracksVoiceBoostSurround
-                        : l10n.playerTracksVoiceBoostStereo,
+                    ? l10n.playerTracksEnhancePending
+                    : audioSource.isMultichannel
+                    ? l10n.playerTracksVoiceBoostSurround
+                    : l10n.playerTracksVoiceBoostStereo,
                 active: s.voiceBoost,
                 accent: accent,
                 onTap: () => ref
@@ -645,7 +806,9 @@ class _TracksSection extends ConsumerWidget {
               ),
             // Only alongside a primary: a lone line at the top with nothing at
             // the bottom is not a "second" subtitle.
-            if (isSubtitles && current != null && secondaryChoices.isNotEmpty) ...[
+            if (isSubtitles &&
+                current != null &&
+                secondaryChoices.isNotEmpty) ...[
               _SectionEyebrow(label: l10n.playerTracksSectionSecondary),
               _TrackCard(
                 icon: Icons.subtitles_off_outlined,
@@ -674,8 +837,7 @@ class _TracksSection extends ConsumerWidget {
                   sublabel: l10n.playerTracksLocalFile,
                   // mpv lists an added file under its own numeric track id,
                   // never the uri, so the loader is what knows which one is on.
-                  active: current != null &&
-                      activeExternal?.sourceUri == e.uri,
+                  active: current != null && activeExternal?.sourceUri == e.uri,
                   accent: accent,
                   onTap: () => _pickExternal(context, ref, e),
                 ),
@@ -737,6 +899,16 @@ class _TrackCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (TvInputMode.of(context)) {
+      return TvOptionRow(
+        label: label,
+        subtitle: sublabel,
+        icon: icon,
+        selected: active,
+        onPressed: enabled ? onTap : null,
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Opacity(
@@ -863,10 +1035,10 @@ class _StyleSection extends ConsumerWidget {
     0xFF1B2A4A,
   ];
   List<({int value, String label})> _bgSwatches(AppLocalizations l10n) => [
-        (value: 0x00000000, label: l10n.playerTracksBgTransparent),
-        (value: 0xFF000000, label: l10n.playerTracksBgBlack),
-        (value: 0xFFFFFFFF, label: l10n.playerTracksBgWhite),
-      ];
+    (value: 0x00000000, label: l10n.playerTracksBgTransparent),
+    (value: 0xFF000000, label: l10n.playerTracksBgBlack),
+    (value: 0xFFFFFFFF, label: l10n.playerTracksBgWhite),
+  ];
 
   void _set(WidgetRef ref, KivoSettings Function(KivoSettings) f) {
     // Kivo's own overlay and the preview draw from the settings:
@@ -877,20 +1049,21 @@ class _StyleSection extends ConsumerWidget {
   void _reset(WidgetRef ref) {
     final d = KivoSettings.defaults();
     _set(
-        ref,
-        (s) => s.copyWith(
-              subtitleFontSize: d.subtitleFontSize,
-              subtitleTextColor: d.subtitleTextColor,
-              subtitleBackgroundColor: d.subtitleBackgroundColor,
-              subtitleOutlineWidth: d.subtitleOutlineWidth,
-              subtitleOutlineColor: d.subtitleOutlineColor,
-              subtitleShadow: d.subtitleShadow,
-              subtitleBold: d.subtitleBold,
-              subtitleFontFamily: d.subtitleFontFamily,
-              subtitleBottomMargin: d.subtitleBottomMargin,
-              secondarySubtitleTopMargin: d.secondarySubtitleTopMargin,
-              subtitleRespectAss: d.subtitleRespectAss,
-            ));
+      ref,
+      (s) => s.copyWith(
+        subtitleFontSize: d.subtitleFontSize,
+        subtitleTextColor: d.subtitleTextColor,
+        subtitleBackgroundColor: d.subtitleBackgroundColor,
+        subtitleOutlineWidth: d.subtitleOutlineWidth,
+        subtitleOutlineColor: d.subtitleOutlineColor,
+        subtitleShadow: d.subtitleShadow,
+        subtitleBold: d.subtitleBold,
+        subtitleFontFamily: d.subtitleFontFamily,
+        subtitleBottomMargin: d.subtitleBottomMargin,
+        secondarySubtitleTopMargin: d.secondarySubtitleTopMargin,
+        subtitleRespectAss: d.subtitleRespectAss,
+      ),
+    );
   }
 
   @override
@@ -906,187 +1079,331 @@ class _StyleSection extends ConsumerWidget {
       ('condensed', l10n.playerTracksFontCondensed),
     ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _StyleGroup(title: l10n.playerTracksGroupText, children: [
-          _RowLabel(l10n.playerTracksSizeLabel),
-          Row(
-            children: [
-              // The size-adjust glyph (small/large), not a language.
-              _StepButton(
-                label: 'A',
-                small: true,
-                onTap: () => _set(
-                    ref,
-                    (x) => x.copyWith(
-                        subtitleFontSize: (fontSize - 2).clamp(16, 48))),
-              ),
-              Expanded(
-                child: _StyleSlider(
-                  value: fontSize,
-                  min: 16,
-                  max: 48,
-                  divisions: 32,
-                  accent: accent,
-                  valueLabel: fontSize.round().toString(),
-                  valueWidth: 30,
-                  onChanged: (v) =>
-                      _set(ref, (x) => x.copyWith(subtitleFontSize: v)),
-                ),
-              ),
-              _StepButton(
-                label: 'A',
-                small: false,
-                onTap: () => _set(
-                    ref,
-                    (x) => x.copyWith(
-                        subtitleFontSize: (fontSize + 2).clamp(16, 48))),
-              ),
-            ],
+    if (TvInputMode.of(context)) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const _StylePreview(compact: true),
+          SettingSlider(
+            title: l10n.playerTracksSizeLabel,
+            value: fontSize,
+            min: 16,
+            max: 48,
+            divisions: 32,
+            label: (v) => v.round().toString(),
+            onChanged: (v) => _set(ref, (x) => x.copyWith(subtitleFontSize: v)),
           ),
-          _RowLabel(l10n.playerTracksFontLabel),
-          Row(
-            children: [
-              for (final (id, label) in fonts)
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 6),
-                    child: _FontChip(
-                      label: label,
-                      family: subtitleFontFamily(id),
-                      active: s.subtitleFontFamily == id,
-                      accent: accent,
-                      onTap: () =>
-                          _set(ref, (x) => x.copyWith(subtitleFontFamily: id)),
-                    ),
-                  ),
-                ),
-            ],
+          SettingChoice<String>(
+            title: l10n.playerTracksFontLabel,
+            value: s.subtitleFontFamily,
+            options: fonts,
+            onChanged: (v) =>
+                _set(ref, (x) => x.copyWith(subtitleFontFamily: v)),
           ),
-          _RowLabel(l10n.playerTracksTextColorLabel),
-          Row(
-            children: [
+          SettingChoice<int>(
+            title: l10n.playerTracksTextColorLabel,
+            value: s.subtitleTextColor,
+            options: [
               for (final c in _textSwatches)
-                Padding(
-                  padding: const EdgeInsets.only(right: 10),
-                  child: _ColorSquare(
-                    color: c,
-                    active: s.subtitleTextColor == c,
-                    accent: accent,
-                    onTap: () =>
-                        _set(ref, (x) => x.copyWith(subtitleTextColor: c)),
-                  ),
+                (
+                  c,
+                  '#${(c & 0xffffff).toRadixString(16).padLeft(6, '0').toUpperCase()}',
                 ),
             ],
+            onChanged: (v) =>
+                _set(ref, (x) => x.copyWith(subtitleTextColor: v)),
           ),
-          const SizedBox(height: 6),
-          _StyleSwitch(
-            label: l10n.playerTracksBoldLabel,
+          SettingSwitch(
+            title: l10n.playerTracksBoldLabel,
             value: s.subtitleBold,
-            accent: accent,
             onChanged: (v) => _set(ref, (x) => x.copyWith(subtitleBold: v)),
           ),
-        ]),
-        _StyleGroup(title: l10n.playerTracksGroupOutline, children: [
-          _RowLabel(l10n.playerTracksOutlineWidthLabel),
-          _StyleSlider(
+          SettingSlider(
+            title: l10n.playerTracksOutlineWidthLabel,
             value: s.subtitleOutlineWidth,
             min: 0,
             max: 5,
             divisions: 10,
-            accent: accent,
-            valueLabel: s.subtitleOutlineWidth == 0
-                ? l10n.playerTracksOutlineNone
-                : s.subtitleOutlineWidth.toStringAsFixed(1),
+            label: (v) => v.toStringAsFixed(1),
             onChanged: (v) =>
                 _set(ref, (x) => x.copyWith(subtitleOutlineWidth: v)),
           ),
-          if (s.subtitleOutlineWidth > 0) ...[
-            _RowLabel(l10n.playerTracksOutlineColorLabel),
+          if (s.subtitleOutlineWidth > 0)
+            SettingChoice<int>(
+              title: l10n.playerTracksOutlineColorLabel,
+              value: s.subtitleOutlineColor,
+              options: [
+                for (final c in _outlineSwatches)
+                  (
+                    c,
+                    '#${(c & 0xffffff).toRadixString(16).padLeft(6, '0').toUpperCase()}',
+                  ),
+              ],
+              onChanged: (v) =>
+                  _set(ref, (x) => x.copyWith(subtitleOutlineColor: v)),
+            ),
+          SettingSwitch(
+            title: l10n.playerTracksShadowLabel,
+            value: s.subtitleShadow,
+            onChanged: (v) => _set(ref, (x) => x.copyWith(subtitleShadow: v)),
+          ),
+          SettingChoice<int>(
+            title: l10n.playerTracksGroupBackground,
+            value: s.subtitleBackgroundColor,
+            options: [for (final bg in _bgSwatches(l10n)) (bg.value, bg.label)],
+            onChanged: (v) =>
+                _set(ref, (x) => x.copyWith(subtitleBackgroundColor: v)),
+          ),
+          SettingSlider(
+            title: l10n.playerTracksPositionPrimaryLabel,
+            value: s.subtitleBottomMargin,
+            min: 0,
+            max: 40,
+            divisions: 40,
+            label: (v) => l10n.playerTracksPositionValue(v.round()),
+            onChanged: (v) =>
+                _set(ref, (x) => x.copyWith(subtitleBottomMargin: v)),
+          ),
+          SettingSlider(
+            title: l10n.playerTracksSectionSecondary,
+            value: s.secondarySubtitleTopMargin,
+            min: 0,
+            max: 40,
+            divisions: 40,
+            label: (v) => l10n.playerTracksPositionValue(v.round()),
+            onChanged: (v) =>
+                _set(ref, (x) => x.copyWith(secondarySubtitleTopMargin: v)),
+          ),
+          SettingSwitch(
+            title: l10n.playerTracksRespectAss,
+            subtitle: l10n.playerTracksRespectAssHint,
+            value: s.subtitleRespectAss,
+            onChanged: (v) =>
+                _set(ref, (x) => x.copyWith(subtitleRespectAss: v)),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 18),
+            child: Text(
+              l10n.playerTracksPictureSubsNote,
+              style: const TextStyle(fontSize: 18),
+            ),
+          ),
+          TvOptionRow(
+            label: l10n.playerTracksResetStyleAction,
+            icon: Icons.restart_alt,
+            onPressed: () => _reset(ref),
+          ),
+        ],
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _StyleGroup(
+          title: l10n.playerTracksGroupText,
+          children: [
+            _RowLabel(l10n.playerTracksSizeLabel),
             Row(
               children: [
-                for (final c in _outlineSwatches)
+                // The size-adjust glyph (small/large), not a language.
+                _StepButton(
+                  label: 'A',
+                  small: true,
+                  onTap: () => _set(
+                    ref,
+                    (x) => x.copyWith(
+                      subtitleFontSize: (fontSize - 2).clamp(16, 48),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: _StyleSlider(
+                    value: fontSize,
+                    min: 16,
+                    max: 48,
+                    divisions: 32,
+                    accent: accent,
+                    valueLabel: fontSize.round().toString(),
+                    valueWidth: 30,
+                    onChanged: (v) =>
+                        _set(ref, (x) => x.copyWith(subtitleFontSize: v)),
+                  ),
+                ),
+                _StepButton(
+                  label: 'A',
+                  small: false,
+                  onTap: () => _set(
+                    ref,
+                    (x) => x.copyWith(
+                      subtitleFontSize: (fontSize + 2).clamp(16, 48),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            _RowLabel(l10n.playerTracksFontLabel),
+            Row(
+              children: [
+                for (final (id, label) in fonts)
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: _FontChip(
+                        label: label,
+                        family: subtitleFontFamily(id),
+                        active: s.subtitleFontFamily == id,
+                        accent: accent,
+                        onTap: () => _set(
+                          ref,
+                          (x) => x.copyWith(subtitleFontFamily: id),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            _RowLabel(l10n.playerTracksTextColorLabel),
+            Row(
+              children: [
+                for (final c in _textSwatches)
                   Padding(
                     padding: const EdgeInsets.only(right: 10),
                     child: _ColorSquare(
                       color: c,
-                      active: s.subtitleOutlineColor == c,
+                      active: s.subtitleTextColor == c,
                       accent: accent,
-                      onTap: () => _set(
-                          ref, (x) => x.copyWith(subtitleOutlineColor: c)),
+                      onTap: () =>
+                          _set(ref, (x) => x.copyWith(subtitleTextColor: c)),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            _StyleSwitch(
+              label: l10n.playerTracksBoldLabel,
+              value: s.subtitleBold,
+              accent: accent,
+              onChanged: (v) => _set(ref, (x) => x.copyWith(subtitleBold: v)),
+            ),
+          ],
+        ),
+        _StyleGroup(
+          title: l10n.playerTracksGroupOutline,
+          children: [
+            _RowLabel(l10n.playerTracksOutlineWidthLabel),
+            _StyleSlider(
+              value: s.subtitleOutlineWidth,
+              min: 0,
+              max: 5,
+              divisions: 10,
+              accent: accent,
+              valueLabel: s.subtitleOutlineWidth == 0
+                  ? l10n.playerTracksOutlineNone
+                  : s.subtitleOutlineWidth.toStringAsFixed(1),
+              onChanged: (v) =>
+                  _set(ref, (x) => x.copyWith(subtitleOutlineWidth: v)),
+            ),
+            if (s.subtitleOutlineWidth > 0) ...[
+              _RowLabel(l10n.playerTracksOutlineColorLabel),
+              Row(
+                children: [
+                  for (final c in _outlineSwatches)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 10),
+                      child: _ColorSquare(
+                        color: c,
+                        active: s.subtitleOutlineColor == c,
+                        accent: accent,
+                        onTap: () => _set(
+                          ref,
+                          (x) => x.copyWith(subtitleOutlineColor: c),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+            const SizedBox(height: 6),
+            _StyleSwitch(
+              label: l10n.playerTracksShadowLabel,
+              value: s.subtitleShadow,
+              accent: accent,
+              onChanged: (v) => _set(ref, (x) => x.copyWith(subtitleShadow: v)),
+            ),
+          ],
+        ),
+        _StyleGroup(
+          title: l10n.playerTracksGroupBackground,
+          children: [
+            Row(
+              children: [
+                for (final bg in _bgSwatches(l10n))
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: _BackgroundChip(
+                        background: bg.value,
+                        label: bg.label,
+                        textColor: s.subtitleTextColor,
+                        active: s.subtitleBackgroundColor == bg.value,
+                        accent: accent,
+                        onTap: () => _set(
+                          ref,
+                          (x) => x.copyWith(subtitleBackgroundColor: bg.value),
+                        ),
+                      ),
                     ),
                   ),
               ],
             ),
           ],
-          const SizedBox(height: 6),
-          _StyleSwitch(
-            label: l10n.playerTracksShadowLabel,
-            value: s.subtitleShadow,
-            accent: accent,
-            onChanged: (v) => _set(ref, (x) => x.copyWith(subtitleShadow: v)),
-          ),
-        ]),
-        _StyleGroup(title: l10n.playerTracksGroupBackground, children: [
-          Row(
-            children: [
-              for (final bg in _bgSwatches(l10n))
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: _BackgroundChip(
-                      background: bg.value,
-                      label: bg.label,
-                      textColor: s.subtitleTextColor,
-                      active: s.subtitleBackgroundColor == bg.value,
-                      accent: accent,
-                      onTap: () => _set(ref,
-                          (x) => x.copyWith(subtitleBackgroundColor: bg.value)),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ]),
-        _StyleGroup(title: l10n.playerTracksGroupPosition, children: [
-          _RowLabel(l10n.playerTracksPositionPrimaryLabel),
-          _StyleSlider(
-            value: s.subtitleBottomMargin,
-            min: 0,
-            max: 40,
-            divisions: 40,
-            accent: accent,
-            valueLabel:
-                l10n.playerTracksPositionValue(s.subtitleBottomMargin.round()),
-            onChanged: (v) =>
-                _set(ref, (x) => x.copyWith(subtitleBottomMargin: v)),
-          ),
-          _RowLabel(l10n.playerTracksSectionSecondary),
-          _StyleSlider(
-            value: s.secondarySubtitleTopMargin,
-            min: 0,
-            max: 40,
-            divisions: 40,
-            accent: accent,
-            valueLabel: l10n
-                .playerTracksPositionValue(s.secondarySubtitleTopMargin.round()),
-            onChanged: (v) =>
-                _set(ref, (x) => x.copyWith(secondarySubtitleTopMargin: v)),
-          ),
-          _Hint(l10n.playerTracksPositionDragHint),
-        ]),
-        _StyleGroup(title: l10n.playerTracksGroupAss, children: [
-          _StyleSwitch(
-            label: l10n.playerTracksRespectAss,
-            hint: l10n.playerTracksRespectAssHint,
-            value: s.subtitleRespectAss,
-            accent: accent,
-            onChanged: (v) =>
-                _set(ref, (x) => x.copyWith(subtitleRespectAss: v)),
-          ),
-          _Hint(l10n.playerTracksPictureSubsNote),
-        ]),
+        ),
+        _StyleGroup(
+          title: l10n.playerTracksGroupPosition,
+          children: [
+            _RowLabel(l10n.playerTracksPositionPrimaryLabel),
+            _StyleSlider(
+              value: s.subtitleBottomMargin,
+              min: 0,
+              max: 40,
+              divisions: 40,
+              accent: accent,
+              valueLabel: l10n.playerTracksPositionValue(
+                s.subtitleBottomMargin.round(),
+              ),
+              onChanged: (v) =>
+                  _set(ref, (x) => x.copyWith(subtitleBottomMargin: v)),
+            ),
+            _RowLabel(l10n.playerTracksSectionSecondary),
+            _StyleSlider(
+              value: s.secondarySubtitleTopMargin,
+              min: 0,
+              max: 40,
+              divisions: 40,
+              accent: accent,
+              valueLabel: l10n.playerTracksPositionValue(
+                s.secondarySubtitleTopMargin.round(),
+              ),
+              onChanged: (v) =>
+                  _set(ref, (x) => x.copyWith(secondarySubtitleTopMargin: v)),
+            ),
+            _Hint(l10n.playerTracksPositionDragHint),
+          ],
+        ),
+        _StyleGroup(
+          title: l10n.playerTracksGroupAss,
+          children: [
+            _StyleSwitch(
+              label: l10n.playerTracksRespectAss,
+              hint: l10n.playerTracksRespectAssHint,
+              value: s.subtitleRespectAss,
+              accent: accent,
+              onChanged: (v) =>
+                  _set(ref, (x) => x.copyWith(subtitleRespectAss: v)),
+            ),
+            _Hint(l10n.playerTracksPictureSubsNote),
+          ],
+        ),
         const SizedBox(height: 8),
         Center(
           child: TextButton.icon(

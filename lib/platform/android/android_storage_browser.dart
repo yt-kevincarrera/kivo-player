@@ -2,7 +2,7 @@ import 'package:flutter/services.dart';
 import '../interfaces/media_indexer.dart';
 import '../interfaces/storage_browser.dart';
 
-class AndroidStorageBrowser implements StorageBrowser {
+class AndroidStorageBrowser extends StorageBrowser {
   static const _channel = MethodChannel('kivo/storage');
 
   static VideoItem video(Map<Object?, Object?> m) => VideoItem(
@@ -32,19 +32,33 @@ class AndroidStorageBrowser implements StorageBrowser {
 
   @override
   Future<List<StorageEntry>> list(String path) async {
-    final raw =
-        await _channel.invokeListMethod<Map>('list', {'path': path}) ?? [];
-    return raw
-        .map(
-          (m) => StorageEntry(
-            path: m['filePath'] as String,
-            name: m['name'] as String,
-            directory: m['directory'] as bool,
-            video: m['directory'] == true ? null : video(m),
-          ),
-        )
-        .toList();
+    return (await browse(path)).entries;
   }
+
+  @override
+  Future<StorageListing> browse(String path) async {
+    final result = await _channel.invokeMapMethod<String, dynamic>('browse', {
+      'path': path,
+    });
+    final raw = (result?['entries'] as List? ?? []).cast<Map>();
+    return StorageListing(
+      accessLimited: result?['accessLimited'] == true,
+      entries: raw
+          .map(
+            (m) => StorageEntry(
+              path: m['filePath'] as String,
+              name: m['name'] as String,
+              directory: m['directory'] as bool,
+              video: m['directory'] == true ? null : video(m),
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  @override
+  Future<void> rescan(String path) =>
+      _channel.invokeMethod<void>('rescan', {'path': path});
 
   @override
   Future<List<VideoItem>> scanRemovable() async {

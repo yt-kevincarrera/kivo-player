@@ -443,6 +443,26 @@ class MainActivity : FlutterFragmentActivity() {
                                     Intent(android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION),
                                     REQ_ALL_FILES)
                             } catch (e2: Exception) {
+                                if (TvStorageBrowser.isTelevision(this)) {
+                                    val readPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                                        android.Manifest.permission.READ_MEDIA_VIDEO else android.Manifest.permission.READ_EXTERNAL_STORAGE
+                                    if (checkSelfPermission(readPermission) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                                        // App-details only controls media permission on this TV.
+                                        // Reopening it cannot grant the missing special access.
+                                        pendingAllFilesResult = null
+                                        result.error("ALL_FILES_SETTINGS_UNAVAILABLE", "This TV has no all-files-access settings page", null)
+                                        return@setMethodCallHandler
+                                    }
+                                    // TV vendors often omit both special-access
+                                    // pages. Leave a real route to the app's
+                                    // permissions instead of a dead action.
+                                    try {
+                                        startActivityForResult(Intent(
+                                            android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                            Uri.parse("package:$packageName")), REQ_ALL_FILES)
+                                        return@setMethodCallHandler
+                                    } catch (_: Exception) { /* Report the actual grant below. */ }
+                                }
                                 pendingAllFilesResult = null
                                 result.success(Environment.isExternalStorageManager())
                             }

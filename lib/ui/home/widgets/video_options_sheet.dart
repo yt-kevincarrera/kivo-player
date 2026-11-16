@@ -16,6 +16,9 @@ import '../../widgets/failure_snack_bar.dart';
 import '../playlists/add_to_playlist_sheet.dart';
 import 'rename_dialog.dart';
 import 'video_details_sheet.dart';
+import '../../tv/tv_modal.dart';
+import '../../tv/tv_panel.dart';
+import '../../tv/tv_input_mode.dart';
 
 /// Bottom-sheet menu for a library video's ⋮ button. Rows are theme-aware.
 class VideoOptionsSheet extends StatelessWidget {
@@ -150,6 +153,9 @@ class VideoOptionsSheet extends StatelessWidget {
     Color color,
     VoidCallback onTap,
   ) {
+    if (TvInputMode.of(context)) {
+      return TvOptionRow(label: label, icon: icon, onPressed: onTap);
+    }
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -215,8 +221,9 @@ Future<void> showVideoOptions(
   final messenger = ScaffoldMessenger.of(context);
   final isPlayed = ref.read(playedStoreProvider).isPlayed(v.key);
   final hasResume = ref.read(resumeServiceProvider).positionFor(v.key) != null;
-  return showModalBottomSheet<void>(
+  return showTvAwareBottomSheet<void>(
     context: context,
+    title: v.name,
     isScrollControlled: true,
     backgroundColor: Theme.of(context).colorScheme.surface,
     builder: (sheetContext) => VideoOptionsSheet(
@@ -303,7 +310,9 @@ Future<void> showVideoOptions(
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
                 child: Text(
-                  toTrash ? context.l10n.trashMoveTitle : context.l10n.commonDelete,
+                  toTrash
+                      ? context.l10n.trashMoveTitle
+                      : context.l10n.commonDelete,
                   style: TextStyle(color: Theme.of(ctx).colorScheme.error),
                 ),
               ),

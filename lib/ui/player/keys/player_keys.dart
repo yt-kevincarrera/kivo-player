@@ -305,6 +305,11 @@ class _PlayerKeysState extends ConsumerState<PlayerKeys>
     });
     ref.listen(syncHudProvider, (_, next) {
       if (next != null) _stopSeeking();
+      if (next == null &&
+          ref.read(isTelevisionProvider) &&
+          !ref.read(controlsVisibleProvider)) {
+        _node.requestFocus();
+      }
     });
     return Focus(
       focusNode: _node,

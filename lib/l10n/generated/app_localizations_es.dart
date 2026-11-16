@@ -12,6 +12,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get tvHome => 'Inicio';
 
   @override
+  String get tvUsbShort => 'USB';
+
+  @override
   String get tvUsb => 'Memoria USB';
 
   @override
@@ -42,7 +45,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get tvPlaybackHint =>
-      '← → · Buscar     Mantener · Buscar más rápido     OK · Pausar/reproducir     ↑ ↓ · Controles';
+      'Flechas · Saltar     Mantener · Avanzar más rápido     OK · Pausar/reproducir     Arriba/abajo · Controles';
 
   @override
   String get tvRemoteStep => 'Salto con las flechas del mando';
@@ -95,6 +98,27 @@ class AppLocalizationsEs extends AppLocalizations {
   String get tvEmptyFolder => 'No hay videos en esta carpeta';
 
   @override
+  String get tvStorageLimitedTitle => 'Android está limitando el acceso';
+
+  @override
+  String get tvStorageLimitedBody =>
+      'Puede que Android esté ocultando videos de esta memoria. Revisa el permiso de Kivo y vuelve a buscar.';
+
+  @override
+  String get tvScanVideos => 'Buscar videos en esta carpeta';
+
+  @override
+  String get tvScanningVideos => 'Android está buscando videos…';
+
+  @override
+  String get tvAllFilesStillMissing =>
+      'El permiso de videos está activo, pero Android todavía no concedió acceso completo a archivos.';
+
+  @override
+  String get tvAllFilesUnavailable =>
+      'El permiso de videos está activo. Este televisor no ofrece una pantalla para conceder acceso completo a archivos. Prueba Buscar videos.';
+
+  @override
   String get tvInternalStorage => 'Almacenamiento interno';
 
   @override
@@ -111,6 +135,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get tvQueue => 'Cola de reproducción';
 
   @override
+  String get tvEditQueue => 'Editar tira';
+
+  @override
+  String get tvSaveSpeedPreset => 'Guardar esta velocidad';
+
+  @override
+  String get tvResetSync => 'Restablecer sincronización';
+
+  @override
   String get tvPrevious => 'Video anterior';
 
   @override
@@ -123,7 +156,37 @@ class AppLocalizationsEs extends AppLocalizations {
   String get tvMoveLater => 'Mover después';
 
   @override
-  String get tvLibraryComplete => 'Gestionar biblioteca y listas';
+  String get tvLibraryComplete => 'Biblioteca';
+
+  @override
+  String get tvLibraryConnectHint =>
+      'Conecta tu memoria y tus videos aparecerán aquí. Si ya está conectada, actualiza la biblioteca.';
+
+  @override
+  String get tvAdjustValueHint =>
+      'Izquierda y derecha para ajustar. OK para guardar y volver.';
+
+  @override
+  String get tvPlayerControlsHint =>
+      'Flechas · Mover el foco   OK · Elegir   Atrás · Ocultar controles';
+
+  @override
+  String get tvNoMatchingVideos => 'No hay videos con estos filtros';
+
+  @override
+  String get tvClearFilters => 'Quitar filtros';
+
+  @override
+  String get tvCornerTopLeft => 'Arriba a la izquierda';
+
+  @override
+  String get tvCornerTopRight => 'Arriba a la derecha';
+
+  @override
+  String get tvCornerBottomLeft => 'Abajo a la izquierda';
+
+  @override
+  String get tvCornerBottomRight => 'Abajo a la derecha';
 
   @override
   String get tvUnknownDuration => 'Video local';

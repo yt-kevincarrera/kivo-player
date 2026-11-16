@@ -36,6 +36,8 @@ import '../tracks/track_sync_hud.dart';
 import '../../widgets/kivo_focusable.dart';
 import '../cast/cast_flow.dart';
 import '../../tv/tv_modal.dart';
+import '../../tv/tv_panel.dart';
+import '../../tv/tv_input_mode.dart';
 
 /// Mini menu behind the top bar's "Más opciones" button.
 ///
@@ -69,6 +71,7 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
   ref.read(decoderControllerProvider).refreshStatus();
   return showTvAwareBottomSheet(
     context: context,
+    title: context.l10n.tvMorePlayback,
     backgroundColor: KivoColors.panel,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -82,7 +85,8 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
       // actually starves it for height is the player's own landscape use,
       // not the device class, so orientation is the more honest signal.
       final screenSize = MediaQuery.of(sheetContext).size;
-      final isWide = screenSize.width > screenSize.height;
+      final television = TvInputMode.of(sheetContext);
+      final isWide = !television && screenSize.width > screenSize.height;
       // The two-column layout has room to spare width-wise but is still
       // tight on height at small landscape sizes, so it alone gets the
       // taller 0.92 cap (0.9 left the two columns 2 px short at 640×360) —
@@ -149,7 +153,8 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                     subtitle: endActionsSummary(
                       l10n,
                       endActions,
-                      toTrash: endActions.trash &&
+                      toTrash:
+                          endActions.trash &&
                           sheetRef.read(mediaFileOpsProvider).movesToTrash,
                     ),
                     onTap: () {
@@ -389,8 +394,9 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                           ),
                           // Here only where the top bar has no room for
                           // it (see kCastInBarMinWidth).
-                          if (MediaQuery.sizeOf(context).width <
-                              kCastInBarMinWidth)
+                          if (television ||
+                              MediaQuery.sizeOf(context).width <
+                                  kCastInBarMinWidth)
                             _MenuRow(
                               icon: Icons.cast,
                               title: l10n.castButtonTooltip,
@@ -430,6 +436,46 @@ Future<void> showMoreMenu(BuildContext context, WidgetRef ref) {
                     ],
                   );
 
+                  if (television) {
+                    void group(String title, Widget contents) =>
+                        showTvPanel<void>(
+                          context: sheetContext,
+                          title: title,
+                          builder: (_) =>
+                              SingleChildScrollView(child: contents),
+                        );
+                    return Column(
+                      key: const Key('more-menu-content'),
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        TvOptionRow(
+                          label: l10n.playerMenuGroupPlayback,
+                          icon: Icons.play_circle_outline,
+                          autofocus: true,
+                          onPressed: () => group(
+                            l10n.playerMenuGroupPlayback,
+                            reproduccionGroup,
+                          ),
+                        ),
+                        TvOptionRow(
+                          label: l10n.playerMenuGroupGoTo,
+                          icon: Icons.bookmarks_outlined,
+                          onPressed: () =>
+                              group(l10n.playerMenuGroupGoTo, iraGroup),
+                        ),
+                        TvOptionRow(
+                          label: l10n.playerMenuGroupAudio,
+                          icon: Icons.graphic_eq,
+                          onPressed: () =>
+                              group(l10n.playerMenuGroupAudio, audioGroup),
+                        ),
+                        const SizedBox(height: 20),
+                        for (final action
+                            in tilesRow.children.whereType<Expanded>())
+                          action.child,
+                      ],
+                    );
+                  }
                   final body = isWide
                       ? Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -639,7 +685,7 @@ class _GroupCaption extends StatelessWidget {
       label,
       style: TextStyle(
         color: Colors.white.withValues(alpha: 0.4),
-        fontSize: 11.5,
+        fontSize: TvInputMode.of(context) ? 18 : 11.5,
         fontWeight: FontWeight.w700,
         letterSpacing: 0.2,
       ),
@@ -656,7 +702,9 @@ class _GroupCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     decoration: BoxDecoration(
-      color: const Color(0xFF182036),
+      color: TvInputMode.of(context)
+          ? Colors.transparent
+          : const Color(0xFF182036),
       borderRadius: BorderRadius.circular(14),
     ),
     child: Column(
@@ -700,6 +748,15 @@ class _MenuTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (TvInputMode.of(context)) {
+      return TvOptionRow(
+        label: label,
+        icon: icon,
+        value: badge,
+        selected: active,
+        onPressed: onTap,
+      );
+    }
     final iconColor = active ? accent : Colors.white70;
     return PressBounce(
       onTap: onTap,
@@ -772,6 +829,38 @@ class _MenuRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (TvInputMode.of(context)) {
+      if (trailing == null) {
+        return TvOptionRow(
+          label: title,
+          subtitle: subtitle,
+          icon: icon,
+          onPressed: onTap,
+        );
+      }
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
+            ),
+            if (subtitle != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 7),
+                child: Text(
+                  subtitle!,
+                  style: const TextStyle(fontSize: 18, color: Colors.white60),
+                ),
+              ),
+            const SizedBox(height: 10),
+            trailing!,
+          ],
+        ),
+      );
+    }
     final content = Row(
       children: [
         Container(
@@ -875,6 +964,23 @@ class _SegmentedPill<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (TvInputMode.of(context)) {
+      final label =
+          options.where((o) => o.$1 == selected).firstOrNull?.$2 ?? '';
+      return TvOptionRow(
+        label: label,
+        icon: Icons.chevron_right,
+        onPressed: () async {
+          final next = await showTvPanelChoices<T>(
+            context,
+            context.l10n.tvOptions,
+            options.map((o) => (o.$1, o.$2, null)).toList(),
+            selected: selected,
+          );
+          if (next != null && context.mounted) onChanged(next);
+        },
+      );
+    }
     return Container(
       padding: const EdgeInsets.all(2),
       decoration: BoxDecoration(

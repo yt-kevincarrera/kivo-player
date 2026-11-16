@@ -1,3 +1,5 @@
+import '../../tv/tv_input_mode.dart';
+import '../widgets/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/settings/settings_provider.dart';
@@ -20,98 +22,140 @@ class InterfaceSettingsSection extends ConsumerWidget {
     final n = ref.read(settingsProvider.notifier);
     final l10n = context.l10n;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.settingsInterfaceTitle)),
+    return SettingsSectionPage(
+      title: l10n.settingsInterfaceTitle,
       body: SettingsScrollBody(
-        padding: readablePadding(context, const EdgeInsets.fromLTRB(14, 12, 14, 28)),
+        padding: readablePadding(
+          context,
+          const EdgeInsets.fromLTRB(14, 12, 14, 28),
+        ),
         children: [
           _label(context, l10n.settingsInterfaceGroupControls),
-          SettingsCard(children: [
-            SettingAnchor(
-              id: SettingIds.autoHide,
-              child: SettingStepper(
-                title: l10n.settingsInterfaceAutoHide,
-                value: (s.controlsAutoHideMs / 1000).round().clamp(1, 10),
-                min: 1, max: 10, step: 1, label: (v) => '$v s',
-                onChanged: (v) => n.set(s.copyWith(controlsAutoHideMs: v * 1000))),
-            ),
-            if (!ref.watch(isTelevisionProvider)) SettingAnchor(
-              id: SettingIds.rememberOrientation,
-              child: SettingSwitch(
-                title: l10n.settingsInterfaceRememberOrientation, value: s.rememberOrientationLock,
-                onChanged: (v) => n.set(s.copyWith(rememberOrientationLock: v))),
-            ),
-          ]),
+          SettingsCard(
+            children: [
+              SettingAnchor(
+                id: SettingIds.autoHide,
+                child: SettingStepper(
+                  title: l10n.settingsInterfaceAutoHide,
+                  value: (s.controlsAutoHideMs / 1000).round().clamp(1, 10),
+                  min: 1,
+                  max: 10,
+                  step: 1,
+                  label: (v) => '$v s',
+                  onChanged: (v) =>
+                      n.set(s.copyWith(controlsAutoHideMs: v * 1000)),
+                ),
+              ),
+              if (!ref.watch(isTelevisionProvider))
+                SettingAnchor(
+                  id: SettingIds.rememberOrientation,
+                  child: SettingSwitch(
+                    title: l10n.settingsInterfaceRememberOrientation,
+                    value: s.rememberOrientationLock,
+                    onChanged: (v) =>
+                        n.set(s.copyWith(rememberOrientationLock: v)),
+                  ),
+                ),
+            ],
+          ),
           const SizedBox(height: 16),
           _label(context, l10n.settingsInterfaceGroupVideo),
-          SettingsCard(children: [
-            SettingAnchor(
-              id: SettingIds.defaultAspect,
-              child: SettingSegmented<String>(
-                title: l10n.settingsInterfaceDefaultAspect, value: s.defaultAspectMode,
-                options: [
-                  ('fit', l10n.settingsInterfaceAspectFit),
-                  ('fill', l10n.settingsInterfaceAspectFill),
-                  ('stretch', l10n.settingsInterfaceAspectStretch),
-                ],
-                onChanged: (v) => n.set(s.copyWith(defaultAspectMode: v))),
-            ),
-          ]),
-          const SizedBox(height: 16),
-          _label(context, l10n.settingsInterfaceGroupOverlay),
-          SettingsCard(children: [
-            SettingAnchor(
-              id: SettingIds.showOverlay,
-              child: SettingSwitch(
-                title: l10n.settingsInterfaceShowOverlay, value: s.showInfoOverlay,
-                onChanged: (v) => n.set(s.copyWith(showInfoOverlay: v))),
-            ),
-            if (s.showInfoOverlay) ...[
+          SettingsCard(
+            children: [
               SettingAnchor(
-                id: SettingIds.overlayContent,
-                child: SettingChoice<String>(
-                  title: l10n.settingsInterfaceOverlayContent, value: s.infoOverlayContent,
+                id: SettingIds.defaultAspect,
+                child: SettingSegmented<String>(
+                  title: l10n.settingsInterfaceDefaultAspect,
+                  value: s.defaultAspectMode,
                   options: [
-                    ('name_time', l10n.settingsInterfaceOverlayContentNameTime),
-                    ('name', l10n.settingsInterfaceOverlayContentNameOnly),
-                    ('remaining', l10n.settingsInterfaceOverlayContentRemaining),
+                    ('fit', l10n.settingsInterfaceAspectFit),
+                    ('fill', l10n.settingsInterfaceAspectFill),
+                    ('stretch', l10n.settingsInterfaceAspectStretch),
                   ],
-                  onChanged: (v) => n.set(s.copyWith(infoOverlayContent: v))),
-              ),
-              SettingAnchor(
-                id: SettingIds.overlayCorner,
-                child: SettingCornerPicker(
-                  title: l10n.settingsInterfaceOverlayCorner, value: s.infoOverlayCorner,
-                  onChanged: (v) => n.set(s.copyWith(infoOverlayCorner: v))),
+                  onChanged: (v) => n.set(s.copyWith(defaultAspectMode: v)),
+                ),
               ),
             ],
-          ]),
+          ),
+          const SizedBox(height: 16),
+          _label(context, l10n.settingsInterfaceGroupOverlay),
+          SettingsCard(
+            children: [
+              SettingAnchor(
+                id: SettingIds.showOverlay,
+                child: SettingSwitch(
+                  title: l10n.settingsInterfaceShowOverlay,
+                  value: s.showInfoOverlay,
+                  onChanged: (v) => n.set(s.copyWith(showInfoOverlay: v)),
+                ),
+              ),
+              if (s.showInfoOverlay) ...[
+                SettingAnchor(
+                  id: SettingIds.overlayContent,
+                  child: SettingChoice<String>(
+                    title: l10n.settingsInterfaceOverlayContent,
+                    value: s.infoOverlayContent,
+                    options: [
+                      (
+                        'name_time',
+                        l10n.settingsInterfaceOverlayContentNameTime,
+                      ),
+                      ('name', l10n.settingsInterfaceOverlayContentNameOnly),
+                      (
+                        'remaining',
+                        l10n.settingsInterfaceOverlayContentRemaining,
+                      ),
+                    ],
+                    onChanged: (v) => n.set(s.copyWith(infoOverlayContent: v)),
+                  ),
+                ),
+                SettingAnchor(
+                  id: SettingIds.overlayCorner,
+                  child: SettingCornerPicker(
+                    title: l10n.settingsInterfaceOverlayCorner,
+                    value: s.infoOverlayCorner,
+                    onChanged: (v) => n.set(s.copyWith(infoOverlayCorner: v)),
+                  ),
+                ),
+              ],
+            ],
+          ),
           const SizedBox(height: 16),
           _label(context, l10n.settingsGroupLibrary),
-          SettingsCard(children: [
-            SettingAnchor(
-              id: SettingIds.libraryColumns,
-              child: SettingSegmented<int>(
-                title: l10n.settingsInterfaceColumns, value: s.libraryColumns,
-                options: const [(1, '1'), (2, '2'), (3, '3')],
-                onChanged: (v) => n.set(s.copyWith(libraryColumns: v))),
-            ),
-            SettingChoice<int>(
-              title: l10n.libraryWideDensitySetting,
-              value: s.wideLibraryDensity,
-              options: wideDensityOptions(context),
-              onChanged: (v) => n.set(s.copyWith(wideLibraryDensity: v)),
-            ),
-          ]),
+          SettingsCard(
+            children: [
+              SettingAnchor(
+                id: SettingIds.libraryColumns,
+                child: SettingSegmented<int>(
+                  title: l10n.settingsInterfaceColumns,
+                  value: s.libraryColumns,
+                  options: const [(1, '1'), (2, '2'), (3, '3')],
+                  onChanged: (v) => n.set(s.copyWith(libraryColumns: v)),
+                ),
+              ),
+              SettingChoice<int>(
+                title: l10n.libraryWideDensitySetting,
+                value: s.wideLibraryDensity,
+                options: wideDensityOptions(context),
+                onChanged: (v) => n.set(s.copyWith(wideLibraryDensity: v)),
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 
   Widget _label(BuildContext context, String text) => Padding(
-        padding: const EdgeInsets.fromLTRB(6, 8, 6, 8),
-        child: Text(text.toUpperCase(),
-            style: TextStyle(fontSize: 10.5, letterSpacing: 1.4, fontWeight: FontWeight.w700,
-                color: Theme.of(context).colorScheme.secondary)),
-      );
+    padding: const EdgeInsets.fromLTRB(6, 8, 6, 8),
+    child: Text(
+      text.toUpperCase(),
+      style: TextStyle(
+        fontSize: TvInputMode.of(context) ? 18 : 10.5,
+        letterSpacing: 1.4,
+        fontWeight: FontWeight.w700,
+        color: Theme.of(context).colorScheme.secondary,
+      ),
+    ),
+  );
 }

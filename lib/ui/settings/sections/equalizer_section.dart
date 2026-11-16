@@ -1,3 +1,5 @@
+import '../../tv/tv_input_mode.dart';
+import '../widgets/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,12 +12,15 @@ import '../../../player/audio/equalizer_controller.dart';
 import '../search/settings_search.dart';
 import '../widgets/setting_anchor.dart';
 import '../widgets/setting_tiles.dart';
+import '../widgets/setting_choice.dart';
+import '../../tv/tv_panel.dart';
 import '../../widgets/readable_width.dart';
 import '../../widgets/kivo_focusable.dart';
 
 /// Maps [preset] to its localized display name. Kept outside the widget so
 /// [more_menu.dart]'s Ecualizador subtitle can reuse the same mapping.
-String eqPresetLabel(AppLocalizations l10n, EqPreset preset) => switch (preset) {
+String eqPresetLabel(AppLocalizations l10n, EqPreset preset) =>
+    switch (preset) {
       EqPreset.flat => l10n.settingsEqPresetFlat,
       EqPreset.bass => l10n.settingsEqPresetBass,
       EqPreset.voice => l10n.settingsEqPresetVoice,
@@ -57,19 +62,77 @@ class _EqualizerSectionState extends ConsumerState<EqualizerSection> {
     final notifier = ref.read(equalizerProvider.notifier);
     final preset = presetFor(eq);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.settingsEqualizerTitle)),
-      body: SettingsScrollBody(
-        padding: readablePadding(context, const EdgeInsets.fromLTRB(14, 12, 14, 28)),
-        children: [
-          SettingsCard(children: [
+    if (TvInputMode.of(context)) {
+      return SettingsSectionPage(
+        title: l10n.settingsEqualizerTitle,
+        body: SettingsScrollBody(
+          padding: EdgeInsets.zero,
+          children: [
             SettingSwitch(
               title: l10n.settingsEqualizerTitle,
               subtitle: l10n.settingsEqSwitchSubtitle,
               value: eq.enabled,
               onChanged: notifier.setEnabled,
             ),
-          ]),
+            SettingChoice<EqPreset>(
+              title: l10n.settingsEqGroupPresets,
+              value: preset,
+              options: [
+                for (final p in EqPreset.values.where(
+                  (p) => p != EqPreset.custom,
+                ))
+                  (p, eqPresetLabel(l10n, p)),
+              ],
+              onChanged: (p) => notifier.applyPreset(p.name),
+            ),
+            for (var i = 0; i < equalizerBandsHz.length; i++)
+              SettingSlider(
+                title: '${equalizerBandsHz[i]} Hz',
+                value: eq.gainsDb[i],
+                min: equalizerMinDb,
+                max: equalizerMaxDb,
+                divisions: ((equalizerMaxDb - equalizerMinDb) / equalizerStepDb)
+                    .round(),
+                label: (v) => '${v.toStringAsFixed(1)} dB',
+                onChanged: (v) => notifier.setBand(i, v),
+              ),
+            SettingSlider(
+              title: l10n.settingsEqPreampGain,
+              value: eq.preampDb,
+              min: equalizerMinDb,
+              max: equalizerMaxDb,
+              divisions: ((equalizerMaxDb - equalizerMinDb) / equalizerStepDb)
+                  .round(),
+              label: (v) => '${v.toStringAsFixed(1)} dB',
+              onChanged: notifier.setPreamp,
+            ),
+            TvOptionRow(
+              label: l10n.settingsResetAction,
+              icon: Icons.restart_alt,
+              onPressed: notifier.resetCurve,
+            ),
+          ],
+        ),
+      );
+    }
+    return SettingsSectionPage(
+      title: l10n.settingsEqualizerTitle,
+      body: SettingsScrollBody(
+        padding: readablePadding(
+          context,
+          const EdgeInsets.fromLTRB(14, 12, 14, 28),
+        ),
+        children: [
+          SettingsCard(
+            children: [
+              SettingSwitch(
+                title: l10n.settingsEqualizerTitle,
+                subtitle: l10n.settingsEqSwitchSubtitle,
+                value: eq.enabled,
+                onChanged: notifier.setEnabled,
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
           _label(context, l10n.settingsEqGroupPresets),
           SettingAnchor(
@@ -79,7 +142,9 @@ class _EqualizerSectionState extends ConsumerState<EqualizerSection> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                for (final p in EqPreset.values.where((p) => p != EqPreset.custom))
+                for (final p in EqPreset.values.where(
+                  (p) => p != EqPreset.custom,
+                ))
                   _PresetChip(
                     label: eqPresetLabel(l10n, p),
                     selected: preset == p,
@@ -91,45 +156,50 @@ class _EqualizerSectionState extends ConsumerState<EqualizerSection> {
           ),
           const SizedBox(height: 16),
           _label(context, l10n.settingsEqGroupBands),
-          SettingsCard(children: [
-            SettingAnchor(
-              id: SettingIds.eqBands,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(4, 16, 4, 6),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    for (var i = 0; i < equalizerBandsHz.length; i++)
-                      Expanded(
-                        child: _BandSlider(
-                          hz: equalizerBandsHz[i],
-                          db: eq.gainsDb[i],
-                          accent: accent,
-                          onChanged: (v) => notifier.setBand(i, v),
+          SettingsCard(
+            children: [
+              SettingAnchor(
+                id: SettingIds.eqBands,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 16, 4, 6),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      for (var i = 0; i < equalizerBandsHz.length; i++)
+                        Expanded(
+                          child: _BandSlider(
+                            hz: equalizerBandsHz[i],
+                            db: eq.gainsDb[i],
+                            accent: accent,
+                            onChanged: (v) => notifier.setBand(i, v),
+                          ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ]),
+            ],
+          ),
           const SizedBox(height: 16),
           _label(context, l10n.settingsEqGroupPreamp),
-          SettingsCard(children: [
-            SettingAnchor(
-              id: SettingIds.eqPreamp,
-              child: SettingSlider(
-                title: l10n.settingsEqPreampGain,
-                value: eq.preampDb,
-                min: equalizerMinDb,
-                max: equalizerMaxDb,
-                divisions:
-                    ((equalizerMaxDb - equalizerMinDb) / equalizerStepDb).round(),
-                label: (v) => '${v > 0 ? '+' : ''}${v.toStringAsFixed(1)} dB',
-                onChanged: notifier.setPreamp,
+          SettingsCard(
+            children: [
+              SettingAnchor(
+                id: SettingIds.eqPreamp,
+                child: SettingSlider(
+                  title: l10n.settingsEqPreampGain,
+                  value: eq.preampDb,
+                  min: equalizerMinDb,
+                  max: equalizerMaxDb,
+                  divisions:
+                      ((equalizerMaxDb - equalizerMinDb) / equalizerStepDb)
+                          .round(),
+                  label: (v) => '${v > 0 ? '+' : ''}${v.toStringAsFixed(1)} dB',
+                  onChanged: notifier.setPreamp,
+                ),
               ),
-            ),
-          ]),
+            ],
+          ),
           const SizedBox(height: 18),
           _ResetTile(onTap: notifier.resetCurve),
         ],
@@ -138,11 +208,17 @@ class _EqualizerSectionState extends ConsumerState<EqualizerSection> {
   }
 
   Widget _label(BuildContext context, String text) => Padding(
-        padding: const EdgeInsets.fromLTRB(6, 8, 6, 8),
-        child: Text(text.toUpperCase(),
-            style: TextStyle(fontSize: 10.5, letterSpacing: 1.4, fontWeight: FontWeight.w700,
-                color: Theme.of(context).colorScheme.secondary)),
-      );
+    padding: const EdgeInsets.fromLTRB(6, 8, 6, 8),
+    child: Text(
+      text.toUpperCase(),
+      style: TextStyle(
+        fontSize: TvInputMode.of(context) ? 18 : 10.5,
+        letterSpacing: 1.4,
+        fontWeight: FontWeight.w700,
+        color: Theme.of(context).colorScheme.secondary,
+      ),
+    ),
+  );
 }
 
 class _PresetChip extends StatelessWidget {
@@ -198,8 +274,9 @@ class _BandSlider extends StatelessWidget {
     required this.onChanged,
   });
 
-  String get _freqLabel =>
-      hz >= 1000 ? '${(hz / 1000).toStringAsFixed(hz % 1000 == 0 ? 0 : 1)}K' : '$hz';
+  String get _freqLabel => hz >= 1000
+      ? '${(hz / 1000).toStringAsFixed(hz % 1000 == 0 ? 0 : 1)}K'
+      : '$hz';
 
   @override
   Widget build(BuildContext context) {
@@ -231,8 +308,8 @@ class _BandSlider extends StatelessWidget {
                 value: db.clamp(equalizerMinDb, equalizerMaxDb),
                 min: equalizerMinDb,
                 max: equalizerMaxDb,
-                divisions:
-                    ((equalizerMaxDb - equalizerMinDb) / equalizerStepDb).round(),
+                divisions: ((equalizerMaxDb - equalizerMinDb) / equalizerStepDb)
+                    .round(),
                 activeColor: accent,
                 inactiveColor: cs.onSurfaceVariant.withValues(alpha: 0.3),
                 onChanged: onChanged,
@@ -267,8 +344,14 @@ class _ResetTile extends StatelessWidget {
           color: cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(13),
         ),
-        child: Text(context.l10n.settingsResetAction,
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: cs.secondary)),
+        child: Text(
+          context.l10n.settingsResetAction,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: cs.secondary,
+          ),
+        ),
       ),
     );
   }
